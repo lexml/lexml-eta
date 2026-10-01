@@ -6,7 +6,6 @@ import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoRed
 import { State } from '../../../src/redux/state';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
@@ -47,15 +46,9 @@ describe('Bug: serialização de remissão após renumeração sem digitação',
     // Bootstrap: monta o registry como aconteceria em ABRIR_ARTICULACAO.
     const remissoesIniciais = inicializaRemissoesAoAbrir(articulacao);
 
-    // Marca os artigos como adicionados (para permitir renumeração via reducer).
-    art1.situacao = new DispositivoAdicionado();
-    art1.caput!.situacao = new DispositivoAdicionado();
-    art2.situacao = new DispositivoAdicionado();
-    art2.caput!.situacao = new DispositivoAdicionado();
-
     const state: State = {
       articulacao,
-      modo: 'emenda',
+      modo: ClassificacaoDocumento.PROJETO,
       past: [],
       present: [],
       future: [],
@@ -130,17 +123,12 @@ describe('Bug: serialização de remissão após renumeração sem digitação',
     art2.createRotulo(art2);
     updateIdDispositivoAndFilhos(articulacao);
 
-    art1.situacao = new DispositivoAdicionado();
-    art1.caput!.situacao = new DispositivoAdicionado();
-    art2.situacao = new DispositivoAdicionado();
-    art2.caput!.situacao = new DispositivoAdicionado();
-
     const art2UuidOriginal = art2.uuid!;
 
     // Estado inicial sem remissões — vamos disparar adicionaRemissaoInterna em seguida.
     const stateInicial: State = {
       articulacao,
-      modo: 'emenda',
+      modo: ClassificacaoDocumento.PROJETO,
       past: [],
       present: [],
       future: [],
@@ -196,15 +184,17 @@ describe('Bug: serialização de remissão após renumeração sem digitação',
   });
 });
 
-// Reproduz o bug de assimetria no sentinela @invalido:
+// Reproduz o bug de assimetria (histórico: sentinela @invalido aplicado só a um dos dois casos):
 // Ao excluir Art. 1 (com Art. 2 e Art. 3 tendo remissões para ele), a serialização
-// aplicava @invalido corretamente apenas no Art. 3 (que tinha HTML em caput.texto),
-// mas não no Art. 2 (que tinha texto plain — remissão só existia no DOM do Quill).
+// só corrigia o Art. 3 (que tinha HTML em caput.texto), mas não o Art. 2 (que tinha
+// texto plain — remissão só existia no DOM do Quill).
 // Causa: registry usa artigo.uuid como chave; completarRegistroRemissoes visitava o
 // caput (cujo uuid é diferente), não encontrava entrada, re-detectava do texto plain
 // e criava uma entrada VÁLIDA para o novo Art. 1 (lexmlId reciclado após renumeração).
-describe('Bug: assimetria no sentinela @invalido após exclusão com texto plain', () => {
-  it('ambos os artigos com remissão inválida devem serializar href="@invalido"', () => {
+// Hoje, ambos os caminhos devem preservar o último destino conhecido ('art1') em vez
+// do sentinela — a regressão de assimetria seria os dois caminhos divergirem entre si.
+describe('Preservação simétrica do destino conhecido após exclusão com texto plain e HTML', () => {
+  it('ambos os artigos com remissão inválida devem preservar href="art1"', () => {
     const articulacao = createArticulacao();
 
     const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
@@ -227,13 +217,6 @@ describe('Bug: assimetria no sentinela @invalido após exclusão com texto plain
     // Substitui o placeholder pelo uuid real de art1
     art3.texto = `Ver o <a href="#lxEtaId${art1.uuid}" data-lexml-ref="art1" class="lexml-remissao-interna" target="_self">art. 1º</a> desta lei.`;
 
-    art1.situacao = new DispositivoAdicionado();
-    art1.caput!.situacao = new DispositivoAdicionado();
-    art2.situacao = new DispositivoAdicionado();
-    art2.caput!.situacao = new DispositivoAdicionado();
-    art3.situacao = new DispositivoAdicionado();
-    art3.caput!.situacao = new DispositivoAdicionado();
-
     const art2Uuid = art2.uuid!;
     const art3Uuid = art3.uuid!;
 
@@ -242,7 +225,7 @@ describe('Bug: assimetria no sentinela @invalido após exclusão com texto plain
     const elementoArt2 = createElemento(art2, true);
     const stateInicial: State = {
       articulacao,
-      modo: 'emenda',
+      modo: ClassificacaoDocumento.PROJETO,
       past: [],
       present: [],
       future: [],
@@ -296,10 +279,10 @@ describe('Bug: assimetria no sentinela @invalido após exclusão com texto plain
 
     const remissaoArt2 = getRemissao(0);
     expect(remissaoArt2, 'art2 (texto plain) deve ter nó Remissao').to.exist;
-    expect(remissaoArt2.value.href, 'art2 deve serializar @invalido, não art1 reciclado').to.equal('@invalido');
+    expect(remissaoArt2.value.href, 'art2 deve preservar art1, não o art1 reciclado como se fosse válido').to.equal('art1');
 
     const remissaoArt3 = getRemissao(1);
     expect(remissaoArt3, 'art3 (HTML) deve ter nó Remissao').to.exist;
-    expect(remissaoArt3.value.href).to.equal('@invalido');
+    expect(remissaoArt3.value.href).to.equal('art1');
   });
 });

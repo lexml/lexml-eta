@@ -6,6 +6,10 @@ export interface RemissaoExternaValue {
   targetFragmento?: string;
   textoRef?: string;
   sourceUuid?: number;
+
+  inicio?: number; // posição de início no texto do dispositivo de origem
+
+  fim?: number; // fim exclusivo (inicio + textoRef.length) — usado para excluir o trecho da detecção interna, evitando falso positivo do achado #4
 }
 
 export interface RemissaoInternaValue {
@@ -13,11 +17,15 @@ export interface RemissaoInternaValue {
 
   targetUuid?: number;
 
+  targetUuid2?: string; // identidade que sobrevive a mover/undo, que trocam o uuid
+
   targetLexmlId?: string;
 
   targetRotulo?: string;
 
   sourceUuid?: number;
+
+  sourceUuid2?: string;
 
   sourceLexmlId?: string;
 
@@ -26,6 +34,8 @@ export interface RemissaoInternaValue {
   inicio?: number; // posição de início no texto do dispositivo de origem
 
   valida?: boolean; // false = dispositivo destino foi excluído; undefined = sem informação de validade
+
+  idPersistido?: string; // id `_ri...` gravado no <Remissao> quando valida === false; estável entre saves e sobrevive a reabertura
 
   revisao?: true; // presente apenas quando texto não pôde ser atualizado após renumeração
 

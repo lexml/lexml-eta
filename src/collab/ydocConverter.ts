@@ -1,14 +1,10 @@
 import * as Y from 'yjs';
 import { Articulacao, Artigo, Dispositivo } from '../model/dispositivo/dispositivo';
-import { DescricaoSituacao, TipoSituacao } from '../model/dispositivo/situacao';
 import { isArtigo } from '../model/dispositivo/tipo';
 import { ClassificacaoDocumento } from '../model/documento/classificacao';
 import { TipoDispositivo } from '../model/lexml/tipo/tipoDispositivo';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
-import { DispositivoAdicionado } from '../model/lexml/situacao/dispositivoAdicionado';
-import { DispositivoNovo } from '../model/lexml/situacao/dispositivoNovo';
-import { DispositivoOriginal } from '../model/lexml/situacao/dispositivoOriginal';
 import { ordemCanonica } from './canonicalOrder';
 import { GidRegistry, gidDeterministico } from './gid';
 
@@ -22,10 +18,6 @@ export interface ResultadoReconstrucao {
 
 const construirMeta = (d: Dispositivo): Y.Map<unknown> => {
   const meta = new Y.Map<unknown>();
-  const descricao = (d.situacao as TipoSituacao | undefined)?.descricaoSituacao;
-  if (descricao) {
-    meta.set('situacao', descricao);
-  }
   if (d.notaAlteracao) {
     meta.set('notaAlteracao', d.notaAlteracao);
   }
@@ -35,24 +27,7 @@ const construirMeta = (d: Dispositivo): Y.Map<unknown> => {
   return meta;
 };
 
-// Modificado/Suprimido carregam um snapshot Elemento no construtor (estado não-derivável pesado):
-// seu round-trip completo é território de meta/Fase 5 e fica fora do núcleo da Fase 0.
-const situacaoPorDescricao = (descricao: DescricaoSituacao): TipoSituacao => {
-  switch (descricao) {
-    case DescricaoSituacao.DISPOSITIVO_ORIGINAL:
-      return new DispositivoOriginal();
-    case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
-      return new DispositivoAdicionado();
-    default:
-      return new DispositivoNovo();
-  }
-};
-
 const aplicarMeta = (d: Dispositivo, meta: Y.Map<unknown>): void => {
-  const descricao = meta.get('situacao') as DescricaoSituacao | undefined;
-  if (descricao) {
-    (d as unknown as { situacao: TipoSituacao }).situacao = situacaoPorDescricao(descricao);
-  }
   const nota = meta.get('notaAlteracao') as string | undefined;
   if (nota) {
     d.notaAlteracao = nota;

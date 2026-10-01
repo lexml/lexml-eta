@@ -24,7 +24,6 @@ import {
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { ADICIONAR_AGRUPADOR_ARTIGO } from '../../../model/lexml/acao/adicionarAgrupadorArtigoAction';
-import { AGRUPAR_ELEMENTO } from '../../../model/lexml/acao/agruparElementoAction';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
 
@@ -131,7 +130,7 @@ const incluiDispositivosNaPaginacao = (state: any, elementos: Elemento[] = [], a
   let paginaDestino: PaginaArticulacao | undefined = undefined;
   let definirArticulacaoComoElementoAnteriorDoPrimeiroDispositivoInserido = false;
 
-  if ([ADICIONAR_ELEMENTO, ADICIONAR_AGRUPADOR_ARTIGO, AGRUPAR_ELEMENTO].includes(action?.type) && action.atual) {
+  if ([ADICIONAR_ELEMENTO, ADICIONAR_AGRUPADOR_ARTIGO].includes(action?.type) && action.atual) {
     paginaDestino = findPaginaByUuidDispositivo(state.ui.paginacao, action.atual.uuid);
     const indexAtual = paginaDestino?.dispositivos.findIndex(d => d.uuid === action.atual.uuid);
     if (indexAtual === 0 && (action.posicao === 'antes' || action.novo?.posicao === 'antes')) {

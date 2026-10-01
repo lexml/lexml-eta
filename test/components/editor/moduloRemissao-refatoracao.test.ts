@@ -1,4 +1,5 @@
 import { expect } from '@open-wc/testing';
+import PrivateQuill from '../../../src/internal/quill/private-quill';
 import { RemissaoInternaBlot } from '../../../src/util/eta-quill/eta-blot-remissao-interna';
 import { ModuloRemissao } from '../../../src/components/editor/moduloRemissao';
 import { ADICIONAR_REMISSAO_INTERNA } from '../../../src/model/lexml/acao/adicionarRemissaoInternaAction';
@@ -6,7 +7,6 @@ import { buscarAncestralPorTipo } from '../../../src/redux/elemento/reducer/adic
 import { getDispositivoFromElemento, createElemento } from '../../../src/model/elemento/elementoUtil';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 
 // ---------------------------------------------------------------------------
@@ -69,8 +69,8 @@ describe('Dupla registracao: Quill.register com overwrite:true e seguro', () => 
   it('registrar o mesmo modulo duas vezes com overwrite:true nao lanca erro', () => {
     let threwError = false;
     try {
-      Quill.register('modules/remissaoInterna', ModuloRemissao, true);
-      Quill.register('modules/remissaoInterna', ModuloRemissao, true);
+      PrivateQuill.register('modules/remissaoInterna', ModuloRemissao, true);
+      PrivateQuill.register('modules/remissaoInterna', ModuloRemissao, true);
     } catch (e) {
       threwError = true;
     }
@@ -281,11 +281,6 @@ describe('buscarAncestralPorTipo vs getDispositivoFromElemento: equivalencia', (
     const art = criaDispositivo(articulacao, 'Artigo') as Artigo;
     const par = criaDispositivo(art, 'Paragrafo');
     const inc = criaDispositivo(par, 'Inciso');
-
-    art.situacao = new DispositivoAdicionado();
-    (art as any).caput.situacao = new DispositivoAdicionado();
-    par.situacao = new DispositivoAdicionado();
-    inc.situacao = new DispositivoAdicionado();
 
     articulacao.renumeraFilhos();
     (art as any).renumeraFilhos?.();

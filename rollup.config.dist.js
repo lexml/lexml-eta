@@ -1,38 +1,89 @@
 import typescript from '@rollup/plugin-typescript';
 import nodeResolve from '@rollup/plugin-node-resolve';
-import { terser } from "rollup-plugin-terser";
+import copy from 'rollup-plugin-copy';
+import { terser } from 'rollup-plugin-terser';
+import { createPrivateQuillRollupPlugin, isQuillUmdModule } from './private-quill.mjs';
+
+const isPrivateQuillDependency = id => id === 'quill' || id.startsWith('quill/');
+
+const external = id => {
+  if (isPrivateQuillDependency(id)) {
+    return false;
+  }
+
+  return (
+    id === 'lit' || id.startsWith('lit/') || id === 'lit-html' || id.startsWith('lit-html/') || id === '@shoelace-style/shoelace' || id.startsWith('@shoelace-style/shoelace/')
+  );
+};
+
+const validatePrivateQuillBundle = () => ({
+  name: 'validate-private-quill-bundle',
+  generateBundle(_options, bundle) {
+    const chunks = Object.values(bundle).filter(artifact => artifact.type === 'chunk');
+    if (!chunks.some(artifact => artifact.isEntry)) {
+      return;
+    }
+
+    // Com code-split (lazy-load da colaboração) a cópia privada pode ficar num chunk compartilhado,
+    // não no entry: a checagem de inclusão e de exposição global vale para o conjunto dos chunks.
+    for (const artifact of chunks) {
+      const externalQuillImports = artifact.imports.filter(isPrivateQuillDependency);
+      if (externalQuillImports.length > 0) {
+        this.error(`O bundle externalizou Quill: ${externalQuillImports.join(', ')}`);
+      }
+
+      if (/(?:window|globalThis)\s*\.\s*Quill\s*=/.test(artifact.code)) {
+        this.error('O bundle está expondo sua cópia privada por window.Quill ou globalThis.Quill.');
+      }
+    }
+
+    const includesPrivateQuill = chunks.some(artifact => Object.keys(artifact.modules).some(isQuillUmdModule));
+    if (!includesPrivateQuill) {
+      this.error('O bundle não contém sua cópia privada de quill/dist/quill.js.');
+    }
+  },
+});
 
 const configTs = {
-	input: 'src/index.ts',
-	output: {
-		dir: 'dist',
-		sourcemap: true,
-	},
-	plugins: [
-		typescript({tsconfig: 'tsconfig.dist.json'}),
+  input: 'src/index.ts',
+  external,
+  output: {
+    dir: 'dist',
+    sourcemap: true,
+  },
+  plugins: [
+    typescript({ tsconfig: 'tsconfig.dist.json' }),
     nodeResolve(),
-	],
+    // Assets do lexml-linker só são referenciados em runtime (new URL(...)), fora do grafo do Rollup.
+    copy({
+      targets: [
+        { src: 'src/util/lexml-linker/vendor/lexml-linker.wasm', dest: 'dist/vendor' },
+        { src: 'src/util/lexml-linker/vendor/lexml-linker.wasm.br', dest: 'dist/vendor' },
+        { src: 'src/util/lexml-linker/vendor/lexml-linker.mjs', dest: 'dist/vendor' },
+        { src: 'src/util/lexml-linker/vendor/browser-wasi-shim.mjs', dest: 'dist/vendor' },
+      ],
+    }),
+    createPrivateQuillRollupPlugin(),
+    validatePrivateQuillBundle()
+  ],
 };
 
 const configTsMin = {
-	input: 'src/index.ts',
-	output: {
-		file: 'dist/index.min.js',
+  input: 'src/index.ts',
+  external,
+  output: {
+    file: 'dist/index.min.js',
     sourcemap: true,
     // bundle único standalone: inline dos import() dinâmicos (transporteReal/quill-cursors).
     // O entry do pacote (dist/index.js) segue code-split, preservando o lazy-load da colaboração.
     inlineDynamicImports: true,
-	},
-	plugins: [
-		typescript({tsconfig: 'tsconfig.dist.json'}),
-    nodeResolve(),
-    terser(),
-	],
-}
+  },
+  plugins: [typescript({ tsconfig: 'tsconfig.dist.json' }), nodeResolve(), createPrivateQuillRollupPlugin(), terser(), validatePrivateQuillBundle()],
+};
+
+// lexml-linker.worker.ts é compilado à parte, via tsc puro (ver tsconfig.worker-dist.json e o
+// script build:lexml-linker-worker-dist) — @rollup/plugin-typescript trava em OOM ao processar os .mjs
+// vendorizados (minificados) importados por ele.
 
 // Configuração rollup usada para atualizar a pasta "dist", que será a raiz da publicação.
-export default [
-	configTs,
-  configTsMin,
-]
-
+export default [configTs, configTsMin];

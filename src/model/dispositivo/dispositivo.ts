@@ -1,15 +1,15 @@
 import { ProjetoNorma } from './../lexml/documento/projetoNorma';
 import { Regras } from '../lexml/regras/regras';
+import { ElementoAction } from '../lexml/acao';
 import { BlocoAlteracao } from './blocoAlteracao';
 import { Conteudo } from './conteudo';
 import { Genero } from './genero';
 import { Hierarquia } from './hierarquia';
 import { Numeracao } from './numeracao';
-import { Situacao } from './situacao';
 import { Tipo } from './tipo';
 import { Validacao } from './validacao';
 
-export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, BlocoAlteracao, Genero, Regras, Situacao, Validacao {
+export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, BlocoAlteracao, Genero, Regras, Validacao {
   tipo: string;
   href?: string;
   id?: string;
@@ -21,6 +21,8 @@ export interface Dispositivo extends Tipo, Hierarquia, Numeracao, Conteudo, Bloc
   motivosOperacaoNaoPermitida?: string[];
   bloqueado?: boolean;
   tituloDispositivo?: string;
+  existeNaNormaAlterada?: boolean;
+  getAcoesPermitidas(dispositivo: Dispositivo, acoes: ElementoAction[]): ElementoAction[];
 }
 
 export interface Articulacao extends Dispositivo {

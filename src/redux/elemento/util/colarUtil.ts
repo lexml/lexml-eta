@@ -3,16 +3,8 @@ import { isAgrupador, isArticulacao, isCaput, isItem, Tipo, isAlinea, isAgrupado
 import { buildDispositivoFromJsonix } from './../../../model/lexml/documento/conversor/buildDispositivoFromJsonix';
 import { Elemento } from './../../../model/elemento/elemento';
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isArtigo, isInciso, isOmissis } from '../../../model/dispositivo/tipo';
-import {
-  getArticulacao,
-  getDispositivoAndFilhosAsLista,
-  isDispositivoAlteracao,
-  irmaosMesmoTipo,
-  isModificadoOuSuprimido,
-  isOriginal,
-} from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, isDispositivoAlteracao, irmaosMesmoTipo } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { escapeRegex, removeAllHtmlTags, removeAllHtmlTagsExcept } from '../../../util/string-util';
@@ -47,8 +39,6 @@ export enum TipoRestricaoEnum {
   DISPOSITIVOS_COM_ROTULO_DUPLICADO,
   ARTIGOS_SEM_NUMERACAO_DENTRO_DE_ALTERACAO,
   ALTERACAO_DENTRO_DE_ALTERACAO,
-  FILHOS_EM_DISPOSITIVO_SUPRIMIDO,
-  DISPOSITIVO_JA_MODIFICADO,
   DISPOSITIVO_EM_POSICAO_INVALIDA,
   DISPOSITIVO_ANTES_DO_ATUAL,
   ARTIGO_COM_FILHOS_SOBRE_ARTIGO_COM_ALTERACOES,
@@ -285,7 +275,7 @@ export const montarListaDispositivosExistentes = (articulacao: Articulacao, arti
       }
       return acc;
     }, [] as string[]);
-  return getDispositivoAndFilhosAsLista(articulacao).filter(d => isOriginal(d) && idsColados.includes(d.id!));
+  return getDispositivoAndFilhosAsLista(articulacao).filter(d => idsColados.includes(d.id!));
 };
 
 export const montarListaDispositivosNovos = (articulacao: Articulacao, articulacaoColada: Articulacao, referencia?: Dispositivo): Dispositivo[] => {
@@ -382,8 +372,8 @@ const existeDispositivoComRotuloDuplicado = (articulacaoColada: Articulacao): bo
 const validarArticulacaoColadaAnaliseContextualizada = (infoTextoColado: InfoTextoColado, infoDispositivos: InfoDispositivos): Restricao[] => {
   const result: Restricao[] = [];
 
-  const { textoColadoAjustado, articulacaoColada, articulacaoProposicao, tipoColado, isColarSubstituindo, posicao } = infoTextoColado;
-  const { atual, referencia, existentes: dispositivosExistentes } = infoDispositivos;
+  const { textoColadoAjustado, articulacaoColada, tipoColado, posicao } = infoTextoColado;
+  const { atual, referencia } = infoDispositivos;
 
   if (infoTextoColado.infoElementos.tiposColados.includes('DispositivoAgrupadorGenerico')) {
     return result;
@@ -406,30 +396,6 @@ const validarArticulacaoColadaAnaliseContextualizada = (infoTextoColado: InfoTex
     result.push({
       tipo: TipoRestricaoEnum.ALTERACAO_DENTRO_DE_ALTERACAO,
       mensagens: ['Não é permitido colar alteração de norma dentro de alteração de norma'],
-    });
-  }
-
-  const dispositivosExistentesAux = dispositivosExistentes || montarListaDispositivosExistentes(getArticulacao(atual), articulacaoColada, referencia);
-
-  if (atual.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_SUPRIMIDO && articulacaoColada.filhos && isColandoFilhos(articulacaoColada.filhos, atual)) {
-    result.push({
-      tipo: TipoRestricaoEnum.FILHOS_EM_DISPOSITIVO_SUPRIMIDO,
-      mensagens: ['Não é permitido colar filhos em dispositivo suprimido'],
-    });
-  }
-
-  if (isColarSubstituindo && dispositivosExistentesAux.some(isModificadoOuSuprimido)) {
-    const ids = dispositivosExistentesAux.filter(isModificadoOuSuprimido).map(d => d.id!);
-    const dispositivos = getDispositivoAndFilhosAsLista(articulacaoProposicao)
-      .filter(d => tipoColado.name === d.tipo && ids.includes(d.id!))
-      .map(d => d.rotulo?.replace(/ [-–)]/, ''))
-      .join(', ');
-
-    result.push({
-      tipo: TipoRestricaoEnum.DISPOSITIVO_JA_MODIFICADO,
-      titulo: 'Atenção, dispositivo já modificado encontrado',
-      mensagens: [`Não é permitido colar dispositivos que já foram alterados na emenda${dispositivos ? ` (veja ${pluralTipoColado}: ${dispositivos})` : ''}.`],
-      isPermitidoColarAdicionando: true,
     });
   }
 
@@ -503,10 +469,6 @@ const getDispositivoReferencia = (tipoASerColado: string, ref?: Dispositivo): Di
   } else {
     return getDispositivoReferencia(tipoASerColado, ref.pai);
   }
-};
-
-const isColandoFilhos = (filhos: Dispositivo[], atual: Dispositivo): boolean => {
-  return filhos[0].tipo !== atual.tipo && !!atual.tiposPermitidosFilhos?.includes(filhos[0].tipo);
 };
 
 export const ajustaIdsNaArticulacaoColada = (filhos: Dispositivo[], referencia: Dispositivo): void => {

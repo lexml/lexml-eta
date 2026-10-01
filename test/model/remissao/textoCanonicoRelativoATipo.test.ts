@@ -29,6 +29,7 @@ describe('textoCanonicoRelativoATipo', () => {
     const par = criaDispositivo(art, 'Paragrafo');
     criaDispositivo(par, 'Inciso');
     const inc2 = criaDispositivo(par, 'Inciso');
+    criaDispositivo(art, 'Paragrafo'); // segundo parágrafo: par não vira "único"
 
     articulacao.renumeraFilhos();
     art.renumeraFilhos();
@@ -81,6 +82,7 @@ describe('textoCanonicoRelativoATipo', () => {
     const articulacao = createArticulacao();
     const art = criaDispositivo(articulacao, 'Artigo');
     const par = criaDispositivo(art, 'Paragrafo');
+    criaDispositivo(art, 'Paragrafo'); // segundo parágrafo: par não vira "único"
     articulacao.renumeraFilhos();
     art.renumeraFilhos();
     updateIdDispositivoAndFilhos(articulacao);
@@ -94,6 +96,7 @@ describe('textoCanonicoRelativoATipo', () => {
     const art = criaDispositivo(articulacao, 'Artigo');
     const par = criaDispositivo(art, 'Paragrafo');
     const inc1 = criaDispositivo(par, 'Inciso');
+    criaDispositivo(art, 'Paragrafo'); // segundo parágrafo: par não vira "único"
     articulacao.renumeraFilhos();
     art.renumeraFilhos();
     par.renumeraFilhos();

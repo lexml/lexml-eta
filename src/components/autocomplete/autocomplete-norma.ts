@@ -1,9 +1,9 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, property, state, query } from 'lit/decorators.js';
 import { Option, AutocompleteAsync } from './autocomplete-async';
-import { Norma } from '../../model/emenda/norma';
+import { Norma } from '../../model/proposicao/norma';
 
-@customElement('autocomplete-norma')
+@customElement('lexml-eta-autocomplete-norma')
 export class AutocompleteNorma extends LitElement {
   @property({ type: String })
   urnInicial = '';
@@ -66,7 +66,9 @@ export class AutocompleteNorma extends LitElement {
     const norma = new Norma(urn);
     const query = `${norma.sData()} ${norma.numero()}`;
     this._searchNormas(query).then(normas => {
-      this._selectedNorma = normas.find(n => n.urn === urn) as Norma;
+      const encontrada = normas.find(n => n.urn === urn);
+      if (!encontrada) return; // URN não encontrada na busca (ex.: citação abreviada de ano-apenas) — mantém o campo como estava
+      this._selectedNorma = encontrada;
       this.onSelect(this._selectedNorma);
       this._autoCompleteAsync.value = this._selectedNorma.nomePreferido;
     });
@@ -145,7 +147,7 @@ export class AutocompleteNorma extends LitElement {
         }
       </style>
       <div>
-        <autocomplete-async
+        <lexml-eta-autocomplete-async
           id="auto-complete-async"
           label="Identificação da norma"
           placeholder="ex: Lei 10406 ou Código Civil"
@@ -153,7 +155,7 @@ export class AutocompleteNorma extends LitElement {
           .onSearch=${value => this._handleSearch(value)}
           .onSelect=${value => this._handleSelect(value)}
           .onChange=${value => this._handleChange(value)}
-        ></autocomplete-async>
+        ></lexml-eta-autocomplete-async>
         <span class="ajuda">Informar a identificação da norma com tipo e número ou o apelido da norma. São aceitas abreviações como LCP e MPV.</span>
         <label class="lb-ementa">Ementa:</label>
         <div class="wp-ementa"><span class="sp-ementa">${(this._selectedNorma.ementa || '').slice(0, 450)}</span></div>
@@ -163,6 +165,6 @@ export class AutocompleteNorma extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'autocomplete-norma': AutocompleteNorma;
+    'lexml-eta-autocomplete-norma': AutocompleteNorma;
   }
 }

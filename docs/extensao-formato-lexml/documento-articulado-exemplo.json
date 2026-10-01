@@ -1,0 +1,624 @@
+{
+    "name": {
+        "namespaceURI": "http://www.lexml.gov.br/1.0",
+        "localPart": "LexML",
+        "prefix": "",
+        "key": "{http://www.lexml.gov.br/1.0}LexML",
+        "string": "{http://www.lexml.gov.br/1.0}LexML"
+    },
+    "value": {
+        "TYPE_NAME": "br_gov_lexml__1.LexML",
+        "metadado": {
+            "TYPE_NAME": "br_gov_lexml__1.Metadado",
+            "identificacao": {
+                "TYPE_NAME": "br_gov_lexml__1.Identificacao",
+                "urn": "urn:lex:br:senado.federal:projeto.lei:999999;9999"
+            },
+            "metadadoProprietario": [
+                {
+                    "TYPE_NAME": "br_gov_lexml__1.MetadadoProprietario",
+                    "fonte": "http://www.lexml.gov.br/lexedit/1.0",
+                    "any": [
+                        {
+                            "name": {
+                                "namespaceURI": "http://www.lexml.gov.br/lexedit/1.0",
+                                "localPart": "Metadado",
+                                "prefix": "lexedit",
+                                "key": "{http://www.lexml.gov.br/lexedit/1.0}Metadado",
+                                "string": "{http://www.lexml.gov.br/lexedit/1.0}lexedit:Metadado"
+                            },
+                            "value": {
+                                "TYPE_NAME": "br_gov_lexml_lexedit__1.Metadado",
+                                "dataUltimaModificacao": "2026-05-12T10:15:00-03:00",
+                                "aplicacao": "LexEdit",
+                                "versaoAplicacao": "1.0.0",
+                                "substitutivo": false,
+                                "local": "Sala das Sessões",
+                                "data": "2026-04-24",
+                                "opcoesImpressao": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.OpcoesImpressao",
+                                    "imprimirBrasao": true,
+                                    "textoCabecalho": "",
+                                    "reduzirEspacoEntreLinhas": false,
+                                    "tamanhoFonte": 14
+                                },
+                                "autoria": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.Autoria",
+                                    "tipo": "Parlamentar",
+                                    "imprimirPartidoUF": true,
+                                    "parlamentares": {
+                                        "TYPE_NAME": "br_gov_lexml_lexedit__1.Parlamentares",
+                                        "parlamentar": [
+                                            {
+                                                "TYPE_NAME": "br_gov_lexml_lexedit__1.Parlamentar",
+                                                "identificacao": "1111",
+                                                "nome": "Davi Alcolumbre",
+                                                "sexo": "M",
+                                                "siglaPartido": "UNIÃO",
+                                                "siglaUF": "AP",
+                                                "siglaCasaLegislativa": "SF",
+                                                "cargo": "Presidente do Senado Federal"
+                                            },
+                                            {
+                                                "TYPE_NAME": "br_gov_lexml_lexedit__1.Parlamentar",
+                                                "identificacao": "2222",
+                                                "nome": "Soraya Thronicke",
+                                                "sexo": "F",
+                                                "siglaPartido": "PSB",
+                                                "siglaUF": "MS",
+                                                "siglaCasaLegislativa": "SF",
+                                                "cargo": ""
+                                            }
+                                        ]
+                                    }
+                                },
+                                "anexos": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.Anexos",
+                                    "anexo": [
+                                        {
+                                            "TYPE_NAME": "br_gov_lexml_lexedit__1.Anexo",
+                                            "idArquivo": "f669f339-4c8c-4853-806a-706d9fbe6de1",
+                                            "nomeArquivo": "diretrizes.docx",
+                                            "nomeDocumento": "Diretrizes do programa",
+                                            "tipo": "outro",
+                                            "mimeType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                                        }
+                                    ]
+                                },
+                                "comentarios": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.Comentarios",
+                                    "sequenciaComentario": [
+                                        {
+                                            "TYPE_NAME": "br_gov_lexml_lexedit__1.SequenciaComentario",
+                                            "refIdElementoComentado": "art2_cpt",
+                                            "comentario": [
+                                                {
+                                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.Comentario",
+                                                    "refIdUsuario": "sf:fulano",
+                                                    "data": "2026-05-11T15:51:00-03:00",
+                                                    "p": [
+                                                        {
+                                                            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                            "content": [
+                                                                "Confirmar se o órgão gestor já está definido em outro dispositivo."
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.Comentario",
+                                                    "refIdUsuario": "sf:sicrana",
+                                                    "data": "2026-05-12T09:00:00-03:00",
+                                                    "p": [
+                                                        {
+                                                            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                            "content": [
+                                                                "Já está definido no art. 1º. A remissão ao art. 4º ficou inválida depois que ele foi excluído; ajustar o texto."
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        },
+                                        {
+                                            "TYPE_NAME": "br_gov_lexml_lexedit__1.SequenciaComentario",
+                                            "refIdElementoComentado": "_tc1777387565991",
+                                            "comentario": [
+                                                {
+                                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.Comentario",
+                                                    "refIdUsuario": "sf:fulano",
+                                                    "data": "2026-05-12T10:00:00-03:00",
+                                                    "p": [
+                                                        {
+                                                            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                            "content": [
+                                                                "Essa remissão ao art. 1º continua correta depois da exclusão do art. 4º?"
+                                                            ]
+                                                        }
+                                                    ]
+                                                },
+                                                {
+                                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.Comentario",
+                                                    "refIdUsuario": "sf:sicrana",
+                                                    "data": "2026-05-12T10:15:00-03:00",
+                                                    "p": [
+                                                        {
+                                                            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                            "content": [
+                                                                "Sim, o art. 1º não foi alterado nessa revisão."
+                                                            ]
+                                                        }
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    ]
+                                },
+                                "revisoesTextuais": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisoesTextuais",
+                                    "revisaoTextual": [
+                                        {
+                                            "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisaoTextual",
+                                            "refIdRevisao": "_rt245245234523",
+                                            "refIdUsuario": "sf:fulano",
+                                            "data": "2026-05-11T15:51:00-03:00"
+                                        },
+                                        {
+                                            "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisaoTextual",
+                                            "refIdRevisao": "_rt879079079778",
+                                            "refIdUsuario": "sf:fulano",
+                                            "data": "2026-05-11T15:52:00-03:00"
+                                        }
+                                    ]
+                                },
+                                "remissoesInternasInvalidas": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.RemissoesInternasInvalidas",
+                                    "refIdsRemissoesInternas": "_ri13481093417"
+                                },
+                                "pendencias": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.Pendencias",
+                                    "pendencia": [
+                                        "Corrigir remissões internas inválidas.",
+                                        "Remover comentários.",
+                                        "Resolver marcas de revisão."
+                                    ]
+                                },
+                                "revisoesArticulacao": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisoesArticulacao",
+                                    "revisaoArticulacao": [
+                                        {
+                                            "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisaoArticulacao",
+                                            "revisao": "excluido",
+                                            "refIdUsuario": "sf:sicrana",
+                                            "data": "2026-05-12T09:05:00-03:00",
+                                            "artigo": {
+                                                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                "id": "_art4-exc1",
+                                                "rotulo": "Art. 4º",
+                                                "lXcontainersOmissis": [
+                                                    {
+                                                        "name": {
+                                                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                            "localPart": "Caput",
+                                                            "prefix": "",
+                                                            "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                                            "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                                        },
+                                                        "value": {
+                                                            "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                                            "id": "_art4-exc1_cpt",
+                                                            "p": [
+                                                                {
+                                                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                    "content": [
+                                                                        "O Poder Executivo regulamentará esta Lei no prazo de noventa dias."
+                                                                    ]
+                                                                }
+                                                            ]
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                "usuarios": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.Usuarios",
+                                    "usuario": [
+                                        {
+                                            "TYPE_NAME": "br_gov_lexml_lexedit__1.Usuario",
+                                            "idUsuario": "sf:fulano",
+                                            "nome": "Fulano de Tal",
+                                            "sigla": "FT"
+                                        },
+                                        {
+                                            "TYPE_NAME": "br_gov_lexml_lexedit__1.Usuario",
+                                            "idUsuario": "sf:sicrana",
+                                            "nome": "Sicrana da Silva",
+                                            "sigla": "SS"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        "projetoNorma": {
+            "TYPE_NAME": "br_gov_lexml__1.ProjetoNorma",
+            "norma": {
+                "TYPE_NAME": "br_gov_lexml__1.HierarchicalStructure",
+                "parteInicial": {
+                    "TYPE_NAME": "br_gov_lexml__1.ParteInicial",
+                    "epigrafe": {
+                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                        "id": "epigrafe",
+                        "content": [
+                            "\r\n          PROJETO DE LEI Nº     , DE\r\n        "
+                        ]
+                    },
+                    "ementa": {
+                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                        "id": "ementa",
+                        "content": [
+                            "\r\n          Institui o Programa de Modernização da Gestão Pública\r\n        "
+                        ]
+                    },
+                    "preambulo": {
+                        "TYPE_NAME": "br_gov_lexml__1.TextoType",
+                        "id": "preambulo",
+                        "p": [
+                            {
+                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                "content": [
+                                    "O CONGRESSO NACIONAL decreta:"
+                                ]
+                            }
+                        ]
+                    }
+                },
+                "articulacao": {
+                    "TYPE_NAME": "br_gov_lexml__1.Articulacao",
+                    "lXhier": [
+                        {
+                            "name": {
+                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                "localPart": "Artigo",
+                                "prefix": "",
+                                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                            },
+                            "value": {
+                                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                "id": "art1",
+                                "rotulo": "Art. 1º",
+                                "lXcontainersOmissis": [
+                                    {
+                                        "name": {
+                                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                            "localPart": "Caput",
+                                            "prefix": "",
+                                            "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                            "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                        },
+                                        "value": {
+                                            "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                            "id": "art1_cpt",
+                                            "p": [
+                                                {
+                                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                    "content": [
+                                                        "Fica instituído o Programa de Modernização da Gestão Pública, de que trata esta Lei."
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": {
+                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                "localPart": "Artigo",
+                                "prefix": "",
+                                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                            },
+                            "value": {
+                                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                "id": "art2",
+                                "rotulo": "Art. 2º",
+                                "lXcontainersOmissis": [
+                                    {
+                                        "name": {
+                                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                            "localPart": "Caput",
+                                            "prefix": "",
+                                            "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                            "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                        },
+                                        "value": {
+                                            "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                            "id": "art2_cpt",
+                                            "p": [
+                                                {
+                                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                    "content": [
+                                                        "Compete ao órgão gestor do Programa, observado o disposto no ",
+                                                        {
+                                                            "name": {
+                                                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                                "localPart": "Remissao",
+                                                                "prefix": "",
+                                                                "key": "{http://www.lexml.gov.br/1.0}Remissao",
+                                                                "string": "{http://www.lexml.gov.br/1.0}Remissao"
+                                                            },
+                                                            "value": {
+                                                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                                "href": "art4",
+                                                                "id": "_ri13481093417",
+                                                                "content": [
+                                                                    "art. 4º"
+                                                                ]
+                                                            }
+                                                        },
+                                                        " desta Lei, editar os atos complementares necessários à sua execução."
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "name": {
+                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                "localPart": "Artigo",
+                                "prefix": "",
+                                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+                            },
+                            "value": {
+                                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                "id": "art3",
+                                "rotulo": "Art. 3º",
+                                "lXcontainersOmissis": [
+                                    {
+                                        "name": {
+                                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                            "localPart": "Caput",
+                                            "prefix": "",
+                                            "key": "{http://www.lexml.gov.br/1.0}Caput",
+                                            "string": "{http://www.lexml.gov.br/1.0}Caput"
+                                        },
+                                        "value": {
+                                            "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                            "id": "art3_cpt",
+                                            "p": [
+                                                {
+                                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                    "content": [
+                                                        "Esta Lei entra em vigor na data de sua publicação."
+                                                    ]
+                                                }
+                                            ]
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "parteFinal": {
+                    "TYPE_NAME": "br_gov_lexml__1.ParteFinal",
+                    "localDataFecho": {
+                        "TYPE_NAME": "br_gov_lexml__1.ParsType",
+                        "p": [
+                            {
+                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                "content": [
+                                    "Sala das Sessões, 24 de abril de 2026."
+                                ]
+                            }
+                        ]
+                    },
+                    "assinaturaTexto": [
+                        {
+                            "TYPE_NAME": "br_gov_lexml__1.ParsType",
+                            "p": [
+                                {
+                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                    "content": [
+                                        {
+                                            "name": {
+                                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                "localPart": "b",
+                                                "prefix": "",
+                                                "key": "{http://www.lexml.gov.br/1.0}b",
+                                                "string": "{http://www.lexml.gov.br/1.0}b"
+                                            },
+                                            "value": {
+                                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                "content": [
+                                                    "Senador Davi Alcolumbre"
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                    "content": [
+                                        "(UNIÃO - AP)"
+                                    ]
+                                },
+                                {
+                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                    "content": [
+                                        "Presidente do Senado Federal"
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "TYPE_NAME": "br_gov_lexml__1.ParsType",
+                            "p": [
+                                {
+                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                    "content": [
+                                        {
+                                            "name": {
+                                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                "localPart": "b",
+                                                "prefix": "",
+                                                "key": "{http://www.lexml.gov.br/1.0}b",
+                                                "string": "{http://www.lexml.gov.br/1.0}b"
+                                            },
+                                            "value": {
+                                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                "content": [
+                                                    "Senadora Soraya Thronicke"
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                    "content": [
+                                        "(PSB - MS)"
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
+            },
+            "justificacao": [
+                {
+                    "TYPE_NAME": "br_gov_lexml__1.OpenStructure",
+                    "partePrincipal": {
+                        "TYPE_NAME": "br_gov_lexml__1.PartePrincipal",
+                        "agrupamentoHierarquicoOrDivOrAgrupamento": [
+                            {
+                                "name": {
+                                    "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                    "localPart": "p",
+                                    "prefix": "",
+                                    "key": "{http://www.lexml.gov.br/1.0}p",
+                                    "string": "{http://www.lexml.gov.br/1.0}p"
+                                },
+                                "value": {
+                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                    "content": [
+                                        "Esta proposição promove a ",
+                                        {
+                                            "name": {
+                                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                "localPart": "del",
+                                                "prefix": "",
+                                                "key": "{http://www.lexml.gov.br/1.0}del",
+                                                "string": "{http://www.lexml.gov.br/1.0}del"
+                                            },
+                                            "value": {
+                                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                "id": "_rt245245234523",
+                                                "content": [
+                                                    "reforma"
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "name": {
+                                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                "localPart": "ins",
+                                                "prefix": "",
+                                                "key": "{http://www.lexml.gov.br/1.0}ins",
+                                                "string": "{http://www.lexml.gov.br/1.0}ins"
+                                            },
+                                            "value": {
+                                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                "id": "_rt879079079778",
+                                                "content": [
+                                                    "modernização"
+                                                ]
+                                            }
+                                        },
+                                        " da gestão pública, ",
+                                        {
+                                            "name": {
+                                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                "localPart": "span",
+                                                "prefix": "",
+                                                "key": "{http://www.lexml.gov.br/1.0}span",
+                                                "string": "{http://www.lexml.gov.br/1.0}span"
+                                            },
+                                            "value": {
+                                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                "id": "_tc1777387565991",
+                                                "content": [
+                                                    "nos termos do art. 1º"
+                                                ]
+                                            }
+                                        },
+                                        "."
+                                    ]
+                                }
+                            },
+                            {
+                                "name": {
+                                    "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                    "localPart": "p",
+                                    "prefix": "",
+                                    "key": "{http://www.lexml.gov.br/1.0}p",
+                                    "string": "{http://www.lexml.gov.br/1.0}p"
+                                },
+                                "value": {
+                                    "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                    "content": [
+                                        "O detalhamento das ações do Programa consta das diretrizes anexadas a esta proposição",
+                                        {
+                                            "name": {
+                                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                "localPart": "NotaDeRodape",
+                                                "prefix": "",
+                                                "key": "{http://www.lexml.gov.br/1.0}NotaDeRodape",
+                                                "string": "{http://www.lexml.gov.br/1.0}NotaDeRodape"
+                                            },
+                                            "value": {
+                                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                "content": [
+                                                    "Anexo I: ",
+                                                    {
+                                                        "name": {
+                                                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                                            "localPart": "i",
+                                                            "prefix": "",
+                                                            "key": "{http://www.lexml.gov.br/1.0}i",
+                                                            "string": "{http://www.lexml.gov.br/1.0}i"
+                                                        },
+                                                        "value": {
+                                                            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                                            "content": [
+                                                                "Diretrizes do programa"
+                                                            ]
+                                                        }
+                                                    },
+                                                    "."
+                                                ]
+                                            }
+                                        },
+                                        "."
+                                    ]
+                                }
+                            }
+                        ]
+                    }
+                }
+            ]
+        }
+    }
+}

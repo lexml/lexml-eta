@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture derivada de docs/extensao-formato-lexml/11-revisao-da-hierarquia.md — reúne todos os
+     exemplos de operação do arquivo (um por lexedit:RevisaoArticulacao) num único documento,
+     já que lexedit:RevisoesArticulacao ocorre no máximo uma vez por lexedit:Metadado.
+     lexedit:Usuarios foi acrescentado por completude (ver nota em 08-comentarios.xml). -->
+<lexedit:Metadado xmlns='http://www.lexml.gov.br/1.0' xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
+  <lexedit:RevisoesArticulacao>
+
+    <!-- Inclusão de dispositivo -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art4"
+        revisao="adicionado"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00"/>
+
+    <!-- Exclusão de dispositivo -->
+    <lexedit:RevisaoArticulacao
+        revisao="excluido"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00">
+      <Artigo id="_art3-exc1">
+        <Rotulo>Art. 3º</Rotulo>
+        <Caput id="_art3-exc1_cpt">
+          <p>Orig. 3</p>
+        </Caput>
+      </Artigo>
+    </lexedit:RevisaoArticulacao>
+
+    <!-- Alteração de texto de dispositivo -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art4_cpt_inc2"
+        revisao="alterado"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00">
+      <p>Texto original do dispositivo</p>
+    </lexedit:RevisaoArticulacao>
+
+    <!-- Movimentação de dispositivo -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art5_cpt_inc5"
+        revisao="movido;3"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00"/>
+
+    <!-- Movimentação combinada com alteração de texto -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art5_cpt_inc4"
+        revisao="movido;3,alterado"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00">
+      <p>Conteúdo do inciso III original.</p>
+    </lexedit:RevisaoArticulacao>
+
+    <!-- Transformação de tipo: inciso transformado em alínea -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art4_cpt_inc1_ali1"
+        revisao="transformado;inciso"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00"/>
+
+    <!-- Transformação de tipo: alínea transformada em inciso -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art4_cpt_inc2"
+        revisao="transformado;alinea"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00"/>
+
+    <!-- Alteração de rótulo em alteração de norma -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art2_cpt_alt1_art4"
+        revisao="alteracaoRotulo;art2_cpt_alt1_art3"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00"/>
+
+  </lexedit:RevisoesArticulacao>
+  <lexedit:Usuarios>
+    <lexedit:Usuario idUsuario='sf:fulano' nome='Fulano de Tal'/>
+  </lexedit:Usuarios>
+</lexedit:Metadado>

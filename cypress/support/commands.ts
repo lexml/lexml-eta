@@ -1,24 +1,8 @@
 /// <reference types="cypress" />
-import { Emenda } from '../../src/model/emenda/emenda';
 
 export type TipoMensagemContainerDispositivo = 'warning' | 'danger';
-export interface AbrirEmendaPayloadCypress {
-  fixtureEmendaJson: string;
-}
-export interface NovaEmendaPayloadCypress {
-  projetoNormaSelectValue: string;
-  modoEmendaSelectValue: string;
+export interface NovaProposicaoOpcoesCypress {
   naoMostrarExplicacaoSufixo?: boolean;
-}
-
-export interface ChecarDadosAposAbrirEmendaPayloadCypress {
-  emenda: Emenda;
-  checarMensagemRenumeracao?: boolean;
-}
-
-export interface ChecarEstadoInicialAoCriarNovaEmenda {
-  nomeProposicao: string;
-  totalElementos?: number;
 }
 
 const tempoDeEsperaPadrao = 100;
@@ -37,26 +21,12 @@ Cypress.Commands.add('irParaPagina', (numeroPagina: number): void => {
   cy.get('#selectPaginaArticulacao').select(numeroPagina + '');
 });
 
-Cypress.Commands.add('abrirEmenda', (payload: AbrirEmendaPayloadCypress): Cypress.Chainable<Emenda> => {
-  const baseFolder = 'cypress/fixtures/';
-  return cy.fixture(payload.fixtureEmendaJson).then((emenda: Emenda) => {
-    cy.get('#fileUpload').selectFile(baseFolder + payload.fixtureEmendaJson, { force: true });
-    return cy.wrap(emenda);
-  });
-});
-
-Cypress.Commands.add('novaEmenda', (payload: NovaEmendaPayloadCypress): Cypress.Chainable<any> => {
-  if (payload.naoMostrarExplicacaoSufixo ?? true) {
+Cypress.Commands.add('novaProposicao', (projetoNormaSelectValue = 'novo', opcoes?: NovaProposicaoOpcoesCypress): Cypress.Chainable<any> => {
+  if (opcoes?.naoMostrarExplicacaoSufixo) {
     cy.window().then(win => {
       win.localStorage.setItem('naoMostrarExplicacaoSufixo', 'true');
     });
   }
-  cy.get('#projetoNorma').select(payload.projetoNormaSelectValue);
-  cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
-  return cy.wrap(true);
-});
-
-Cypress.Commands.add('novaProposicao', (projetoNormaSelectValue = 'novo'): Cypress.Chainable<any> => {
   cy.get('#projetoNorma').select(projetoNormaSelectValue);
   cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
   return cy.wrap(true);
@@ -195,7 +165,55 @@ Cypress.Commands.add('selecionarOpcaoDeMenuDoDispositivo', { prevSubject: 'eleme
 });
 
 Cypress.Commands.add('getOpcoesDeMenuDoDispositivo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
-  return cy.wrap(subject).get('.lx-eta-dropbtn');
+  // Mesma técnica de selecionarOpcaoDeMenuDoDispositivo: um cy.click() comum nem sempre dispara
+  // selection-change de forma confiável (ex.: dispositivos originais carregados do documento, fora
+  // do fluxo de criação recente) — marcarLinhaAtual monta o menu diretamente, sem depender disso.
+  // Quando o dispositivo não tem nenhuma ação disponível (ex.: totalmente bloqueado), o botão nunca
+  // é montado — as tentativas esgotam e o retorno é um seletor vazio, que é o resultado esperado.
+  const id = subject[0]?.id;
+  if (!id) {
+    return cy.wrap(subject).find('.lx-eta-dropbtn');
+  }
+
+  const montarMenu = (): void => {
+    cy.get('#' + id).click({ force: true });
+    cy.get('#' + id)
+      .find('p.texto__dispositivo')
+      .click({ force: true });
+    cy.window().then(win => {
+      const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+      const quill = editorEl?.quill;
+      if (!quill) return;
+      const containerEl = win.document.querySelector('#' + id) as HTMLElement;
+      if (!containerEl) return;
+      const p = containerEl.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+      if (!p) return;
+      const EtaQuillClass = quill.constructor as any;
+      const blot = EtaQuillClass.find(p);
+      if (!blot) return;
+      const linhaAlvo = blot.parent?.parent?.parent;
+      if (linhaAlvo) {
+        (quill as any).desmarcarLinhas?.();
+        (quill as any).marcarLinhaAtual(linhaAlvo);
+      }
+    });
+  };
+
+  const MAX_TENTATIVAS = 4;
+  const tentarMontarMenu = (tentativa: number): void => {
+    if (tentativa > 0) {
+      cy.wait(500);
+    }
+    montarMenu();
+    cy.get('#' + id).then($el => {
+      if ($el.find('div.container__menu > sl-dropdown').length === 0 && tentativa < MAX_TENTATIVAS) {
+        tentarMontarMenu(tentativa + 1);
+      }
+    });
+  };
+  tentarMontarMenu(0);
+
+  return cy.get('#' + id).find('.lx-eta-dropbtn');
 });
 
 Cypress.Commands.add('focusOnConteudo', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
@@ -227,7 +245,7 @@ Cypress.Commands.add('digitarNoDispositivo', { prevSubject: 'element' }, (subjec
     .as('pTextoDispositivo')
     // .focus()
     .then($p => {
-      replace && $p.text('');
+      if (replace) $p.text('');
       cy.wrap($p)
         .wait(Cypress.config('isInteractive') ? tempoDeEsperaPadrao : tempoDeEsperaMaior)
         .type(texto, { delay: 5 });
@@ -237,7 +255,7 @@ Cypress.Commands.add('digitarNoDispositivo', { prevSubject: 'element' }, (subjec
 
 Cypress.Commands.add('inserirTextoNaJustificacao', (texto: string): Cypress.Chainable<JQuery<HTMLElement>> => {
   cy.get('#sl-tab-2').click();
-  cy.get('#editor-texto-rico-justificativa-inner > .ql-editor')
+  cy.get('#lexml-eta-editor-texto-rico-justificativa-inner > .ql-editor')
     .as('qlJustificacao')
     .should('be.visible')
     .focus()
@@ -252,7 +270,7 @@ Cypress.Commands.add('getTextoDoDispositivo', { prevSubject: 'element' }, (subje
 });
 
 Cypress.Commands.add('getSwitchRevisaoDispositivo', () => {
-  return cy.get('lexml-eta-proposicao-editor lexml-switch-revisao.revisao-container').as('switchRevisaoDispositivo');
+  return cy.get('lexml-eta-proposicao-editor lexml-eta-switch-revisao.revisao-container').as('switchRevisaoDispositivo');
 });
 
 Cypress.Commands.add('getCheckRevisao', { prevSubject: 'element' }, (subject: JQuery<HTMLElement>): Cypress.Chainable<JQuery<HTMLElement>> => {
@@ -294,38 +312,6 @@ Cypress.Commands.add(
   }
 );
 
-Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaEstruturada', (payload: ChecarEstadoInicialAoCriarNovaEmenda): void => {
-  // Título da proposição
-  cy.get('div.nome-proposicao').contains(payload.nomeProposicao).should('exist');
-
-  cy.get('lexml-eta').should('exist');
-
-  // lexml-eta deve existir e estar visível
-  cy.get('lexml-eta-proposicao').should('exist').should('have.attr', 'style', 'display: block');
-
-  // editor-texto-rico deve existir e estar oculto
-  cy.get('editor-texto-rico[modo="textoLivre"]').should('exist').should('have.attr', 'style', 'display: none');
-
-  payload.totalElementos && cy.get('div.container__elemento').should('have.length', payload.totalElementos);
-});
-
-Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaOndeCouber', (payload: ChecarEstadoInicialAoCriarNovaEmenda): void => {
-  cy.checarEstadoInicialAoCriarNovaEmendaEstruturada(payload);
-
-  // Dispositivo "ementa" não deveria existir
-  cy.get('div.ementa.container__elemento--ativo').should('not.exist');
-
-  // Rótulo do artigo
-  cy.get('div.container__elemento.elemento-tipo-artigo').get('label').contains('Art.');
-});
-
-Cypress.Commands.add('checarEstadoInicialAoCriarNovaEmendaPadrao', (payload: ChecarEstadoInicialAoCriarNovaEmenda): void => {
-  cy.checarEstadoInicialAoCriarNovaEmendaEstruturada(payload);
-
-  // Dispositivo "ementa" deve estar "ativo"
-  cy.get('div.ementa.container__elemento--ativo').should('exist');
-});
-
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
   namespace Cypress {
@@ -333,17 +319,9 @@ declare global {
       // configurarInterceptadores(): Chainable<void>;
       ignorarErro(text: string): void;
       irParaPagina(numeroPagina: number): void;
-      abrirEmenda(payload: AbrirEmendaPayloadCypress): Cypress.Chainable<Emenda>;
-      novaEmenda(payload: NovaEmendaPayloadCypress): Cypress.Chainable<any>;
-      novaProposicao(projetoNormaSelectValue?: string): Cypress.Chainable<any>;
+      novaProposicao(projetoNormaSelectValue?: string, opcoes?: NovaProposicaoOpcoesCypress): Cypress.Chainable<any>;
       abrirProposicao(fixtureJson: string): Cypress.Chainable<any>;
       checarMensagem(mensagem: string, tipo?: TipoMensagemContainerDispositivo): Cypress.Chainable<JQuery<HTMLElement>>;
-      checarEstadoInicialAoCriarNovaEmendaEstruturada(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
-      checarEstadoInicialAoCriarNovaEmendaPadrao(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
-      checarEstadoInicialAoCriarNovaEmendaOndeCouber(payload: ChecarEstadoInicialAoCriarNovaEmenda): void;
-      checarComandoEmenda(emenda?: Emenda): void;
-      checarTextoPresenteEmComandoEmenda(texto: string): void;
-      checarDadosAposAbrirEmenda(payload: ChecarDadosAposAbrirEmendaPayloadCypress): Chainable<void>;
       getContainerArtigoByNumero(numero: number): Cypress.Chainable<JQuery<HTMLElement>>;
       getContainerArtigoNormaByNumero(numero: number): Cypress.Chainable<JQuery<HTMLElement>>;
       getContainerArtigoByRotulo(rotulo: string): Cypress.Chainable<JQuery<HTMLElement>>;

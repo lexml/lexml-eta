@@ -1,4 +1,4 @@
-// import Quill from 'quill';
+import Quill from '../../../../internal/quill/private-quill';
 import ContainBlot from './ContainBlot';
 
 const Container = Quill.import('blots/container');

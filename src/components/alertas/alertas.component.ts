@@ -83,12 +83,12 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
           this.removeAlertaById((event.target as Element).id);
         });
       });
-      const lexmlEmenda = document.querySelector('lexml-eta') as LexmlEtaComponent;
-      if (lexmlEmenda) {
-        lexmlEmenda.totalAlertas = this.alertas.length;
+      const lexmlEta = document.querySelector('lexml-eta') as LexmlEtaComponent;
+      if (lexmlEta) {
+        lexmlEta.totalAlertas = this.alertas.length;
         const oldValue = changedProperties.get('alertas')?.length || 0;
 
-        if (lexmlEmenda.totalAlertas > oldValue) {
+        if (lexmlEta.totalAlertas > oldValue) {
           const badge = document.querySelector('#contadorAvisos')?.querySelector('sl-badge') as SlBadge;
           if (badge) {
             badge.pulse = true;

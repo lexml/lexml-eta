@@ -2,7 +2,6 @@ import assert from 'node:assert';
 import { test } from 'node:test';
 import * as Y from 'yjs';
 import { Articulacao, Artigo, Dispositivo } from '../../src/model/dispositivo/dispositivo';
-import { DispositivoOriginal } from '../../src/model/lexml/situacao/dispositivoOriginal';
 import { createArticulacao, criaDispositivo } from '../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { ProjetoNorma } from '../../src/model/lexml/documento/projetoNorma';
 import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
@@ -38,7 +37,6 @@ const montarFixture = (): ProjetoNorma => {
 
   const art2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
   art2.texto = 'Caput do artigo segundo.';
-  art2.situacao = new DispositivoOriginal();
 
   // agrupador com artigo aninhado — exercita o caminho genérico e paiGid de agrupador.
   const cap1 = criaDispositivo(articulacao, TipoDispositivo.capitulo.tipo);

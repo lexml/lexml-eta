@@ -13,7 +13,7 @@ let state: State;
 
 describe('adicionaRemissaoInterna', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = elementoReducer(undefined, {
       type: ABRIR_ARTICULACAO,
       articulacao: projetoNorma.articulacao!,
@@ -185,11 +185,11 @@ describe('adicionaRemissaoInterna', () => {
       artigo1!.texto = 'Refere-se ao art. 2º.';
 
       const elemento = createElemento(artigo1!, true);
-      state.modo = 'emenda';
+      state.modo = ClassificacaoDocumento.PROJETO;
       state.emRevisao = true;
       state.revisoes = [{ id: 'rev1' } as any];
       const result = adicionaRemissaoInterna(state, { atual: elemento });
-      expect(result.modo).to.equal('emenda');
+      expect(result.modo).to.equal(ClassificacaoDocumento.PROJETO);
       expect(result.emRevisao).to.be.true;
       expect(result.revisoes).to.have.length(1);
     });

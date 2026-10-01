@@ -1,19 +1,13 @@
-import {
-  ajustarAtributosAgrupadorIncluidoPorUndoRedo,
-  ajustarHierarquivoAgrupadorIncluidoPorUndoRedo,
-  isUndoRedoInclusaoExclusaoAgrupador,
-  processarRestaurados,
-} from './../util/undoRedoReducerUtil';
+import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, ajustarHierarquivoAgrupadorIncluidoPorUndoRedo, isUndoRedoInclusaoExclusaoAgrupador } from './../util/undoRedoReducerUtil';
 import { inicializaRemissoesExternasAoAbrir } from './inicializaRemissoesExternasAoAbrir';
-import { DispositivoSuprimido } from '../../../model/lexml/situacao/dispositivoSuprimido';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { getElementosRemovidosEIncluidos, getEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import { buildPast } from '../util/stateReducerUtil';
-import { incluir, processaRenumerados, processarModificados, processaSituacoesAlteradas, processaValidados, remover, restaurarSituacao } from '../util/undoRedoReducerUtil';
+import { incluir, processaRenumerados, processarModificados, processaSituacoesAlteradas, processaValidados, remover } from '../util/undoRedoReducerUtil';
 import { agrupaElemento } from './agrupaElemento';
-import { removeElemento } from './removeElemento';
+import { construirEventosRemissaoParaRemocao, removeElemento } from './removeElemento';
 import { Elemento } from '../../../model/elemento/elemento';
 import { Revisao } from '../../../model/revisao/revisao';
 import { findRevisoesByElementoUuid } from '../util/revisaoUtil';
@@ -92,16 +86,21 @@ export const redo = (state: any): State => {
   events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoRemovido)));
   events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoIncluido), getEvento(events.eventos, StateType.ElementoIncluido)));
 
+  // A remoção refeita não passa por removeElemento: reaplica a invalidação a partir dos RemissaoInvalidada do lote (simétrico ao undo).
+  const removidosDoLote = eventos
+    .filter((ev: StateEvent) => ev.stateType === StateType.RemissaoInvalidada && ev.remissaoInvalidacao)
+    .map((ev: StateEvent) => ev.remissaoInvalidacao!);
+  if (removidosDoLote.length > 0) {
+    const { novoRegistroRemissoes, eventosRemissao, novosAlertas } = construirEventosRemissaoParaRemocao(state.remissoes, state.articulacao, removidosDoLote);
+    retorno.remissoes = novoRegistroRemissoes;
+    events.eventos.push(...eventosRemissao);
+    const alertasExistentes = retorno.ui!.alertas ?? [];
+    retorno.ui!.alertas = [...alertasExistentes, ...novosAlertas.filter(a => !alertasExistentes.some(e => e.id === a.id))];
+  }
+
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
     .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'REDO') }));
-
-  events.add(
-    StateType.ElementoSuprimido,
-    restaurarSituacao(state, getEvento(eventos, StateType.ElementoSuprimido), getEvento(events.eventos, StateType.ElementoSuprimido), DispositivoSuprimido)
-  );
-
-  eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRestaurado).forEach((ev: StateEvent) => events.eventos.push(processarRestaurados(state, ev, 'REDO')));
 
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));

@@ -1,6 +1,6 @@
 # Editor de Textos Articulados
 
-<p align="center">O lexml-eta é um <i>web component</i> especializado em edição de dispositivos de normas legais e proposições legislativas, inclusive emendas.</p>
+<p align="center">O lexml-eta é um <i>web component</i> especializado em edição de dispositivos de normas legais e proposições legislativas.</p>
 
 [![Integração Contínua](https://github.com/lexml/lexml-eta/actions/workflows/deploy-demo.yml/badge.svg)](https://github.com/lexml/lexml-eta/actions/workflows/deploy-demo.yml)
 
@@ -44,7 +44,6 @@ Trata-se de uma proposta inicial, a ser discutida com todos os interessados em s
   - Essas regras não se aplicam a dispositivos agrupadores, pois esses não podem possuir pontuação.
 - Bloquear a edição dos rótulos de dispositivo, a menos que se trate de alteração de norma existente;
 - Promover mudança estrutural de artigos e dispositivos de artigo, considerando os dispositivos dependentes;
-- Suporte a emendamento de proposições, inclusive com geração automática do comando de emenda;
 - Manter histórico das modificações efetuadas sobre a articulação, permitindo desfazer e refazer operações efetuadas no documento;
 - Suportar edição colaborativa multiusuário em tempo real (Yjs/CRDT), como recurso opcional — estrutura, texto, cursores e desfazer/refazer sincronizam entre os participantes (ver seção abaixo);
 - Validar a situação do dispositivo;
@@ -68,6 +67,31 @@ npm start
 Será aberta uma janela do browser com uma aplicação exemplo que permite testar o componente. Em breve, iremos disponibilizar um link aqui para testar a aplicação sem necessidade de baixar o projeto.
 
 Quando estiver disponível uma versão para uso, teremos instruções mais detalhadas de como utilizar o componente em página html e frameworks mais populares. 
+
+## Requisito de integração — artefato WASM do `lexml-linker`
+
+O componente vendoriza `src/util/lexml-linker/vendor/lexml-linker.wasm` (parser Haskell de remissões legislativas, compilado para `wasm32-wasi`) para detecção automática de remissão externa. Esse arquivo pesa ~6,9 MB descomprimido; ao lado dele, o repositório já traz `lexml-linker.wasm.br` — a mesma coisa pré-comprimida com Brotli (~0,88 MB, -87%).
+
+**Todo projeto que importa o `lexml-eta` deve servir esse `.wasm.br` com `Content-Encoding: br`** quando o navegador aceitar Brotli (header `Accept-Encoding: br`), em vez de servir o `.wasm` cru. Isso é uma configuração do lado do host, não algo que o `lexml-eta` consegue forçar sozinho — é responsabilidade do projeto consumidor.
+
+- **Se o host for Spring MVC** (caso do `lexeditweb-editor`, host de referência hoje): usar `org.springframework.web.servlet.resource.EncodedResourceResolver`, que já suporta `br`/`gzip` por padrão desde o Spring Framework 5.1 — só precisa ser registrado na cadeia de recursos estáticos. Ver `docs/planos/PLANO_INTEGRACAO_WASM_LEXEDITWEB.md` no repositório do `lexeditweb` para o plano de integração completo (config exata, checklist, testes).
+- **Se o host for outro stack** (nginx, outro framework Java, Node etc.): o equivalente é servir arquivos pré-comprimidos por extensão baseado no `Accept-Encoding` do request (ex. `gzip_static`/`brotli_static` no nginx) — o mecanismo muda, o requisito é o mesmo.
+- **Sem essa configuração**, o `.wasm` cru de ~6,9 MB é servido normalmente — funciona, só não tem o ganho de rede da compressão.
+
+O `.wasm.br` é gerado e mantido em sincronia com o `.wasm` pelo próprio `lexml-eta` (`npm run generate:wasm-br`, verificado automaticamente em `npm test` via `npm run verify:wasm-br`) — ver `docs/referencia/LEXML_LINKER_WASM.md` para detalhes de proveniência e o procedimento de rebuild.
+
+## OpenSpec (documentação de mudanças)
+
+O projeto usa o [OpenSpec](https://github.com/Fission-AI/OpenSpec) para especificar comportamento (`openspec/specs/`) e propor mudanças (`openspec/changes/`) — esses diretórios são versionados normalmente no repositório. Só a integração com o editor (comandos e skills do Claude Code em `.claude/`) não é: cada dev gera a própria localmente.
+
+Para instalar o CLI e gerar essa integração:
+
+```
+npm install -g @fission-ai/openspec@latest
+openspec init --tools claude --language pt-BR
+```
+
+Atenção ao nome do pacote: existe um `openspec` (sem escopo) no npm de outro autor, sem relação com este projeto — o certo é `@fission-ai/openspec`. O `init` detecta o `openspec/config.yaml` já existente e só recria os arquivos em `.claude/`, então é seguro rodar de novo a qualquer momento (ex.: após atualizar a versão do pacote).
 
 ## Modo colaborativo (edição multiusuário)
 

@@ -1,10 +1,11 @@
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
 import { gerarRefId } from '../../model/remissao/refId';
 import { RemissaoInternaBlot } from '../../util/eta-quill/eta-blot-remissao-interna';
+import PrivateQuill from '../../internal/quill/private-quill';
 
-const Delta = Quill.import('delta');
-const Module = Quill.import('core/module');
-const Parchment = Quill.import('parchment');
+const Delta = PrivateQuill.import('delta');
+const Module = PrivateQuill.import('core/module');
+const Parchment = PrivateQuill.import('parchment');
 
 const cfgInline = {
   scope: Parchment.Scope.INLINE_ATTRIBUTE,
@@ -30,8 +31,8 @@ class ModuloRemissao extends Module {
   }
 
   static register(): void {
-    Quill.register(DataLexmlRefAttribute, true);
-    Quill.register(DataRefIdAttribute, true);
+    PrivateQuill.register(DataLexmlRefAttribute, true);
+    PrivateQuill.register(DataRefIdAttribute, true);
   }
 
   constructor(quill: any, options: any) {
@@ -114,19 +115,23 @@ class ModuloRemissao extends Module {
     this.cacheTextoRemissao.set(refId, texto);
   }
 
+  // Cache paralelo para links inválidos (sem data-ref-id), usando o próprio elemento HTML como chave.
+  // Evita colisões de estado quando múltiplos links apontam para o mesmo destino excluído (data-lexml-ref).
+  private cacheTextoRemissaoInvalida = new WeakMap<HTMLElement, string>();
+
   // Remove o link (preservando o texto) em edições pontuais do usuário; recriação fica a
-  // cargo do blur/debounce. Ignora renumerações em massa e eventos 'silent'.
+  // cargo do blur/debounce. Ignora renumerações em massa e eventos 'silent'. Interna e
+  // externa compartilham cache/evento — só o nome do formato a limpar difere por blot.
   private _removerRemissaoEditadaEmTempoReal(delta: any, _oldDelta: any, source: string): void {
     const podeSerEdicaoDoUsuario = source === 'user' && this.pareceEdicaoPontual(delta);
-
-    const links = this.quill.root.querySelectorAll('a.lexml-remissao-interna[data-ref-id]');
-    const refIdsAtuais = new Set<string>();
     const elementosEditados: HTMLElement[] = [];
 
-    links.forEach((link: Element) => {
+    const linksComRefId = this.quill.root.querySelectorAll('a.lexml-remissao-interna[data-ref-id], a.lexml-remissao-externa[data-ref-id]');
+    const refIdsAtuais = new Set<string>();
+
+    linksComRefId.forEach((link: Element) => {
       const el = link as HTMLElement;
-      const refId = el.getAttribute('data-ref-id');
-      if (!refId) return;
+      const refId = el.getAttribute('data-ref-id')!;
       refIdsAtuais.add(refId);
 
       const textoAtual = el.textContent || '';
@@ -144,26 +149,51 @@ class ModuloRemissao extends Module {
       if (!refIdsAtuais.has(refId)) this.cacheTextoRemissao.delete(refId);
     }
 
+    // Links internos inválidos: sem data-ref-id, então nunca eram considerados por este método
+    // antes — editar/apagar o texto de uma remissão para um dispositivo já excluído nunca
+    // disparava a remoção em tempo real, não importa quanto texto fosse apagado.
+    const linksInvalidos = this.quill.root.querySelectorAll('a.lexml-remissao-interna[data-lexml-ref]:not([data-ref-id])');
+    linksInvalidos.forEach((link: Element) => {
+      const el = link as HTMLElement;
+      const textoAtual = el.textContent || '';
+      const textoConhecido = this.cacheTextoRemissaoInvalida.get(el);
+
+      if (podeSerEdicaoDoUsuario && textoConhecido !== undefined && textoConhecido !== textoAtual) {
+        elementosEditados.push(el);
+      } else {
+        this.cacheTextoRemissaoInvalida.set(el, textoAtual);
+      }
+    });
+
     if (elementosEditados.length === 0) return;
 
     setTimeout(() => {
-      let removeuAlgum = false;
+      let removeuInterna = false;
+      const refIdsExternosRemovidos: string[] = [];
+
       for (const el of elementosEditados) {
         if (!el.isConnected) continue;
-        const blot = Quill.find(el);
-        if (blot?.statics?.blotName !== 'remissao-interna') continue;
+        const blot = PrivateQuill.find(el);
+        const blotName = blot?.statics?.blotName;
+        if (blotName !== 'remissao-interna' && blotName !== 'remissao-externa') continue;
 
         const refId = el.getAttribute('data-ref-id');
         if (refId) this.cacheTextoRemissao.delete(refId);
+        // Sem refId (link inválido): nada a limpar no WeakMap — o GC cuida disso quando o elemento sai do DOM.
 
         const index = blot.offset(this.quill.scroll);
         const length = blot.length();
-        this.quill.formatText(index, length, 'remissao-interna', false, 'silent');
-        removeuAlgum = true;
+        this.quill.formatText(index, length, blotName, false, 'silent');
+
+        if (blotName === 'remissao-interna') {
+          removeuInterna = true;
+        } else if (refId) {
+          refIdsExternosRemovidos.push(refId);
+        }
       }
       // Mesmo evento do botão "Excluir" (fecha popup + limpa registry, ver editor.component.ts).
-      if (removeuAlgum) {
-        this.emitirEventoRemissaoRemove();
+      if (removeuInterna || refIdsExternosRemovidos.length > 0) {
+        this.emitirEventoRemissaoRemove(refIdsExternosRemovidos);
       }
     }, 0);
   }
@@ -325,12 +355,13 @@ class ModuloRemissao extends Module {
     }
   }
 
-  emitirEventoRemissaoRemove(): void {
+  emitirEventoRemissaoRemove(refIdsExternosRemovidos: string[] = []): void {
     const event = new CustomEvent(REMISSAO_INTERNA_REMOVE_EVENT, {
       bubbles: true,
       composed: true,
       detail: {
         remissoes: this.getRemissoes(),
+        refIdsExternosRemovidos,
       },
     });
     this.quill.root.dispatchEvent(event);
@@ -424,7 +455,7 @@ class ModuloRemissao extends Module {
     const remissoesParaRemover: { index: number; length: number }[] = [];
 
     links.forEach((link: Element) => {
-      const blot = Quill.find(link);
+      const blot = PrivateQuill.find(link);
       if (blot) {
         const blotIndex = blot.offset(this.quill.scroll);
         const blotLength = blot.length();
@@ -484,7 +515,7 @@ class ModuloRemissao extends Module {
     if (links.length === 0) return null;
 
     const link = links[0] as HTMLElement;
-    const blot = Quill.find(link);
+    const blot = PrivateQuill.find(link);
 
     if (!blot) return null;
 
@@ -542,7 +573,7 @@ class ModuloRemissao extends Module {
     if (links.length === 0) return null;
 
     const link = links[0] as HTMLElement;
-    const blot = Quill.find(link);
+    const blot = PrivateQuill.find(link);
     if (!blot) return null;
 
     return { blot, index: blot.offset(this.quill.scroll) };
@@ -565,14 +596,15 @@ class ModuloRemissao extends Module {
     return true;
   }
 
-  removerRemissaoPorId(refId: string): boolean {
+  // 'silent' na reconciliação automática (coordenarDeteccaoExterna) evita disparar o selection-change nativo do Quill por uma ação que não veio do usuário.
+  removerRemissaoPorId(refId: string, source: 'user' | 'silent' = 'user'): boolean {
     const result = this.findBlotByRefId(refId);
     if (!result) return false;
 
     const { blot, index } = result;
     const length = blot.length();
 
-    this.quill.formatText(index, length, 'remissao-interna', false, 'user');
+    this.quill.formatText(index, length, 'remissao-interna', false, source);
     this.emitirEventoRemissaoRemove();
     return true;
   }
@@ -647,14 +679,14 @@ class ModuloRemissao extends Module {
       // Verifica se o link já está registrado como blot Quill correto
       const linkExistente = this.quill.root.querySelector(`a.lexml-remissao-externa[data-ref-id="${CSS.escape(refId)}"]`);
       if (linkExistente) {
-        const blot = Quill.find(linkExistente);
+        const blot = PrivateQuill.find(linkExistente);
         if (blot?.statics?.blotName === 'remissao-externa') continue;
       }
 
       const domEl = this.quill.root.querySelector(`#texto__dispositivo${sourceUuid}`);
       if (!domEl) continue;
 
-      const blot = Quill.find(domEl);
+      const blot = PrivateQuill.find(domEl);
       if (!blot) continue;
 
       const blotStart = blot.offset(this.quill.scroll);
@@ -666,14 +698,30 @@ class ModuloRemissao extends Module {
 
       const absoluteIndex = blotStart + textOffset;
       this.quill.formatText(absoluteIndex, textoRef.length, 'remissao-externa', value, 'silent');
+      // 'silent' não dispara 'text-change' — sem isto, _removerRemissaoEditadaEmTempoReal nunca veria este link.
+      this.seedCacheRemissao(refId, textoRef);
     }
 
     if (savedSelection) {
       const sel = savedSelection;
       setTimeout(() => {
-        this.quill.setSelection(sel.index, sel.length, 'silent');
+        // Entre a captura e este timeout, qualquer reconstrução concorrente de blot
+        try {
+          this.quill.setSelection(sel.index, sel.length, 'silent');
+        } catch {
+          //empty
+        }
       }, 0);
     }
+  }
+
+  // O href carrega o uuid do destino; mover troca o uuid sem necessariamente mudar o lexmlId.
+  // Entrada sem targetLexmlId é incompleta e nunca reatribui o link.
+  private atributosDoLinkDivergem(link: Element, remissao: RemissaoInternaValue): boolean {
+    if (!remissao.targetLexmlId) return false;
+    const lexmlIdDiverge = link.getAttribute('data-lexml-ref') !== remissao.targetLexmlId;
+    const uuidDiverge = remissao.targetUuid !== undefined && RemissaoInternaBlot.extractUuidFromHref(link.getAttribute('href') || '') !== remissao.targetUuid;
+    return lexmlIdDiverge || uuidDiverge;
   }
 
   renderizarRemissoesDoState(remissoesDoState: Record<number, RemissaoInternaValue[]>, uuidDispositivoAtual: number): void {
@@ -691,7 +739,7 @@ class ModuloRemissao extends Module {
     let blotLength = -1;
     const domEl = this.quill.root.querySelector(`#texto__dispositivo${uuidDispositivoAtual}`);
     if (domEl) {
-      const blot = Quill.find(domEl);
+      const blot = PrivateQuill.find(domEl);
       if (blot) {
         blotStart = blot.offset(this.quill.scroll);
         blotLength = blot.length();
@@ -701,14 +749,14 @@ class ModuloRemissao extends Module {
     for (const remissao of remissoesDoDispositivo) {
       const linkExistente = this.quill.root.querySelector(`a.lexml-remissao-interna[data-ref-id="${CSS.escape(remissao.refId!)}"]`);
       if (linkExistente) {
-        const blot = Quill.find(linkExistente);
+        const blot = PrivateQuill.find(linkExistente);
         if (blot?.statics?.blotName === 'remissao-interna') {
           // Usa 'silent' para não disparar observableSelectionChange (que só notifica ao mudar de linha).
           const textoBlot = (linkExistente.textContent || '').trim();
           const textoNovo = (remissao.textoRef || '').trim();
           if (remissao.revisao) {
             // Marcada para revisão: textoRef é um baseline antigo, não sobrescrever texto do usuário.
-            if (remissao.targetLexmlId && linkExistente.getAttribute('data-lexml-ref') !== remissao.targetLexmlId) {
+            if (this.atributosDoLinkDivergem(linkExistente, remissao)) {
               blot.format('remissao-interna', remissao);
             }
           } else if (textoNovo.length > textoBlot.length && textoNovo.startsWith(textoBlot)) {
@@ -728,8 +776,8 @@ class ModuloRemissao extends Module {
             const delta = new Delta().retain(blotIdx).delete(blotLen).insert(textoNovo, { 'remissao-interna': remissao });
             this.quill.updateContents(delta, 'silent');
             this.seedCacheRemissao(remissao.refId, textoNovo);
-          } else if (remissao.targetLexmlId && linkExistente.getAttribute('data-lexml-ref') !== remissao.targetLexmlId) {
-            // Caso 3: texto igual, só o lexmlId do destino mudou — reatribui só os atributos.
+          } else if (this.atributosDoLinkDivergem(linkExistente, remissao)) {
+            // Caso 3: texto igual, só o destino mudou (lexmlId ou uuid) — reatribui só os atributos.
             blot.format('remissao-interna', remissao);
           }
           continue;
@@ -792,7 +840,12 @@ class ModuloRemissao extends Module {
     if (savedSelection) {
       const sel = savedSelection;
       setTimeout(() => {
-        this.quill.setSelection(sel.index, sel.length, 'silent');
+        // Best-effort — ver comentário equivalente em renderizarRemissoesExternasDoState.
+        try {
+          this.quill.setSelection(sel.index, sel.length, 'silent');
+        } catch {
+          //empty
+        }
       }, 0);
     }
   }

@@ -7,7 +7,7 @@ import { ElementoAction, isAcaoMenu } from '../../model/lexml/acao';
 import { StateEvent, StateType } from '../../redux/state';
 import { rootStore } from '../../redux/store';
 
-@customElement('lexml-ajuda')
+@customElement('lexml-eta-ajuda')
 export class AjudaComponent extends connect(rootStore)(LitElement) {
   static styles = css`
     :host {
@@ -74,6 +74,6 @@ export class AjudaComponent extends connect(rootStore)(LitElement) {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-ajuda': AjudaComponent;
+    'lexml-eta-ajuda': AjudaComponent;
   }
 }

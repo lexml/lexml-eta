@@ -2,7 +2,7 @@ import { html } from 'lit';
 
 export const notaRodapeCss = html`
   <style>
-    .nota-rodape {
+    .lexml-eta-nota-rodape {
       position: relative;
       cursor: pointer;
       font-size: 0.8em;
@@ -12,7 +12,7 @@ export const notaRodapeCss = html`
       margin-left: 0.1em;
     }
 
-    .nota-rodape::after {
+    .lexml-eta-nota-rodape::after {
       content: attr(data-nota);
       color: transparent;
       position: absolute;
@@ -33,7 +33,7 @@ export const notaRodapeCss = html`
       transition: transform opacity 0.3s ease;
     }
 
-    .nota-rodape:hover::after {
+    .lexml-eta-nota-rodape:hover::after {
       animation: pulseAnimation 1s infinite;
       opacity: 0.5;
     }
@@ -53,7 +53,7 @@ export const notaRodapeCss = html`
       }
     }
 
-    .nota-rodape.pulse::after {
+    .lexml-eta-nota-rodape.pulse::after {
       animation: pulseAnimation 1s infinite;
     }
   </style>

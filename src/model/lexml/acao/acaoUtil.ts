@@ -3,7 +3,6 @@ import { TransformarElemento } from './transformarElementoAction';
 import { retornaEstadoAtualComMensagem } from '../../../redux/elemento/util/stateReducerUtil';
 import { State } from '../../../redux/state';
 import { TipoMensagem } from '../util/mensagem';
-import { MotivosOperacaoNaoPermitida } from '../regras/regrasUtil';
 
 export const normalizaNomeAcaoTransformacao = (dispositivo: Dispositivo, tipo: string): any => {
   let t: string;
@@ -33,9 +32,6 @@ export const isAcaoTransformacaoPermitida = (dispositivo: Dispositivo, action: a
 };
 
 export const montaEMostraMensagensErro = (dispositivo: Dispositivo, state: any): State => {
-  if (dispositivo.situacao.descricaoSituacao === 'Dispositivo Original') {
-    verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.ORIGINAL);
-  }
   return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Operação não permitida. <br>' + buildMessages(dispositivo.motivosOperacaoNaoPermitida!) });
 };
 

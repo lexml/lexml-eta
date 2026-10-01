@@ -10,8 +10,6 @@ import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAb
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoAction';
-import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
-import { SUPRIMIR_ELEMENTO } from '../../../model/lexml/acao/suprimirElemento';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
 import { getDispositivoAndFilhosAsLista, getUltimoFilho, isArticulacaoAlteracao, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
@@ -76,7 +74,7 @@ export const identificarRevisaoElementoPai = (state: State, revisoes: Revisao[])
       const rAux = r as RevisaoElemento;
       const uuidPai = rAux.stateType === StateType.ElementoIncluido ? getUuidPaiElementoRevisado(state, rAux) : rAux.elementoAntesRevisao?.hierarquia?.pai?.uuid;
       const rPai = uuidPai ? findRevisaoByElementoUuid(rAux.actionType === ADICIONAR_ELEMENTO ? state.revisoes : revisoes, uuidPai) : undefined;
-      if (rPai && isRevisaoMesmaSituacao(rAux, rPai)) {
+      if (rPai && isRevisaoMesmoStateType(rAux, rPai)) {
         rAux.idRevisaoElementoPai = rPai.id;
         rAux.idRevisaoElementoPrincipal = findRevisaoElementoPrincipal(state, revisoes!, rPai)?.id;
       }
@@ -100,11 +98,9 @@ export const buildDescricaoRevisao = (revisao: Revisao): string => {
 const mapperActionTypeToDescricao = {
   [ADICIONAR_ELEMENTO]: (): string => 'Dispositivo adicionado',
   [REMOVER_ELEMENTO]: (): string => 'Dispositivo removido',
-  [SUPRIMIR_ELEMENTO]: (): string => 'Dispositivo suprimido',
   [ATUALIZAR_TEXTO_ELEMENTO]: (): string => 'Texto do dispositivo foi alterado',
   [MOVER_ELEMENTO_ABAIXO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromMovimentacaoElemento(revisao),
   [MOVER_ELEMENTO_ACIMA]: (): string => 'Dispositivo movido',
-  [RESTAURAR_ELEMENTO]: (): string => 'Dispositivo restaurado',
   [ADICIONAR_ELEMENTOS_FROM_CLIPBOARD]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromStateType(revisao),
   [UNDO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromStateType(revisao),
   [REDO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromStateType(revisao),
@@ -113,9 +109,7 @@ const mapperActionTypeToDescricao = {
 const mapperStateTypeToDescricao = {
   [StateType.ElementoIncluido]: (): string => 'Dispositivo adicionado',
   [StateType.ElementoRemovido]: (): string => 'Dispositivo removido',
-  [StateType.ElementoRestaurado]: (): string => 'Dispositivo restaurado',
   [StateType.ElementoModificado]: (): string => 'Texto do dispositivo foi alterado',
-  [StateType.ElementoSuprimido]: (): string => 'Dispositivo suprimido',
   // [StateType.ElementoMovido]: (): string => 'Dispositivo movido',
 };
 
@@ -154,11 +148,8 @@ const getUuidPai = (state: State, elemento?: Partial<Elemento>): number | undefi
   }
 };
 
-const isRevisaoMesmaSituacao = (r: RevisaoElemento, rPai: RevisaoElemento): boolean => {
-  // return r.stateType !== StateType.ElementoModificado && rPai.elementoAntesRevisao?.descricaoSituacao === r.elementoAntesRevisao?.descricaoSituacao;
-  return (
-    r.stateType !== StateType.ElementoModificado && rPai.elementoAntesRevisao?.descricaoSituacao === r.elementoAntesRevisao?.descricaoSituacao && r.stateType === rPai.stateType
-  );
+const isRevisaoMesmoStateType = (r: RevisaoElemento, rPai: RevisaoElemento): boolean => {
+  return r.stateType !== StateType.ElementoModificado && r.stateType === rPai.stateType;
 };
 
 export const getRevisoesElementoAssociadas = (revisoes: Revisao[] = [], revisao: RevisaoElemento): RevisaoElemento[] => {
@@ -235,10 +226,6 @@ export const removeAtributosDoElemento = (elemento: Partial<Elemento> | undefine
   delete elemento.acoesPossiveis;
   delete elemento.tiposAgrupadoresQuePodemSerInseridosAntes;
   delete elemento.tiposAgrupadoresQuePodemSerInseridosDepois;
-
-  if (elemento.revisao) {
-    elemento.revisao;
-  }
 
   removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elemento.elementoAnteriorNaSequenciaDeLeitura);
 };
@@ -414,16 +401,8 @@ export const isRevisaoDeModificacao = (revisao: Revisao): boolean => {
   return isRevisaoElemento(revisao) && (revisao as RevisaoElemento).stateType === StateType.ElementoModificado;
 };
 
-export const isRevisaoDeRestauracao = (revisao: Revisao): boolean => {
-  return isRevisaoElemento(revisao) && (revisao as RevisaoElemento).stateType === StateType.ElementoRestaurado;
-};
-
 export const isAtualizarPosicaoDeElementoExcluido = (elementoIncluido: Elemento, elementoExcluido: Partial<Elemento>): boolean => {
   return elementoIncluido.hierarquia?.pai?.lexmlId === elementoExcluido.hierarquia?.pai?.lexmlId && elementoIncluido.uuid! < elementoExcluido.uuid!;
-};
-
-export const findRevisaoDeRestauracaoByUuid = (revisoes: Revisao[] = [], uuid: number): RevisaoElemento | undefined => {
-  return revisoes.map(r => r as RevisaoElemento).find(r => isRevisaoElemento(r) && r.stateType === StateType.ElementoRestaurado && r.elementoAposRevisao.uuid === uuid);
 };
 
 export const associarRevisoesAosElementosDosEventos = (state: State): void => {
@@ -446,7 +425,6 @@ export const mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes = (state: 
     rejeitar: [
       StateType.ElementoIncluido,
       StateType.ElementoRemovido,
-      StateType.ElementoSuprimido,
       StateType.ElementoRenumerado,
       StateType.ElementoValidado,
       StateType.ElementoSelecionado,

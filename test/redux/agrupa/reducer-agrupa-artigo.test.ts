@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { AGRUPAR_ELEMENTO } from '../../../src/model/lexml/acao/agruparElementoAction';
+import { ADICIONAR_AGRUPADOR_ARTIGO } from '../../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { getEventosQuePossuemElementos } from '../../../src/redux/elemento/evento/eventosUtil';
@@ -24,7 +24,7 @@ describe('Testando a inclusão de agrupadores', () => {
   describe('Testando a inclusão quando não há agrupadores e se trata do segundo artigo', () => {
     beforeEach(function () {
       const artigo = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: artigo, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: artigo, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
       eventos = getEventosQuePossuemElementos(state.ui.events);
     });
     it('Deveria apresentar apenas o artigo 1 e o novo capítulo como filhos da articulação', () => {
@@ -89,14 +89,14 @@ describe('Testando a inclusão de agrupadores', () => {
   describe('Testando a inclusão quando há capitulo anterior', () => {
     beforeEach(function () {
       // state = agrupaElemento(state, {
-      //   type: AGRUPAR_ELEMENTO,
+      //   type: ADICIONAR_AGRUPADOR_ARTIGO,
       //   atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[1].uuid },
       //   novo: {
       //     tipo: TipoDispositivo.capitulo.tipo,
       //   },
       // });
       // state = agrupaElemento(state, {
-      //   type: AGRUPAR_ELEMENTO,
+      //   type: ADICIONAR_AGRUPADOR_ARTIGO,
       //   atual: { tipo: TipoDispositivo.artigo.tipo, uuid: state.articulacao.artigos[4].uuid },
       //   novo: {
       //     tipo: TipoDispositivo.capitulo.tipo,
@@ -104,10 +104,10 @@ describe('Testando a inclusão de agrupadores', () => {
       // });
 
       const art2 = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art5 = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       eventos = getEventosQuePossuemElementos(state.ui.events);
     });
@@ -136,10 +136,10 @@ describe('Testando a inclusão de agrupadores', () => {
   describe('Testando a inclusão quando há capitulo posterior', () => {
     beforeEach(function () {
       const art5 = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art2 = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       eventos = getEventosQuePossuemElementos(state.ui.events);
     });
@@ -166,13 +166,13 @@ describe('Testando a inclusão de agrupadores', () => {
   describe('Testando a inclusão quando há capitulo anterior e posterior', () => {
     beforeEach(function () {
       const art5 = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art2 = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art4 = createElemento(state.articulacao.artigos[3]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art4, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art4, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       eventos = getEventosQuePossuemElementos(state.ui.events);
     });
@@ -204,10 +204,10 @@ describe('Testando a inclusão de agrupadores', () => {
   describe('Testando a inclusão de agrupador filho quando não há agrupador do mesmo tipo posterior', () => {
     beforeEach(function () {
       const art2 = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art2b = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
 
       eventos = getEventosQuePossuemElementos(state.ui.events);
     });
@@ -240,13 +240,13 @@ describe('Testando a inclusão de agrupadores', () => {
   describe('Testando a inclusão de agrupador filho quando há agrupador do mesmo tipo posterior', () => {
     beforeEach(function () {
       const art2 = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art5 = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
 
       const art2b = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
 
       eventos = getEventosQuePossuemElementos(state.ui.events);
     });

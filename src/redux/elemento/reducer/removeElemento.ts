@@ -3,22 +3,21 @@ import { Alerta } from '../../../model/alerta/alerta';
 import { State, StateType } from '../../state';
 import {
   findDispositivoByUuid,
-  getDispositivoAndFilhosAsLista,
   getDispositivoAnterior,
   getDispositivoPosterior,
+  getImpedimentoParaRemoverAgrupador,
   getPrimeiroAgrupadorNaArticulacao,
-  getTiposAgrupadorArtigoPermitidosNaArticulacao,
   hasEmenta,
   hasFilhos,
   isArtigoUnico,
   isDispositivoAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isEmenta } from '../../../model/dispositivo/tipo';
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RemoverElemento } from '../../../model/lexml/acao/removerElementoAction';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
-import { getPaiQuePodeReceberFilhoDoTipo, removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
+import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { existeFilhoExcluidoOuAlteradoDuranteRevisao, findRevisaoByElementoUuid2, isRevisaoDeMovimentacao, isRevisaoPrincipal } from '../util/revisaoUtil';
 
@@ -43,7 +42,10 @@ export const removeElemento = (state: any, action: any): State => {
 
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
-  const { novoRegistroRemissoes, eventosRemissao, novosAlertas } = construirEventosRemissaoParaRemocao(state.remissoes, state.articulacao, dispositivosRemovidosIds);
+  // Rejeitar uma movimentação remove e reinclui o mesmo dispositivo: o destino continua existindo.
+  const { novoRegistroRemissoes, eventosRemissao, novosAlertas } = action.suprimirInvalidacaoRemissao
+    ? { novoRegistroRemissoes: state.remissoes, eventosRemissao: [], novosAlertas: [] }
+    : construirEventosRemissaoParaRemocao(state.remissoes, state.articulacao, dispositivosRemovidosIds);
   events.push(...eventosRemissao);
 
   if (elPrimeiroFilhoDoAgrupador) {
@@ -76,27 +78,10 @@ export const removeElemento = (state: any, action: any): State => {
 
 // Valida se a remoção é permitida. Retorna o state de erro se não for, ou null se for permitido.
 const validarRemocaoElemento = (state: any, dispositivo: Dispositivo, action: any): State | null => {
-  if (isAgrupador(dispositivo) && !isDispositivoAlteracao(dispositivo)) {
-    // Só deixa remover agrupador se articulação permanecer consistente
-    if (isArticulacao(dispositivo.pai!)) {
-      const tipos = getTiposAgrupadorArtigoPermitidosNaArticulacao();
-      if (!dispositivo.filhos.every(f => isArtigo(f) || tipos.includes(f.tipo))) {
-        return retornaEstadoAtualComMensagem(state, {
-          tipo: TipoMensagem.ERROR,
-          descricao: `Operação não permitida (se houver seções abaixo do "${dispositivo.rotulo}", elas devem ser removidas antes)`,
-        });
-      }
-    } else if (dispositivo.filhos.filter(f => !isArtigo(f)).length) {
-      const dispositivos = getDispositivoAndFilhosAsLista(dispositivo.pai!).filter(isAgrupador);
-      const agrupadorAntes = dispositivos[dispositivos.indexOf(dispositivo) - 1] || {};
-      const agrupadorDepois = dispositivos[dispositivos.indexOf(dispositivo) + 1] || {};
-      if (agrupadorAntes.tipo !== agrupadorDepois.tipo && !getPaiQuePodeReceberFilhoDoTipo(dispositivo.pai!, agrupadorDepois.tipo, [])) {
-        return retornaEstadoAtualComMensagem(state, {
-          tipo: TipoMensagem.ERROR,
-          descricao: `Operação não permitida (o agrupador "${agrupadorDepois.rotulo}" não poder estar diretamente subordinado ao agrupador "${agrupadorAntes.rotulo}")`,
-        });
-      }
-    }
+  // Mesma regra que o menu consulta via podeRemoverAgrupador, para não oferecer o que o reducer recusa.
+  const impedimentoRemocaoAgrupador = getImpedimentoParaRemoverAgrupador(dispositivo);
+  if (impedimentoRemocaoAgrupador) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: impedimentoRemocaoAgrupador });
   }
 
   if (isEmenta(dispositivo)) {
@@ -104,9 +89,7 @@ const validarRemocaoElemento = (state: any, dispositivo: Dispositivo, action: an
   }
 
   if (!isAcaoPermitida(dispositivo, RemoverElemento)) {
-    return !isEmenta(dispositivo)
-      ? retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir um dispositivo original mas apenas suprimi-lo.' })
-      : state;
+    return !isEmenta(dispositivo) ? retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir este dispositivo.' }) : state;
   }
 
   if (
@@ -141,6 +124,11 @@ const capturarRemovidosEDescendentes = (d: Dispositivo): Array<{ lexmlId: string
   const capturar = (dispositivo: Dispositivo): void => {
     if (dispositivo.id && dispositivo.uuid) {
       result.push({ lexmlId: dispositivo.id, uuid: dispositivo.uuid });
+    }
+    // O caput não está em `filhos` (os incisos, sim): sem isto, remissões para ele não são invalidadas.
+    const caput = isArtigo(dispositivo) ? (dispositivo as Artigo).caput : undefined;
+    if (caput?.id && caput.uuid) {
+      result.push({ lexmlId: caput.id, uuid: caput.uuid });
     }
     dispositivo.filhos?.forEach(capturar);
   };

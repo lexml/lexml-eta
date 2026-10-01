@@ -4,7 +4,7 @@ import { ClassificacaoDocumento } from '../../../src/model/documento/classificac
 import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
-import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, findDispositivoByUuid } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { PLP_68_2024 } from '../../../demo/doc/plp_68_2024';
 import { Paginacao } from '../../../src/redux/state';
@@ -13,62 +13,69 @@ import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElemen
 
 let state: any;
 
+// A inclusão preserva a identidade dos dispositivos, então o artigo incluído é rastreado por uuid.
+// A movimentação recria os dispositivos, então lá ele é localizado por ser o único artigo sem texto.
+const artigosIncluidos = (): any[] => state.articulacao.artigos.filter((a: any) => !a.texto);
+
+const artigoIncluido = (): any => artigosIncluidos()[0];
+
+const porUuid = (uuid: number): any => findDispositivoByUuid(state.articulacao, uuid)!;
+
+const artigoPosteriorA = (d: any): any => d.pai.filhos[d.pai.indexOf(d) + 1];
+
+const indicePaginaDe = (d: any): number => (state.ui.paginacao as Paginacao).paginasArticulacao!.findIndex(p => p.ids.includes(d.id));
+
+const indicePaginaDoTituloV = (): number => indicePaginaDe(buscaDispositivoById(state.articulacao, 'liv1_tit5')!);
+
 describe('Testando inclusão de dispositivos em proposições paginadas', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(PLP_68_2024, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(PLP_68_2024);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
   });
 
   describe('Inclui artigo antes do Título V do Livro I', () => {
+    let uuidIncluido: number;
+
     beforeEach(function () {
       const e = createElemento(buscaDispositivoById(state.articulacao, 'liv1_tit5')!);
       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: e, novo: { tipo: 'Artigo' }, posicao: 'antes' });
+      uuidIncluido = artigoIncluido().uuid;
     });
 
-    it('Artigo "art160-1" deveria estar na mesma página do Título V do Livro I (liv1_tit5)', () => {
-      const paginasArticulacao = (state.ui.paginacao as Paginacao).paginasArticulacao!;
-      const indexPagLiv1Tit5 = paginasArticulacao.findIndex(p => p.ids.includes('liv1_tit5'));
-      const indexPagArt160_1 = paginasArticulacao.findIndex(p => p.ids.includes('art160-1'));
-      expect(indexPagArt160_1).to.be.equal(indexPagLiv1Tit5);
+    it('O artigo incluído deveria estar na mesma página do Título V do Livro I (liv1_tit5)', () => {
+      expect(indicePaginaDe(porUuid(uuidIncluido))).to.be.equal(indicePaginaDoTituloV());
     });
   });
 
   describe('Inclui artigo antes do Título V do Livro I, e depois inclui artigo após art. 160', () => {
+    let uuidAntesDoTitulo: number;
+    let uuidAposArt160: number;
+
     beforeEach(function () {
-      // Inclui artigo antes do Título V do Livro I (o artigo Art. 160-1 será criado)
       const e = createElemento(buscaDispositivoById(state.articulacao, 'liv1_tit5')!);
       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: e, novo: { tipo: 'Artigo' }, posicao: 'antes' });
+      uuidAntesDoTitulo = artigoIncluido().uuid;
 
-      // Inclui artigo após o Art. 160 (um NOVO artigo Art. 160-1 será criado e o artigo anterior será renumerado para Art. 160-2)
       const e2 = createElemento(buscaDispositivoById(state.articulacao, 'art160')!);
       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: e2, novo: { tipo: 'Artigo' }, posicao: 'depois' });
+      uuidAposArt160 = artigosIncluidos().find((a: any) => a.uuid !== uuidAntesDoTitulo)!.uuid;
     });
 
-    it('Artigo "art160-1" deveria estar na mesma página do Art. 160', () => {
-      const paginasArticulacao = (state.ui.paginacao as Paginacao).paginasArticulacao!;
-      const indexPagArt160 = paginasArticulacao.findIndex(p => p.ids.includes('art160'));
-      const indexPagArt160_1 = paginasArticulacao.findIndex(p => p.ids.includes('art160-1'));
-      expect(indexPagArt160_1).to.be.equal(indexPagArt160);
+    it('O artigo incluído após o Art. 160 deveria estar na mesma página do Art. 160', () => {
+      expect(indicePaginaDe(porUuid(uuidAposArt160))).to.be.equal(indicePaginaDe(buscaDispositivoById(state.articulacao, 'art160')!));
     });
 
-    it('Artigo "art160-2" deveria estar na mesma página do Título V do Livro I (liv1_tit5)', () => {
-      const paginasArticulacao = (state.ui.paginacao as Paginacao).paginasArticulacao!;
-      const indexPagLiv1Tit5 = paginasArticulacao.findIndex(p => p.ids.includes('liv1_tit5'));
-      const indexPagArt160_2 = paginasArticulacao.findIndex(p => p.ids.includes('art160-2'));
-      expect(indexPagArt160_2).to.be.equal(indexPagLiv1Tit5);
+    it('O artigo incluído antes do Título V deveria estar na mesma página do Título V do Livro I (liv1_tit5)', () => {
+      expect(indicePaginaDe(porUuid(uuidAntesDoTitulo))).to.be.equal(indicePaginaDoTituloV());
     });
 
-    it('Página do Art. 160-2 não deveria possuir o Art. 160-1', () => {
+    it('A página do artigo incluído antes do Título V não deveria possuir o artigo incluído após o Art. 160', () => {
       const paginasArticulacao = (state.ui.paginacao as Paginacao).paginasArticulacao!;
-      const indexPagArt160_2 = paginasArticulacao.findIndex(p => p.ids.includes('art160-2'));
-      expect(paginasArticulacao[indexPagArt160_2].ids.includes('art160-1')).to.be.false;
+      expect(paginasArticulacao[indicePaginaDe(porUuid(uuidAntesDoTitulo))].ids.includes(porUuid(uuidAposArt160).id)).to.be.false;
     });
 
     it('Os novos artigos deveriam estar em páginas diferentes', () => {
-      const paginasArticulacao = (state.ui.paginacao as Paginacao).paginasArticulacao!;
-      const indexPagArt160_1 = paginasArticulacao.findIndex(p => p.ids.includes('art160-1'));
-      const indexPagArt160_2 = paginasArticulacao.findIndex(p => p.ids.includes('art160-2'));
-      expect(indexPagArt160_1).to.not.be.equal(indexPagArt160_2);
+      expect(indicePaginaDe(porUuid(uuidAposArt160))).to.not.be.equal(indicePaginaDe(porUuid(uuidAntesDoTitulo)));
     });
   });
 
@@ -78,16 +85,12 @@ describe('Testando inclusão de dispositivos em proposições paginadas', () => 
         const e = createElemento(buscaDispositivoById(state.articulacao, 'liv1_tit5')!);
         state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: e, novo: { tipo: 'Artigo' }, posicao: 'antes' });
 
-        const e2 = createElemento(buscaDispositivoById(state.articulacao, 'art160-1')!);
-        state = elementoReducer(state, { type: MOVER_ELEMENTO_ACIMA, atual: e2 });
-        // Obs: artigo "art160-1" virou "art159-1"
+        state = elementoReducer(state, { type: MOVER_ELEMENTO_ACIMA, atual: createElemento(artigoIncluido()) });
       });
 
-      it('Artigo "art159-1" deveria estar na mesma página do Art. 160', () => {
-        const paginasArticulacao = (state.ui.paginacao as Paginacao).paginasArticulacao!;
-        const indexPagArt160 = paginasArticulacao.findIndex(p => p.ids.includes('art160'));
-        const indexPagArt160_1 = paginasArticulacao.findIndex(p => p.ids.includes('art159-1'));
-        expect(indexPagArt160_1).to.be.equal(indexPagArt160);
+      it('O artigo movido deveria estar na mesma página do artigo que passou a sucedê-lo', () => {
+        const movido = artigoIncluido();
+        expect(indicePaginaDe(movido)).to.be.equal(indicePaginaDe(artigoPosteriorA(movido)));
       });
     });
 
@@ -96,37 +99,27 @@ describe('Testando inclusão de dispositivos em proposições paginadas', () => 
         const e = createElemento(buscaDispositivoById(state.articulacao, 'liv1_tit5')!);
         state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: e, novo: { tipo: 'Artigo' }, posicao: 'antes' });
 
-        const e2 = createElemento(buscaDispositivoById(state.articulacao, 'art160-1')!);
-        state = elementoReducer(state, { type: MOVER_ELEMENTO_ACIMA, atual: e2 });
-        // Obs: artigo "art160-1" virou "art159-1"
-
-        const e3 = createElemento(buscaDispositivoById(state.articulacao, 'art159-1')!);
-        state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: e3 });
-
-        const e4 = createElemento(buscaDispositivoById(state.articulacao, 'art160-1')!);
-        state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: e4 });
+        state = elementoReducer(state, { type: MOVER_ELEMENTO_ACIMA, atual: createElemento(artigoIncluido()) });
+        state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(artigoIncluido()) });
+        state = elementoReducer(state, { type: MOVER_ELEMENTO_ABAIXO, atual: createElemento(artigoIncluido()) });
       });
 
-      it('Pai do Artigo "art160-1" deveria ser o Título V do Livro I (liv1_tit5)', () => {
-        const art160_1 = buscaDispositivoById(state.articulacao, 'art160-1')!;
-        expect(art160_1.pai?.id).to.be.equal('liv1_tit5');
+      it('Pai do artigo movido deveria ser o Título V do Livro I (liv1_tit5)', () => {
+        expect(artigoIncluido().pai?.id).to.be.equal('liv1_tit5');
       });
 
-      it('Página 0 não deveria possuir o Art. 160-1', () => {
+      it('Página 0 não deveria possuir o artigo movido', () => {
         const pagina0 = (state.ui.paginacao as Paginacao).paginasArticulacao![0];
-        expect(pagina0.ids.includes('art160-1')).to.be.false;
+        expect(pagina0.ids.includes(artigoIncluido().id)).to.be.false;
       });
 
-      it('Página 1 deveria possuir o Art. 160-1', () => {
+      it('Página 1 deveria possuir o artigo movido', () => {
         const pagina1 = (state.ui.paginacao as Paginacao).paginasArticulacao![1];
-        expect(pagina1.ids.includes('art160-1')).to.be.true;
+        expect(pagina1.ids.includes(artigoIncluido().id)).to.be.true;
       });
 
-      it('Artigo "art160-1" deveria estar na mesma página do Título V do Livro I (liv1_tit5)', () => {
-        const paginasArticulacao = (state.ui.paginacao as Paginacao).paginasArticulacao!;
-        const indexPagLiv1Tit5 = paginasArticulacao.findIndex(p => p.ids.includes('liv1_tit5'));
-        const indexPagArt160_1 = paginasArticulacao.findIndex(p => p.ids.includes('art160-1'));
-        expect(indexPagArt160_1).to.be.equal(indexPagLiv1Tit5);
+      it('O artigo movido deveria estar na mesma página do Título V do Livro I (liv1_tit5)', () => {
+        expect(indicePaginaDe(artigoIncluido())).to.be.equal(indicePaginaDoTituloV());
       });
     });
   });

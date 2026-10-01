@@ -1,12 +1,11 @@
 import { expect } from '@open-wc/testing';
 import { removerElementoAction } from '../../../src/model/lexml/acao/removerElementoAction';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { State } from '../../../src/redux/state';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
-import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { RemissaoInternaValue } from '../../../src/model/remissao';
 import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
 
@@ -124,6 +123,7 @@ describe('Atualização de Remissões ao Remover Dispositivo', () => {
       const art1 = criaDispositivo(articulacao, 'Artigo');
       const art2 = criaDispositivo(articulacao, 'Artigo');
       const par1Art2 = criaDispositivo(art2, 'Paragrafo');
+      criaDispositivo(art2, 'Paragrafo'); // segundo parágrafo: par1Art2 não vira "único"
       const origem = criaDispositivo(articulacao, 'Artigo'); // dispositivo fonte da remissão
 
       art1.texto = 'Artigo 1.';
@@ -135,12 +135,6 @@ describe('Atualização de Remissões ao Remover Dispositivo', () => {
       [art1, art2, par1Art2, origem].forEach(d => d.createRotulo(d));
       updateIdDispositivoAndFilhos(articulacao);
 
-      [art1, art2, par1Art2, origem].forEach(d => {
-        d.situacao = new DispositivoAdicionado();
-      });
-      (art1 as Artigo).caput!.situacao = new DispositivoAdicionado();
-      (art2 as Artigo).caput!.situacao = new DispositivoAdicionado();
-
       expect(art2.id).to.equal('art2');
       expect(par1Art2.id).to.equal('art2_par1');
 
@@ -148,7 +142,7 @@ describe('Atualização de Remissões ao Remover Dispositivo', () => {
 
       const state: State = {
         articulacao,
-        modo: 'emenda',
+        modo: ClassificacaoDocumento.PROJETO,
         past: [],
         present: [],
         future: [],

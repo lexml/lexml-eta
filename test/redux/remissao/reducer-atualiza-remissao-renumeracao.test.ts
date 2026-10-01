@@ -2,11 +2,11 @@ import { expect } from '@open-wc/testing';
 import { adicionarArtigoAntes, adicionarArtigoDepois } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { renumerarElementoAction } from '../../../src/model/lexml/acao/renumerarElementoAction';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { State } from '../../../src/redux/state';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
-import { DispositivoAdicionado } from '../../../src/model/lexml/situacao/dispositivoAdicionado';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { RemissaoInternaValue } from '../../../src/model/remissao';
 import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
@@ -195,18 +195,12 @@ describe('Atualização de Remissões na Renumeração', () => {
         origem.createRotulo(origem);
         updateIdDispositivoAndFilhos(articulacao);
 
-        art1.situacao = new DispositivoAdicionado();
-        (art1 as Artigo).caput!.situacao = new DispositivoAdicionado();
-        par1.situacao = new DispositivoAdicionado();
-        par2.situacao = new DispositivoAdicionado();
-        origem.situacao = new DispositivoAdicionado();
-
         expect(par2.id).to.match(/^art1_par/);
 
         const entrada = criaEntradaRemissao(origem, par2, '§ 2º do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: ClassificacaoDocumento.PROJETO,
           past: [],
           present: [],
           future: [],
@@ -245,18 +239,12 @@ describe('Atualização de Remissões na Renumeração', () => {
         origem.createRotulo(origem);
         updateIdDispositivoAndFilhos(articulacao);
 
-        art1.situacao = new DispositivoAdicionado();
-        (art1 as Artigo).caput!.situacao = new DispositivoAdicionado();
-        inc1.situacao = new DispositivoAdicionado();
-        inc2.situacao = new DispositivoAdicionado();
-        origem.situacao = new DispositivoAdicionado();
-
         expect(inc2.id).to.match(/^art1_cpt_inc/);
 
         const entrada = criaEntradaRemissao(origem, inc2, 'inciso II do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: ClassificacaoDocumento.PROJETO,
           past: [],
           present: [],
           future: [],
@@ -299,19 +287,12 @@ describe('Atualização de Remissões na Renumeração', () => {
         origem.createRotulo(origem);
         updateIdDispositivoAndFilhos(articulacao);
 
-        art1.situacao = new DispositivoAdicionado();
-        (art1 as Artigo).caput!.situacao = new DispositivoAdicionado();
-        inc1.situacao = new DispositivoAdicionado();
-        ali1.situacao = new DispositivoAdicionado();
-        ali2.situacao = new DispositivoAdicionado();
-        origem.situacao = new DispositivoAdicionado();
-
         const idAntigoAli2 = ali2.id!;
 
         const entrada = criaEntradaRemissao(origem, ali2, 'alínea b) do inciso I do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: ClassificacaoDocumento.PROJETO,
           past: [],
           present: [],
           future: [],
@@ -357,20 +338,12 @@ describe('Atualização de Remissões na Renumeração', () => {
         origem.createRotulo(origem);
         updateIdDispositivoAndFilhos(articulacao);
 
-        art1.situacao = new DispositivoAdicionado();
-        (art1 as Artigo).caput!.situacao = new DispositivoAdicionado();
-        inc1.situacao = new DispositivoAdicionado();
-        ali1.situacao = new DispositivoAdicionado();
-        item1.situacao = new DispositivoAdicionado();
-        item2.situacao = new DispositivoAdicionado();
-        origem.situacao = new DispositivoAdicionado();
-
         const idAntigoItem2 = item2.id!;
 
         const entrada = criaEntradaRemissao(origem, item2, 'item 2 da alínea a) do inciso I do art. 1º');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: ClassificacaoDocumento.PROJETO,
           past: [],
           present: [],
           future: [],
@@ -410,19 +383,12 @@ describe('Atualização de Remissões na Renumeração', () => {
         origem.createRotulo(origem);
         updateIdDispositivoAndFilhos(articulacao);
 
-        cap1.situacao = new DispositivoAdicionado();
-        cap2.situacao = new DispositivoAdicionado();
-        art1.situacao = new DispositivoAdicionado();
-        (art1 as Artigo).caput!.situacao = new DispositivoAdicionado();
-        origem.situacao = new DispositivoAdicionado();
-        (origem as Artigo).caput!.situacao = new DispositivoAdicionado();
-
         expect(cap2.id).to.equal('cap2');
 
         const entrada = criaEntradaRemissao(origem, cap2, 'Capítulo II');
         const testState: State = {
           articulacao,
-          modo: 'emenda',
+          modo: ClassificacaoDocumento.PROJETO,
           past: [],
           present: [],
           future: [],

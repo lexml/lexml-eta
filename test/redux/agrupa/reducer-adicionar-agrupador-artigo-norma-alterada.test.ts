@@ -19,7 +19,7 @@ let eventos: StateEvent[];
 
 describe('Testando a inclusão de agrupador de dispositivo de norma alterada', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_1089_2021, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_1089_2021);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });

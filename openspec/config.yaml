@@ -1,0 +1,60 @@
+schema: spec-driven
+
+context: |
+  Language: pt-BR
+  All artifacts must be written in pt-BR.
+  Keep OpenSpec structural headings and SHALL/MUST keywords in English.
+
+  Change naming convention: every change directory under openspec/changes/
+  (including the argument passed to `openspec new change`) MUST already be
+  named `<yyyy>-<mm>-<dd>-c<xx>-<change-name>` (e.g.
+  `2026-09-15-c01-salvar-documento-articulado`) — the date the change is
+  created, plus a 2-digit sequential counter that restarts at c01 on each
+  new day. Do not create a change with a bare name and rely on `openspec
+  archive` to prepend the date later; resolve the correct next counter for
+  today's date first (check openspec/changes/ and openspec/changes/archive/
+  for the highest existing `cXX` used today) and pass the full dated name
+  to `openspec new change` from the start.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
+rules:
+  tasks:
+    - |
+      Always include an explicit E2E (Cypress) testing task. Before dropping it, assess
+      feasibility of creating/running it in light of docs/guia-cypress.md (this project's
+      Cypress lessons learned) — if not feasible or not worth the effort, don't silently
+      omit the step: record the decision and propose a concrete alternative (e.g.,
+      integration or unit test) that covers the same risk.
+
+# Per-operation guidance (optional)
+# Add advisory guidance for how apply and archive work should be conducted.
+# This is separate from artifact rules above.
+# Example:
+#   operations:
+#     apply:
+#       guidance:
+#         - Keep test summaries concise
+#     archive:
+#       guidance:
+#         - Summarize the archive outcome before finishing
+operations:
+  apply:
+    guidance:
+      - |
+        After finishing all subtasks of a numbered task (e.g., all of 2.x before moving to
+        3.x), stop and ask the user to validate before moving to the next numbered task —
+        never chain different numbered tasks without that pause.
+      - |
+        When pausing for validation, offer two options: the user commits on their own, or
+        you help organize the commit(s). If helping, always follow this guidance: group
+        edited files into semantically correct commits; give each one a concise description
+        (no file listing, no "AI-sounding" tone); never commit directly — present the commit
+        plan for the user's approval first; never list yourself as a co-author.

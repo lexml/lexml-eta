@@ -2,7 +2,7 @@
 import { customElement, property, query } from 'lit/decorators.js';
 import { LitElement, html, css, TemplateResult } from 'lit';
 
-@customElement('lexml-sufixos-modal')
+@customElement('lexml-eta-sufixos-modal')
 export class SufixosModalComponent extends LitElement {
   @property({ type: Number }) private step = 1;
   @query('sl-dialog') private slDialog!: any;
@@ -59,7 +59,7 @@ export class SufixosModalComponent extends LitElement {
             Os sufixos na numeração de dispositivos, como -1, -2 e assim por diante, são usados para orientar o posicionamento na redação final. Eles não indicam uma numeração
             definitiva.
           </p>
-          <p>Os dispositivos propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação das emendas ao texto da proposição pela Redação Final.</p>
+          <p>Os dispositivos propostos e adjacentes deverão ser devidamente renumerados no momento da consolidação do texto da proposição pela Redação Final.</p>
         </div>
 
         <div slot="footer" class="footer-container">
@@ -74,6 +74,6 @@ export class SufixosModalComponent extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-sufixos-modal': SufixosModalComponent;
+    'lexml-eta-sufixos-modal': SufixosModalComponent;
   }
 }

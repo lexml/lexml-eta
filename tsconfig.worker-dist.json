@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src/util/lexml-linker",
+    "noImplicitAny": false
+  },
+  "include": ["src/util/lexml-linker/lexml-linker.worker.ts"]
+}

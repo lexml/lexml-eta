@@ -13,7 +13,7 @@ export interface TextoArticulado {
 }
 
 export interface ParteInicial {
-  epigrafe?: Conteudo;
+  epigrafe?: Conteudo | string;
   ementa?: Dispositivo; // Conteudo;
-  preambulo?: Conteudo;
+  preambulo?: Conteudo | string;
 }

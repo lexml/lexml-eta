@@ -453,21 +453,9 @@ export const editorStyles = html`
       margin-right: 0;
     }
 
-    .dispositivo--adicionado {
+    /*.dispositivo--adicionado {
       color: green;
-    }
-
-    .dispositivo--modificado {
-      color: blue;
-    }
-
-    .dispositivo--suprimido {
-      color: red;
-    }
-
-    .dispositivo--suprimido .texto__dispositivo {
-      text-decoration: line-through;
-    }
+    }*/
 
     /* .texto--suprimido {
       text-decoration: line-through;

@@ -9,7 +9,6 @@ import { RemissaoExternaValue, RemissaoInternaValue } from '../model/remissao';
 
 export enum StateType {
   ArticulacaoAtualizada = 'ArticulacaoAtualizada',
-  ComandoEmendaGerado = 'ComandoEmendaGerado',
   DocumentoCarregado = 'DocumentoCarregado',
   InformarDadosAssistente = 'InformarDadosAssistente',
   InformarNorma = 'InformarNorma',
@@ -17,8 +16,6 @@ export enum StateType {
   ElementoIncluido = 'ElementoIncluido',
   ElementoRemovido = 'ElementoRemovido',
   ElementoRenumerado = 'ElementoRenumerado',
-  ElementoRestaurado = 'ElementoRestaurado',
-  ElementoSuprimido = 'ElementoSuprimido',
   ElementoValidado = 'ElementoValidado',
   ElementoSelecionado = 'ElementoSelecionado',
   ElementoMarcado = 'ElementoMarcado',

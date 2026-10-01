@@ -103,6 +103,96 @@ describe('D4: referência enxuta ("inciso I") não ganha qualificador ao renumer
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Issue lexml-eta#1003: "parágrafo único" é um caso especial de referência enxuta — "único" é forma
+// enxuta por CONTAGEM de irmãos do mesmo tipo (não por posição ordinal). O bug reportado: o link
+// virava "§ 1º" ao renumerar um artigo alheio, mesmo sem nenhum segundo parágrafo ter sido criado.
+// Corrigido em createRotulo (numeracaoParagrafo.ts): a contagem ao vivo, que já decidia o rótulo
+// exibido, passou também a ser persistida em informouParagrafoUnico (consultado por buildHref/idUtil.ts
+// ao gerar o id usado pela remissão). Ver openspec/changes/2026-09-22-c01-corrigir-remissao-paragrafo-unico.
+//
+// Origem deliberadamente DENTRO do próprio Art. 1 (inciso no caput), não em outro artigo: "parágrafo
+// único" bare É reconhecível pela detecção implícita (Etapa 1.5, CT-X29 em reducer-deteccao-
+// contextual.test.ts), que resolve contextualmente ao parágrafo único DO ARTIGO DA ORIGEM. Uma origem
+// em outro artigo (sem parágrafo próprio) faz essa redetecção (disparada ao clicar no menu de outro
+// dispositivo) substituir o registro por um vazio — "sempre substituído, nunca acumulado" — apagando
+// o link antes da asserção final. Com a origem no mesmo artigo do destino, a redetecção (se rodar)
+// converge para a mesma resposta da injeção manual, como já acontece em CT-H-01.
+// ─────────────────────────────────────────────────────────────────────────────
+describe('D4: referência enxuta especial "parágrafo único" (issue lexml-eta#1003) não vira "§ 1º" ao renumerar artigo alheio', () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.novaProposicao();
+    cy.getContainerArtigoByNumero(1).should('exist');
+
+    // Art. 1: um inciso no caput (origem) e um único parágrafo (destino), ambos no mesmo artigo.
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar inciso');
+    cy.get('div.container__elemento.elemento-tipo-inciso').should('have.length', 1);
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar parágrafo');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').should('have.length', 1);
+
+    cy.getContainerArtigoByNumero(1).alterarTextoDoDispositivo('Esta lei estabelece as normas gerais aplicáveis à matéria.');
+    cy.get('div.container__elemento.elemento-tipo-inciso').alterarTextoDoDispositivo('bla bla bla.');
+    cy.get('div.container__elemento.elemento-tipo-paragrafo').alterarTextoDoDispositivo('Parágrafo único de teste.');
+  });
+
+  it('CT-H-03: "parágrafo único" não vira "§ 1º" ao renumerar artigo alheio; atualiza só o id interno', () => {
+    // Injeta o link enxuto "parágrafo único" no inciso do caput, apontando para o parágrafo único do
+    // mesmo Art. 1 — simula criação manual via diálogo, já que "parágrafo único" sozinho não é
+    // reconhecido pela detecção ABSOLUTA (mesma técnica de CT-H-01) — a detecção IMPLÍCITA (Etapa 1.5)
+    // até reconheceria, mas resolveria para o mesmo alvo, então a injeção manual é equivalente.
+    cy.get('div.container__elemento.elemento-tipo-inciso').then($incOrigem => {
+      return cy.window().then(win => {
+        const editorEl = win.document.querySelector('lexml-eta-proposicao-editor') as any;
+        const quill = editorEl?.quill;
+        const parUnico = win.document.querySelector('div.container__elemento.elemento-tipo-paragrafo') as HTMLElement;
+        const pParUnico = parUnico.querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+        const EtaQuillClass = quill.constructor as any;
+        const targetUuid = parseInt(pParUnico.id!.replace('texto__dispositivo', ''), 10);
+
+        const pIncOrigem = $incOrigem[0].querySelector('div.container__texto p.texto__dispositivo') as HTMLElement;
+        const blotOrigem = EtaQuillClass.find(pIncOrigem);
+        const offset = blotOrigem.offset(quill.scroll);
+        const sourceUuid = parseInt(pIncOrigem.id!.replace('texto__dispositivo', ''), 10);
+
+        const refId = 'ref_par_unico_test';
+        const remissao = { refId, targetLexmlId: 'art1_par1u', targetUuid };
+        const Delta = EtaQuillClass.import('delta');
+        quill.updateContents(new Delta([{ retain: offset }, { insert: 'parágrafo único', attributes: { 'remissao-interna': remissao } }, { insert: ' ' }]), 'silent');
+
+        // Injeta a entrada no registro (state.remissoes) — a detecção automática não cria isso
+        // sozinha para forma enxuta, então simulamos diretamente o que ela faria.
+        const store = (win as any).__rootStore;
+        const state = store.getState().elementoReducer;
+        state.remissoes = {
+          ...state.remissoes,
+          [sourceUuid]: [{ refId, sourceUuid, targetUuid, targetLexmlId: 'art1_par1u', textoRef: 'parágrafo único' }],
+        };
+      });
+    });
+
+    cy.get('div.container__elemento.elemento-tipo-inciso')
+      .find(SEL_LINK)
+      .should('have.length', 1)
+      .and('have.attr', 'data-lexml-ref', 'art1_par1u')
+      .and('contain.text', 'parágrafo único');
+
+    // Sincroniza o texto do inciso (editado via 'silent') com o estado, sem rodar redetecção.
+    cy.get('div.container__elemento.elemento-tipo-inciso').sincronizarTextoComQuill();
+
+    // Insere um novo artigo antes de tudo — Art. 1 (com origem e destino) vira Art. 2 por inteiro.
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo antes');
+    cy.getContainerArtigoByNumero(2).should('exist');
+
+    // O texto NÃO deve virar "§ 1º" — permanece "parágrafo único"; só o data-lexml-ref muda internamente
+    cy.get('div.container__elemento.elemento-tipo-inciso')
+      .find(SEL_LINK)
+      .should('have.attr', 'data-lexml-ref', 'art2_par1u')
+      .and('contain.text', 'parágrafo único')
+      .and('not.contain.text', '§');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Contraste: referência JÁ escrita com cadeia explícita ("do art. N") continua sendo recalculada
 // por inteiro, mesmo cruzando para outro artigo — comportamento não alterado por este fix.
 // ─────────────────────────────────────────────────────────────────────────────

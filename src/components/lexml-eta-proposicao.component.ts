@@ -3,12 +3,12 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
-import { Anexo, DispositivosEmenda } from '../model/emenda/emenda';
-import { aplicarAlteracoesEmendaAction } from '../model/lexml/acao/aplicarAlteracoesEmenda';
+import { Anexo } from '../model/proposicao/proposicao';
+import { aplicarRevisoesAction } from '../model/lexml/acao/aplicarRevisoes';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { completarRegistroRemissoes } from '../redux/elemento/reducer/adicionaRemissaoInterna';
-import { buildProjetoNormaFromJsonix } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../redux/store';
 import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
@@ -16,6 +16,7 @@ import { Revisao } from '../model/revisao/revisao';
 import { LexmlEtaParametrosEdicao } from './lexml-eta.component';
 import { EditorComponent } from './editor/editor.component';
 import { YjsCollabService } from '../collab/yjsCollabService';
+import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 
 @customElement('lexml-eta-proposicao')
 export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) {
@@ -30,19 +31,16 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
 
   private colabService?: YjsCollabService;
 
-  private dispositivosEmenda: DispositivosEmenda | undefined;
   private revisoes: Revisao[] | undefined;
 
   createRenderRoot(): LitElement {
     return this;
   }
 
-  inicializarEdicao(urn: string, params?: LexmlEtaParametrosEdicao): void {
+  inicializarEdicao(urn: string, params?: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): void {
     this.urn = urn;
-    if (params?.projetoNorma) {
-      this.projetoNorma = params.projetoNorma;
-    }
-    this.loadProjetoNorma(params);
+    this.projetoNorma = params?.projetoNorma ? JSON.parse(JSON.stringify(params.projetoNorma)) : undefined;
+    this.loadProjetoNorma(params, preservarTextoDocumento);
     void this.revelarArticulacao();
     void this.ligarColaboracao(params);
   }
@@ -108,22 +106,35 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     this.colabService = undefined;
   }
 
-  setDispositivosERevisoesEmenda(revisoes?: Revisao[]): void {
+  setRevisoes(revisoes?: Revisao[]): void {
     this.revisoes = revisoes;
-    this.loadEmenda();
+    // Sem essa guarda o dispatch roda sempre, e o reducer acaba marcando o 1º artigo como "adicionado"
+    // (situação padrão de todo dispositivo recém-criado), deslocando o cursor da ementa ~1s após o carregamento.
+    if (revisoes?.length) {
+      this.loadRevisoes();
+    }
   }
 
   getProjetoAtualizado(): any {
     this.editorComponent.flushEdicaoPendente();
-    const out = { ...this.projetoNorma };
+    const out = JSON.parse(JSON.stringify(this.projetoNorma));
+    out.value.metadado.identificacao.urn = this.urn;
     const elementoState = rootStore.getState().elementoReducer;
-    const registroCompleto = completarRegistroRemissoes(elementoState.articulacao, elementoState.remissoes ?? {});
     const remissoesExternas = elementoState.remissoesExternas ?? {};
+    const registroCompleto = completarRegistroRemissoes(elementoState.articulacao, elementoState.remissoes ?? {}, remissoesExternas);
     const articulacaoAtualizada = buildJsonixFromProjetoNorma(elementoState.articulacao?.projetoNorma, this.urn, registroCompleto, remissoesExternas);
     const tipo = (out as any).value.projetoNorma.norma ? 'norma' : 'projeto';
     (out as any).value.projetoNorma[tipo].parteInicial = articulacaoAtualizada.value.projetoNorma[tipo].parteInicial;
     (out as any).value.projetoNorma[tipo].articulacao.lXhier = articulacaoAtualizada.value.projetoNorma[tipo].articulacao.lXhier;
     return out;
+  }
+
+  getDocumentoArticulado(dados?: DadosLexEdit): DocumentoArticulado {
+    this.editorComponent.flushEdicaoPendente();
+    const state = rootStore.getState().elementoReducer;
+    const externas = state.remissoesExternas ?? {};
+    const remissoes = completarRegistroRemissoes(state.articulacao, state.remissoes ?? {}, externas);
+    return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas, dados);
   }
 
   getAnexos() {
@@ -134,24 +145,25 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     this.editorComponent.atualizaAnexo(anexos);
   }
 
-  private loadProjetoNorma(params?: LexmlEtaParametrosEdicao): void {
+  private loadProjetoNorma(params?: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): void {
     if (!this.projetoNorma || !this.projetoNorma.value) {
-      this.projetoNorma = DOCUMENTO_PADRAO;
+      this.projetoNorma = JSON.parse(JSON.stringify(DOCUMENTO_PADRAO));
       this.projetoNorma.value.metadado.identificacao.urn = this.urn;
     }
 
-    const documento = buildProjetoNormaFromJsonix(this.projetoNorma, false);
+    const documento = buildProjetoNormaFromJsonix(this.projetoNorma, preservarTextoDocumento);
     documento.urn = this.urn;
+    const idsRemissoesInvalidas = lerIdsRemissoesInvalidas(this.projetoNorma);
 
     document.querySelector('lexml-eta')?.querySelector('sl-tab')?.click();
-    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, 'edicao', params));
+    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, 'edicao', params, idsRemissoesInvalidas));
   }
 
-  private _timerLoadEmenda = 0;
-  private loadEmenda(): void {
-    clearInterval(this._timerLoadEmenda);
-    this._timerLoadEmenda = window.setTimeout(() => {
-      rootStore.dispatch(aplicarAlteracoesEmendaAction.execute(this.dispositivosEmenda!, this.revisoes));
+  private _timerLoadRevisoes = 0;
+  private loadRevisoes(): void {
+    clearInterval(this._timerLoadRevisoes);
+    this._timerLoadRevisoes = window.setTimeout(() => {
+      rootStore.dispatch(aplicarRevisoesAction.execute(this.revisoes));
     }, 1000);
   }
 

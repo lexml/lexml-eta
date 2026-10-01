@@ -1,4 +1,6 @@
-const Inline = Quill.import('blots/inline');
+import PrivateQuill from '../../internal/quill/private-quill';
+
+const Inline = PrivateQuill.import('blots/inline');
 
 export class EtaBlotConteudoOmissis extends Inline {
   static blotName = 'EtaBlotConteudoOmissis';

@@ -6,7 +6,7 @@ export const erroInicializaEdicao = (state: any): State => {
   return {
     ...retornaEstadoAtualComMensagem(state, {
       tipo: TipoMensagem.INFO,
-      descricao: 'Ocorreu algum erro ao abrir a emenda',
+      descricao: 'Ocorreu algum erro ao abrir a proposição',
     }),
   };
 };

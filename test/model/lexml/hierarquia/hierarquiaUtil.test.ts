@@ -9,7 +9,6 @@ import {
   isDispositivoAlteracao,
 } from '../../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { isArtigo } from '../../../../src/model/dispositivo/tipo';
-import { DispositivoNovo } from '../../../../src/model/lexml/situacao/dispositivoNovo';
 
 describe('getDispositivoAndFilhosAsLista', () => {
   let articulacao: Articulacao;
@@ -55,7 +54,6 @@ describe('isUltimaAlteracao', () => {
     it('deveria retornar true para um artigo único em uma alteração', () => {
       const artigo = criaDispositivo(articulacaoPai, TipoDispositivo.artigo.tipo) as Artigo;
       criaDispositivo(artigo, TipoDispositivo.caput.tipo);
-      artigo.situacao = new DispositivoNovo();
       artigo.cabecaAlteracao = true; // O artigo é a cabeça da alteração
 
       expect(isUltimaAlteracao(artigo)).to.be.true;
@@ -64,7 +62,6 @@ describe('isUltimaAlteracao', () => {
     it('deveria retornar true para o caput de um artigo único', () => {
       const artigo = criaDispositivo(articulacaoPai, TipoDispositivo.artigo.tipo) as Artigo;
       const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
-      artigo.situacao = new DispositivoNovo();
       artigo.cabecaAlteracao = true; // O artigo é a cabeça da alteração
 
       expect(isUltimaAlteracao(caput)).to.be.true;
@@ -84,8 +81,6 @@ describe('isUltimaAlteracao', () => {
       criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
-
-      artigo.situacao = new DispositivoNovo();
       artigo.cabecaAlteracao = true; // O artigo é a cabeça da alteração
 
       // O último inciso NÃO deve ser considerado a última alteração
@@ -105,8 +100,6 @@ describe('isUltimaAlteracao', () => {
       criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       const par3 = criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
-
-      artigo.situacao = new DispositivoNovo();
       artigo.cabecaAlteracao = true; // O artigo é a cabeça da alteração
 
       // O último parágrafo deve ser considerado a última alteração
@@ -120,7 +113,6 @@ describe('isUltimaAlteracao', () => {
       criaDispositivo(artigo, TipoDispositivo.caput.tipo);
       criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       const par3 = criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
-      artigo.situacao = new DispositivoNovo();
       artigo.cabecaAlteracao = true; // O artigo é a cabeça da alteração
 
       expect(isUltimaAlteracao(par3)).to.be.true;
@@ -144,8 +136,6 @@ describe('isUltimaAlteracao', () => {
       const par5 = criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       const par6 = criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
       const par7 = criaDispositivo(artigo, TipoDispositivo.paragrafo.tipo);
-
-      artigo.situacao = new DispositivoNovo();
       artigo.cabecaAlteracao = true; // O artigo é a cabeça da alteração
 
       expect(isUltimaAlteracao(inciso2)).to.be.false;

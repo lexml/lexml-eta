@@ -1,4 +1,6 @@
 import { playwrightLauncher } from '@web/test-runner-playwright';
+import { createPrivateQuillDevPlugin } from './private-quill.mjs';
+import { createLexmlLinkerVendorStaticPlugin } from './serve-lexml-linker-vendor.mjs';
 
 export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   files: [
@@ -7,12 +9,20 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
     // O TESTE ABAIXO É MUITO LENTO. É recomendado rodar separadamente.
     '!out-tsc/test/redux/paginacao/reducer-paginacao.test.js',
 
-    // 'out-tsc/test/emenda/**/*.test.js',
     // 'out-tsc/test/redux/colar/**/*.test.js',
-    // 'out-tsc/test/redux/aplicaEmenda/**/*.test.js',
     // 'out-tsc/test/componente/editor-texto-rico/**/*.test.js',
   ],
   nodeResolve: true,
+  browserStartTimeout: 120000,
+  plugins: [createPrivateQuillDevPlugin(), createLexmlLinkerVendorStaticPlugin()],
+  coverageConfig: {
+    exclude: ['**/__lexml/**'],
+    // WTR_COVERAGE_DIR é setado por scripts/rodar-testes-em-lotes.mjs para isolar a cobertura de cada
+    // lote antes de mesclar num relatório único; fora desse script, usa o diretório padrão "coverage".
+    reportDir: process.env.WTR_COVERAGE_DIR || 'coverage',
+    // "json" é o formato bruto (coverage-final.json) que scripts/rodar-testes-em-lotes.mjs mescla entre lotes.
+    reporters: ['lcov', 'json'],
+  },
 
   /** Compile JS for older browsers. Requires @web/dev-server-esbuild plugin */
   // esbuildTarget: 'auto',
@@ -29,9 +39,8 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
   // concurrency: 1,
 
   /** Browsers to run tests on */
-  browsers: [
-    playwrightLauncher({ product: 'chromium' }),
-  ],
+  browsers: [playwrightLauncher({ product: 'chromium' })],
+  concurrency: 1,
 
   testFramework: {
     config: {

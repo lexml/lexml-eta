@@ -68,7 +68,7 @@ const testesComuns = () => {
 
 describe('Testando histórico de undo e redo', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {};
   });

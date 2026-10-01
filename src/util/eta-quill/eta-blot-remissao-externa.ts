@@ -1,6 +1,8 @@
 import { RemissaoExternaValue } from '../../model/remissao';
+import { limparAtributosRemissaoAntesDoUnwrap } from './eta-blot-remissao-util';
+import PrivateQuill from '../../internal/quill/private-quill';
 
-const Inline = Quill.import('blots/inline');
+const Inline = PrivateQuill.import('blots/inline');
 
 export class RemissaoExternaBlot extends Inline {
   static blotName = 'remissao-externa';
@@ -34,6 +36,9 @@ export class RemissaoExternaBlot extends Inline {
 
   format(name: string, value: RemissaoExternaValue | boolean): void {
     if (name !== this.statics.blotName || !value) {
+      if (name === this.statics.blotName && !value) {
+        limparAtributosRemissaoAntesDoUnwrap(this.domNode as HTMLElement, ['data-ref-id', 'data-urn', 'data-nome-norma', 'data-texto-dispositivo', 'data-fragmento']);
+      }
       return super.format(name, value);
     }
     if (typeof value === 'object') {

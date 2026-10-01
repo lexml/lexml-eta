@@ -1,4 +1,3 @@
-import { EMENDA_010 } from './../../doc/emendas/emenda-010';
 import { TipoMensagem } from './../../../src/model/lexml/util/mensagem';
 import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { ADICIONAR_AGRUPADOR_ARTIGO } from '../../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
@@ -16,63 +15,14 @@ import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemen
 import { undo } from '../../../src/redux/elemento/reducer/undo';
 import { redo } from '../../../src/redux/elemento/reducer/redo';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
-import { aplicaAlteracoesEmenda } from '../../../src/redux/elemento/reducer/aplicaAlteracoesEmenda';
 
 let state: State;
 
 describe('Testando inclusão e exclusão de títulos', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
-  });
-
-  describe('Abrindo emenda 010 e adicionando Título II após Capítulo III ', () => {
-    beforeEach(function () {
-      beforeEach(function () {
-        state = aplicaAlteracoesEmenda(state, { alteracoesEmenda: EMENDA_010.componentes[0].dispositivos });
-        const atual = createElemento(buscaDispositivoById(state.articulacao!, 'cap3')!);
-        state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual, novo: { tipo: 'Titulo', posicao: 'depois' } });
-      });
-
-      it('Título II deveria possuir 4 filhos do tipo capítulo e 2 filhos do tipo artigo', () => {
-        const d = buscaDispositivoById(state.articulacao!, 'tit2')!;
-        expect(d?.filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(4);
-        expect(d?.filhos.filter(f => f.tipo === 'Artigo').length).to.equal(2);
-      });
-
-      it('Artigo 25 deveria ser filho do Título II', () => {
-        const atual = buscaDispositivoById(state.articulacao!, 'art25')!;
-        expect(atual.pai?.id).to.equal('tit2');
-      });
-
-      describe('Removendo Título II', () => {
-        beforeEach(function () {
-          const atual = buscaDispositivoById(state.articulacao!, 'tit2')!;
-          state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.titulo.tipo, uuid: atual.uuid! } });
-        });
-
-        it('Deveria possuir 1 título', () => {
-          const atual = buscaDispositivoById(state.articulacao!, 'tit1');
-          expect(atual).to.be.exist;
-        });
-
-        it('Articulação deveria possuir 1 filho do tipo título', () => {
-          expect(state.articulacao?.filhos.length).to.equal(1);
-          expect(state.articulacao?.filhos.filter(f => f.tipo === 'Titulo').length).to.equal(1);
-        });
-
-        it('Título I deveria possuir 7 filhos do tipo capítulo', () => {
-          const atual = buscaDispositivoById(state.articulacao!, 'tit1')!;
-          expect(atual?.filhos.filter(f => f.tipo === 'Capitulo').length).to.equal(7);
-        });
-
-        it('Artigo 25 deveria ser filho do Capítulo 3', () => {
-          const atual = buscaDispositivoById(state.articulacao!, 'art25')!;
-          expect(atual.pai?.id).to.equal('tit1_cap3');
-        });
-      });
-    });
   });
 
   describe('Incluindo Título I e removendo-o', () => {
@@ -168,7 +118,7 @@ describe('Testando inclusão e exclusão de títulos', () => {
 
 describe('Testando a inclusão e exclusão de agrupadores', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });

@@ -1,8 +1,7 @@
 import { State } from '../../state';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
-import { getDispositivoAndFilhosAsLista, isAdicionado, isModificado, isSuprimido } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { createElementoValidado } from '../../../model/elemento/elementoUtil';
-import { isHtmlSemTexto, removeAllHtmlTags } from '../../../util/string-util';
 
 export const atualizaMensagemCritical = (state: State): State => {
   state.mensagensCritical = processaMensagensCriticalElementos(state);
@@ -18,7 +17,7 @@ const processaMensagensCriticalElementos = (state: any): string[] | undefined =>
 
   let elementos;
   if (state.articulacao) {
-    const dispositivos = getDispositivoAndFilhosAsLista(state.articulacao).filter(d => isAdicionado(d) || isSuprimido(d) || isModificado(d));
+    const dispositivos = getDispositivoAndFilhosAsLista(state.articulacao);
     elementos = dispositivos.map(d => createElementoValidado(d)).filter(e => e.mensagens?.length); // getElementos(state.articulacao).filter(e => e.mensagens.length > 0);
   }
 

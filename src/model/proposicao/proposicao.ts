@@ -52,7 +52,7 @@ export class RefProposicaoReduzida {
   ementa = '';
 }
 
-// Colegiado apreciador da emenda ----------------------------
+// Colegiado apreciador da proposição ----------------------------
 export class ColegiadoApreciador {
   siglaCasaLegislativa?: 'CN' | 'SF' | 'CD' = 'CN';
   tipoColegiado: 'Plenário' | 'Comissão' | 'Plenário via Comissão' = 'Plenário';
@@ -94,6 +94,13 @@ export class Parlamentar {
   cargo = '';
 }
 
+// Casa diferente de SF recebe o tratamento da Câmara.
+export const tratamentoParlamentar = (sexo: string, siglaCasaLegislativa: string): string => {
+  const feminino = sexo === 'F';
+  if (siglaCasaLegislativa === 'SF') return feminino ? 'Senadora' : 'Senador';
+  return feminino ? 'Deputada' : 'Deputado';
+};
+
 export class ColegiadoAutor {
   identificacao = '';
   nome = '';
@@ -111,4 +118,14 @@ export class OpcoesImpressao {
 export class Anexo {
   nomeArquivo = '';
   base64 = '';
+}
+
+// Substituição de termo -----------------------------
+export type TipoSubstituicaoTermo = 'Expressão' | 'Palavra' | 'Número';
+export class SubstituicaoTermo {
+  tipo: TipoSubstituicaoTermo = 'Expressão';
+  termo = '';
+  novoTermo = '';
+  flexaoGenero = false;
+  flexaoNumero = false;
 }

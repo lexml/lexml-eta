@@ -1,8 +1,7 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Numeracao } from '../../dispositivo/numeracao';
-import { isParagrafo } from '../../dispositivo/tipo';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
-import { isDispositivoNovoNaNormaAlterada } from '../hierarquia/hierarquiaUtil';
+import { isDispositivoNovoNaNormaAlterada, isParagrafoUnico } from '../hierarquia/hierarquiaUtil';
 import { converteLetrasComplementoParaNumero, converteNumeroArabicoParaLetra, isNumeracaoValida, trataNumeroAndComplemento } from './numeracaoUtil';
 
 export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any {
@@ -52,20 +51,22 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
         this.rotulo = this.getNumeroAndSufixoNumeracao(dispositivo);
       } else if (dispositivo.isDispositivoAlteracao) {
         if (isDispositivoNovoNaNormaAlterada(dispositivo)) {
-          dispositivo.pai?.filhos.filter(f => isParagrafo(f)).length === 1
+          this.informouParagrafoUnico = isParagrafoUnico(dispositivo);
+          this.informouParagrafoUnico
             ? (this.rotulo = this.PARAGRAFO_UNICO)
             : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao(dispositivo));
         } else {
           this.rotulo = this.informouParagrafoUnico ? this.PARAGRAFO_UNICO : this.PREFIXO + this.getNumeroAndSufixoNumeracao(dispositivo);
         }
       } else {
-        dispositivo.pai?.filhos.filter(f => isParagrafo(f)).length === 1
+        this.informouParagrafoUnico = isParagrafoUnico(dispositivo);
+        this.informouParagrafoUnico
           ? (this.rotulo = this.PARAGRAFO_UNICO)
           : (this.rotulo = this.PREFIXO + this.numero === undefined ? undefined : this.PREFIXO + this.getNumeroAndSufixoNumeracao(dispositivo));
       }
     }
 
-    private getNumeroAndSufixoNumeracao(dispositivo: Dispositivo, paraComandoEmenda = false): string {
+    private getNumeroAndSufixoNumeracao(dispositivo: Dispositivo): string {
       const partes = this.numero?.split('-');
       const [num, ...remaining] = partes!;
       const ordinal = parseInt(num ?? '1', 10) < 10;
@@ -78,7 +79,7 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
               .join('-')
               .toUpperCase()
           : '') +
-        (!paraComandoEmenda && (!ordinal || remaining.length) ? '.' : '')
+        (!ordinal || remaining.length ? '.' : '')
       );
     }
   };

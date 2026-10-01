@@ -1,6 +1,6 @@
 import { createElemento } from './../../../src/model/elemento/elementoUtil';
 import { expect } from '@open-wc/testing';
-import { AGRUPAR_ELEMENTO } from '../../../src/model/lexml/acao/agruparElementoAction';
+import { ADICIONAR_AGRUPADOR_ARTIGO } from '../../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
 import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { getEvento, getEventosQuePossuemElementos } from '../../../src/redux/elemento/evento/eventosUtil';
@@ -24,10 +24,10 @@ describe('Testando a inclusão de agrupadores de agrupadores', () => {
   describe('Testando a inclusão quando não há agrupadores e se trata do segundo artigo', () => {
     beforeEach(function () {
       const artigo = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: artigo, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: artigo, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const capitulo = createElemento(state.articulacao.filhos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: capitulo, novo: { tipo: TipoDispositivo.titulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: capitulo, novo: { tipo: TipoDispositivo.titulo.tipo, posicao: 'antes' } });
 
       eventos = getEventosQuePossuemElementos(state.ui.events);
     });

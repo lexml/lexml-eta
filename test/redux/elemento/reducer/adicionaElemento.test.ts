@@ -2,7 +2,7 @@ import { expect } from '@open-wc/testing';
 import { createArticulacao, criaDispositivo } from '../../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { createElemento } from '../../../../src/model/elemento/elementoUtil';
 import { updateIdDispositivoAndFilhos } from '../../../../src/model/lexml/util/idUtil';
-import { DispositivoAdicionado } from '../../../../src/model/lexml/situacao/dispositivoAdicionado';
+import { ClassificacaoDocumento } from '../../../../src/model/documento/classificacao';
 import { adicionaElemento } from '../../../../src/redux/elemento/reducer/adicionaElemento';
 import { State } from '../../../../src/redux/state';
 
@@ -20,8 +20,6 @@ import { State } from '../../../../src/redux/state';
 function criarStateMinimal() {
   const articulacao = createArticulacao();
   const art = criaDispositivo(articulacao, 'Artigo');
-  art.situacao = new DispositivoAdicionado();
-  (art as any).caput.situacao = new DispositivoAdicionado();
   articulacao.renumeraFilhos();
   art.createRotulo(art);
   (art as any).caput.createRotulo((art as any).caput);
@@ -29,7 +27,7 @@ function criarStateMinimal() {
 
   const state: State = {
     articulacao,
-    modo: 'emenda',
+    modo: ClassificacaoDocumento.PROJETO,
     past: [],
     present: [],
     future: [],
@@ -85,10 +83,6 @@ function criarStateComArtigo(texto: string) {
   const articulacao = createArticulacao();
   const art = criaDispositivo(articulacao, 'Artigo') as Artigo;
   const art2 = criaDispositivo(articulacao, 'Artigo') as Artigo;
-  art.situacao = new DispositivoAdicionado();
-  art2.situacao = new DispositivoAdicionado();
-  (art as any).caput.situacao = new DispositivoAdicionado();
-  (art2 as any).caput.situacao = new DispositivoAdicionado();
   articulacao.renumeraFilhos();
   art.createRotulo(art);
   art2.createRotulo(art2);
@@ -97,7 +91,7 @@ function criarStateComArtigo(texto: string) {
 
   const state: State = {
     articulacao,
-    modo: 'emenda',
+    modo: ClassificacaoDocumento.PROJETO,
     past: [],
     present: [],
     future: [],

@@ -19,7 +19,6 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { resetUuidTodaArvore } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { buildId, buildIdCaputEAlteracao } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { existeFilhoExcluidoDuranteRevisao } from '../util/revisaoUtil';
@@ -54,7 +53,7 @@ export const moveElementoAcima = (state: any, action: any): State => {
   }
 
   const removidos = getElementos(atual, false, true);
-  const renumerados = irmaosMesmoTipo(atual).filter(d => d !== atual && d.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ORIGINAL);
+  const renumerados = irmaosMesmoTipo(atual).filter(d => d !== atual);
 
   resetUuidTodaArvore(atual);
 

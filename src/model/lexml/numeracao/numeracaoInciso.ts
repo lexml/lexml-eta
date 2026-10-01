@@ -30,7 +30,7 @@ export function NumeracaoInciso<TBase extends Constructor>(Base: TBase): any {
       const regexNumeracaoNaoPadrao = /^(\d+)(º\))$/;
       if (rotulo?.match(regexNumeracaoNaoPadrao)) {
         this.numero = rotulo.match(regexNumeracaoNaoPadrao)![1];
-        this.bloqueado = true; // Bloqueia e edição de emendas
+        this.bloqueado = true; // Numeração em formato não-padrão não pode ser editada com segurança
         return;
       }
 

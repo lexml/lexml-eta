@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture derivada de docs/extensao-formato-lexml/03-fecho-local-e-data.md -->
+<lexedit:Metadado
+    xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'
+    local='Sala das Sessões'
+    data='2026-04-24'/>

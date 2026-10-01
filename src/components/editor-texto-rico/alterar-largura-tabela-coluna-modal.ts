@@ -1,7 +1,7 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, query, property } from 'lit/decorators.js';
 
-@customElement('lexml-alterar-largura-tabela-coluna-modal')
+@customElement('lexml-eta-alterar-largura-tabela-coluna-modal')
 export class AlterarLarguraTabelaColunaModalComponent extends LitElement {
   @query('sl-dialog')
   private slDialog!: any;
@@ -73,6 +73,6 @@ export class AlterarLarguraTabelaColunaModalComponent extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-alterar-largura-tabela-coluna-modal': AlterarLarguraTabelaColunaModalComponent;
+    'lexml-eta-alterar-largura-tabela-coluna-modal': AlterarLarguraTabelaColunaModalComponent;
   }
 }

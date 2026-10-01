@@ -15,7 +15,7 @@ let state: State;
 
 describe('Testando carregamento da MPV 905/2019', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });

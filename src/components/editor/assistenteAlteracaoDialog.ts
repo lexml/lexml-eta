@@ -1,5 +1,5 @@
 import { Elemento } from '../../model/elemento';
-import { Norma } from '../../model/emenda/norma';
+import { Norma } from '../../model/proposicao/norma';
 import { validaDispositivoAssistente } from '../../model/lexml/numeracao/parserReferenciaDispositivo';
 import '../autocomplete/autocomplete-norma';
 
@@ -57,7 +57,7 @@ export async function assistenteAlteracaoDialog(elemento: Elemento, quill: any, 
       }
     }
   </style>
-  <autocomplete-norma id="auto-norma" urlAutocomplete="${urlAutocomplete}"></autocomplete-norma>
+  <lexml-eta-autocomplete-norma id="auto-norma" urlAutocomplete="${urlAutocomplete}"></lexml-eta-autocomplete-norma>
   <br />
     <sl-input name="dispositivos" id="dispositivos" placeholder="ex: inciso I do § 3º do Art.1º" label="Dispositivo da norma" clearable></sl-input>
     <span class="ajuda">Informar apenas um dispositivo. Depois poderão ser adicionados outros.</span>

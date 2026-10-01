@@ -14,7 +14,7 @@ let state: State;
 
 describe('Testando carregamento da MPV 905/2019', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {} as any;
   });
@@ -28,7 +28,7 @@ describe('Testando carregamento da MPV 905/2019', () => {
     expect(state.articulacao?.artigos.length).to.equal(53);
   });
 
-  describe('Testando aplicação de dispositivos emendados', () => {
+  describe('Testando aplicação de dispositivos alterados', () => {
     beforeEach(function () {
       const disp = buscaDispositivoById(state.articulacao!, 'art1')!;
       const atual = createElemento(disp);
@@ -49,14 +49,6 @@ describe('Testando carregamento da MPV 905/2019', () => {
 
     it('Deveria possuir articulacao com 55 artigos', () => {
       expect(state.articulacao?.artigos.length).to.equal(55);
-    });
-
-    it('Deveria possuir artigo 55 com situação Dispositivo Adicionado', () => {
-      expect(state.articulacao?.artigos.filter(a => a.id === 'art55').every(a => a.situacao.descricaoSituacao === 'Dispositivo Adicionado')).to.equal(true);
-    });
-
-    it('Deveria possuir artigo 56 com situação Dispositivo Adicionado', () => {
-      expect(state.articulacao?.artigos.filter(a => a.id === 'art56').every(a => a.situacao.descricaoSituacao === 'Dispositivo Adicionado')).to.equal(true);
     });
   });
 });

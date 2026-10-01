@@ -29,11 +29,14 @@ const converteFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
       filho.uuid
     );
     novo.texto = filho.texto ?? '';
-    novo.situacao = filho.situacao;
     novo.mensagens = validaDispositivo(novo);
     novo.createRotulo(novo);
-    filho.filhos ? converteFilhos(filho, novo) : undefined;
-    index === atual.filhos.length - 1 ? destino.renumeraFilhos() : undefined;
+    if (filho.filhos) {
+      converteFilhos(filho, novo);
+    }
+    if (index === atual.filhos.length - 1) {
+      destino.renumeraFilhos();
+    }
   });
 };
 
@@ -92,7 +95,6 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
   }
   novo!.texto = action.atual.conteudo?.texto ?? atual.texto;
   novo.createRotulo(novo);
-  novo.situacao = atual.situacao;
   if (isDispositivoCabecaAlteracao(novo)) {
     novo.notaAlteracao = 'NR';
   }
@@ -113,13 +115,16 @@ export const copiaFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
     const novo = criaDispositivo(isArtigo(destino) && isCaput(filho.pai!) ? (destino as Artigo).caput! : destino, filho.tipo);
     filho.rotulo ? (novo.rotulo = filho.rotulo) : novo.createRotulo(novo);
     novo.texto = filho.texto ?? '';
-    novo.situacao = filho.situacao;
     atual.removeFilho(filho);
     novo.mensagens = validaDispositivo(filho);
 
-    filho.filhos ? (atual.tipo === destino.tipo ? copiaFilhos(filho, novo) : converteFilhos(filho, novo)) : undefined;
+    if (filho.filhos) {
+      atual.tipo === destino.tipo ? copiaFilhos(filho, novo) : converteFilhos(filho, novo);
+    }
 
-    atual.filhos.length === 0 ? destino.renumeraFilhos() : undefined;
+    if (atual.filhos.length === 0) {
+      destino.renumeraFilhos();
+    }
   });
 };
 

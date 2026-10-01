@@ -1,4 +1,6 @@
-const Parchment: any = Quill.import('parchment');
+import PrivateQuill from '../../internal/quill/private-quill';
+
+const Parchment: any = PrivateQuill.import('parchment');
 
 const config = {
   scope: Parchment.Scope.BLOCK,

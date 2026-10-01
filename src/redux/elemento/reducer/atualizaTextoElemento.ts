@@ -1,23 +1,19 @@
-import { DescricaoSituacao } from '../../../model/dispositivo/situacao';
 import { isTextoMaiusculo } from '../../../model/dispositivo/tipo';
 import { createElemento, createElementoValidadoComExtras, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { DispositivoModificado } from '../../../model/lexml/situacao/dispositivoModificado';
-import { DispositivoOriginal } from '../../../model/lexml/situacao/dispositivoOriginal';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { MENSAGEM_REMISSAO_INVALIDA } from '../../../model/remissao/remissao';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { removerMarcacaoRemissao } from '../../../util/html-util';
 
 export const atualizaTextoElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
-  const textoOriginal = dispositivo?.situacao.dispositivoOriginal?.conteudo?.texto;
   const textoAtual = action.atual?.conteudo?.texto;
-  const dispositivoOriginalNovamente = dispositivo && textoOriginal === textoAtual;
 
   if (dispositivo === undefined || dispositivo.texto === textoAtual) {
     state.ui.events = [];
@@ -29,14 +25,10 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   }
 
   const original = createElemento(dispositivo);
+  // Criar o link ou marcá-lo como inválido não é edição do usuário: não vira passo de desfazer nem descarta o refazer.
+  const somenteMarcacaoRemissao = removerMarcacaoRemissao(dispositivo.texto ?? '') === removerMarcacaoRemissao(textoAtual ?? '');
 
   dispositivo.texto = !isDispositivoAlteracao(dispositivo) ? textoAtual : normalizaSeForOmissis(textoAtual ?? '');
-
-  if (dispositivoOriginalNovamente) {
-    dispositivo.situacao = new DispositivoOriginal();
-  } else if (dispositivo.situacao?.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ORIGINAL) {
-    dispositivo.situacao = new DispositivoModificado(original);
-  }
 
   const eventosUi = new Eventos();
 
@@ -70,9 +62,9 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   return {
     articulacao: state.articulacao,
     modo: state.modo,
-    past: buildPast(state, buildUpdateEvent(dispositivo, original)),
+    past: somenteMarcacaoRemissao ? state.past : buildPast(state, buildUpdateEvent(dispositivo, original)),
     present: eventos.build(),
-    future: [],
+    future: somenteMarcacaoRemissao ? state.future : [],
     ui: {
       events: eventosUi.build(),
       alertas: state.ui?.alertas,

@@ -3,14 +3,14 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { ReferenciaDispositivoParser } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
 import { Articulacao, Dispositivo, Artigo } from '../../../model/dispositivo/dispositivo';
-import { RemissaoInternaValue } from '../../../model/remissao';
+import { RemissaoInternaValue, RemissaoExternaValue } from '../../../model/remissao';
 import { gerarRefId } from '../../../model/remissao/refId';
 import { converteNumeroArabicoParaRomano, converteNumeroArabicoParaLetra } from '../../../model/lexml/numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { stripHtml } from '../../../util/html-util';
 import { findDispositivoByUuid, percorreHierarquiaDispositivos } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { isCaput } from '../../../model/dispositivo/tipo';
-import { atualizarTextoRemissao } from '../../../model/remissao/lexmlIdUtil';
+import { atualizarTextoRemissao, foiEditadoManualmente, isTextoCanonicoParaId, isTextoReconhecivel } from '../../../model/remissao/lexmlIdUtil';
 
 interface ReferenciaEncontrada {
   texto: string;
@@ -74,10 +74,16 @@ const LOOKAHEAD_IMPL = `(?!(?:[º°])?\\s+d(?:[ao]\\s|este|esta|o\\s+presente|a\
 const P_INC_IMPL_PAT = `(?:inciso\\s+|inc\\.\\s+)(?:[uú]nico|[MDCLXVI]+(?:-[a-z]+)?)`;
 const P_ALI_IMPL_PAT = `(?:al[ií]nea\\s+|al[ií]\\.\\s+)(?:[a-z]+(?:-[a-z]+)?)\\)?`;
 
-const REGEX_PAR_IMPL = new RegExp(`${P_PARAGRAFO}${LOOKAHEAD_IMPL}`, 'gi');
-const REGEX_INC_IMPL = new RegExp(`${P_INC_IMPL_PAT}${LOOKAHEAD_IMPL}`, 'gi');
-const REGEX_ALI_IMPL = new RegExp(`${P_ALI_IMPL_PAT}${LOOKAHEAD_IMPL}`, 'gi');
-const REGEX_ITEM_IMPL = new RegExp(`${P_ITEM}${LOOKAHEAD_IMPL}`, 'gi');
+// Grupo atômico emulado (?=(X))\1: sem isso, o quantificador guloso de [MDCLXVI]+/\d+/[a-z]+
+// pode retroceder para uma correspondência mais curta só para satisfazer o LOOKAHEAD_IMPL
+// seguinte — ex. "inciso II do parágrafo único" retrocedendo de "II" para "I" (passa a barreira
+// porque o caractere seguinte deixa de ser espaço), produzindo um match ERRADO ("inciso I") em
+// vez de simplesmente não casar ali. O lookahead captura o trecho no comprimento máximo e a
+// referência \1 o repete literalmente, sem permitir novo backtracking.
+const REGEX_PAR_IMPL = new RegExp(`(?=(${P_PARAGRAFO}))\\1${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_INC_IMPL = new RegExp(`(?=(${P_INC_IMPL_PAT}))\\1${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_ALI_IMPL = new RegExp(`(?=(${P_ALI_IMPL_PAT}))\\1${LOOKAHEAD_IMPL}`, 'gi');
+const REGEX_ITEM_IMPL = new RegExp(`(?=(${P_ITEM}))\\1${LOOKAHEAD_IMPL}`, 'gi');
 
 // Ordem: parágrafo primeiro para evitar matches parciais dentro de padrões maiores.
 // Inciso usa cascata [parágrafo → artigo]: prefere o parágrafo mais próximo, faz fallback para artigo.
@@ -88,6 +94,15 @@ const TIPOS_IMPLICITOS: Array<{ regex: RegExp; tiposAncestral: string[] }> = [
   { regex: REGEX_ITEM_IMPL, tiposAncestral: [TipoDispositivo.alinea.tipo] },
 ];
 
+// Cadeia implícita sem âncora de artigo (ex: "inciso II do parágrafo único", "item 1 da alínea
+// b do caput") — mesma forma de REGEX_ABSOLUTA, mas sem exigir "do art. Nº" no final: resolvida
+// contra o artigo do próprio dispositivo de origem, igual às bare implícitas acima, só que
+// cobrindo o trecho qualificador INTEIRO em vez de só o último nível (senão "inciso II do
+// parágrafo único" perderia o prefixo "inciso II" e resolveria só para o parágrafo único, não
+// para o inciso II dentro dele).
+const P_CADEIA_SEM_ARTIGO = `(?:${P_ITEM}${CONECTOR})?(?:${P_ALINEA}${CONECTOR})?(?:${P_INCISO}${CONECTOR})?(?:${P_CAPUT}|${P_PARAGRAFO})`;
+const REGEX_CADEIA_IMPL = new RegExp(`(?=(${P_CADEIA_SEM_ARTIGO}))\\1${LOOKAHEAD_IMPL}`, 'gi');
+
 export const adicionaRemissaoInterna = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
   const textoAtual = dispositivo?.texto;
@@ -96,7 +111,8 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
     return { ...state, ui: { ...state.ui, events: [] } };
   }
 
-  const remissoesEncontradas = detectarReferencias(stripHtml(textoAtual), dispositivo, state.articulacao);
+  const spansExternos = spansExternosReivindicados(state.remissoesExternas, dispositivo.uuid);
+  const remissoesEncontradas = detectarReferencias(stripHtml(textoAtual), dispositivo, state.articulacao, spansExternos);
 
   const todasEntriesAntigas: RemissaoInternaValue[] = state.remissoes?.[dispositivo.uuid!] ?? [];
 
@@ -106,7 +122,10 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   // Preserva deleção lógica de exclusão manual (botão "Excluir") — só saem quando o texto deixar de ser idêntico
   const oldExcluidas = todasEntriesAntigas.filter(r => r.excluidaManualmente === true);
 
-  if (remissoesEncontradas.length === 0 && oldInvalidas.length === 0 && oldExcluidas.length === 0) {
+  // Entradas normais antigas que precisam ser descartadas mesmo sem match novo (ex.: referência removida do texto).
+  const oldNormais = todasEntriesAntigas.filter(r => r.valida !== false && !r.excluidaManualmente);
+
+  if (remissoesEncontradas.length === 0 && oldInvalidas.length === 0 && oldExcluidas.length === 0 && oldNormais.length === 0) {
     return { ...state, ui: { ...state.ui, events: [] } };
   }
 
@@ -117,6 +136,43 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
     if (r.excluidaManualmente) continue;
     if (r.targetLexmlId && r.inicio !== undefined && r.refId) {
       oldByPositionKey.set(`${r.targetLexmlId}:${r.inicio}`, r.refId);
+    }
+  }
+
+  // Preserva entradas cujo link (<a data-ref-id>) ainda existe fisicamente no texto bruto, mas cujo
+  // texto interno diverge do que a redetecção por regex encontraria "do zero" nessa posição (ou não
+  // encontraria nada) — mesmo espírito do D6 em sincronizarRemissoes.ts (foiEditadoManualmente/
+  // isTextoReconhecivel), só que aplicado aqui ao caminho de redetecção-a-cada-blur, não só ao de
+  // renumeração. Sem isso, texto não-canônico (manual ou editado) sobrevive só até o próximo blur
+  // em QUALQUER outro dispositivo — a redetecção do zero ou o encolhe para um match mais curto (regra
+  // de posição/target) ou, se nada mais bater, descarta a entrada inteira em silêncio.
+  const oldPreservadas = new Map<string, RemissaoInternaValue>();
+  for (const old of oldNormais) {
+    if (!old.refId) continue;
+    const match = textoAtual.match(new RegExp(`<a\\b[^>]*data-ref-id="${old.refId}"[^>]*>([^<]*)</a>`, 'i'));
+    if (!match) continue;
+    const textoLink = match[1];
+    if (!isTextoReconhecivel(textoLink)) {
+      oldPreservadas.set(old.refId, { ...old, revisao: true });
+      continue;
+    }
+    const aindaBateComGravado = !foiEditadoManualmente(textoLink, old.textoRef);
+    const restauradoParaCanonico = !!old.targetLexmlId && isTextoCanonicoParaId(textoLink, old.targetLexmlId);
+    if (!aindaBateComGravado && !restauradoParaCanonico) {
+      oldPreservadas.set(old.refId, { ...old, revisao: true });
+    }
+  }
+
+  // Mapeia links do HTML para posições no texto limpo, permitindo reaproveitar o refId de links recém-criados
+  // via diálogo antes que entrem no state. Isso evita a geração de IDs órfãos na primeira redetecção.
+  const REGEX_LINK_COM_REFID = /<a\b[^>]*\bdata-ref-id="([^"]+)"[^>]*>([^<]*)<\/a>/gi;
+  const tagsPorPosicaoStripada = new Map<number, { refId: string; innerText: string }>();
+  {
+    let m: RegExpExecArray | null;
+    REGEX_LINK_COM_REFID.lastIndex = 0;
+    while ((m = REGEX_LINK_COM_REFID.exec(textoAtual)) !== null) {
+      const posicaoStripada = stripHtml(textoAtual.slice(0, m.index)).length;
+      tagsPorPosicaoStripada.set(posicaoStripada, { refId: m[1], innerText: m[2] });
     }
   }
 
@@ -138,7 +194,17 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
 
     const posKey = item.dispositivoDestino.id !== undefined && item.inicio !== undefined ? `${item.dispositivoDestino.id}:${item.inicio}` : undefined;
     const candidato = posKey ? oldByPositionKey.get(posKey) : undefined;
-    const refId = (candidato && !claimedRefIds.has(candidato) ? candidato : undefined) ?? gerarRefId();
+
+    if (candidato && oldPreservadas.has(candidato)) {
+      // A entrada antiga nessa posição já foi marcada para preservação (link ainda existe, texto
+      // não deve ser regenerado) — a entrada preservada é quem entra no registro final, não este match.
+      continue;
+    }
+
+    const tagNaPosicao = item.inicio !== undefined ? tagsPorPosicaoStripada.get(item.inicio) : undefined;
+    const candidatoPorTag = tagNaPosicao && tagNaPosicao.innerText === item.texto && !claimedRefIds.has(tagNaPosicao.refId) ? tagNaPosicao.refId : undefined;
+
+    const refId = (candidato && !claimedRefIds.has(candidato) ? candidato : undefined) ?? candidatoPorTag ?? gerarRefId();
     claimedRefIds.add(refId);
     novasRemissoes.push({
       refId,
@@ -160,8 +226,8 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   });
 
   const remissaoRegistry = { ...(state.remissoes || {}) };
-  // Merge: novas detecções válidas + inválidas preservadas + tombstones ainda vigentes
-  remissaoRegistry[dispositivo.uuid!] = [...novasRemissoes, ...oldInvalidas, ...tombstonesRestantes];
+  // Merge: novas detecções válidas + preservadas por edição manual/não-canônica + inválidas + tombstones ainda vigentes
+  remissaoRegistry[dispositivo.uuid!] = [...novasRemissoes, ...oldPreservadas.values(), ...oldInvalidas, ...tombstonesRestantes];
 
   const elemento = createElemento(dispositivo, true);
   const eventosUi = new Eventos();
@@ -178,12 +244,33 @@ export const adicionaRemissaoInterna = (state: any, action: any): State => {
   };
 };
 
-const detectarReferencias = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao): ReferenciaEncontrada[] => {
+interface SpanExterno {
+  inicio: number;
+  fim: number;
+}
+
+// Evita o falso positivo do achado #4: "art. Nº" seguido de citação de norma externa já reivindicada.
+const spansExternosReivindicados = (remissoesExternas: Record<string, RemissaoExternaValue> | undefined, sourceUuid: number | undefined): SpanExterno[] => {
+  if (!remissoesExternas || sourceUuid === undefined) return [];
+  return Object.values(remissoesExternas)
+    .filter(r => r.sourceUuid === sourceUuid && r.inicio !== undefined && r.fim !== undefined)
+    .map(r => ({ inicio: r.inicio!, fim: r.fim! }));
+};
+
+const sobrepoeSpanExterno = (item: ReferenciaEncontrada, spans: SpanExterno[]): boolean => {
+  if (item.inicio === undefined || spans.length === 0) return false;
+  const fim = item.inicio + item.texto.length;
+  return spans.some(span => item.inicio! < span.fim && fim > span.inicio);
+};
+
+const detectarReferencias = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao, spansExternos: SpanExterno[] = []): ReferenciaEncontrada[] => {
   const absolutas = detectarReferenciasAbsolutas(texto, articulacao);
   const agrupadores = detectarReferenciasAgrupadores(texto, articulacao);
   const contextuais = detectarReferenciasContextuais(texto, dispositivo, articulacao);
+  const cadeiasImplicitas = detectarReferenciasCadeiaImplicita(texto, dispositivo, articulacao);
   const implicitas = detectarReferenciasImplicitasSemQualificador(texto, dispositivo, articulacao);
-  return deduplicarPorPosicao([...absolutas, ...agrupadores, ...contextuais, ...implicitas]);
+  const encontradas = removerSobrepostos([...absolutas, ...agrupadores, ...contextuais, ...cadeiasImplicitas, ...implicitas]);
+  return spansExternos.length === 0 ? encontradas : encontradas.filter(item => !sobrepoeSpanExterno(item, spansExternos));
 };
 
 // Captura referências absolutas encadeadas exigindo a âncora do artigo (ex: "§ 2º do art. 5º").
@@ -429,19 +516,44 @@ const detectarReferenciasImplicitasSemQualificador = (texto: string, dispositivo
   return resultado;
 };
 
-// Quando detecção implícita e explícita colidem no mesmo offset, o match mais longo vence
-// (ex: "§ 1º deste artigo" contextual ganha sobre "§ 1º" implícita no mesmo offset).
-const deduplicarPorPosicao = (refs: ReferenciaEncontrada[]): ReferenciaEncontrada[] => {
-  const porPosicao = new Map<number, ReferenciaEncontrada>();
-  for (const ref of refs) {
-    if (ref.inicio === undefined) continue;
-    const existente = porPosicao.get(ref.inicio);
-    if (!existente || ref.texto.length > existente.texto.length) {
-      porPosicao.set(ref.inicio, ref);
-    }
+// Cadeia implícita sem âncora de artigo (ex: "inciso II do parágrafo único") — mesma estrutura
+// de detectarReferenciasImplicitasSemQualificador, mas cobrindo o trecho qualificador inteiro via
+// REGEX_CADEIA_IMPL em vez de um único nível "bare"; a sobreposição com o match bare do último
+// nível sozinho (ex: "parágrafo único" isolado) é resolvida depois por removerSobrepostos.
+const detectarReferenciasCadeiaImplicita = (texto: string, dispositivo: Dispositivo, articulacao: Articulacao): ReferenciaEncontrada[] => {
+  if (dispositivo.isDispositivoAlteracao) return [];
+
+  const resultado: ReferenciaEncontrada[] = [];
+  REGEX_CADEIA_IMPL.lastIndex = 0;
+  let match: RegExpExecArray | null;
+
+  while ((match = REGEX_CADEIA_IMPL.exec(texto)) !== null) {
+    const ref = resolverImplicito(match[0], match.index, dispositivo, articulacao, [TipoDispositivo.artigo.tipo]);
+    if (ref) resultado.push(ref);
   }
+
+  return resultado;
+};
+
+// Quando detecções colidem no mesmo offset ou uma está inteiramente contida no intervalo de
+// outra, o match mais longo vence (ex: "§ 1º deste artigo" contextual ganha sobre "§ 1º" implícita
+// no mesmo offset; "inciso II do parágrafo único" ganha sobre "parágrafo único" sozinho, que começa
+// depois mas está contido no intervalo do primeiro).
+const removerSobrepostos = (refs: ReferenciaEncontrada[]): ReferenciaEncontrada[] => {
+  const comPosicao = refs.filter((r): r is ReferenciaEncontrada & { inicio: number } => r.inicio !== undefined);
   const semPosicao = refs.filter(r => r.inicio === undefined);
-  return [...porPosicao.values(), ...semPosicao];
+
+  // Maior primeiro; para empate de tamanho, mantém a ordem original (estabilidade do sort).
+  const ordenados = [...comPosicao].sort((a, b) => b.texto.length - a.texto.length);
+  const aceitos: (ReferenciaEncontrada & { inicio: number })[] = [];
+
+  for (const ref of ordenados) {
+    const fim = ref.inicio + ref.texto.length;
+    const sobrepoeAceito = aceitos.some(a => ref.inicio < a.inicio + a.texto.length && fim > a.inicio);
+    if (!sobrepoeAceito) aceitos.push(ref);
+  }
+
+  return [...aceitos, ...semPosicao];
 };
 
 const buscarDispositivoPorReferencia = (articulacao: Articulacao | undefined, referencias: any[]): Dispositivo | null => {
@@ -591,7 +703,11 @@ const sincronizarTextoFonte = (articulacao: Articulacao, entry: RemissaoInternaV
  * adicionalmente, entradas existentes têm seus `targetLexmlId` atualizados quando o
  * destino foi renumerado fora do fluxo de digitação (atualizações 'silent' do Quill).
  */
-export const completarRegistroRemissoes = (articulacao: Articulacao, registroExistente: Record<number, RemissaoInternaValue[]>): Record<number, RemissaoInternaValue[]> => {
+export const completarRegistroRemissoes = (
+  articulacao: Articulacao,
+  registroExistente: Record<number, RemissaoInternaValue[]>,
+  remissoesExternas?: Record<string, RemissaoExternaValue>
+): Record<number, RemissaoInternaValue[]> => {
   if (!articulacao) return registroExistente;
 
   const registroCompleto = atualizarRegistryAposRenumeracao(articulacao, registroExistente);
@@ -611,7 +727,8 @@ export const completarRegistroRemissoes = (articulacao: Articulacao, registroExi
       }
     }
 
-    const remissoesEncontradas = detectarReferencias(stripHtml(dispositivo.texto), dispositivo, articulacao);
+    const spansExternos = spansExternosReivindicados(remissoesExternas, dispositivo.uuid);
+    const remissoesEncontradas = detectarReferencias(stripHtml(dispositivo.texto), dispositivo, articulacao, spansExternos);
     if (remissoesEncontradas.length > 0) {
       registroCompleto[dispositivo.uuid] = remissoesEncontradas.map(item => ({
         refId: gerarRefId(),

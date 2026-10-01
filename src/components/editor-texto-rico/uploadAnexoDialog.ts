@@ -1,5 +1,5 @@
 import { SlButton } from '@shoelace-style/shoelace';
-import { Anexo } from '../../model/emenda/emenda';
+import { Anexo } from '../../model/proposicao/proposicao';
 
 export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) => any, editorTextoRico: any): Promise<any> {
   const dialogElem = document.createElement('sl-dialog');
@@ -40,7 +40,7 @@ export async function uploadAnexoDialog(anexos: Anexo[], atualizaAnexo: (Anexo) 
     }
   </style>
   <div id="wp-upload">
-    <label for="input-upload">Selecione o arquivo a ser anexado à emenda</label>
+    <label for="input-upload">Selecione o arquivo a ser anexado à proposição</label>
     <br/>
     <br/>
     <input id="input-upload" type="file" accept="application/pdf" size="small"></input>

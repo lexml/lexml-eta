@@ -5,10 +5,9 @@ import {
   ajustarAtributosAgrupadorIncluidoPorUndoRedo,
   isUndoRedoInclusaoExclusaoAgrupador,
   processaSituacoesAlteradas,
-  processarRestaurados,
-  processarSuprimidos,
   processarRevisoesAceitasOuRejeitadas,
   ajustarHierarquivoAgrupadorIncluidoPorUndoRedo,
+  isUndoRedoColarSubstituindo,
 } from './../util/undoRedoReducerUtil';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -18,7 +17,6 @@ import { buildFuture } from '../util/stateReducerUtil';
 import { incluir, processaRenumerados, processarModificados, processaValidados, remover } from '../util/undoRedoReducerUtil';
 import { createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { findDispositivoByUuid } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { getRevisoesFromElementos } from '../util/revisaoUtil';
 
 export const undo = (state: any): State => {
   if (state.past === undefined || state.past.length === 0) {
@@ -45,6 +43,21 @@ export const undo = (state: any): State => {
     numEventosPassadosAntesDaRevisao: state.numEventosPassadosAntesDaRevisao,
     remissoes: state.remissoes,
   };
+
+  if (isUndoRedoColarSubstituindo(eventos)) {
+    const events = new Eventos();
+
+    // inclui removidos
+    events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoRemovido), getEvento(events.eventos, StateType.ElementoIncluido)));
+
+    // remove incluídos
+    events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoIncluido)));
+
+    retorno.ui!.events = [...events.build(), ...retorno.ui!.events];
+    retorno.present = [...events.build(), ...retorno.present];
+
+    return retorno;
+  }
 
   if (isUndoRedoInclusaoExclusaoAgrupador(eventos)) {
     let tempState: State;
@@ -86,26 +99,27 @@ export const undo = (state: any): State => {
   events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoIncluido)));
   events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoRemovido), getEvento(events.eventos, StateType.ElementoIncluido)));
 
-  const eventoRemissaoInvalidada = eventos.find((ev: StateEvent) => ev.stateType === StateType.RemissaoInvalidada);
-  if (eventoRemissaoInvalidada?.remissaoInvalidacao) {
-    events.eventos.push({
-      stateType: StateType.RemissaoRestaurada,
-      remissaoInvalidacao: eventoRemissaoInvalidada.remissaoInvalidacao,
-    });
+  // A remoção emite um RemissaoInvalidada por dispositivo removido (raiz, descendentes e caput); todos são restaurados.
+  const invalidacoes = eventos.filter((ev: StateEvent) => ev.stateType === StateType.RemissaoInvalidada && ev.remissaoInvalidacao).map((ev: StateEvent) => ev.remissaoInvalidacao!);
+  if (invalidacoes.length > 0) {
+    invalidacoes.forEach(remissaoInvalidacao => events.eventos.push({ stateType: StateType.RemissaoRestaurada, remissaoInvalidacao }));
+
+    const uuidsRestaurados = new Set(invalidacoes.map(i => i.uuid));
+    const lexmlIdsRestaurados = new Set(invalidacoes.map(i => i.lexmlId));
+    // Pelo targetUuid (estável): uma entrada invalidada por outra ação, com id textual coincidente, continua inválida.
+    const foiRestaurada = (r: any): boolean => r.valida === false && (r.targetUuid !== undefined ? uuidsRestaurados.has(r.targetUuid) : lexmlIdsRestaurados.has(r.targetLexmlId));
 
     // Restaura entradas valida:false → undefined e limpa mensagem de remissão inválida
-    const lexmlIdRestaurado = eventoRemissaoInvalidada.remissaoInvalidacao.lexmlId;
-    if (state.remissoes && lexmlIdRestaurado) {
+    if (state.remissoes) {
       const novoRegistro: Record<number, any[]> = { ...state.remissoes };
       const sourceUuidsAfetados: number[] = [];
 
       for (const uuidStr of Object.keys(novoRegistro)) {
         const uuid = Number(uuidStr);
         const remissoes = novoRegistro[uuid];
-        const tinhaInvalida = remissoes.some((r: any) => r.targetLexmlId === lexmlIdRestaurado && r.valida === false);
-        if (tinhaInvalida) {
+        if (remissoes.some(foiRestaurada)) {
           novoRegistro[uuid] = remissoes.map((r: any) => {
-            if (r.targetLexmlId === lexmlIdRestaurado && r.valida === false) {
+            if (foiRestaurada(r)) {
               const copia = { ...r };
               delete copia.valida;
               return copia;
@@ -134,22 +148,9 @@ export const undo = (state: any): State => {
     }
   }
 
-  eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSuprimido).forEach((ev: StateEvent) => events.eventos.push(...processarSuprimidos(state, ev)));
-
-  eventos.filter((ev: StateEvent) => ev.stateType === StateType.ElementoRestaurado).forEach((ev: StateEvent) => events.eventos.push(processarRestaurados(state, ev, 'UNDO')));
-
-  const revisoesDeRejeicaoDeRestauracaoASeremRetornadas = getRevisoesFromElementos(
-    eventos
-      .filter((ev: StateEvent) => ev.stateType === StateType.RevisaoRejeitada)
-      .map((ev: StateEvent) => ev.elementos || [])
-      .flat()
-  );
-
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
-    .forEach((ev: StateEvent) =>
-      events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'UNDO', revisoesDeRejeicaoDeRestauracaoASeremRetornadas) })
-    );
+    .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'UNDO') }));
 
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));

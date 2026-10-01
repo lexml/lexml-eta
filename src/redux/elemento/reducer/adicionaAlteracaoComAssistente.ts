@@ -1,12 +1,11 @@
-import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo } from '../../../model/dispositivo/tipo';
-import { createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { buildListaElementosRenumerados, createElemento, criaListaElementosAfinsValidados, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
 import { createAlteracao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { formataNumero, getDataPorExtenso, getNumero, getTipo, validaUrn } from '../../../model/lexml/documento/urnUtil';
 import { getUltimoFilho, buildListaDispositivos, getDispositivoAnterior } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { buildDispositivosAssistente } from '../../../model/lexml/numeracao/parserReferenciaDispositivo';
-import { DispositivoAdicionado } from '../../../model/lexml/situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { buildId } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -24,24 +23,16 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
   }
 
   const novo = criaDispositivo(atual.pai!, atual.tipo, atual);
-  novo.situacao = new DispositivoAdicionado();
-  (novo.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
   novo.isDispositivoAlteracao = false;
-  (novo.situacao as DispositivoAdicionado).existeNaNormaAlterada = undefined;
+  novo.existeNaNormaAlterada = undefined;
   novo.pai?.renumeraFilhos();
   novo.id = buildId(novo);
 
-  (novo as Artigo).caput!.situacao = novo.situacao = new DispositivoAdicionado();
-  ((novo as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
-
   createAlteracao(novo);
-
-  novo.alteracoes!.situacao = new DispositivoAdicionado();
-  (novo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = state.modo;
 
   if (action.dispositivos) {
     try {
-      buildDispositivosAssistente(action.dispositivos, novo, state.modo);
+      buildDispositivosAssistente(action.dispositivos, novo);
     } catch (e) {
       return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: (e as Error).message });
     }
@@ -71,6 +62,7 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
   const eventos = new Eventos();
   eventos.setReferencia(createElemento(ajustaReferencia(atual, novo)));
   eventos.add(StateType.ElementoIncluido, getElementosDoDispositivo(novo, true));
+  eventos.add(StateType.ElementoRenumerado, buildListaElementosRenumerados(novo));
   eventos.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(novo, false));
   eventos.add(StateType.ElementoMarcado, [createElemento(getUltimoFilho(novo)), createElemento(atual)]);
 
@@ -91,7 +83,6 @@ export const adicionaAlteracaoComAssistente = (state: any, action: any): State =
 const adicionarOmissisObrigatorios = (atual: Dispositivo): void => {
   if (parseInt(atual.numero!) > 1) {
     const anterior = getDispositivoAnterior(atual);
-    const novo = criaDispositivo(atual.pai!, TipoDispositivo.omissis.tipo, anterior, anterior ? undefined : 0);
-    novo.situacao = new DispositivoAdicionado();
+    criaDispositivo(atual.pai!, TipoDispositivo.omissis.tipo, anterior, anterior ? undefined : 0);
   }
 };

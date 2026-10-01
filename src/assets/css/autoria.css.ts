@@ -1,13 +1,13 @@
 import { css } from 'lit';
 export const autoriaCss = css`
-  .lexml-autoria {
+  .lexml-eta-autoria {
     display: block;
     font-size: var(--sl-font-size-small);
     font-family: var(--sl-font-sans);
     max-width: 700px;
   }
 
-  .lexml-autocomplete {
+  .lexml-eta-autocomplete {
     width: 100%;
   }
 

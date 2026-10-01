@@ -1,4 +1,6 @@
 // import { hmrPlugin, presets } from '@open-wc/dev-server-hmr';
+import { createPrivateQuillDevPlugin } from './private-quill.mjs';
+import { createLexmlLinkerVendorStaticPlugin } from './serve-lexml-linker-vendor.mjs';
 
 /** Use Hot Module replacement by adding --hmr to the start command */
 
@@ -93,6 +95,8 @@ export default /** @type {import('@web/dev-server').DevServerConfig} */ ({
   middleware: [mockApiMiddleware, ...middlewares],
 
   plugins: [
+    createPrivateQuillDevPlugin(),
+    createLexmlLinkerVendorStaticPlugin(),
     /** Use Hot Module Replacement by uncommenting. Requires @open-wc/dev-server-hmr plugin */
     // hmr && hmrPlugin({ exclude: ['**/*/node_modules/**/*'], presets: [presets.litElement] }),
   ],

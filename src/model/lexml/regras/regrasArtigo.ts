@@ -1,7 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupador, isAlinea, isArticulacao, isArtigo, isIncisoCaput, isIncisoParagrafo, isOmissis, isParagrafo, isTextoOmitido } from '../../dispositivo/tipo';
-import { ElementoAction, getAcaoAgrupamento } from '../acao';
+import { ElementoAction } from '../acao';
 import { verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida } from '../acao/acaoUtil';
 import {
   adicionarArtigo,
@@ -12,11 +11,9 @@ import {
   adicionarParagrafoFilho,
 } from '../acao/adicionarElementoAction';
 import { adicionarTextoOmissisAction } from '../acao/adicionarTextoOmissisAction';
-import { adicionarCapitulo } from '../acao/agruparElementoAction';
 import { atualizarNotaAlteracaoAction } from '../acao/atualizarNotaAlteracaoAction';
 import { iniciarBlocoAlteracao } from '../acao/blocoAlteracaoAction';
 import { InformarDadosAssistenteAction } from '../acao/informarDadosAssistenteAction';
-import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { informarNormaAction } from '../acao/informarNormaAction';
 import { moverElementoAbaixoAction } from '../acao/moverElementoAbaixoAction';
 import { moverElementoAcimaAction } from '../acao/moverElementoAcimaAction';
@@ -34,27 +31,20 @@ import {
 } from '../acao/transformarElementoAction';
 import { hasIndicativoDesdobramento } from '../conteudo/conteudoUtil';
 import {
-  getAgrupadorPosterior,
-  getAgrupadoresAcima,
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipoInclusiveOmissis,
   getDispositivoPosteriorMesmoTipoInclusiveOmissis,
-  hasAgrupadoresAcima,
-  hasAgrupadoresPosteriores,
   hasFilhos,
   isDispositivoAlteracao,
-  isDispositivoCabecaAlteracao,
-  isSuprimido,
   isUltimoMesmoTipo,
   isUnicoMesmoTipo,
   podeEditarNotaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
 import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { getProximoAgrupadorAposArtigo } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
+import { adicionaAcoesDeExistenciaNaNorma, MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -80,17 +70,11 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         verificaExistenciaEAdicionaMotivoOperacaoNaoPermitida(dispositivo, MotivosOperacaoNaoPermitida.PROXIMO_DIFERENTE_ARTIGO_ALTERACAO_NORMA);
       }
 
-      if (
-        !isDispositivoCabecaAlteracao(dispositivo) ||
-        !isDispositivoAlteracao(dispositivo) ||
-        dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO ||
-        dispositivo.numero !== '1'
-      ) {
-        acoes.push(adicionarArtigoAntes);
-      }
+      acoes.push(adicionarArtigoAntes);
       acoes.push(adicionarArtigoDepois);
 
-      if (!isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      // Artigo de alteração só tem o bloco de alteração, nunca inciso ou parágrafo próprio.
+      if (!dispositivo.hasAlteracao() && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarParagrafoFilho);
         acoes.push(adicionarIncisoFilho);
       }
@@ -99,21 +83,14 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(InformarDadosAssistenteAction);
       }
 
-      if (isDispositivoAlteracao(dispositivo) || dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-        acoes.push(renumerarElementoAction);
-      }
-      if (dispositivo.alteracoes && dispositivo.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_MODIFICADO) {
+      acoes.push(renumerarElementoAction);
+      if (dispositivo.alteracoes) {
         acoes.push(informarNormaAction);
       }
       if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && (dispositivo.texto.length === 0 || !hasIndicativoDesdobramento(dispositivo))) {
         acoes.push(adicionarArtigo);
       }
-      if (
-        dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-        !dispositivo.hasAlteracao() &&
-        !isDispositivoAlteracao(dispositivo) &&
-        !hasFilhos(dispositivo)
-      ) {
+      if (!dispositivo.hasAlteracao() && !isDispositivoAlteracao(dispositivo) && !hasFilhos(dispositivo)) {
         acoes.push(iniciarBlocoAlteracao);
       }
       if (
@@ -125,50 +102,11 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       ) {
         acoes.push(transformarArtigoEmParagrafo);
       }
-      if (dispositivo.pai && !isDispositivoAlteracao(dispositivo) && isArticulacao(dispositivo.pai) && dispositivo.pai!.filhos.filter(d => isAgrupador(d)).length === 0) {
-        acoes.push(adicionarCapitulo);
-      }
-      if (dispositivo.pai && isDispositivoAlteracao(dispositivo) && isAgrupador(dispositivo.pai)) {
-        acoes.push(adicionarCapitulo);
-      }
-      if (!isDispositivoAlteracao(dispositivo) && dispositivo.pai && hasAgrupadoresPosteriores(dispositivo)) {
-        acoes.push(getAcaoAgrupamento(getAgrupadorPosterior(dispositivo).tipo));
-      }
-      if (!isDispositivoAlteracao(dispositivo) && isAgrupador(dispositivo.pai!)) {
-        const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo) ?? 0;
-        dispositivo.tiposPermitidosPai
-          ?.filter(() => pos > 0)
-          .filter((tipo, index) => (dispositivo.pai!.indexOf(dispositivo) > 0 ? index >= pos! : index > pos!))
-          .forEach(t => acoes.push(getAcaoAgrupamento(t)));
-      }
-
-      if (
-        !isDispositivoAlteracao(dispositivo) &&
-        isAgrupador(dispositivo.pai!) &&
-        !isArticulacao(dispositivo.pai!) &&
-        dispositivo.pai!.indexOf(dispositivo) > 0 &&
-        hasAgrupadoresAcima(dispositivo)
-      ) {
-        const pos = dispositivo.tiposPermitidosPai?.indexOf(dispositivo.pai!.tipo) ?? 0;
-
-        const tiposExistentes = getAgrupadoresAcima(dispositivo.pai!.pai!, dispositivo.pai!, []).reduce(
-          (lista: string[], dispositivo: Dispositivo) =>
-            lista.includes(dispositivo.tipo) && getAgrupadorPosterior(dispositivo) !== undefined ? lista : lista.concat(dispositivo.tipo),
-          []
-        );
-        dispositivo.tiposPermitidosPai
-          ?.filter(() => pos > 0)
-          .filter(t => tiposExistentes.includes(t))
-          .forEach(t => acoes.push(getAcaoAgrupamento(t)));
-      }
-
       if (podeConverterEmOmissis(dispositivo) && !isArticulacao(dispositivo.pai!)) {
         acoes.push(transformarEmOmissisArtigo);
       }
 
-      if (isDispositivoAlteracao(dispositivo) && dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO) {
-        (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada ? acoes.push(considerarElementoNovoNaNorma) : acoes.push(considerarElementoExistenteNaNorma);
-      }
+      adicionaAcoesDeExistenciaNaNorma(dispositivo, acoes);
 
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);
@@ -176,11 +114,11 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
 
       acoes.push(adicionarAgrupadorArtigoAntesAction);
 
-      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarTextoOmissisAction);
       }
 
-      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && !isSuprimido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
+      if (dispositivo.isDispositivoAlteracao && isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(removerTextoOmissisAction);
       }
 

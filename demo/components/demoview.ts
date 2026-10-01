@@ -1,9 +1,10 @@
+import { abrirArquivoDocumentoArticulado, lerArquivoDocumentoArticulado, salvarArquivoDocumentoArticulado } from '../../src/util/arquivoDocumentoArticulado';
 import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.js';
 import { PL_5008_2023 } from '../doc/pl_5008_2023';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import { LexmlEtaConfig, LexmlEtaComponent, LexmlEtaParametrosEdicao, Usuario } from '../../src';
-import { RefProposicaoEmendada } from '../../src/model/emenda/emenda';
+import { RefProposicaoReduzida } from '../../src/model/proposicao/proposicao';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
 import { COD_CIVIL_PARCIAL2 } from '../doc/codigocivil_parcial2';
@@ -33,12 +34,15 @@ import { PLP_68_2024_1 } from '../doc/plp_68_2024_1';
 import { PLP_68_2024_2 } from '../doc/plp_68_2024_2';
 import { PLP_68_2024_3 } from '../doc/plp_68_2024_3';
 import { MPV_1170_2023 } from '../doc/mpv_1170_2023';
+import { MPV_1171_2023 } from '../doc/mpv_1171_2023';
 import { MPV_1232_2024 } from '../doc/mpv_1232_2024';
 import { MPV_1170_2023_ALTERADA } from '../doc/mpv_1170_2023_alterada';
 import { PL_4_2025 } from '../doc/pl_4_2025';
+import { SBT_2_PEC_18_2025 } from '../doc/sbt_2_pec_18_2025';
 import { validarRecursivo } from './jsonValidator';
 
 const mapProjetosNormas = {
+  sbt_2_pec_18_2025: SBT_2_PEC_18_2025,
   mpv_885_2019: MPV_885_2019,
   mpv_905_2019: MPV_905_2019,
   mpv_930_2020: MPV_930_2020,
@@ -50,6 +54,7 @@ const mapProjetosNormas = {
   mpv_1232_2024: MPV_1232_2024,
   mpv_1085_2021: MPV_1085_2021,
   mpv_1170_2023: MPV_1170_2023,
+  mpv_1171_2023: MPV_1171_2023,
   mpv_1170_2023_ALTERADA: MPV_1170_2023_ALTERADA,
   pdl_343_2023: PDL_343_2023,
   pec_48_2023: PEC_48_2023,
@@ -72,23 +77,6 @@ const mapProjetosNormas = {
   _plp_68_2024_3: PLP_68_2024_3,
   _mpv_905_2019: MPV_905_2019,
   _pl_4_2025: PL_4_2025,
-};
-
-const mapDispositivosBloqueados = {
-  _mpv_905_2019: [
-    'art1',
-    'art2_par1',
-    'art2_par3',
-    {
-      lexmlId: 'art3',
-      bloquearFilhos: false,
-    },
-    'art4_par1u',
-    {
-      lexmlId: 'art5',
-      bloquearFilhos: false,
-    },
-  ],
 };
 
 const mapConfiguracaoPaginacaoDispositivos = {
@@ -114,18 +102,21 @@ export class DemoView extends LitElement {
   private elLexmlEta!: LexmlEtaComponent;
 
   @state() modo = 'edicao';
+  @state() anexoParecer = false;
   @state() projetoNorma: any = {};
-  @state() proposicaoCorrente = new RefProposicaoEmendada();
+  @state() proposicaoCorrente = new RefProposicaoReduzida();
 
   private nomeUsuario?: string = 'Fulano';
-  emendaConfig: LexmlEtaConfig;
+  etaConfig: LexmlEtaConfig;
 
   constructor() {
     super();
     setBasePath('./');
-    this.emendaConfig = new LexmlEtaConfig();
-    this.emendaConfig.urlConsultaParlamentares = '/parlamentares';
-    this.emendaConfig.urlComissoes = '/comissoes';
+    this.etaConfig = new LexmlEtaConfig();
+    this.etaConfig.urlConsultaParlamentares = '/parlamentares';
+    this.etaConfig.urlComissoes = '/comissoes';
+    this.etaConfig.anexoParecer = this.anexoParecer;
+    this.etaConfig.justificacaoObrigatoria = true;
   }
 
   createRenderRoot(): LitElement {
@@ -154,7 +145,9 @@ export class DemoView extends LitElement {
 
     const key = `${sigla.toLowerCase()}_${numero}_${ano}`;
     const el = this.getElement(`option[value="${key}"]`);
-    el ? (el.selected = true) : undefined;
+    if (el) {
+      el.selected = true;
+    }
   }
 
   onChangeDocumento(): void {
@@ -210,7 +203,6 @@ export class DemoView extends LitElement {
         if (this.elLexmlEta) {
           const params = new LexmlEtaParametrosEdicao();
           params.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
-          params.dispositivosBloqueados = mapDispositivosBloqueados[this.elDocumento.value];
 
           if (this.projetoNorma && Object.keys(this.projetoNorma).length > 0) {
             params.projetoNorma = this.projetoNorma;
@@ -219,8 +211,6 @@ export class DemoView extends LitElement {
             console.log('projetoNormaArquivo', params.projetoNorma);
           } else {
             params.sigla = 'PL';
-            params.numero = '1';
-            params.ano = new Date().getFullYear().toString();
           }
           // params.casaLegislativa = 'SF';
           this.aplicarColaboracao(params);
@@ -235,24 +225,31 @@ export class DemoView extends LitElement {
     }
   }
 
-  salvar(): void {
-    const proposicao = this.elLexmlEta.getProposicao();
-    const proposicaoJson = JSON.stringify(proposicao, null, '\t');
-    const blob = new Blob([proposicaoJson], { type: 'application/json' });
-    const fileName = `${this.modo} - ${proposicao.sigla} nº ${proposicao.numero}, de ${proposicao.ano}.json`;
-    const objectUrl = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = objectUrl;
-    a.download = fileName;
-    document.body.appendChild(a);
-    a.click();
+  async salvar(): Promise<void> {
+    try {
+      await salvarArquivoDocumentoArticulado(this.elLexmlEta.getDocumentoArticulado());
+    } catch (erro) {
+      window.alert((erro as Error).message || 'Não foi possível salvar o documento.');
+    }
   }
 
-  abrir(): void {
-    const fileUpload = document.getElementById('fileUpload');
-    if (fileUpload !== null) {
-      fileUpload.click();
+  async abrir(): Promise<void> {
+    try {
+      const documento = await abrirArquivoDocumentoArticulado();
+      if (documento) await this.carregarDocumentoArticulado(documento);
+    } catch (erro) {
+      window.alert((erro as Error).message || 'Não foi possível abrir o documento.');
     }
+  }
+
+  private async carregarDocumentoArticulado(documento: unknown): Promise<void> {
+    await this.elLexmlEta.abrirDocumentoArticulado(documento);
+    this.modo = 'edicao';
+    this.projetoNorma = documento;
+    this.atualizarProposicaoCorrente(this.projetoNorma);
+    this.atualizarSelects(this.projetoNorma);
+    this.elLexmlEta.style.display = 'block';
+    this.onChangeDocumento();
   }
 
   usuario(): void {
@@ -281,7 +278,7 @@ export class DemoView extends LitElement {
           const projetoNormaBase = this.elDocumento.value.indexOf('sem_texto') >= 0 ? null : { ...mapProjetosNormas[this.elDocumento.value] };
 
           const proposicao = JSON.parse(e.target.result as string);
-          const projetoNormaArquivo = proposicao.projetoNorma;
+          const projetoNormaArquivo = proposicao;
 
           console.log('projetoNormaBase', projetoNormaBase);
           console.log('projetoNormaArquivo', projetoNormaArquivo);
@@ -294,41 +291,17 @@ export class DemoView extends LitElement {
     }
   }
 
-  selecionaArquivo(event: Event): void {
-    const fileInput = event.target as HTMLInputElement;
-    if (fileInput && fileInput.files) {
-      const fReader = new FileReader();
-      fReader.readAsText(fileInput.files[0]);
-      fReader.onloadend = async (e): Promise<void> => {
-        if (e.target?.result) {
-          this.modo = 'edicao';
-          const proposicao = JSON.parse(e.target.result as string);
-          this.projetoNorma = proposicao.projetoNorma;
-
-          console.log('projetoNormaArquivo', this.projetoNorma);
-
-          const params = new LexmlEtaParametrosEdicao();
-          params.projetoNorma = this.projetoNorma;
-          params.proposicao = proposicao;
-          this.elLexmlEta.inicializarEdicao(params);
-
-          this.atualizarProposicaoCorrente(this.projetoNorma);
-          this.atualizarSelects(this.projetoNorma);
-          // this.getElement('.wrapper').style['grid-template-columns'] = '2fr 1fr';
-          this.elLexmlEta.style.display = 'block';
-
-          this.onChangeDocumento();
-        }
-      };
+  async selecionaArquivo(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const arquivo = input.files?.[0];
+    if (!arquivo) return;
+    try {
+      await this.carregarDocumentoArticulado(await lerArquivoDocumentoArticulado(arquivo));
+    } catch (erro) {
+      window.alert((erro as Error).message || 'Não foi possível abrir o documento.');
+    } finally {
+      input.value = '';
     }
-  }
-
-  private async getProjetoNormaJsonixFromEmenda(emenda: any): Promise<any> {
-    let { sigla, numero, ano } = emenda.proposicao;
-    if (!sigla || !numero || !ano) {
-      ({ sigla, numero, ano } = this.getSiglaNumeroAnoFromUrn(emenda.proposicao.urn));
-    }
-    return this.getProjetoNormaJsonix(sigla, numero, ano);
   }
 
   private async getProjetoNormaJsonix(sigla: string, numero: string, ano: string): Promise<any> {
@@ -439,11 +412,22 @@ export class DemoView extends LitElement {
             <option value="_mpv_905_2019">MPV 905, de 2019 (com dispositivos bloqueados)</option>
             <option value="_pl_4_2025">PL 4, de 2025</option>
           </select>
+          <label
+            ><input
+              type="checkbox"
+              .checked=${this.anexoParecer}
+              @change=${(event: Event): void => {
+                this.anexoParecer = (event.target as HTMLInputElement).checked;
+                this.etaConfig.anexoParecer = this.anexoParecer;
+              }}
+            />
+            Anexo de parecer</label
+          >
           <input type="button" value="Ok" @click=${this.executar} />
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
-      <lexml-eta .lexmlEmendaConfig=${this.emendaConfig} modo=${this.modo} @onrevisao=${this.onRevisao}></lexml-eta>
+      <lexml-eta .lexmlEtaConfig=${this.etaConfig} modo=${this.modo} @onrevisao=${this.onRevisao}></lexml-eta>
     `;
   }
 

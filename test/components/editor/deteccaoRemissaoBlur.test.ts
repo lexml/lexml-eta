@@ -6,6 +6,7 @@ import { ADICIONAR_REMISSAO_INTERNA } from '../../../src/model/lexml/acao/adicio
 import { REMOVER_REMISSAO_INVALIDA } from '../../../src/model/lexml/acao/removerRemissaoInvalidaAction';
 import { openArticulacaoAction } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
+import { lexmlLinkerClient } from '../../../src/util/lexml-linker/lexmlLinkerClient';
 
 // Object.create(EditorComponent.prototype) em vez de document.createElement/fixture: o construtor seta this.tabIndex = -1, o que viola a regra de Custom Elements de não mutar atributos na construção.
 
@@ -35,6 +36,7 @@ describe('EditorComponent — detecção híbrida de remissão (blur do disposit
   let editor: any;
   let dispatched: any[];
   let dispatchOriginal: typeof rootStore.dispatch;
+  let detectarRemissoesExternasOriginal: typeof lexmlLinkerClient.detectarRemissoesExternas;
 
   beforeEach(() => {
     editor = Object.create(EditorComponent.prototype);
@@ -46,10 +48,17 @@ describe('EditorComponent — detecção híbrida de remissão (blur do disposit
       dispatched.push(action);
       return action;
     };
+
+    // Guard de "primeira visita" (ver detectarRemissoesAoSairDaLinha) agora sempre tenta o linker
+    // externo na 1ª chamada de cada uuid nesta instância — sem isto, os testes abaixo disparariam
+    // um Worker WASM real.
+    detectarRemissoesExternasOriginal = lexmlLinkerClient.detectarRemissoesExternas;
+    lexmlLinkerClient.detectarRemissoesExternas = async () => null;
   });
 
   afterEach(() => {
     (rootStore as any).dispatch = dispatchOriginal;
+    lexmlLinkerClient.detectarRemissoesExternas = detectarRemissoesExternasOriginal;
   });
 
   function tipos(): string[] {

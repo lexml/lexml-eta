@@ -1,5 +1,4 @@
 import { EtaBlotAbreAspas } from './eta-blot-abre-aspas';
-import { DescricaoSituacao } from '../../model/dispositivo/situacao';
 import { Elemento } from '../../model/elemento';
 import { podeAdicionarAtributoDeExistencia } from '../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
@@ -101,7 +100,7 @@ export class EtaContainerTable extends EtaContainer {
     return this.findBlot(EtaBlotConteudo.blotName) as EtaBlotConteudo;
   }
 
-  get blotAbreAspas(): EtaBlotAbreAspas {
+  get blotAbreAspas(): EtaBlotAbreAspas | undefined {
     const blot = this.blotRotulo?.prev;
     return blot?.instanceBlotName === EtaBlotAbreAspas.blotName ? blot : undefined;
   }
@@ -189,15 +188,6 @@ export class EtaContainerTable extends EtaContainer {
     return this._tipo;
   }
 
-  private _descricaoSituacao: any;
-  set descricaoSituacao(situacao: any) {
-    this._descricaoSituacao = situacao;
-  }
-
-  get descricaoSituacao(): any {
-    return this._descricaoSituacao;
-  }
-
   private _existeNaNormaAlterada: any;
   set existeNaNormaAlterada(existeNaNormaAlterada: any) {
     this._existeNaNormaAlterada = existeNaNormaAlterada;
@@ -239,32 +229,15 @@ export class EtaContainerTable extends EtaContainer {
 
   private resetClasses(): void {
     this.domNode.classList.remove('dispositivo--adicionado');
-    this.domNode.classList.remove('dispositivo--modificado');
-    this.domNode.classList.remove('dispositivo--suprimido');
   }
 
   // TODO Rever a forma atual de se atribuir estilos
   setEstilo(elemento: Elemento): void {
     if (!this.blotRotulo) return;
-    let classeCSS = '';
 
     this.resetClasses();
 
-    switch (elemento.descricaoSituacao) {
-      case DescricaoSituacao.DISPOSITIVO_ADICIONADO:
-        classeCSS = 'dispositivo--adicionado';
-        break;
-      case DescricaoSituacao.DISPOSITIVO_MODIFICADO:
-        classeCSS = 'dispositivo--modificado';
-        break;
-      case DescricaoSituacao.DISPOSITIVO_SUPRIMIDO:
-        classeCSS = 'dispositivo--suprimido';
-        break;
-    }
-
-    if (classeCSS) {
-      this.domNode.classList.add(classeCSS);
-    }
+    this.domNode.classList.add('dispositivo--adicionado');
 
     this.blotRotulo.setEstilo(elemento);
   }
@@ -333,7 +306,6 @@ export class EtaContainerTable extends EtaContainer {
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
     this._hierarquia = elemento.hierarquia;
-    this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
     this._existeNaNormaAlterada = elemento.existeNaNormaAlterada;
 
     this.setEstilo(elemento);
@@ -352,7 +324,6 @@ export class EtaContainerTable extends EtaContainer {
     this._tipo = elemento.tipo ?? '';
     this._agrupador = elemento.agrupador;
     this._hierarquia = elemento.hierarquia;
-    this._descricaoSituacao = elemento.descricaoSituacao ? elemento.descricaoSituacao : undefined;
     this._existeNaNormaAlterada = elemento.existeNaNormaAlterada;
   }
 
@@ -377,9 +348,22 @@ export class EtaContainerTable extends EtaContainer {
   }
 
   limparContainerDireito(): void {
-    if (this.blotInsideContainerDireito instanceof EtaBlotMenu) {
-      this.blotInsideContainerDireito.remove();
-      new EtaBlotEspaco().insertInto(this.containerDireito);
+    const blot = this.blotInsideContainerDireito;
+    if (blot instanceof EtaBlotMenu) {
+      const dropdown = blot.domNode as any;
+      // sl-dropdown (LitElement) lança erro no disconnectedCallback se removido antes de concluir
+      // seu primeiro ciclo de render (this.panel ainda não populado) — erro esse não capturável via
+      // try/catch, pois o navegador invoca disconnectedCallback fora da nossa pilha de chamada.
+      // Adia a remoção até o dropdown terminar de renderizar, nesse caso.
+      if (dropdown?.hasUpdated === false && typeof dropdown.updateComplete?.then === 'function') {
+        dropdown.updateComplete.then(() => {
+          blot.remove();
+          new EtaBlotEspaco().insertInto(this.containerDireito);
+        });
+      } else {
+        blot.remove();
+        new EtaBlotEspaco().insertInto(this.containerDireito);
+      }
     }
   }
 

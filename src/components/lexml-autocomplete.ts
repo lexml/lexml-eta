@@ -2,7 +2,7 @@ import { REGEX_ACCENTS } from '../util/string-util';
 import { LitElement, html, TemplateResult, PropertyValues } from 'lit';
 import { customElement, property } from 'lit/decorators.js';
 
-@customElement('lexml-autocomplete')
+@customElement('lexml-eta-autocomplete')
 export class LexmlAutocomplete extends LitElement {
   @property({ type: Array })
   items: string[] = [];
@@ -55,23 +55,23 @@ export class LexmlAutocomplete extends LitElement {
           display: none;
         }
 
-        .lexml-autocomplete-input {
+        .lexml-eta-autocomplete-input {
           width: 100%;
         }
 
         @media (max-width: 576px) {
-          .lexml-autocomplete-label {
+          .lexml-eta-autocomplete-label {
             width: calc(100% - 2px);
             display: block;
           }
-          .lexml-autocomplete-input {
+          .lexml-eta-autocomplete-input {
             width: calc(100% - 2px);
           }
         }
       </style>
       <slot id="dropdown-input">
-        <!-- <input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="Parlamentar" .value=${this.value || ''} /> -->
-        <sl-input id="defaultInput" class="lexml-autocomplete-input" type="text" placeholder="" size="small" .value=${this.value || ''}></sl-input>
+        <!-- <input id="defaultInput" class="lexml-eta-autocomplete-input" type="text" placeholder="Parlamentar" .value=${this.value || ''} /> -->
+        <sl-input id="defaultInput" class="lexml-eta-autocomplete-input" type="text" placeholder="" size="small" .value=${this.value || ''}></sl-input>
       </slot>
       <div class="suggest-container">
         <ul id="suggestions" ?hidden=${!this.opened} @mouseenter=${this._handleItemMouseEnter} @mouseleave=${this._handleItemMouseLeave}>
@@ -332,6 +332,6 @@ export class LexmlAutocomplete extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-autocomplete': LexmlAutocomplete;
+    'lexml-eta-autocomplete': LexmlAutocomplete;
   }
 }

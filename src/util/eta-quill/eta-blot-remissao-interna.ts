@@ -1,7 +1,9 @@
 import { RemissaoInternaValue } from '../../model/remissao';
 import { EtaContainerTable } from './eta-container-table';
+import { limparAtributosRemissaoAntesDoUnwrap } from './eta-blot-remissao-util';
+import PrivateQuill from '../../internal/quill/private-quill';
 
-const Inline = Quill.import('blots/inline');
+const Inline = PrivateQuill.import('blots/inline');
 
 export class RemissaoInternaBlot extends Inline {
   static blotName = 'remissao-interna';
@@ -43,9 +45,7 @@ export class RemissaoInternaBlot extends Inline {
   format(name: string, value: RemissaoInternaValue | string | boolean): void {
     if (name !== this.statics.blotName || !value) {
       if (name === this.statics.blotName && !value) {
-        // Remove os atributos residuais ANTES do unformat padrão do Quill (InlineBlot.format):
-        this.domNode.removeAttribute('data-lexml-ref');
-        this.domNode.removeAttribute('data-ref-id');
+        limparAtributosRemissaoAntesDoUnwrap(this.domNode as HTMLElement, ['data-lexml-ref', 'data-ref-id']);
       }
       return super.format(name, value);
     }

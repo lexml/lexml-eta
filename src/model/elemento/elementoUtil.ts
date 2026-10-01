@@ -1,6 +1,5 @@
-import { isAdicionado, getDispositivoAnteriorNaSequenciaDeLeitura } from './../lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAnteriorNaSequenciaDeLeitura } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../dispositivo/situacao';
 import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isOmissis, isParagrafo } from '../dispositivo/tipo';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
 import {
@@ -14,7 +13,6 @@ import {
   isArticulacaoAlteracao,
   isDispositivoAlteracao,
   isDispositivoCabecaAlteracao,
-  isOriginal,
   verificaNaoPrecisaInformarSituacaoNormaVigente,
   getDispositivoCabecaAlteracao,
   isUltimaAlteracao,
@@ -22,12 +20,9 @@ import {
   getTiposAgrupadoresQuePodemSerInseridosDepois,
   hasEmenta,
 } from '../lexml/hierarquia/hierarquiaUtil';
-import { DispositivoAdicionado } from '../lexml/situacao/dispositivoAdicionado';
-import { DispositivoSuprimido } from '../lexml/situacao/dispositivoSuprimido';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { buildId } from '../lexml/util/idUtil';
 import { Elemento, Referencia } from './elemento';
-import { isBloqueado } from '../lexml/regras/regrasUtil';
 import { Mensagem } from '../lexml/util/mensagem';
 
 export const isValid = (elemento?: Referencia): void => {
@@ -63,8 +58,7 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
     lexmlId: pai?.id,
     uuidAlteracao: articulacaoAlteracao?.uuid,
     uuid2Alteracao: articulacaoAlteracao?.uuid2,
-    existeNaNormaAlterada: pai && isAdicionado(pai) ? (pai.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
-    descricaoSituacao: pai?.situacao?.descricaoSituacao,
+    existeNaNormaAlterada: pai?.existeNaNormaAlterada,
   };
 };
 
@@ -77,7 +71,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
   if (fechaAspas) {
     const cabecaAlteracao = getDispositivoCabecaAlteracao(dispositivo);
     notaAlteracao = cabecaAlteracao.notaAlteracao;
-    podeEditarNotaAlteracao = cabecaAlteracao.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO;
+    podeEditarNotaAlteracao = true;
   }
 
   let elementoAnteriorNaSequenciaDeLeitura: Elemento | undefined;
@@ -110,7 +104,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
       posicao: pai ? pai.indexOf(dispositivo) : undefined,
       numero: dispositivo.numero,
     },
-    editavel: isArticulacao(dispositivo) || dispositivo.situacao instanceof DispositivoSuprimido ? false : true,
+    editavel: !isArticulacao(dispositivo),
     sendoEditado: false,
     uuid: dispositivo.uuid,
     uuid2: dispositivo.uuid2,
@@ -123,12 +117,11 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
       texto: dispositivo.texto,
     },
     norma: dispositivo.alteracoes?.base,
-    existeNaNormaAlterada: isAdicionado(dispositivo) ? (dispositivo.situacao as DispositivoAdicionado).existeNaNormaAlterada : undefined,
+    existeNaNormaAlterada: dispositivo.existeNaNormaAlterada,
     index: 0,
     acoesPossiveis: acoes ? dispositivo.getAcoesPossiveis(dispositivo) : [],
-    descricaoSituacao: dispositivo.situacao?.descricaoSituacao,
-    mensagens: isOriginal(dispositivo) && !isBloqueado(dispositivo) ? [] : dispositivo.mensagens,
-    abreAspas: isDispositivoCabecaAlteracao(dispositivo),
+    mensagens: dispositivo.mensagens,
+    abreAspas: isDispositivoCabecaAlteracao(dispositivo) || !!dispositivo.cabecaAlteracao,
     fechaAspas,
     notaAlteracao,
     dispositivoAlteracao: isDispositivoAlteracao(dispositivo),
@@ -142,6 +135,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     ultimoFilhoDireto:
       isAgrupador(dispositivo) && isDispositivoAlteracao(dispositivo) && dispositivo.filhos.length ? createElemento(dispositivo.filhos[dispositivo.filhos.length - 1]) : undefined,
     bloqueado: dispositivo.bloqueado,
+    caput: isArtigo(dispositivo) && (dispositivo as Artigo).caput ? { uuid: (dispositivo as Artigo).caput!.uuid, uuid2: (dispositivo as Artigo).caput!.uuid2 } : undefined,
   };
 };
 
@@ -291,7 +285,9 @@ export const criaListaElementosAfinsValidados = (dispositivo: Dispositivo | unde
       criaElementoValidadoSeNecessario(validados, isIncisoCaput(dispositivo) ? dispositivo.pai!.pai! : dispositivo.pai!);
     }
     irmaosMesmoTipo(dispositivo).forEach(filho => {
-      !incluiDispositivo && filho === dispositivo ? undefined : criaElementoValidadoSeNecessario(validados, filho, true);
+      if (incluiDispositivo || filho !== dispositivo) {
+        criaElementoValidadoSeNecessario(validados, filho, true);
+      }
     });
   } else if (incluiDispositivo && !isArticulacao(dispositivo) && !isAgrupador(dispositivo)) {
     criaElementoValidadoSeNecessario(validados, dispositivo, true);
@@ -322,7 +318,7 @@ export const buildListaElementosRenumerados = (dispositivo: Dispositivo): Elemen
 export const validaFilhos = (validados: Elemento[], filhos: Dispositivo[]): void => {
   filhos.forEach(filho => {
     criaElementoValidadoSeNecessario(validados, filho);
-    filhos ? validaFilhos(validados, filho.filhos) : undefined;
+    validaFilhos(validados, filho.filhos);
   });
 };
 
@@ -350,12 +346,7 @@ export const tipoOmissis = (pai: Dispositivo | undefined): string => {
 };
 
 export const podeAdicionarAtributoDeExistencia = (elemento: Elemento): boolean => {
-  if (
-    !elemento.dispositivoAlteracao ||
-    elemento.existeNaNormaAlterada === undefined ||
-    elemento.tipo === 'Omissis' ||
-    elemento.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
-  ) {
+  if (!elemento.dispositivoAlteracao || elemento.existeNaNormaAlterada === undefined || elemento.tipo === 'Omissis') {
     return false;
   } else {
     return elemento.hierarquia?.pai?.existeNaNormaAlterada ?? true;

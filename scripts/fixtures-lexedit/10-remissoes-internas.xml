@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture derivada de docs/extensao-formato-lexml/10-remissoes-internas.md -->
+<lexedit:Metadado xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
+  <lexedit:RemissoesInternasInvalidas refIdsRemissoesInternas='_ri13481093417 _ri6987698768'/>
+</lexedit:Metadado>

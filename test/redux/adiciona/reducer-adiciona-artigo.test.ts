@@ -11,64 +11,15 @@ import { ABRIR_ARTICULACAO } from '../../../src/model/lexml/acao/openArticulacao
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { MPV_885_2019 } from '../../doc/mpv_885_2019';
-import { buscaDispositivoById, getDispositivoAndFilhosAsLista, isAdicionado } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { aplicaAlteracoesEmenda } from '../../../src/redux/elemento/reducer/aplicaAlteracoesEmenda';
-import { EMENDA_013 } from '../../doc/emendas/emenda-013';
-import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
-import { removeElemento } from '../../../src/redux/elemento/reducer/removeElemento';
-import { MPV_905_2019 } from '../../doc/mpv_905_2019';
 
 let state: any;
 let eventos: StateEvent[];
 
-describe('Testando atualização de ids de dispositivos após inclusão de artigo', () => {
-  beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
-    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
-  });
-
-  describe('Abre EMENDA_013 e inclui artigo antes do Capítulo II', () => {
-    beforeEach(function () {
-      state = aplicaAlteracoesEmenda(state, { alteracoesEmenda: EMENDA_013.componentes[0].dispositivos });
-      const e = createElemento(buscaDispositivoById(state.articulacao, 'cap2')!);
-      state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: e, novo: { tipo: 'Artigo' }, posicao: 'antes' });
-    });
-
-    it('Articulação deveria possuir 55 artigos, sendo 2 adicionados', () => {
-      expect(state.articulacao.artigos.length).to.equal(55);
-      expect(state.articulacao.artigos.filter(isAdicionado).length).to.equal(2);
-    });
-
-    it('Ids do dispositivo "Art. 18-2" e seus filhos deveriam iniciar com "art18-2"', () => {
-      const artigo = buscaDispositivoById(state.articulacao, 'art18-2')!;
-      const dispositivos = getDispositivoAndFilhosAsLista(artigo);
-      expect(dispositivos.every(d => d.id!.startsWith('art18-2'))).to.be.true;
-    });
-
-    describe('Remove Art. 18-1 e verifica se Art. 18-2 passou a ser o novo Art. 18-1', () => {
-      beforeEach(function () {
-        const artigo = buscaDispositivoById(state.articulacao, 'art18-1')!;
-        state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: { tipo: TipoDispositivo.artigo.tipo, uuid: artigo.uuid! } });
-      });
-
-      it('Articulação deveria possuir 54 artigos', () => {
-        expect(state.articulacao.artigos.length).to.equal(54);
-        expect(state.articulacao.artigos.filter(isAdicionado).length).to.equal(1);
-      });
-
-      it('Ids do dispositivo "Art. 18-1" e seus filhos deveriam iniciar com "art18-1"', () => {
-        const artigo = buscaDispositivoById(state.articulacao, 'art18-1')!;
-        const dispositivos = getDispositivoAndFilhosAsLista(artigo);
-        expect(dispositivos.every(d => d.id!.startsWith('art18-1'))).to.be.true;
-      });
-    });
-  });
-});
-
 describe('Testando inclusão de artigo no início da articulação', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_885_2019);
     state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
   });
 
@@ -78,10 +29,10 @@ describe('Testando inclusão de artigo no início da articulação', () => {
       state = elementoReducer(state, { type: ADICIONAR_ELEMENTO, atual: e, novo: { tipo: 'Artigo' }, posicao: 'depois' });
     });
 
+    // Em proposição o artigo incluído assume art1 e os demais renumeram; "art0" existia para não renumerar originais de emenda.
     it('Deveria possuir novo artigo como primeiro artigo', () => {
       const d = state.articulacao.artigos[0];
-      expect(d.id).to.be.equal('art0');
-      expect(isAdicionado(d)).to.be.true;
+      expect(d.id).to.be.equal('art1');
     });
 
     describe('Testando eventos', () => {
@@ -95,9 +46,9 @@ describe('Testando inclusão de artigo no início da articulação', () => {
         expect(ev.referencia?.tipo).to.equal('Ementa');
       });
 
-      it('Elemento incluído deveria possuir lexmlId = art0', () => {
+      it('Elemento incluído deveria possuir lexmlId = art1', () => {
         const e = getEvento(state.ui.events, StateType.ElementoIncluido).elementos![0];
-        expect(e.lexmlId).to.equal('art0');
+        expect(e.lexmlId).to.equal('art1');
       });
 
       it('ElementoAnteriorNaSequenciaDeLeitura do elemento incluído deveria apontar para ementa', () => {
@@ -115,8 +66,7 @@ describe('Testando inclusão de artigo no início da articulação', () => {
 
     it('Deveria possuir novo artigo como primeiro artigo', () => {
       const d = state.articulacao.artigos[0];
-      expect(d.id).to.be.equal('art0');
-      expect(isAdicionado(d)).to.be.true;
+      expect(d.id).to.be.equal('art1');
     });
 
     describe('Testando eventos', () => {
@@ -130,9 +80,9 @@ describe('Testando inclusão de artigo no início da articulação', () => {
         expect(ev.referencia?.tipo).to.equal('Ementa');
       });
 
-      it('Elemento incluído deveria possuir lexmlId = art0', () => {
+      it('Elemento incluído deveria possuir lexmlId = art1', () => {
         const e = getEvento(state.ui.events, StateType.ElementoIncluido).elementos![0];
-        expect(e.lexmlId).to.equal('art0');
+        expect(e.lexmlId).to.equal('art1');
       });
 
       it('ElementoAnteriorNaSequenciaDeLeitura do elemento incluído deveria apontar para ementa', () => {

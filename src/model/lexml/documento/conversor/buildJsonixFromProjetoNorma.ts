@@ -15,19 +15,41 @@ import { isNorma, ProjetoNorma } from '../projetoNorma';
 import { isValidText } from '../../../../util/string-util';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../../remissao';
 import { atualizarTextoRemissao, isTextoReconhecivel } from '../../../remissao/lexmlIdUtil';
+import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
+import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
+import { Autoria, OpcoesImpressao, tratamentoParlamentar } from '../../../proposicao/proposicao';
+import { formatarLocalDataFecho } from '../urnUtil';
+
+export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
 
-export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
-  const resultado = montaCabecalho(urn);
-  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas);
+// Gera/reaproveita idPersistido antes de montar o cabeçalho, mutando a entrada em memória
+// (estabilidade entre saves). Set deduplica: artigo e caput podem compartilhar o mesmo array no registro.
+const garantirIdsRemissoesInvalidas = (remissoes?: Remissoes): string[] => {
+  const ids = new Set<string>();
+  for (const entries of Object.values(remissoes ?? {})) {
+    for (const entry of entries) {
+      if (entry.valida !== false) continue;
+      if (!entry.idPersistido) entry.idPersistido = gerarIdRemissaoInvalida();
+      ids.add(entry.idPersistido);
+    }
+  }
+  return Array.from(ids);
+};
+
+export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
+  const idsRemissoesInvalidas = garantirIdsRemissoesInvalidas(remissoes);
+  const resultado = montaCabecalho(urn, montaMetadadoLexEdit(dados, idsRemissoesInvalidas));
+  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas, dados);
   return resultado;
 };
 
 export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: Articulacao, remissoes?: Remissoes): any => {
+  garantirIdsRemissoesInvalidas(remissoes);
   const articulacao = {
     TYPE_NAME: 'br_gov_lexml__1.Articulacao',
     lXhier: buildTree(articulacaoProjetoNorma, { articulacao: {} }, remissoes),
@@ -36,7 +58,80 @@ export const buildJsonixArticulacaoFromProjetoNorma = (articulacaoProjetoNorma: 
   return articulacao;
 };
 
-const montaCabecalho = (urn: string): any => {
+// Sempre os quatro atributos: omitir valores "padrão" dependeria do padrão de cada host (design.md, Decisão 2).
+const montaOpcoesImpressao = (opcoes: OpcoesImpressao): MetadadoLexEdit['opcoesImpressao'] => ({
+  TYPE_NAME: 'br_gov_lexml_lexedit__1.OpcoesImpressao',
+  imprimirBrasao: opcoes.imprimirBrasao,
+  textoCabecalho: opcoes.textoCabecalho,
+  reduzirEspacoEntreLinhas: opcoes.reduzirEspacoEntreLinhas,
+  tamanhoFonte: opcoes.tamanhoFonte,
+});
+
+// Só os sete atributos do XSD: objetos vindos do host podem trazer campos extras.
+// Sem parlamentar identificado não há autoria, pois o XSD exige ao menos um Parlamentar.
+const montaAutoria = (autoria?: Autoria): MetadadoLexEdit['autoria'] => {
+  const parlamentares = (autoria?.parlamentares ?? []).filter(p => p?.identificacao);
+  if (!autoria || !parlamentares.length) return undefined;
+  return {
+    TYPE_NAME: 'br_gov_lexml_lexedit__1.Autoria',
+    tipo: 'Parlamentar',
+    imprimirPartidoUF: autoria.imprimirPartidoUF,
+    parlamentares: {
+      TYPE_NAME: 'br_gov_lexml_lexedit__1.Parlamentares',
+      parlamentar: parlamentares.map(p => ({
+        TYPE_NAME: 'br_gov_lexml_lexedit__1.Parlamentar',
+        identificacao: p.identificacao,
+        nome: p.nome,
+        sexo: p.sexo,
+        siglaPartido: p.siglaPartido,
+        siglaUF: p.siglaUF,
+        siglaCasaLegislativa: p.siglaCasaLegislativa,
+        cargo: p.cargo ?? '',
+      })),
+    },
+  };
+};
+
+// Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
+const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[]): MetadadoLexEdit | undefined => {
+  const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
+  const pendencias: string[] = [];
+  // Sem local não há fecho; data não informada é omitida, pois xsd:date não aceita texto vazio.
+  if (dados?.local) {
+    lexedit.local = dados.local;
+    if (dados.data) lexedit.data = dados.data;
+  }
+  if (dados?.opcoesImpressao) lexedit.opcoesImpressao = montaOpcoesImpressao(dados.opcoesImpressao);
+  const autoria = montaAutoria(dados?.autoria);
+  if (autoria) lexedit.autoria = autoria;
+  if (idsRemissoesInvalidas.length > 0) {
+    lexedit.remissoesInternasInvalidas = { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idsRemissoesInvalidas.join(' ') };
+    pendencias.push('Corrigir remissões internas inválidas.');
+  }
+  if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
+  // > 1 porque TYPE_NAME está sempre presente.
+  return Object.keys(lexedit).length > 1 ? lexedit : undefined;
+};
+
+// Mesmo formato que o conversor jsonix-lexml 2.0.0 devolve no tojson, para a ida e volta comparar por igualdade.
+const montaMetadadoProprietario = (lexedit: MetadadoLexEdit): MetadadoProprietarioLexEdit => ({
+  TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
+  fonte: NAMESPACE_LEXEDIT,
+  any: [
+    {
+      name: {
+        namespaceURI: NAMESPACE_LEXEDIT,
+        localPart: 'Metadado',
+        prefix: 'lexedit',
+        key: `{${NAMESPACE_LEXEDIT}}Metadado`,
+        string: `{${NAMESPACE_LEXEDIT}}lexedit:Metadado`,
+      },
+      value: lexedit,
+    },
+  ],
+});
+
+const montaCabecalho = (urn: string, lexedit?: MetadadoLexEdit): any => {
   return {
     name: {
       namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -53,23 +148,57 @@ const montaCabecalho = (urn: string): any => {
           TYPE_NAME: 'br_gov_lexml__1.Identificacao',
           urn: urn,
         },
+        ...(lexedit && { metadadoProprietario: [montaMetadadoProprietario(lexedit)] }),
       },
     },
   };
 };
 
-const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
+const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
   const p = {
     TYPE_NAME: 'br_gov_lexml__1.ProjetoNorma',
   };
 
+  const parteFinal = montaParteFinal(dados);
   p[isNorma(projetoNorma) ? 'norma' : 'projeto'] = {
     TYPE_NAME: 'br_gov_lexml__1.HierarchicalStructure',
     parteInicial: montaParteInicial(projetoNorma),
     articulacao: montaArticulacao(projetoNorma, remissoes, remissoesExternas),
+    ...(parteFinal && { parteFinal }),
   };
 
   return p;
+};
+
+const paragrafo = (...content: any[]): any => ({ TYPE_NAME: 'br_gov_lexml__1.GenInline', content });
+
+const negrito = (texto: string): any => ({
+  name: { namespaceURI: 'http://www.lexml.gov.br/1.0', localPart: 'b', prefix: '', key: '{http://www.lexml.gov.br/1.0}b', string: '{http://www.lexml.gov.br/1.0}b' },
+  value: { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: [texto] },
+});
+
+// Gerado a partir da autoria já montada, para o texto nunca divergir do `lexedit` (especificação 04).
+const montaAssinaturasTexto = (autoria: MetadadoLexEdit['autoria']): any[] =>
+  (autoria?.parlamentares.parlamentar ?? []).map(p => ({
+    TYPE_NAME: 'br_gov_lexml__1.ParsType',
+    p: [
+      paragrafo(negrito(`${tratamentoParlamentar(p.sexo, p.siglaCasaLegislativa)} ${p.nome}`)),
+      ...(autoria!.imprimirPartidoUF ? [paragrafo(`(${p.siglaPartido} - ${p.siglaUF})`)] : []),
+      ...(p.cargo.trim() ? [paragrafo(p.cargo)] : []),
+    ],
+  }));
+
+// Representação textual do fecho e das assinaturas prevista no LexML; os dados estruturados ficam em `lexedit` (especificações 03 e 04).
+const montaParteFinal = (dados?: DadosLexEdit): any => {
+  const assinaturaTexto = montaAssinaturasTexto(montaAutoria(dados?.autoria));
+  if (!dados?.local && !assinaturaTexto.length) return undefined;
+  return {
+    TYPE_NAME: 'br_gov_lexml__1.ParteFinal',
+    ...(dados?.local && {
+      localDataFecho: { TYPE_NAME: 'br_gov_lexml__1.ParsType', p: [paragrafo(formatarLocalDataFecho(dados.local, dados.data))] },
+    }),
+    ...(assinaturaTexto.length > 0 && { assinaturaTexto }),
+  };
 };
 
 const montaParteInicial = (projetoNorma: any): any => {
@@ -88,20 +217,29 @@ const montaParteInicial = (projetoNorma: any): any => {
     preambulo: {
       TYPE_NAME: 'br_gov_lexml__1.TextoType',
       id: 'preambulo',
-      p: [
-        {
-          TYPE_NAME: 'br_gov_lexml__1.GenInline',
-          content: projetoNorma.preambulo ? buildStructuredContent(projetoNorma.preambulo, 'texto') : [],
-        },
-      ],
+      p: montaParagrafosPreambulo(projetoNorma.preambulo),
     },
   };
+};
+
+const montaParagrafosPreambulo = (preambulo: any): any[] => {
+  const texto = typeof preambulo === 'string' ? preambulo : preambulo?.texto ?? '';
+  const container = document.createElement('div');
+  container.innerHTML = texto;
+  const paragrafos = Array.from(container.children);
+  if (paragrafos.length && paragrafos.every(p => p.tagName === 'P') && Array.from(container.childNodes).every(n => n.nodeType === Node.ELEMENT_NODE || !n.textContent?.trim())) {
+    return paragrafos.map(p => ({
+      TYPE_NAME: 'br_gov_lexml__1.GenInline',
+      ...(p.innerHTML ? { content: buildStructuredContent({ texto: p.innerHTML } as Dispositivo, 'texto') } : {}),
+    }));
+  }
+  return [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: preambulo ? buildStructuredContent(preambulo, 'texto') : [] }];
 };
 
 const montaArticulacao = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any => {
   return {
     TYPE_NAME: 'br_gov_lexml__1.Articulacao',
-    lXhier: buildTree(projetoNorma.articulacao, projetoNorma.articulacao, remissoes, remissoesExternas),
+    lXhier: buildTree(projetoNorma.articulacao, {}, remissoes, remissoesExternas),
   };
 };
 
@@ -307,7 +445,7 @@ const parseHTMLTags = (html: string): ParsedElement[] => {
     // Texto antes da tag
     if (match.index > lastIndex) {
       const textBefore = html.substring(lastIndex, match.index);
-      if (textBefore.trim()) {
+      if (textBefore.length) {
         result.push({ type: 'text', content: textBefore });
       }
     }
@@ -330,7 +468,7 @@ const parseHTMLTags = (html: string): ParsedElement[] => {
   // Texto restante após todas as tags inline
   if (lastIndex < html.length) {
     const remainingText = html.substring(lastIndex);
-    if (remainingText.trim()) {
+    if (remainingText.length) {
       // Processar links no texto restante
       const linkProcessed = parseContentWithLinks(remainingText);
       result.push(...linkProcessed);
@@ -352,7 +490,7 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
   while ((match = linkRegex.exec(html)) !== null) {
     if (match.index > lastIndex) {
       const textBefore = html.substring(lastIndex, match.index);
-      if (textBefore.trim()) {
+      if (textBefore.length) {
         result.push({ type: 'text', content: textBefore });
       }
     }
@@ -363,10 +501,11 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
     // Remissão interna: detectar pelo atributo data-lexml-ref
     const dataLexmlRefMatch = openingTag.match(/data-lexml-ref=(["'])([^"']+)\1/i);
     if (dataLexmlRefMatch) {
+      const riIdMatch = openingTag.match(/data-ri-id=(["'])([^"']+)\1/i);
       result.push({
         type: 'element',
         tag: 'Remissao',
-        attributes: { href: dataLexmlRefMatch[2] },
+        attributes: { href: dataLexmlRefMatch[2], ...(riIdMatch && { id: riIdMatch[2] }) },
         content,
       });
     } else {
@@ -402,7 +541,7 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
 
   if (lastIndex < html.length) {
     const remainingText = html.substring(lastIndex);
-    if (remainingText.trim()) {
+    if (remainingText.length) {
       result.push({ type: 'text', content: remainingText });
     }
   } else if (result.length === 0) {
@@ -412,7 +551,7 @@ const parseContentWithLinks = (html: string): ParsedElement[] => {
   return result;
 };
 
-const buildInlineElement = (tag: string, content: any[], href?: string): any => {
+const buildInlineElement = (tag: string, content: any[], href?: string, id?: string): any => {
   return {
     name: {
       namespaceURI: 'http://www.lexml.gov.br/1.0',
@@ -424,6 +563,7 @@ const buildInlineElement = (tag: string, content: any[], href?: string): any => 
     value: {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       ...(href && { href }),
+      ...(id && { id }),
       content,
     },
   };
@@ -438,7 +578,7 @@ const buildStructuredContentWithInlineElements = (html: string): any[] => {
       return item.content;
     } else if (item.type === 'element') {
       if (item.tag === 'span' || item.tag === 'Remissao') {
-        return buildInlineElement(item.tag, [item.content], item.attributes?.href);
+        return buildInlineElement(item.tag, [item.content], item.attributes?.href, item.attributes?.id);
       } else {
         // Tags de formatação (b, i, u, sub, sup)
         let innerContent: any[];
@@ -542,8 +682,8 @@ const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValu
   if (!texto) return texto;
   const faltando = entries.filter(e => {
     if (!e.textoRef) return false;
-    // Entradas inválidas: injetar sentinel @invalido no texto plain; em HTML já corrigido
-    // por corrigirLexmlRefsObsoletosNoTexto, a injeção falhará silenciosamente (posição
+    // Entradas inválidas: injetar link com o último destino conhecido no texto plain; em HTML
+    // já corrigido por corrigirLexmlRefsObsoletosNoTexto, a injeção falhará silenciosamente (posição
     // não coincide com o textoRef dentro do <a>, e substituirTextoRefForaDeLinks é pulado).
     if (e.valida === false) return true;
     if (!e.targetLexmlId) return false;
@@ -558,8 +698,9 @@ const injetarLinksRemissaoNoTexto = (texto: string, entries: RemissaoInternaValu
 
   let resultado = texto;
   for (const entry of ordenados) {
-    const targetId = entry.valida === false ? '@invalido' : entry.targetLexmlId!;
-    const link = `<a href="${targetId}" data-lexml-ref="${targetId}" class="lexml-remissao-interna" target="_self">${entry.textoRef}</a>`;
+    const targetId = entry.targetLexmlId!;
+    const atributoRiId = entry.valida === false ? ` data-ri-id="${entry.idPersistido}"` : '';
+    const link = `<a href="${targetId}" data-lexml-ref="${targetId}"${atributoRiId} class="lexml-remissao-interna" target="_self">${entry.textoRef}</a>`;
     // texto simples — inicio aponta diretamente para a posição no texto
     if (entry.inicio !== undefined && resultado.substring(entry.inicio, entry.inicio + entry.textoRef!.length) === entry.textoRef) {
       resultado = resultado.substring(0, entry.inicio) + link + resultado.substring(entry.inicio + entry.textoRef!.length);
@@ -614,8 +755,12 @@ const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositiv
 
     const destino = findDispositivoByUuid(articulacao as unknown as Dispositivo, targetUuid, true);
     if (!destino) {
-      // Dispositivo excluído — usar sentinela para evitar confusão com IDs reciclados após renumeração.
-      const novosAtributos = atributos.replace(REGEX_DATA_LEXML_REF, 'data-lexml-ref="@invalido"').replace(REGEX_HREF_LXETAID, 'href="@invalido"');
+      // Dispositivo excluído — preserva o último destino conhecido (data-lexml-ref já o contém)
+      // em vez de um sentinela sem correspondência real; href sai do formato interno #lxEtaId
+      // para o mesmo destino conhecido, e ganha o id estável se a entrada já tiver sido processada.
+      const entry = entriesParaDispositivo.find(r => r.valida === false && r.targetLexmlId === lexmlIdAntigo);
+      const atributoRiId = entry?.idPersistido ? ` data-ri-id="${entry.idPersistido}"` : '';
+      const novosAtributos = atributos.replace(REGEX_HREF_LXETAID, `href="${lexmlIdAntigo}"`) + atributoRiId;
       return `<a${novosAtributos}>${conteudo}</a>`;
     }
 
@@ -640,7 +785,7 @@ const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositiv
 };
 
 const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): any[] => {
-  let raw = dispositivo[campo];
+  let raw = typeof dispositivo === 'string' ? dispositivo : dispositivo[campo];
   if (!raw && raw !== '') {
     return [dispositivo];
   }
@@ -720,7 +865,7 @@ const buildSpan = (m: string): any => {
   };
 };
 
-const buildRemissao = (m: string, lexmlRef: string): any => {
+const buildRemissao = (m: string, lexmlRef: string, id?: string): any => {
   const contentMatch = m.match(/<a[^>]*>(.*?)<\/a>/i);
   const content = contentMatch ? [contentMatch[1]?.trim()] : [''];
 
@@ -735,6 +880,7 @@ const buildRemissao = (m: string, lexmlRef: string): any => {
     value: {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       href: lexmlRef,
+      ...(id && { id }),
       content,
     },
   };
@@ -743,7 +889,8 @@ const buildRemissao = (m: string, lexmlRef: string): any => {
 const buildRemissaoOuSpan = (m: string): any => {
   const dataLexmlRefMatch = m.match(/data-lexml-ref="([^"]+)"/i);
   if (dataLexmlRefMatch) {
-    return buildRemissao(m, dataLexmlRefMatch[1]);
+    const riIdMatch = m.match(/data-ri-id="([^"]+)"/i);
+    return buildRemissao(m, dataLexmlRefMatch[1], riIdMatch?.[1]);
   }
   const dataUrnMatch = m.match(/data-urn="([^"]+)"/i);
   if (dataUrnMatch) {

@@ -102,7 +102,7 @@ describe('C2 — XSS: integração com remissaoInternaDialog', () => {
   beforeEach(() => {
     // Configura rootStore com uma articulação real para que o dialog não
     // retorne antes de renderizar o conteúdo
-    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019, true);
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
     rootStore.dispatch({
       type: ABRIR_ARTICULACAO,
       articulacao: projetoNorma.articulacao!,

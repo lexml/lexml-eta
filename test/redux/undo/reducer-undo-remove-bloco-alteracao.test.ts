@@ -15,7 +15,7 @@ const isUndefinedOrEmptyArray = (array: any) => !array || array.length === 0;
 
 describe('Testando undo de remover artigo com bloco de alteração', () => {
   beforeEach(function () {
-    const projetoNorma = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR, false);
+    const projetoNorma = buildProjetoNormaFromJsonix(MEDIDA_PROVISORIA_COM_ALTERACAO_SEM_AGRUPADOR);
     state = openArticulacaoAction(projetoNorma.articulacao!);
     state.ui = {};
   });

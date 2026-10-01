@@ -6,9 +6,9 @@ import { inicializaRemissoesExternasAoAbrir } from './inicializaRemissoesExterna
 export const abreArticulacao = (state: any, action: any): State => {
   // inicializaRemissoes* deve rodar ANTES de load para que as correções
   // de texto (href, data-ref-id) sejam refletidas nos Elementos criados por getElementos().
-  const remissoesValidas = inicializaRemissoesAoAbrir(action.articulacao!);
+  const remissoesValidas = inicializaRemissoesAoAbrir(action.articulacao!, action.idsRemissoesInvalidas);
   const remissoesExternas = inicializaRemissoesExternasAoAbrir(action.articulacao!);
-  const newState = load(action.articulacao!, action.classificacao, action.params);
+  const newState = load(action.articulacao!, action.classificacao, action.params, action.idsRemissoesInvalidas);
 
   // Mescla entradas inválidas (detectadas por load) com entradas válidas (inicializaRemissoesAoAbrir).
   // Sem o merge, as inválidas seriam descartadas pela atribuição direta.

@@ -3,29 +3,30 @@
 /* eslint-disable eqeqeq */
 /* eslint-disable prefer-const */
 import { decodeHtml, encodeHtml } from '../../util/string-util';
+import PrivateQuill from '../../internal/quill/private-quill';
 import { NotaRodapeModal } from './nota-rodape-modal';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_INPUT_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './notaRodape';
 
 const PREFIXO_ID = 'nr';
 
-const Delta = Quill.import('delta');
-const Module = Quill.import('core/module');
-const Embed = Quill.import('blots/embed'); // Inline Embed
-const Text = Quill.import('blots/text'); // Inline Text
-const Parchment = Quill.import('parchment');
+const Delta = PrivateQuill.import('delta');
+const Module = PrivateQuill.import('core/module');
+const Embed = PrivateQuill.import('blots/embed'); // Inline Embed
+const Text = PrivateQuill.import('blots/text'); // Inline Text
+const Parchment = PrivateQuill.import('parchment');
 
 const cfgInline = {
   scope: Parchment.Scope.INLINE_ATTRIBUTE,
 };
 
-const IdNotaRodapeAttribute = new Parchment.Attributor.Attribute('id-nota-rodape', 'id-nota-rodape', cfgInline);
+const IdNotaRodapeAttribute = new Parchment.Attributor.Attribute('id-lexml-eta-nota-rodape', 'id-lexml-eta-nota-rodape', cfgInline);
 const NumeroAttribute = new Parchment.Attributor.Attribute('numero', 'numero', cfgInline);
 const TextoAttribute = new Parchment.Attributor.Attribute('texto', 'texto', cfgInline);
 
 class NotaRodapeBlot extends Embed {
   static create(value) {
     let node = super.create(value);
-    node.setAttribute('class', 'nota-rodape');
+    node.setAttribute('class', 'lexml-eta-nota-rodape');
     node.setAttribute('contenteditable', 'false');
     NotaRodapeBlot.valueToAttributes(value, node);
     return node;
@@ -41,13 +42,13 @@ class NotaRodapeBlot extends Embed {
   }
 
   // static formats(domNode) {
-  //   return { 'nota-rodape': domNode.notaRodape || NotaRodapeBlot.buildNotaRodape(domNode) };
+  //   return { 'lexml-eta-nota-rodape': domNode.notaRodape || NotaRodapeBlot.buildNotaRodape(domNode) };
   // }
 
   static buildNotaRodape(domNode) {
     return {
       // id: domNode.getAttribute('id'),
-      id: domNode.getAttribute('id-nota-rodape'),
+      id: domNode.getAttribute('id-lexml-eta-nota-rodape'),
       numero: domNode.getAttribute('numero'),
       texto: decodeHtml(domNode.getAttribute('texto')),
     };
@@ -56,7 +57,7 @@ class NotaRodapeBlot extends Embed {
   static valueToAttributes(value, domNode) {
     if (!value || typeof value === 'boolean') return;
     // value.id && domNode.setAttribute('id', value.id);
-    value.id && domNode.setAttribute('id-nota-rodape', value.id);
+    value.id && domNode.setAttribute('id-lexml-eta-nota-rodape', value.id);
     value.numero && domNode.setAttribute('numero', value.numero);
     domNode.notaRodape = value;
 
@@ -65,8 +66,8 @@ class NotaRodapeBlot extends Embed {
   }
 }
 
-NotaRodapeBlot.blotName = 'nota-rodape';
-NotaRodapeBlot.tagName = 'nota-rodape';
+NotaRodapeBlot.blotName = 'lexml-eta-nota-rodape';
+NotaRodapeBlot.tagName = 'lexml-eta-nota-rodape';
 NotaRodapeBlot.allowedChildren = [Text];
 
 class ModuloNotaRodape extends Module {
@@ -86,12 +87,8 @@ class ModuloNotaRodape extends Module {
     // }
   }
 
-  static register() {
-    Quill.register(NotaRodapeBlot);
-    Quill.register(IdNotaRodapeAttribute);
-    Quill.register(NumeroAttribute);
-    Quill.register(TextoAttribute);
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function -- registro migrado para configure-private-quill.ts
+  static register() {}
 
   constructor(quill, options) {
     super(quill, options);
@@ -104,7 +101,7 @@ class ModuloNotaRodape extends Module {
 
     const toolbar = this.quill.getModule('toolbar');
     if (toolbar) {
-      toolbar.addHandler('nota-rodape', this.solicitarTexto.bind(this));
+      toolbar.addHandler('lexml-eta-nota-rodape', this.solicitarTexto.bind(this));
     }
 
     this.addClipboardMatcher();
@@ -115,24 +112,24 @@ class ModuloNotaRodape extends Module {
   }
 
   addClipboardMatcher() {
-    this.quill.clipboard.addMatcher('nota-rodape', (node, delta) => {
+    this.quill.clipboard.addMatcher('lexml-eta-nota-rodape', (node, delta) => {
       let match = Parchment.query(node);
-      if (match == null || match.blotName !== 'nota-rodape') {
+      if (match == null || match.blotName !== 'lexml-eta-nota-rodape') {
         return delta;
       }
 
-      const id = this.isAbrindoTexto ? node.getAttribute('id-nota-rodape') : this.gerarId();
+      const id = this.isAbrindoTexto ? node.getAttribute('id-lexml-eta-nota-rodape') : this.gerarId();
       const numero = node.getAttribute('numero');
       const texto = decodeHtml(node.getAttribute('texto'));
       const notaRodape = new NotaRodape({ id, numero, texto });
 
-      return new Delta().insert({ 'nota-rodape': notaRodape });
+      return new Delta().insert({ 'lexml-eta-nota-rodape': notaRodape });
 
       // const ops = delta.ops.reduce((acc, op) => {
-      //   if (op.insert && op.attributes?.['id-nota-rodape']) {
-      //     const { 'id-nota-rodape': id, numero, texto } = op.attributes || {};
+      //   if (op.insert && op.attributes?.['id-lexml-eta-nota-rodape']) {
+      //     const { 'id-lexml-eta-nota-rodape': id, numero, texto } = op.attributes || {};
       //     const notaRodape = new NotaRodape({ id, numero: +numero, texto });
-      //     acc.push({ insert: { 'nota-rodape': notaRodape } });
+      //     acc.push({ insert: { 'lexml-eta-nota-rodape': notaRodape } });
       //   }
       //   return acc;
       // }, []);
@@ -175,13 +172,13 @@ class ModuloNotaRodape extends Module {
   }
 
   hasNotaRodape(delta) {
-    return delta?.ops?.find(op => op.insert?.['nota-rodape']);
+    return delta?.ops?.find(op => op.insert?.['lexml-eta-nota-rodape']);
   }
 
   onClick(e) {
     const el = e.target;
     const elRev = el?.closest('ins, del');
-    if (!elRev && (el?.tagName === 'NOTA-RODAPE' || el?.parentElement?.tagName === 'NOTA-RODAPE')) {
+    if (!elRev && (el?.tagName === 'LEXML-ETA-NOTA-RODAPE' || el?.parentElement?.tagName === 'LEXML-ETA-NOTA-RODAPE')) {
       e.preventDefault();
       e.stopPropagation();
       this.solicitarTexto(el.notaRodape || el.parentElement.notaRodape);
@@ -212,8 +209,8 @@ class ModuloNotaRodape extends Module {
 
   atualizarTexto(notaRodape, novoTexto) {
     const elemento = this.findNodeById(notaRodape.id);
-    const blot = Quill.find(elemento);
-    blot.format('nota-rodape', { ...notaRodape, texto: novoTexto });
+    const blot = PrivateQuill.find(elemento);
+    blot.format('lexml-eta-nota-rodape', { ...notaRodape, texto: novoTexto });
     return blot.domNode.notaRodape;
   }
 
@@ -225,7 +222,7 @@ class ModuloNotaRodape extends Module {
     const id = this.gerarId();
     const notaRodape = new NotaRodape({ id, numero: 0, texto });
 
-    const delta = new Delta().retain(range.index).delete(range.length).insert({ 'nota-rodape': notaRodape });
+    const delta = new Delta().retain(range.index).delete(range.length).insert({ 'lexml-eta-nota-rodape': notaRodape });
 
     quill.updateContents(delta, 'user');
     quill.setSelection(range.index + 1, 0);
@@ -235,7 +232,7 @@ class ModuloNotaRodape extends Module {
 
   remover(idNotaRodape) {
     const elemento = this.findNodeById(idNotaRodape);
-    const blot = Quill.find(elemento);
+    const blot = PrivateQuill.find(elemento);
     blot?.remove();
   }
 
@@ -262,12 +259,12 @@ class ModuloNotaRodape extends Module {
   }
 
   findNodeById(id) {
-    return this.quill.root.querySelector(`nota-rodape[id-nota-rodape="${id}"]`);
+    return this.quill.root.querySelector(`lexml-eta-nota-rodape[id-lexml-eta-nota-rodape="${id}"]`);
   }
 
   findBlotsNotaRodape() {
-    return Array.from(this.quill.root.querySelectorAll('nota-rodape')).map(domNode => {
-      const blot = Quill.find(domNode as any);
+    return Array.from(this.quill.root.querySelectorAll('lexml-eta-nota-rodape')).map(domNode => {
+      const blot = PrivateQuill.find(domNode as any);
       const index = blot.offset(this.quill.scroll);
       return {
         index,
@@ -292,9 +289,9 @@ class ModuloNotaRodape extends Module {
   }
 
   ajustarConteudoTagsNotaRodape(html) {
-    // Ajusta o conteúdo das tags <nota-rodape> para que o número da nota fique dentro da tag <nota-rodape>
-    return html.replace(/<nota-rodape.+?<\/nota-rodape>/g, (texto: string) => texto.replace(/>.?<span[^>]*>(\d+)<\/span>.?</g, '>$1<'));
+    // Ajusta o conteúdo das tags <lexml-eta-nota-rodape> para que o número da nota fique dentro da tag <lexml-eta-nota-rodape>
+    return html.replace(/<lexml-eta-nota-rodape.+?<\/lexml-eta-nota-rodape>/g, (texto: string) => texto.replace(/>.?<span[^>]*>(\d+)<\/span>.?</g, '>$1<'));
   }
 }
 
-export { ModuloNotaRodape };
+export { IdNotaRodapeAttribute, ModuloNotaRodape, NotaRodapeBlot, NumeroAttribute, TextoAttribute };

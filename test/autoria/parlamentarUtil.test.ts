@@ -1,4 +1,4 @@
-import { Parlamentar } from './../../src/model/emenda/emenda';
+import { Parlamentar } from './../../src/model/proposicao/proposicao';
 import { expect } from '@open-wc/testing';
 import { incluirParlamentar, excluirParlamentar, moverParlamentar } from '../../src/model/autoria/parlamentarUtil';
 

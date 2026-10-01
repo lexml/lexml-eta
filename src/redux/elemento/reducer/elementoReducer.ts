@@ -5,8 +5,7 @@ import { REMOVER_ALERTA } from '../../../model/alerta/acao/removerAlerta';
 import { ASSISTENTE_ALTERACAO } from '../../../model/lexml/acao/adicionarAlteracaoComAssistenteAction';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../model/lexml/acao/AdicionarElementosFromClipboardAction';
-import { AGRUPAR_ELEMENTO } from '../../../model/lexml/acao/agruparElementoAction';
-import { APLICAR_ALTERACOES_EMENDA } from '../../../model/lexml/acao/aplicarAlteracoesEmenda';
+import { APLICAR_REVISOES } from '../../../model/lexml/acao/aplicarRevisoes';
 import { ATUALIZAR_ELEMENTO } from '../../../model/lexml/acao/atualizarElementoAction';
 import { ATUALIZAR_REFERENCIA_ELEMENTO } from '../../../model/lexml/acao/atualizarReferenciaElementoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
@@ -21,10 +20,7 @@ import { ABRIR_ARTICULACAO } from '../../../model/lexml/acao/openArticulacaoActi
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoAction';
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
-import { RESTAURAR_ELEMENTO } from '../../../model/lexml/acao/restaurarElemento';
 import { SHIFT_TAB } from '../../../model/lexml/acao/shiftTabAction';
-import { SUPRIMIR_AGRUPADOR } from '../../../model/lexml/acao/suprimirAgrupador';
-import { SUPRIMIR_ELEMENTO } from '../../../model/lexml/acao/suprimirElemento';
 import { TAB } from '../../../model/lexml/acao/tabAction';
 import { TRANSFORMAR_TIPO_ELEMENTO } from '../../../model/lexml/acao/transformarElementoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
@@ -37,7 +33,7 @@ import { adicionaAlteracaoComAssistente } from './adicionaAlteracaoComAssistente
 import { adicionaElemento } from './adicionaElemento';
 import { adicionarAlerta as adicionaAlerta } from './adicionarAlerta';
 import { agrupaElemento } from './agrupaElemento';
-import { aplicaAlteracoesEmenda } from './aplicaAlteracoesEmenda';
+import { aplicaRevisoes } from './aplicaRevisoes';
 import { atualizaElemento } from './atualizaElemento';
 import { atualizaNotaAlteracao } from './atualizaNotaAlteracao';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
@@ -53,12 +49,9 @@ import { removeAlerta } from './removeAlerta';
 import { removeElemento } from './removeElemento';
 import { removeElementoSemTexto } from './removeElementoSemTexto';
 import { renumeraElemento } from './renumeraElemento';
-import { restauraElemento } from './restauraElemento';
 import { selecionaElemento } from './selecionaElemento';
 import { solicitaDadosAssistente } from './solicitaDadosAssistente';
 import { solicitaNorma } from './solicitaNorma';
-import { suprimeAgrupador } from './suprimeAgrupador';
-import { suprimeElemento } from './suprimeElemento';
 import { transformaTipoElemento } from './transformaTipoElemento';
 import { undo } from './undo';
 import { validaArticulacao } from './validaArticulacao';
@@ -67,7 +60,7 @@ import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosN
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ativaDesativaRevisao } from './ativaDesativaRevisao';
 import { atualizaRevisao } from './atualizaRevisao';
-import { sincronizarRemissoesPosAcao } from './sincronizarRemissoesPosAcao';
+import { preencherUuid2DasRemissoes, sincronizarRemissoesPosAcao } from './sincronizarRemissoesPosAcao';
 import { State, StateType } from '../../state';
 import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
 import { atualizaUsuario } from './atualizaUsuario';
@@ -114,6 +107,8 @@ export const elementoReducer = (state = {}, action: any): any => {
   const paginacao = (state as State).ui?.paginacao;
   const remissoes = (state as State).remissoes;
 
+  preencherUuid2DasRemissoes(state as State, action.type);
+
   switch (action.type) {
     case NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS:
       tempState = navegaEntreDispositivosAlterados(state, action);
@@ -130,8 +125,8 @@ export const elementoReducer = (state = {}, action: any): any => {
     case ATUALIZAR_NOTA_ALTERACAO:
       tempState = atualizaNotaAlteracao(state, action);
       break;
-    case APLICAR_ALTERACOES_EMENDA:
-      tempState = aplicaAlteracoesEmenda(state, action);
+    case APLICAR_REVISOES:
+      tempState = aplicaRevisoes(state, action);
       emRevisao = tempState.emRevisao;
       break;
     case ASSISTENTE_ALTERACAO:
@@ -155,9 +150,6 @@ export const elementoReducer = (state = {}, action: any): any => {
     case ADICIONAR_ELEMENTOS_FROM_CLIPBOARD:
       tempState = adicionaElementosNaProposicaoFromClipboard(state, action);
       break;
-    case AGRUPAR_ELEMENTO:
-      tempState = agrupaElemento(state, action);
-      break;
     case TRANSFORMAR_TIPO_ELEMENTO:
       tempState = transformaTipoElemento(state, action);
       break;
@@ -178,15 +170,6 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case RENUMERAR_ELEMENTO:
       tempState = renumeraElemento(state, action);
-      break;
-    case RESTAURAR_ELEMENTO:
-      tempState = restauraElemento(state, action);
-      break;
-    case SUPRIMIR_AGRUPADOR:
-      tempState = suprimeAgrupador(state, action);
-      break;
-    case SUPRIMIR_ELEMENTO:
-      tempState = suprimeElemento(state, action);
       break;
     case ABRIR_ARTICULACAO:
       tempState = abreArticulacao(state, action);
@@ -282,7 +265,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   }
 
   if (
-    ![ABRIR_ARTICULACAO, APLICAR_ALTERACOES_EMENDA, ACEITAR_REVISAO, REJEITAR_REVISAO].includes(actionType) &&
+    ![ABRIR_ARTICULACAO, APLICAR_REVISOES, ACEITAR_REVISAO, REJEITAR_REVISAO].includes(actionType) &&
     !isRedoDeRevisaoAceita(actionType, tempState) &&
     !isRedoDeRevisaoRejeitada(actionType, tempState)
   ) {

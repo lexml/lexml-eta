@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-unused-expressions */
 import { expect } from '@open-wc/testing';
 import { ModuloRemissao, REMISSAO_INTERNA_REMOVE_EVENT } from '../../../src/components/editor/moduloRemissao';
+import PrivateQuill from '../../../src/internal/quill/private-quill';
 
 describe('Remover Remissão - Etapa 5', () => {
   let moduloRemissao: ModuloRemissao;
@@ -112,28 +114,17 @@ describe('Remover Remissão - Etapa 5', () => {
 
       mockQuill.getSelection = () => ({ index: 0, length: 100 });
 
-      let formatTextCalls = 0;
-      mockQuill.formatText = () => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        formatTextCalls++;
-      };
-
-      // Mock do Quill.find
-      const originalQuillFind = (window as any).Quill?.find;
-      (window as any).Quill = (window as any).Quill || {};
-      (window as any).Quill.find = () => {
-        return {
-          offset: () => 10,
-          length: () => 7,
-        };
-      };
+      // Mock do PrivateQuill.find
+      const originalFind = PrivateQuill.find;
+      PrivateQuill.find = (() => ({
+        offset: () => 10,
+        length: () => 7,
+      })) as any;
 
       moduloRemissao.removerRemissao();
 
       // Restaura o mock
-      if (originalQuillFind) {
-        (window as any).Quill.find = originalQuillFind;
-      }
+      PrivateQuill.find = originalFind;
 
       // Verifica que o evento de remoção foi emitido
       // (o número de chamadas depende da implementação interna)
@@ -164,14 +155,16 @@ describe('Remover Remissão - Etapa 5', () => {
         formatTextCalled = true;
       };
 
-      // Mock do Quill.find
-      (window as any).Quill = (window as any).Quill || {};
-      (window as any).Quill.find = () => ({
+      // Mock do PrivateQuill.find
+      const originalFind = PrivateQuill.find;
+      PrivateQuill.find = (() => ({
         offset: () => 0,
         length: () => 7,
-      });
+      })) as any;
 
       const resultado = moduloRemissao.removerRemissaoPorId('ref_especifico');
+
+      PrivateQuill.find = originalFind;
 
       expect(resultado).to.be.true;
       expect(formatTextCalled).to.be.true;
@@ -201,20 +194,16 @@ describe('Remover Remissão - Etapa 5', () => {
         <p><a class="lexml-remissao-interna" data-ref-id="ref_1">link</a></p>
       `;
 
-      // Mock do Quill.find para retornar blot válido
-      (window as any).Quill = (window as any).Quill || {};
-      (window as any).Quill.find = () => ({
+      // Mock do PrivateQuill.find para retornar blot válido
+      const originalFind = PrivateQuill.find;
+      PrivateQuill.find = (() => ({
         offset: (): number => 0,
         length: (): number => 4,
-      });
-
-      let formatTextCalls = 0;
-      mockQuill.formatText = () => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        formatTextCalls++;
-      };
+      })) as any;
 
       const removidas = (moduloRemissao as any).removerRemissoesNoRange(0, 10);
+
+      PrivateQuill.find = originalFind;
 
       // Verifica se o método processou os links (resultado depende da implementação)
       expect(typeof removidas).to.equal('number');

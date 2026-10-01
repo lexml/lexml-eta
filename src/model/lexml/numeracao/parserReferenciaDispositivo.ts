@@ -1,10 +1,7 @@
-import { Artigo } from './../../dispositivo/dispositivo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { isAlinea, isArtigo, Tipo } from '../../dispositivo/tipo';
-import { ClassificacaoDocumento } from '../../documento/classificacao';
 import { createAlteracao, createArticulacao, criaDispositivo, criaDispositivoCabecaAlteracao } from '../dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../dispositivo/dispositivoValidator';
-import { DispositivoAdicionado } from '../situacao/dispositivoAdicionado';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { buildId } from '../util/idUtil';
 
@@ -20,7 +17,7 @@ regex.set('Inciso', /(inciso|inc.?\s)\s*([uú]nico|[MDCLXVI]+[)]?(?:-[a-z])?).*/
 regex.set('Item', /(item)\s*([uú]nico\s*|\d+(?:-[a-z])?).*/i);
 regex.set('Paragrafo', /(§|par[aá]grafo|par.?\s)\s*([uú]nico\s*|\d+(?:-[a-z])?).*/i);
 
-const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDispositivo[], modo?: ClassificacaoDocumento): void => {
+const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDispositivo[]): void => {
   let parent = dispositivo;
   referencias?.forEach(referencia => {
     if (!parent.tiposPermitidosFilhos?.includes(referencia.tipo?.tipo)) {
@@ -37,48 +34,28 @@ const processaFilhos = (dispositivo: Dispositivo, referencias: ReferenciaDisposi
       referencia.numero && parent.createNumeroFromRotulo(referencia.numero);
       parent.createRotulo(parent);
     }
-    if (modo) {
-      (parent.situacao as DispositivoAdicionado).tipoEmenda = modo;
-    }
     parent.isDispositivoAlteracao = true;
-    parent.situacao = new DispositivoAdicionado();
-    (parent.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+    parent.existeNaNormaAlterada = true;
     parent.id = buildId(parent);
-
-    if (isArtigo(parent)) {
-      (parent as Artigo).caput!.situacao = new DispositivoAdicionado();
-      if (modo) {
-        ((parent as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = modo;
-      }
-    }
     parent.mensagens = validaDispositivo(parent);
   });
 };
 
-const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDispositivo, modo): Dispositivo => {
+const buildCabecaAlteracao = (dispositivo: Dispositivo, referencia: ReferenciaDispositivo): Dispositivo => {
   if (!dispositivo.hasAlteracao()) {
     createAlteracao(dispositivo);
-    dispositivo.alteracoes!.situacao = new DispositivoAdicionado();
-    (dispositivo.alteracoes!.situacao as DispositivoAdicionado).tipoEmenda = modo;
   }
   const cabeca = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, dispositivo.alteracoes!, undefined, 0);
   cabeca.isDispositivoAlteracao = true;
-  cabeca.situacao = new DispositivoAdicionado();
-  (cabeca.situacao as DispositivoAdicionado).tipoEmenda = modo;
-  (cabeca.situacao as DispositivoAdicionado).existeNaNormaAlterada = true;
+  cabeca.existeNaNormaAlterada = true;
   referencia.numero && cabeca.createNumeroFromRotulo(referencia.numero);
   cabeca.createRotulo(cabeca);
   cabeca.id = buildId(cabeca);
 
-  if (isArtigo(cabeca)) {
-    (cabeca as Artigo).caput!.situacao = new DispositivoAdicionado();
-    ((cabeca as Artigo).caput!.situacao as DispositivoAdicionado).tipoEmenda = modo;
-  }
-
   return cabeca;
 };
 
-export const buildDispositivosAssistente = (texto: string, dispositivo: Dispositivo, modo = ClassificacaoDocumento.PROJETO): Dispositivo => {
+export const buildDispositivosAssistente = (texto: string, dispositivo: Dispositivo): Dispositivo => {
   const referencias = identificaReferencias(texto);
   let artigoInformado = true;
 
@@ -92,9 +69,9 @@ export const buildDispositivosAssistente = (texto: string, dispositivo: Disposit
     }
   }
   const c = artigoInformado ? referencias.shift() : undefined;
-  const cabeca = buildCabecaAlteracao(dispositivo, c ?? { tipo: TipoDispositivo.artigo }, modo);
+  const cabeca = buildCabecaAlteracao(dispositivo, c ?? { tipo: TipoDispositivo.artigo });
 
-  processaFilhos(cabeca, referencias, modo);
+  processaFilhos(cabeca, referencias);
 
   return cabeca;
 };

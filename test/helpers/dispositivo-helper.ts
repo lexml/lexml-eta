@@ -1,26 +1,23 @@
 import { updateIdDispositivoAndFilhos } from '../../src/model/lexml/util/idUtil';
 import { createArticulacao, criaDispositivo } from '../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { State } from '../../src/redux/state';
-import { DispositivoAdicionado } from '../../src/model/lexml/situacao/dispositivoAdicionado';
-import { Artigo } from '../../src/model/dispositivo/dispositivo';
 import { createElemento } from '../../src/model/elemento/elementoUtil';
 import { adicionaRemissaoInterna } from '../../src/redux/elemento/reducer/adicionaRemissaoInterna';
+import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
-/** Marca dispositivo (e caput, se artigo) como adicionado */
-export function marcaAdicionado(d: any): void {
-  d.situacao = new DispositivoAdicionado();
-  if (d.caput) {
-    (d as Artigo).caput!.situacao = new DispositivoAdicionado();
-  }
+// Sem efeito: em proposição todo dispositivo equivale a adicionado. Mantida para não alterar as ~60 chamadas existentes.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function marcaAdicionado(_d: any): void {
+  return;
 }
 
 /** Monta state mínimo compatível com adicionaRemissaoInterna a partir de uma articulação já montada. */
 export function montaState(articulacao: any): State {
   return {
     articulacao,
-    modo: 'emenda',
+    modo: ClassificacaoDocumento.PROJETO,
     past: [],
     present: [],
     future: [],

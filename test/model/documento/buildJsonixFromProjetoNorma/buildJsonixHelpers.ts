@@ -160,6 +160,25 @@ export const filtrarErrosConteudoParagrafo = (erros: LogErro[]): LogErro[] => {
 };
 
 /**
+ * Filtra erros causados apenas pela conversão de aspas retas para curvas ao carregar o documento
+ * (substituiAspasRetasPorCurvas em buildProjetoNormaFromJsonix.ts) — comportamento intencional do app,
+ * não uma divergência de conversão. Só remove o erro se, ao desfazer a curvatura das aspas no texto
+ * recebido, ele ficar idêntico ao esperado; qualquer outra diferença no mesmo trecho continua reportada.
+ */
+export const filtrarErrosAspasCurvas = (erros: LogErro[]): LogErro[] => {
+  const REGEX_DIVERGENCIA = /^Valor divergente\. Esperado: '([\s\S]*)' \| Recebido: '([\s\S]*)'\.$/;
+
+  return erros.filter(erro => {
+    const match = erro.mensagem.match(REGEX_DIVERGENCIA);
+    if (!match) return true;
+
+    const [, esperado, recebido] = match;
+    const recebidoComAspasRetas = recebido.replace(/[“”]/g, '"');
+    return recebidoComAspasRetas !== esperado;
+  });
+};
+
+/**
  * Filtra erros decorrentes da conversão de span (GenInline) com href urn:lex para Remissao.
  * Documentos legados podem usar <span href="urn:lex:..."> onde o padrão atual é <Remissao href="urn:lex:">.
  * Na desseria­lização, ambos produzem links interativos com data-urn; na re-serialização, o resultado

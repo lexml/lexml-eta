@@ -1,7 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { DescricaoSituacao } from '../../dispositivo/situacao';
 import { isAgrupadorGenerico, isCaput, isDispositivoGenerico, isOmissis } from '../../dispositivo/tipo';
-import { comparaNumeracao } from '../numeracao/numeracaoUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import {
@@ -12,7 +10,6 @@ import {
   getUltimoFilho,
   isDispositivoAlteracao,
   isDispositivosSequenciaisMesmoPai,
-  isOriginal,
 } from './hierarquiaUtil';
 
 export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
@@ -32,9 +29,9 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
   if (
     dispositivo !== null &&
     isDispositivoAlteracao(dispositivo) &&
-    dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
+    !dispositivo.existeNaNormaAlterada &&
     (getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1' || getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1u') &&
-    getDispositivoPosteriorMesmoTipo(dispositivo)?.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
+    getDispositivoPosteriorMesmoTipo(dispositivo)?.existeNaNormaAlterada
   ) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
@@ -127,23 +124,6 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
       tipo: TipoMensagem.ERROR,
       descricao: AutoFix.OMISSIS_SEQUENCIAIS,
       fix: true,
-    });
-  }
-
-  if (
-    dispositivo !== null &&
-    isOmissis(dispositivo) &&
-    getDispositivoAnterior(dispositivo) !== undefined &&
-    isOriginal(getDispositivoAnterior(dispositivo)!) &&
-    getDispositivoAnterior(dispositivo)!.numero !== undefined &&
-    getDispositivoPosterior(dispositivo) !== undefined &&
-    isOriginal(getDispositivoPosterior(dispositivo)!) &&
-    getDispositivoPosterior(dispositivo)!.numero !== undefined &&
-    comparaNumeracao('' + (+getDispositivoAnterior(dispositivo)!.numero! + 1), getDispositivoPosterior(dispositivo)!.numero) === 0
-  ) {
-    mensagens.push({
-      tipo: TipoMensagem.ERROR,
-      descricao: 'Não pode haver linha pontilhada entre dispositivos originais sequenciais',
     });
   }
 

@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
-import { AGRUPAR_ELEMENTO } from '../../../src/model/lexml/acao/agruparElementoAction';
+import { ADICIONAR_AGRUPADOR_ARTIGO } from '../../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
 import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
@@ -28,7 +28,7 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
   describe('Testando a exclusão de agrupador único', () => {
     beforeEach(function () {
       const art2 = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const cap = createElemento(state.articulacao.filhos[1]);
       state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: cap, novo: { tipo: TipoDispositivo.capitulo.tipo } });
@@ -60,10 +60,10 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
   describe('Testando a exclusão de agrupador sem agrupador anterior mas com agrupador posterior que não possui agrupadores filho', () => {
     beforeEach(function () {
       const art2 = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art5 = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const cap = createElemento(state.articulacao.filhos[1]);
       state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: cap, novo: { tipo: TipoDispositivo.capitulo.tipo } });
@@ -94,13 +94,13 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
   describe('Testando a exclusão de agrupador que possui agrupadores filho e com agrupador anterior sem agrupador filho', () => {
     beforeEach(function () {
       const art2 = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art5 = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art5b = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
 
       const sec = createElemento(buscaDispositivoById(state.articulacao, 'cap2_sec1')!);
       state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: sec, novo: { tipo: TipoDispositivo.secao.tipo } });
@@ -133,16 +133,16 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
   describe('Testando a exclusão de agrupador que possui agrupadores filho e com agrupador anterior com agrupador filho', () => {
     beforeEach(function () {
       const art2 = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art2b = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
 
       const art5 = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art5b = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
 
       const sec = createElemento(buscaDispositivoById(state.articulacao, 'cap2_sec1')!);
       state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: sec, novo: { tipo: TipoDispositivo.secao.tipo } });
@@ -176,16 +176,16 @@ describe('Testando a exclusão de agrupador de agrupadores', () => {
   describe('Testando outra exclusão de agrupador que possui agrupadores filho e com agrupador anterior com agrupador filho', () => {
     beforeEach(function () {
       const art2 = createElemento(state.articulacao.artigos[1]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art2, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art3 = createElemento(state.articulacao.artigos[2]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art3, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art3, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
 
       const art5 = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5, novo: { tipo: TipoDispositivo.capitulo.tipo, posicao: 'antes' } });
 
       const art5b = createElemento(state.articulacao.artigos[4]);
-      state = agrupaElemento(state, { type: AGRUPAR_ELEMENTO, atual: art5b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
+      state = agrupaElemento(state, { type: ADICIONAR_AGRUPADOR_ARTIGO, atual: art5b, novo: { tipo: TipoDispositivo.secao.tipo, posicao: 'antes' } });
 
       const sec = createElemento(buscaDispositivoById(state.articulacao, 'cap2_sec1')!);
       state = removeElemento(state, { type: REMOVER_ELEMENTO, atual: sec, novo: { tipo: TipoDispositivo.secao.tipo } });

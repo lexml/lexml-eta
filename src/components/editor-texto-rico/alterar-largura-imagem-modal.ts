@@ -1,7 +1,7 @@
 import { LitElement, html, TemplateResult } from 'lit';
 import { customElement, query, property } from 'lit/decorators.js';
 
-@customElement('lexml-alterar-largura-imagem-modal')
+@customElement('lexml-eta-alterar-largura-imagem-modal')
 export class AlterarLarguraImagemModalComponent extends LitElement {
   @query('sl-dialog')
   private slDialog!: any;
@@ -76,6 +76,6 @@ export class AlterarLarguraImagemModalComponent extends LitElement {
 
 declare global {
   interface HTMLElementTagNameMap {
-    'lexml-alterar-largura-imagem-modal': AlterarLarguraImagemModalComponent;
+    'lexml-eta-alterar-largura-imagem-modal': AlterarLarguraImagemModalComponent;
   }
 }

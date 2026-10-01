@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture derivada de docs/extensao-formato-lexml/13-outros-metadados-do-lexedit.md -->
+<lexedit:Metadado
+    xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'
+    dataUltimaModificacao='2026-05-12T10:15:00-03:00'
+    aplicacao='LexEdit'
+    versaoAplicacao='1.0.0'
+    substitutivo='false'
+    anexoParecer='false'>
+  <lexedit:Pendencias>
+    <lexedit:Pendencia>Não foi informado um texto de justificação.</lexedit:Pendencia>
+    <lexedit:Pendencia>Corrigir remissões internas inválidas.</lexedit:Pendencia>
+    <lexedit:Pendencia>Remover comentários.</lexedit:Pendencia>
+    <lexedit:Pendencia>Resolver marcas de revisão de texto.</lexedit:Pendencia>
+    <lexedit:Pendencia>Resolver marcas de revisão na articulação.</lexedit:Pendencia>
+  </lexedit:Pendencias>
+</lexedit:Metadado>

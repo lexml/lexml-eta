@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture derivada de docs/extensao-formato-lexml/04-assinaturas.md (autoria de comissão) -->
+<lexedit:Metadado xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
+  <lexedit:Autoria tipo='Comissão'>
+    <lexedit:ColegiadoAutor
+        identificacao='4444'
+        nome='Comissão de Assuntos Econômicos'
+        sigla='CAE'/>
+  </lexedit:Autoria>
+</lexedit:Metadado>
