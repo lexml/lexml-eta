@@ -7,7 +7,7 @@ import { ParametrosColaboracao, PersistenciaColaboracao, ProviderColaboracao } f
 // a colaboração liga — mantém y-websocket/y-indexeddb fora do grafo estático (app OFF intocado).
 
 export const criarProviderReal = (p: ParametrosColaboracao, doc: Y.Doc): ProviderColaboracao => {
-  // token viaja no query do handshake; o gate/validação é do sidecar+Spring, nunca do cliente.
+  // token viaja no query do handshake; o gate/validação é do servidor, nunca do cliente.
   const provider = new WebsocketProvider(p.wsUrl, p.roomId, doc, { params: { token: p.token } });
   return provider as unknown as ProviderColaboracao;
 };
