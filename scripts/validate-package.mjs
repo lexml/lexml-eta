@@ -5,6 +5,7 @@ import { join } from 'node:path';
 const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
 const declarationsPath = packageJson.types;
 const publicRuntimeValues = [
+  'abrirArquivoDocumentoArticulado',
   'AjudaComponent',
   'AjudaModalComponent',
   'AlertasComponent',
@@ -23,16 +24,21 @@ const publicRuntimeValues = [
   'LexmlEtaComponent',
   'LexmlEtaConfig',
   'LexmlEtaParametrosEdicao',
+  'lerArquivoDocumentoArticulado',
+  'lerDocumentoArticulado',
   'LexmlEtaProposicaoComponent',
+  'nomeArquivoDocumentoArticulado',
   'OpcoesImpressaoComponent',
   'Proposicao',
   'ProposicaoDivididaDialog',
+  'salvarArquivoDocumentoArticulado',
+  'serializarDocumentoArticulado',
   'SubstituicaoTermoComponent',
   'SufixosModalComponent',
   'SwitchRevisaoComponent',
   'Usuario',
 ];
-const publicTypes = ['DispositivoBloqueado'];
+const publicTypes = ['DocumentoArticulado'];
 const registeredCustomElements = [
   'lexml-eta-ajuda',
   'lexml-eta-ajuda-modal',

@@ -1,5 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
+import { isArticulacao, isArtigo, isParagrafo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -12,6 +12,7 @@ import {
   getTiposAgrupadorArtigoOrdenados,
   getUltimoFilho,
   isArticulacaoAlteracao,
+  isParagrafoUnico,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -118,6 +119,19 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dis
   return novos;
 };
 
+// A recontagem de renumeraFilhos sobrescreve (ou nunca chega a) a forma "único"/numerada registrada no elemento
+const restauraFormaParagrafoUnico = (novos: Dispositivo[], registrados: Elemento[]): void => {
+  novos.filter(isParagrafo).forEach(novo => {
+    if (!isParagrafoUnico(novo)) return;
+    const registrado = registrados.find(e => e.uuid === novo.uuid);
+    if (!registrado) return;
+    const informouUnico = /[uú]nico/i.test(registrado.rotulo ?? '');
+    (novo as any).informouParagrafoUnico = informouUnico;
+    if (informouUnico) novo.rotulo = 'Parágrafo único.';
+    else if (/[uú]nico/i.test(novo.rotulo ?? '')) novo.rotulo = `§ ${novo.numero}º`;
+  });
+};
+
 export const incluir = (state: State, evento: StateEvent, novosEvento: StateEvent): Elemento[] => {
   if (evento !== undefined && evento.elementos !== undefined && evento.elementos[0] !== undefined) {
     const elemento = evento.elementos[0];
@@ -125,8 +139,10 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
 
     const pai = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
 
+    const registrados = [...evento.elementos];
     const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos);
     pai?.renumeraFilhos();
+    restauraFormaParagrafoUnico(novos, registrados);
     // renumeraFilhos só atualiza .numero/.rotulo — sem isto, .id (buildId) fica obsoleto para os
     // dispositivos deslocados pela reinclusão, quebrando qualquer recálculo que dependa do id atual
     // (ex.: sincronizarRemissoesPosAcao, ver docs/PLANO_SIMPLIFICACAO_ATUALIZACAO_REMISSAO.md).
