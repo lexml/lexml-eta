@@ -20,6 +20,9 @@
 /_site/
 /dist/
 /out-tsc/
+/out-collab-test/
+/test-results/
+/cypress/screenshots/
 /.settings/
 /.project
 .scannerwork/
