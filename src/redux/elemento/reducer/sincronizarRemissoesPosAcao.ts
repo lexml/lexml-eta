@@ -2,7 +2,7 @@ import { RemissaoInternaValue } from '../../../model/remissao';
 import { buscarDispositivoPorUuid, sincronizarRemissoesComEstadoAtual } from '../../../model/remissao/sincronizarRemissoes';
 import { createElemento } from '../../../model/elemento/elementoUtil';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { State, StateType } from '../../state';
+import { State, StateEvent, StateType } from '../../state';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoAction';
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
@@ -61,6 +61,20 @@ export const preencherUuid2DasRemissoes = (state: State, actionType: string | un
 const entradaMudou = (antiga: RemissaoInternaValue | undefined, nova: RemissaoInternaValue): boolean =>
   !antiga || antiga.targetLexmlId !== nova.targetLexmlId || antiga.textoRef !== nova.textoRef || antiga.revisao !== nova.revisao || antiga.targetUuid !== nova.targetUuid;
 
+// Os eventos que recriam a linha da origem (ex.: mover troca o uuid) foram montados antes de a sincronização reescrever
+// origem.texto; sem isto o editor desenha o link novo sobre o número antigo. Por cópia, para não mutar eventos já publicados.
+const TIPOS_QUE_RECRIAM_LINHA = new Set([StateType.ElementoIncluido, StateType.ElementoSelecionado, StateType.ElementoMarcado]);
+
+const reconciliarTextoDasOrigensNosEventos = (eventos: StateEvent[], origens: Dispositivo[]): StateEvent[] =>
+  eventos.map(ev => {
+    if (!TIPOS_QUE_RECRIAM_LINHA.has(ev.stateType) || !ev.elementos?.some(el => origens.some(o => o.uuid === el.uuid))) return ev;
+    const elementos = ev.elementos.map(el => {
+      const origem = origens.find(o => o.uuid === el.uuid);
+      return origem && el.conteudo && el.conteudo.texto !== origem.texto ? { ...el, conteudo: { ...el.conteudo, texto: origem.texto } } : el;
+    });
+    return { ...ev, elementos };
+  });
+
 export const sincronizarRemissoesPosAcao = (state: State, actionType: string | undefined): State => {
   if (!actionType || !ACOES_ESTRUTURAIS.has(actionType) || !state.articulacao || !state.remissoes) {
     return state;
@@ -81,13 +95,11 @@ export const sincronizarRemissoesPosAcao = (state: State, actionType: string | u
     return state;
   }
 
-  const eventosNovos = sourceUuidsAlterados
-    .map(uuid => buscarDispositivoPorUuid(state.articulacao!, uuid))
-    .filter((d): d is Dispositivo => !!d)
-    .map(d => ({ stateType: StateType.AtualizaRemissaoInterna, elementos: [createElemento(d, true)] }));
+  const origens = sourceUuidsAlterados.map(uuid => buscarDispositivoPorUuid(state.articulacao!, uuid)).filter((d): d is Dispositivo => !!d);
+  const eventosNovos = origens.map(d => ({ stateType: StateType.AtualizaRemissaoInterna, elementos: [createElemento(d, true)] }));
 
   state.remissoes = registroNovo;
-  state.ui = { ...state.ui, events: [...(state.ui?.events ?? []), ...eventosNovos] };
+  state.ui = { ...state.ui, events: [...reconciliarTextoDasOrigensNosEventos(state.ui?.events ?? [], origens), ...eventosNovos] };
 
   return state;
 };
