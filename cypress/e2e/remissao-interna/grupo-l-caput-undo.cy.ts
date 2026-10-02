@@ -10,9 +10,14 @@
  *             sincronizada ao perder o foco não vira passo de desfazer)
  *   CT-L-04 — refazer a remoção invalida de novo o link para o caput; desfazer o torna válido de novo
  *
+ *   CT-L-05 — digitar "caput do art. 2º" cria o link para o caput (change 2026-09-30-c02), que acompanha a
+ *             remoção e o desfazer como o link vindo do arquivo
+ *   CT-L-06 — vários links inválidos ao mesmo destino excluído (três formas de "caput do art. 2º") salvam sem
+ *             alerta e gravam um id `_ri` distinto em cada <Remissao>
+ *
  * Fixture: demo/doc/teste_remissao_caput.json, gerado por criarDocumentoArticulado() — três artigos, o
- * art. 1º com remissão para o caput do art. 2º. A detecção automática não reconhece a forma absoluta
- * "caput do art. Nº" (só a contextual "caput deste artigo"), por isso a remissão vem do arquivo.
+ * art. 1º com remissão para o caput do art. 2º. Os CT-L-01 a 04 usam o arquivo, que cobre o caminho de abrir;
+ * o CT-L-05 digita o texto, que cobre a detecção ao vivo.
  *
  * O caput não tem container próprio no DOM, então o href não é comparado com o id de um container
  * (como no grupo K): a verificação é que o href depois do undo é o mesmo de antes da ação, isto é,
@@ -111,6 +116,91 @@ describe('Remissão para o caput ao desfazer ações que recriam o artigo', () =
         cy.getContainerArtigoByNumero(1).find(SEL_LINK_L).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2_cpt').and('contain.text', 'caput do art. 2º');
         cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('not.exist');
         cy.getContainerArtigoByNumero(1).find(SEL_LINK_L).should('have.attr', 'href', hrefOriginal);
+      });
+  });
+});
+
+describe('Remissão para o caput digitada no texto', () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.novaProposicao();
+    cy.getContainerArtigoByNumero(1).should('exist');
+
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(2).should('exist');
+
+    cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(3).should('exist');
+  });
+
+  it('CT-L-05: "caput do art. 2º" digitado vira link para o caput e acompanha remover e desfazer', () => {
+    cy.getContainerArtigoByNumero(1).digitarTextoRemissao('Conforme o caput do art. 2º, aplica-se o seguinte.');
+    cy.getContainerArtigoByNumero(1).dispararDeteccaoRemissao();
+
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_L).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2_cpt').and('contain.text', 'caput do art. 2º');
+
+    cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Remover');
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('have.length', 1);
+
+    cy.get(SEL_BTN_DESFAZER_L).click();
+    cy.get('div.container__elemento.elemento-tipo-artigo').should('have.length', 3);
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('not.exist');
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_L).should('have.length', 1).and('have.attr', 'data-lexml-ref', 'art2_cpt');
+  });
+});
+
+describe('Salvar com vários links inválidos para o mesmo destino excluído', () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.novaProposicao();
+    cy.getContainerArtigoByNumero(1).should('exist');
+
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(2).should('exist');
+
+    cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.getContainerArtigoByNumero(3).should('exist');
+  });
+
+  it('CT-L-06: salva sem alerta e com ids _ri distintos após excluir o destino de três links ao caput', () => {
+    // O download é um blob: captura o conteúdo em vez de depender do diretório de downloads do navegador.
+    const arquivosSalvos: Promise<string>[] = [];
+    const alertas: string[] = [];
+    cy.window().then(win => {
+      const criarOriginal = win.URL.createObjectURL.bind(win.URL);
+      cy.stub(win.URL, 'createObjectURL').callsFake((obj: Blob) => {
+        arquivosSalvos.push(obj.text());
+        return criarOriginal(obj);
+      });
+      cy.stub(win, 'alert').callsFake((mensagem: string) => alertas.push(mensagem));
+    });
+
+    cy.getContainerArtigoByNumero(1).digitarTextoRemissao('Veja o caput do art. 2º, o caput do art. 2 e o CAPUT DO ART. 2º.');
+    cy.getContainerArtigoByNumero(1).dispararDeteccaoRemissao();
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_L).should('have.length', 3).and('have.attr', 'data-lexml-ref', 'art2_cpt');
+
+    cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Remover');
+    cy.getContainerArtigoByNumero(1).find(SEL_LINK_INVALIDO_L).should('have.length', 3);
+
+    cy.get('input[type="button"][value="Salvar"]').click();
+
+    cy.wrap(null).should(() => expect(arquivosSalvos, 'o arquivo deve ter sido gerado').to.have.length(1));
+    cy.wrap(null)
+      .then(() => {
+        expect(alertas, 'nenhum alerta de erro ao salvar').to.deep.equal([]);
+        return cy.wrap(arquivosSalvos[0]);
+      })
+      .then(texto => {
+        const ids: string[] = [];
+        const coletar = (valor: any): void => {
+          if (!valor || typeof valor !== 'object') return;
+          if (Array.isArray(valor)) return valor.forEach(coletar);
+          if (valor.name?.localPart === 'Remissao' && valor.value?.id) ids.push(valor.value.id);
+          Object.values(valor).forEach(coletar);
+        };
+        coletar(JSON.parse(texto as string));
+        expect(ids, 'um <Remissao id> por link inválido').to.have.length(3);
+        expect(new Set(ids).size, 'ids distintos').to.equal(3);
       });
   });
 });

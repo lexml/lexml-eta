@@ -742,6 +742,9 @@ const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositiv
 
   const entriesParaDispositivo: RemissaoInternaValue[] = dispositivo.uuid !== undefined ? remissoes?.[dispositivo.uuid] ?? [] : [];
 
+  // Cada link inválido consome uma entrada distinta: vários links ao mesmo destino excluído não podem repetir o `id` do <Remissao>.
+  const entradasInvalidasConsumidas = new Set<RemissaoInternaValue>();
+
   return html.replace(REGEX_LINK_REMISSAO_INTERNA, (match, atributos, conteudo) => {
     const lexmlRefMatch = atributos.match(REGEX_DATA_LEXML_REF);
     if (!lexmlRefMatch) return match;
@@ -758,8 +761,11 @@ const corrigirLexmlRefsObsoletosNoTexto = (html: string, dispositivo: Dispositiv
       // Dispositivo excluído — preserva o último destino conhecido (data-lexml-ref já o contém)
       // em vez de um sentinela sem correspondência real; href sai do formato interno #lxEtaId
       // para o mesmo destino conhecido, e ganha o id estável se a entrada já tiver sido processada.
-      const entry = entriesParaDispositivo.find(r => r.valida === false && r.targetLexmlId === lexmlIdAntigo);
-      const atributoRiId = entry?.idPersistido ? ` data-ri-id="${entry.idPersistido}"` : '';
+      const candidatas = entriesParaDispositivo.filter(r => r.valida === false && r.targetLexmlId === lexmlIdAntigo && !entradasInvalidasConsumidas.has(r));
+      const textoLink = conteudo.replace(/<[^>]*>/g, '').trim();
+      const entry = candidatas.find(r => r.textoRef?.trim() === textoLink) ?? candidatas[0];
+      if (entry) entradasInvalidasConsumidas.add(entry);
+      const atributoRiId = entry?.idPersistido && !/data-ri-id=/i.test(atributos) ? ` data-ri-id="${entry.idPersistido}"` : '';
       const novosAtributos = atributos.replace(REGEX_HREF_LXETAID, `href="${lexmlIdAntigo}"`) + atributoRiId;
       return `<a${novosAtributos}>${conteudo}</a>`;
     }

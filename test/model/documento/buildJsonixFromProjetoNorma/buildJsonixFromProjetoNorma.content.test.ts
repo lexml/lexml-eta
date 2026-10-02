@@ -1029,6 +1029,35 @@ describe('Injeção de remissões a partir do registry', () => {
       expect(remissoes[uuid][0].idPersistido, 'id gerado deve ser cacheado na entrada para saves sucessivos').to.equal(remissao.value.id);
     });
 
+    it('deve gerar ids distintos para vários links inválidos ao mesmo destino excluído', () => {
+      const articulacao = createArticulacao();
+      const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+      const caput = criaDispositivo(artigo, TipoDispositivo.caput.tipo);
+      const link = (t: string) => `<a href="#lxEtaId999" data-lexml-ref="art2_cpt" class="lexml-remissao-interna">${t}</a>`;
+      (caput as any).texto = `${link('caput do art. 2º')} e ${link('CAPUT DO ART. 2º')}`;
+      (caput as any).uuid = 103;
+
+      const projetoNorma = {
+        classificacao: ClassificacaoDocumento.NORMA,
+        epigrafe: { texto: 'TESTE' },
+        ementa: { texto: 'Ementa' } as any,
+        preambulo: { texto: '' },
+        articulacao,
+      };
+
+      const entrada = (refId: string, textoRef: string) => ({ refId, targetLexmlId: 'art2_cpt', targetUuid: 999, textoRef, valida: false });
+      const remissoes: Record<number, any[]> = { [103]: [entrada('a', 'caput do art. 2º'), entrada('b', 'CAPUT DO ART. 2º')] };
+
+      const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste', remissoes);
+      const ids = getCaputContent(resultado)
+        .filter((c: any) => c?.name?.localPart === 'Remissao')
+        .map((c: any) => c.value.id);
+
+      expect(ids).to.have.length(2);
+      expect(new Set(ids).size, 'ids de <Remissao> não podem se repetir').to.equal(2);
+      expect(ids).to.deep.equal([remissoes[103][0].idPersistido, remissoes[103][1].idPersistido]);
+    });
+
     it('não deve duplicar link já presente no texto', () => {
       // Simula texto com <a href> já presente (como gerado pelo buildProjetoNormaFromJsonix na desserialização)
       const articulacao = createArticulacao();

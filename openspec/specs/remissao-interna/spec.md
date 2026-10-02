@@ -17,6 +17,14 @@ O sistema SHALL detectar automaticamente, no texto de um dispositivo, referênci
 - **WHEN** o texto contém uma referência composta como "inciso I do § 2º do art. 3º" (até 4 níveis: artigo, parágrafo, inciso, alínea)
 - **THEN** o sistema cria uma única remissão para o dispositivo mais específico, sem gerar links duplicados para os níveis intermediários
 
+#### Scenario: Referência absoluta ao caput de um artigo
+- **WHEN** o texto contém "caput do art. 3º" (ou "caput do art. 3", sem o ordinal, em qualquer caixa)
+- **THEN** o sistema cria uma única remissão cujo destino é o caput do art. 3º — não o artigo inteiro — cobrindo o trecho completo "caput do art. 3º", sem gerar um segundo link para "art. 3º" dentro dele
+
+#### Scenario: Referência ao caput ao lado de outra referência no mesmo texto
+- **WHEN** o texto contém "caput do art. 2º e o art. 3º"
+- **THEN** o sistema cria duas remissões distintas: uma para o caput do art. 2º e outra para o art. 3º
+
 #### Scenario: Referência a agrupador
 - **WHEN** o texto contém "Capítulo I", "Seção II do Capítulo I", ou "Capítulo Único"/"Seção Única"
 - **THEN** o sistema resolve o agrupador correspondente percorrendo a árvore da articulação; para "único/única", só cria a remissão se existir exatamente um filho daquele tipo
