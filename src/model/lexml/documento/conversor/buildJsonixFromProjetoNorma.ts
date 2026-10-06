@@ -23,6 +23,7 @@ import { Autoria, OpcoesImpressao, tratamentoParlamentar } from '../../../propos
 import { formatarLocalDataFecho } from '../urnUtil';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
+export const PENDENCIA_REVISAO_ARTICULACAO = 'Resolver marcas de revisão na articulação.';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
@@ -107,6 +108,11 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
   if (idsRemissoesInvalidas.length > 0) {
     lexedit.remissoesInternasInvalidas = { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idsRemissoesInvalidas.join(' ') };
     pendencias.push('Corrigir remissões internas inválidas.');
+  }
+  if (dados?.revisoes?.revisoesArticulacao.revisaoArticulacao.length) {
+    lexedit.revisoesArticulacao = dados.revisoes.revisoesArticulacao;
+    lexedit.usuarios = dados.revisoes.usuarios;
+    pendencias.push(PENDENCIA_REVISAO_ARTICULACAO);
   }
   if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
   // > 1 porque TYPE_NAME está sempre presente.
@@ -847,6 +853,16 @@ const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remisso
   const fim = conteudo.indexOf('” (NR)');
   return [conteudo.substring(0, fim === -1 ? undefined : fim)];
 };
+
+/** Nó jsonix (`{ name, value }`) de um dispositivo solto, com seus filhos; usado para o conteúdo das revisões de exclusão. */
+export const buildJsonixDispositivo = (dispositivo: Dispositivo): any => {
+  const node = buildNode(dispositivo);
+  buildTree(dispositivo, node.value);
+  return node;
+};
+
+/** Conteúdo inline jsonix de um trecho de HTML do editor (ex.: o texto anterior de uma revisão). */
+export const buildJsonixContentFromHtml = (html: string): any[] => buildStructuredContent({ texto: html } as unknown as Dispositivo, 'texto');
 
 const buildSpan = (m: string): any => {
   const resultHref = m.match(/href="([^"]*)"/i);

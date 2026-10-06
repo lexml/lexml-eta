@@ -26,6 +26,24 @@ export interface MetadadoLexEdit {
   // Ids separados por espaço: xsd:string em lexedit.xsd; o conversor rejeita array.
   remissoesInternasInvalidas?: { TYPE_NAME: string; refIdsRemissoesInternas: string };
   pendencias?: { TYPE_NAME: string; pendencia: string[] };
+  revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
+  usuarios?: RevisoesLexEdit['usuarios'];
+}
+
+/** `lexedit:RevisaoArticulacao`: o conteúdo filho é uma única propriedade do choice do XSD (`p` ou o dispositivo excluído, ex.: `artigo`). */
+export interface RevisaoArticulacaoLexEdit {
+  TYPE_NAME: string;
+  refIdDispositivo?: string;
+  revisao: string;
+  refIdUsuario: string;
+  data: string;
+  [conteudo: string]: unknown;
+}
+
+/** Grupos `RevisoesArticulacao` e `Usuarios` já no formato do conversor (especificações 11 e 12). */
+export interface RevisoesLexEdit {
+  revisoesArticulacao: { TYPE_NAME: string; revisaoArticulacao: RevisaoArticulacaoLexEdit[] };
+  usuarios: { TYPE_NAME: string; usuario: Array<{ TYPE_NAME: string; idUsuario: string; nome: string; sigla?: string }> };
 }
 
 /** Formato provisório gravado antes do conversor 2.0.0 (chave `lexedit`); só lido, nunca gravado. */
@@ -44,6 +62,7 @@ export interface DadosLexEdit {
   data?: string;
   opcoesImpressao?: OpcoesImpressao;
   autoria?: Autoria;
+  revisoes?: RevisoesLexEdit;
 }
 
 export interface ElementoMetadadoLexEdit {

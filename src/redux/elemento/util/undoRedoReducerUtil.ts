@@ -34,7 +34,7 @@ import { removeElemento } from '../reducer/removeElemento';
 import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 import { buscarDispositivoPorUuid } from '../../../model/remissao/sincronizarRemissoes';
 
-const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
+export const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
     const artigo = isArticulacaoAlteracao(articulacao)
       ? articulacao.pai!
@@ -72,7 +72,7 @@ const restauraIdentidadeCaput = (articulacao: Articulacao, artigo: Artigo, eleme
   artigo.caput.uuid2 = uuid2;
 };
 
-const redodDispositivoExcluido = (articulacao: Articulacao, elemento: Elemento, pai: Dispositivo): Dispositivo => {
+export const redodDispositivoExcluido = (articulacao: Articulacao, elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = criaDispositivo(
     isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.name || isOmissisCaput(elemento)) ? (pai as Artigo).caput! : pai,
     elemento.tipo!,

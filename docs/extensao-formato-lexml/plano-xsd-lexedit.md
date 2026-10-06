@@ -46,9 +46,9 @@ Levantamento feito lendo os 13 arquivos de especificação. Coluna "Status" indi
 | `08` | `lexedit:Comentarios` > `lexedit:SequenciaComentario` > `lexedit:Comentario` | Não implementado |
 | `09` | `lexedit:RevisoesTextuais` > `lexedit:RevisaoTextual` (+ `ins`/`del` do LexML) | Não implementado |
 | `10` | `lexedit:RemissoesInternasInvalidas` (+ `Remissao` do LexML) | **Implementado** |
-| `11` | `lexedit:RevisoesArticulacao` > `lexedit:RevisaoArticulacao` | Não implementado |
-| `12` | `lexedit:Usuarios` > `lexedit:Usuario` | Não implementado |
-| `13` | `lexedit:Metadado/@dataUltimaModificacao`, `@aplicacao`, `@versaoAplicacao`, `@substitutivo`, `@anexoParecer`; `lexedit:Pendencias` > `lexedit:Pendencia` | Parcial (`Pendencias` implementado) |
+| `11` | `lexedit:RevisoesArticulacao` > `lexedit:RevisaoArticulacao` | **Parcial**: salvar implementado (operações combinadas, exclusões com subárvore e id `_<base>-exc<seq>`); abrir pendente; `alteracaoRotulo` sem produtor |
+| `12` | `lexedit:Usuarios` > `lexedit:Usuario` | **Parcial**: salvar implementado (usuários das revisões da hierarquia); abrir pendente |
+| `13` | `lexedit:Metadado/@dataUltimaModificacao`, `@aplicacao`, `@versaoAplicacao`, `@substitutivo`, `@anexoParecer`; `lexedit:Pendencias` > `lexedit:Pendencia` | Parcial (`Pendencias` implementado, inclusive a de marcas de revisão na articulação) |
 
 O XSD cobre todos os grupos acima, incluindo os ainda não implementados em código — os elementos/atributos do namespace LexML citados como dependência (`Justificacao`, `NotaDeRodape`, `ins`/`del`, `Remissao`, dispositivos da articulação) já pertencem ao esquema LexML oficial e não são redefinidos aqui.
 
