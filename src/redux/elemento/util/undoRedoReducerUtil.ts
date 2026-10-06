@@ -196,6 +196,7 @@ export const processarModificados = (state: State, evento: StateEvent, operacao:
         const permiteAtualizar = anterior !== dispositivo.uuid || (operacao === 'REDO' && anterior === dispositivo.uuid);
         if (permiteAtualizar) {
           dispositivo.texto = e.conteudo?.texto ?? '';
+          dispositivo.tituloDispositivo = e.tituloDispositivo;
 
           if (dispositivo.alteracoes) {
             dispositivo.alteracoes.base = e.norma;
