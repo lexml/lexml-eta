@@ -1,0 +1,45 @@
+# Tasks
+
+## 1. Investigações iniciais (spikes)
+
+- [ ] 1.1 Mapear como `state.revisoes` se comporta em UNDO, REDO, aceitar e rejeitar (`atualizaRevisao.ts` e reducers de revisão) e registrar no `design.md`, em Riscos, onde o atributo `revisao` pode ficar desatualizado. Verificar com uma tabela no `design.md` listando cada ação e o ponto de código que mantém o atributo.
+- [ ] 1.2 Spike do dispositivo excluído (design.md, Decisão 5): com um teste descartável, montar um `Dispositivo` solto a partir dos snapshots de uma exclusão de artigo com parágrafo, inciso e alínea e serializar com `buildNode`; fazer o caminho inverso (jsonix → `Dispositivo` solto → `createElemento`). Verificar que a árvore volta com os mesmos tipos, rótulos, textos e ordem; registrar no `design.md` o que não for simétrico (caput, bloco de alteração, parágrafo único).
+- [ ] 1.3 Spike do identificador-base do excluído (design.md, Decisão 4): definir e validar com testes descartáveis a regra para artigo, parágrafo único, artigo `1-A`, último filho do pai e dispositivo de bloco de alteração. Verificar que os cenários da spec (`_art2-exc1`/`_art2-exc2`, `_art1-exc1`/`_art1-exc2`) saem corretos e atualizar o `design.md` com a regra final.
+
+## 2. Atributo `revisao` em `RevisaoElemento`
+
+- [ ] 2.1 Acrescentar `revisao?: string` a `RevisaoElemento` e funções puras em `revisaoUtil.ts` para anexar uma operação (sem repetir, com argumento da primeira ocorrência) e ler as operações como lista (design.md, Decisão 1). Verificar com testes unitários: anexar a vazio, anexar operação nova, anexar operação repetida (inalterado) e leitura de `movido;3,alterado` e `transformado;inciso`.
+- [ ] 2.2 Fazer `atualizaRevisao.ts` anexar `adicionado`, `excluido`, `alterado`, `movido;<pos>` e `transformado;<tipo>` conforme o evento processado, com a posição original do artigo como sequencial global e dos demais como posição entre todos os filhos do pai. Verificar com testes de reducer em modo de revisão: cada operação isolada; mover e alterar; transformar e alterar; mover duas vezes; adicionar e alterar (permanece só `adicionado`); excluir pai com filhos (revisões dos filhos sem operação própria).
+- [ ] 2.3 Cobrir os caminhos mapeados em 1.1: mover → undo → redo, alterar → rejeitar e aceitar. Verificar com testes de reducer que o atributo `revisao` fica coerente com os snapshots em cada caso.
+
+## 3. Salvar as revisões da hierarquia
+
+- [ ] 3.1 Criar o módulo do mapeador de revisões (design.md, Decisão 3) e o formato tipado `MetadadoLexEdit.revisoesArticulacao`/`usuarios` em `documentoArticulado.ts`, e verificar que `npx tsc` compila sem erros.
+- [ ] 3.2 Implementar a serialização das revisões que não são exclusão: `refIdDispositivo` derivado de `lexmlId`, `revisao`, `refIdUsuario`, `data` ISO 8601 com fuso e o conteúdo anterior em `p` quando houver `alterado` (design.md, Decisões 2, 6 e 7). Verificar com testes unitários: adicionado (artigo e hierarquia, uma única revisão), alterado (conteúdo anterior), movido de inciso e de artigo, transformado em duas direções, combinadas, e data `2026-05-11T15:51:00-03:00` para a entrada correspondente.
+- [ ] 3.3 Implementar a serialização das exclusões: subárvore reconstruída dos snapshots, ids `_<base>-exc<seq>` calculados ao salvar e filhos com o prefixo do excluído (design.md, Decisões 4 e 5). Verificar com testes unitários os três cenários de identificador da spec, artigo excluído com caput e com parágrafo e incisos, e que o dispositivo excluído não aparece na articulação.
+- [ ] 3.4 Implementar `Usuarios` e a pendência "Resolver marcas de revisão na articulação." em `montaMetadadoLexEdit` (design.md, Decisões 7 e 9). Verificar com testes unitários: dois usuários sem repetição, usuário sem id (usa o nome), omissão sem revisões, pendência presente e ausente, e convivência com opções de impressão, autoria e remissão inválida.
+- [ ] 3.5 Em `getDocumentoArticulado` (componentes `lexml-eta-proposicao` e `lexml-eta`), coletar `state.revisoes` e `state.usuario` e repassar em `DadosLexEdit`. Verificar com teste de componente que um documento com revisões salva o grupo e um sem revisões não.
+- [ ] 3.6 Registrar a nova capacidade de salvar em `docs/extensao-formato-lexml/plano-xsd-lexedit.md` (grupo `11` e `12` parciais) e verificar relendo.
+
+## 4. Abrir as revisões da hierarquia
+
+- [ ] 4.1 Implementar `lerRevisoesArticulacao`/`lerUsuarios` tolerantes (design.md, Decisão 3), compostos em `lerMetadadoLexEdit`: gramática de `revisao` com operações desconhecidas ignoradas, `refIdDispositivo` inexistente descartado, `refIdUsuario` sem registro usa o id como nome. Verificar com testes unitários cada caso tolerante da spec e a leitura de lista de um único elemento (Jsonix desembrulha).
+- [ ] 4.2 Implementar a reconstrução dos snapshots `antes`/`apos` e de `idRevisaoElementoPai`/`idRevisaoElementoPrincipal` a partir do grupo lido, incluindo dispositivos excluídos (posição deduzida do identificador) e conteúdo anterior em `p` (design.md, Decisões 4, 5 e 6). Verificar com testes unitários: excluídos consecutivos na ordem do sequencial, excluído com filhos e revisão combinada com texto anterior.
+- [ ] 4.3 Em `abrirDocumentoArticulado`, despachar `aplicarRevisoesAction` imediatamente depois de `inicializarEdicao` e antes de aplicar os formulários, sem o atraso de `setRevisoes` (design.md, Decisão 8). Verificar com teste de componente que, ao abrir um documento com revisões, o estado tem as revisões e `emRevisao` verdadeiro, e que um documento sem revisões ou aberto em seguida não herda marcas.
+- [ ] 4.4 Verificar ponta a ponta no reducer que aceitar e rejeitar cada operação sobre um documento reaberto produz o mesmo resultado que sobre a revisão criada na sessão (rejeitar exclusão, adição, movimentação e transformação; aceitar alteração).
+- [ ] 4.5 Verificar o teste de ida e volta no código do editor: criar com revisões → serializar → ler → reaplicar → serializar de novo produz `revisoesArticulacao`, `usuarios` e `pendencias` iguais.
+
+## 5. Testes de integração e E2E
+
+- [ ] 5.1 Em `documentoArticulado.integration.ts`, adicionar cenário com as cinco operações (e uma combinada) e fazer a ida e volta pelo CLI real (`toxml` + `lexedit.xsd` + `tojson`), exigindo `lexedit.revisoesArticulacao` e `usuarios` iguais (design.md, Decisão 10). Verificar rodando `npm run test:documento-articulado:xml` com `JSONIX_LEXML_CLI` apontando para o `jsonix-lexml` 2.0.0.
+- [ ] 5.2 E2E Cypress, depois de consultar `docs/guia-cypress.md` (Shadow DOM, setup de documentos e diagnóstico de falhas): gerar via `criarDocumentoArticulado` (não à mão) a fixture `demo/doc/teste_revisoes_hierarquia.json` com adição, exclusão com filhos, alteração de texto, movimentação e transformação, e criar `cypress/e2e/revisao/abertura-revisoes-hierarquia.cy.ts` abrindo-a pela UI real (`cy.get('#fileUpload').selectFile(...)`). O spec verifica as marcas de revisão exibidas (autor e data), a posição dos excluídos e que rejeitar a exclusão devolve o artigo e aceitar a alteração remove a marca. O lado de salvar segue sem E2E (sem infraestrutura de download, mesma decisão das changes anteriores) e fica coberto por 3.2-3.5, 4.4 e 5.1. Verificar rodando o spec contra o build atual e confirmando que `cypress/e2e/revisao/revisao.cy.ts` continua passando.
+
+## 6. Regressão e fechamento
+
+- [ ] 6.1 Rodar `npm test` e os specs Cypress de `cypress/e2e/revisao/` e `cypress/e2e/documento-articulado/`, e confirmar que nada regrediu (em especial os testes de `atualizaRevisao`, `aplicaRevisoes` e paginação com dispositivos excluídos).
+- [ ] 6.2 Registrar o fechamento: no `docs/extensao-formato-lexml/plano-xsd-lexedit.md`, os grupos `11` e `12` passam a "Implementado (alteracaoRotulo pendente)"; no item 13 do `CLAUDE.md`, o atributo `revisao` em `RevisaoElemento`, o id do excluído calculado ao salvar, a reaplicação imediata ao abrir e o ponto de coordenação com o host Java (`Proposicao.revisoes` deixa de ir ao backend). Verificar relendo os dois arquivos.
+
+## Workflow follow-up
+
+- Sinalizar ao responsável pelo host Java que `Proposicao.revisoes` deixa de ser enviado ao backend e que as revisões passam a vir do arquivo.
+- Arquivar a change depois de atendidos os requisitos de revisão do projeto.
