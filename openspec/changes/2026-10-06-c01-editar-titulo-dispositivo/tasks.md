@@ -6,10 +6,10 @@
 
 ## 2. Action e reducer
 
-- [ ] 2.1 Criar `atualizarTituloDispositivoAction` (`ATUALIZAR_TITULO_DISPOSITIVO`) e a classe de ação com os rótulos "Adicionar título", "Editar título" e "Remover título"
-- [ ] 2.2 Criar o reducer `atualizaTituloDispositivo` (localiza o dispositivo, valida permissão/bloqueio, sanitiza, ignora quando inalterado, emite `ElementoModificado` e `ElementoValidado`, registra um passo de histórico) e registrá-lo no `elementoReducer`
-- [ ] 2.3 Incluir a ação nas regras de menu de Artigo, Parágrafo, Inciso, Alínea e Item (rótulo conforme exista título; fora de agrupador, caput, omissis, bloqueado e removido em revisão; vale também em bloco de alteração)
-- [ ] 2.4 Testes unitários do reducer: adicionar, alterar, remover, sem mudança, bloqueado, dentro de bloco de alteração, título vazio
+- [x] 2.1 Criar `atualizarTituloDispositivoAction` (`ATUALIZAR_TITULO_DISPOSITIVO`) e a classe de ação com os rótulos "Adicionar título", "Editar título" e "Remover título"
+- [x] 2.2 Criar o reducer `atualizaTituloDispositivo` (localiza o dispositivo, valida permissão/bloqueio, sanitiza, ignora quando inalterado, emite `ElementoModificado` e `ElementoValidado`, registra um passo de histórico) e registrá-lo no `elementoReducer`
+- [x] 2.3 Incluir a ação nas regras de menu de Artigo, Parágrafo, Inciso, Alínea e Item (rótulo conforme exista título; fora de agrupador, caput, omissis, bloqueado e removido em revisão; vale também em bloco de alteração)
+- [x] 2.4 Testes unitários do reducer: adicionar, alterar, remover, sem mudança, bloqueado, dentro de bloco de alteração, título vazio
 
 ## 3. Undo/redo
 
