@@ -31,7 +31,7 @@ import {
 import { atualizarNotaAlteracaoAction } from './../acao/atualizarNotaAlteracaoAction';
 import { podeEditarNotaAlteracao } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { adicionaAcoesDeExistenciaNaNorma, MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
+import { adicionaAcoesDeExistenciaNaNorma, adicionaAcoesDeTitulo, MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
 
 export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -78,6 +78,8 @@ export function RegrasAlinea<TBase extends Constructor>(Base: TBase): any {
       }
 
       adicionaAcoesDeExistenciaNaNorma(dispositivo, acoes);
+
+      adicionaAcoesDeTitulo(dispositivo, acoes);
 
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);
