@@ -13,8 +13,8 @@
 
 ## 3. Undo/redo
 
-- [ ] 3.1 Restaurar `tituloDispositivo` em `processarModificados` (`undoRedoReducerUtil`) para undo e redo
-- [ ] 3.2 Testes unitários de undo/redo para adicionar, alterar e remover título (inclusive em bloco de alteração)
+- [x] 3.1 Restaurar `tituloDispositivo` em `processarModificados` (`undoRedoReducerUtil`) para undo e redo
+- [x] 3.2 Testes unitários de undo/redo para adicionar, alterar e remover título (inclusive em bloco de alteração)
 
 ## 4. Revisão
 
