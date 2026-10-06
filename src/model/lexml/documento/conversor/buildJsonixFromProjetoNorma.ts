@@ -12,7 +12,7 @@ import { isAgrupador, isArticulacao, isArtigo, isCaput, isOmissis } from '../../
 import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { buildHref, buildId, buildIdAlteracao } from '../../util/idUtil';
 import { isNorma, ProjetoNorma } from '../projetoNorma';
-import { isValidText } from '../../../../util/string-util';
+import { getTextoSemHtml, isValidText } from '../../../../util/string-util';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../../remissao';
 import { atualizarTextoRemissao, isTextoReconhecivel } from '../../../remissao/lexmlIdUtil';
 import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
@@ -402,7 +402,7 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remi
     }
   }
 
-  if (isValidText(dispositivo.tituloDispositivo)) {
+  if (isValidText(getTextoSemHtml((dispositivo.tituloDispositivo ?? '').replace(/&nbsp;/g, ' ')))) {
     value.tituloDispositivo = {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       content: buildStructuredContent(dispositivo, 'tituloDispositivo', remissoes, remissoesExternas),

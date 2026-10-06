@@ -8,6 +8,60 @@ export function stripHtml(texto: string): string {
   return texto.replace(/<[^>]+>/g, '');
 }
 
+const TAGS_TITULO_DISPOSITIVO = ['i', 'u', 'sub', 'sup'];
+
+/**
+ * Reduz o HTML do título de dispositivo a texto com apenas i, u, sub e sup (sem atributos).
+ * Outras tags (inclusive links de remissão) são descartadas, mantendo o texto interno; em vira i.
+ */
+export function sanitizarTituloDispositivo(html: string | undefined): string {
+  if (!html) return '';
+
+  const semBlocosInertes = html.replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/gi, '');
+  const pilha: string[] = [];
+  let resultado = '';
+  let ultimoIndice = 0;
+
+  for (const m of semBlocosInertes.matchAll(/<(\/?)([a-zA-Z][a-zA-Z0-9]*)\b[^>]*>/g)) {
+    resultado += semBlocosInertes.substring(ultimoIndice, m.index);
+    ultimoIndice = m.index! + m[0].length;
+
+    const fechamento = m[1] === '/';
+    const nome = m[2].toLowerCase() === 'em' ? 'i' : m[2].toLowerCase();
+    if (!TAGS_TITULO_DISPOSITIVO.includes(nome)) continue;
+
+    if (!fechamento) {
+      pilha.push(nome);
+      resultado += `<${nome}>`;
+    } else if (pilha.includes(nome)) {
+      // Fecha as tags abertas depois desta e as reabre, evitando sobreposição entre elas.
+      const reabrir: string[] = [];
+      while (pilha[pilha.length - 1] !== nome) {
+        const aberta = pilha.pop()!;
+        resultado += `</${aberta}>`;
+        reabrir.unshift(aberta);
+      }
+      pilha.pop();
+      resultado += `</${nome}>`;
+      reabrir.forEach(r => {
+        pilha.push(r);
+        resultado += `<${r}>`;
+      });
+    }
+  }
+
+  resultado += semBlocosInertes.substring(ultimoIndice);
+  while (pilha.length) resultado += `</${pilha.pop()}>`;
+
+  let anterior: string;
+  do {
+    anterior = resultado;
+    resultado = resultado.replace(/<(i|u|sub|sup)><\/\1>/g, '');
+  } while (resultado !== anterior);
+
+  return resultado.trim();
+}
+
 /**
  * Remove o <span> gerado pelo Parchment Attributor do moduloRemissao ao redor de links de
  * remissão interna/externa. O Quill registra data-lexml-ref e data-ref-id como INLINE_ATTRIBUTE

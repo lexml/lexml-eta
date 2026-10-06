@@ -1,5 +1,60 @@
 import { expect } from '@open-wc/testing';
-import { removerMarcacaoRemissao, removerSpanParchmentRemissao } from '../../src/util/html-util';
+import { removerMarcacaoRemissao, removerSpanParchmentRemissao, sanitizarTituloDispositivo } from '../../src/util/html-util';
+
+describe('sanitizarTituloDispositivo', () => {
+  it('mantém texto simples', () => {
+    expect(sanitizarTituloDispositivo('Plano de Carreira')).to.equal('Plano de Carreira');
+  });
+
+  it('retorna vazio para indefinido, vazio ou só espaços', () => {
+    expect(sanitizarTituloDispositivo(undefined)).to.equal('');
+    expect(sanitizarTituloDispositivo('')).to.equal('');
+    expect(sanitizarTituloDispositivo('   ')).to.equal('');
+  });
+
+  it('mantém i, u, sub e sup', () => {
+    expect(sanitizarTituloDispositivo('<i>a</i> <u>b</u> H<sub>2</sub>O m<sup>2</sup>')).to.equal('<i>a</i> <u>b</u> H<sub>2</sub>O m<sup>2</sup>');
+  });
+
+  it('converte em para i', () => {
+    expect(sanitizarTituloDispositivo('<em>Plano</em> Especial')).to.equal('<i>Plano</i> Especial');
+  });
+
+  it('remove atributos das tags permitidas', () => {
+    expect(sanitizarTituloDispositivo('<i class="x" style="color:red">Plano</i>')).to.equal('<i>Plano</i>');
+  });
+
+  it('remove tags não permitidas preservando o texto', () => {
+    expect(sanitizarTituloDispositivo('<strong>Plano</strong> <b>de</b> <span class="y">Carreira</span><br>')).to.equal('Plano de Carreira');
+  });
+
+  it('reduz remissão a texto simples', () => {
+    const html = 'Ver <a href="art2" data-lexml-ref="art2" class="lexml-remissao-interna">art. 2º</a> e <a data-urn="urn:lex:br" class="lexml-remissao-externa">Lei 1</a>';
+    expect(sanitizarTituloDispositivo(html)).to.equal('Ver art. 2º e Lei 1');
+  });
+
+  it('descarta script e style com o conteúdo', () => {
+    expect(sanitizarTituloDispositivo('Plano<script>alert(1)</script><style>p{}</style>')).to.equal('Plano');
+  });
+
+  it('remove formatações vazias', () => {
+    expect(sanitizarTituloDispositivo('<i></i>Plano<u> </u>')).to.equal('Plano<u> </u>');
+    expect(sanitizarTituloDispositivo('<i><u></u></i>')).to.equal('');
+  });
+
+  it('fecha tags abertas e ignora fechamentos sem abertura', () => {
+    expect(sanitizarTituloDispositivo('<i>Plano</u>')).to.equal('<i>Plano</i>');
+  });
+
+  it('corrige sobreposição de tags', () => {
+    expect(sanitizarTituloDispositivo('<i>a<u>b</i>c</u>')).to.equal('<i>a<u>b</u></i><u>c</u>');
+  });
+
+  it('é idempotente', () => {
+    const uma = sanitizarTituloDispositivo('<em>Plano</em> <strong>X</strong><a href="#">y</a>');
+    expect(sanitizarTituloDispositivo(uma)).to.equal(uma);
+  });
+});
 
 describe('removerSpanParchmentRemissao', () => {
   it('remove <span data-lexml-ref> em volta de <a>', () => {
