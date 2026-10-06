@@ -6,6 +6,7 @@ import {
   editarTituloDispositivoAction,
   removerTituloDispositivoAction,
 } from '../../../../src/model/lexml/acao/atualizarTituloDispositivoAction';
+import { isAcaoMenu } from '../../../../src/model/lexml/acao';
 import { criaDispositivo, createArticulacao } from '../../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { TipoDispositivo } from '../../../../src/model/lexml/tipo/tipoDispositivo';
 
@@ -60,6 +61,10 @@ describe('Ações de título no menu do dispositivo', () => {
     const omissis = criaDispositivo(articulacao, TipoDispositivo.omissis.tipo);
 
     [capitulo, artigo.caput!, omissis].forEach(d => expect(acoesDeTitulo(d), d.tipo).to.be.empty);
+  });
+
+  it('as ações de título são exibidas no menu de contexto', () => {
+    [adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction].forEach(acao => expect(isAcaoMenu(acao), acao.descricao).to.be.true);
   });
 
   it('os rótulos das ações correspondem ao pedido', () => {
