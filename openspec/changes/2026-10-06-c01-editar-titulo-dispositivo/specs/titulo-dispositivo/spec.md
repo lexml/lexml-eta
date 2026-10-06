@@ -54,11 +54,11 @@ O título SHALL conter apenas texto e as formatações `i`, `u`, `sub` e `sup`. 
 - **THEN** nenhuma remissão é criada para o título e o link, se existir, é reduzido a texto simples
 
 ### Requirement: Validação informativa do título
-O sistema SHALL exibir mensagem de aviso, sem bloquear a edição, quando o título de um dispositivo está vazio ("Não foi informado um texto para o título do <tipo de dispositivo>.") ou não começa com letra maiúscula. A verificação da maiúscula SHALL ignorar as tags de formatação e espaços iniciais.
+O sistema SHALL exibir mensagem de aviso, sem bloquear a edição, quando o título de um dispositivo está vazio ("Não foi informado um texto para o título d<o|a> <tipo de dispositivo>.", concordando com o gênero do tipo, como em "do artigo" e "da alínea") ou não começa com letra maiúscula. A verificação da maiúscula SHALL ignorar as tags de formatação e espaços iniciais.
 
 #### Scenario: Título vazio
 - **WHEN** o usuário confirma o diálogo de um artigo com o texto vazio
-- **THEN** a edição é aceita e o dispositivo exibe o aviso "Não foi informado um texto para o título do Artigo."
+- **THEN** a edição é aceita e o dispositivo exibe o aviso "Não foi informado um texto para o título do artigo."
 
 #### Scenario: Título iniciando em minúscula
 - **WHEN** o usuário confirma o título "plano de carreira"

@@ -1,8 +1,8 @@
 ## 1. Base: sanitização, validação e serialização
 
-- [ ] 1.1 Criar utilitário puro de sanitização do título (mantém só `i`, `u`, `sub`, `sup`; normaliza `em`→`i`; remove `<a>`/remissão preservando o texto interno) com testes unitários
-- [ ] 1.2 Acrescentar a checagem de título em `validaDispositivo` (nível `WARNING`: título vazio com a mensagem "Não foi informado um texto para o título do <tipo de dispositivo>." e título iniciando em minúscula, ignorando tags e espaços) com testes unitários
-- [ ] 1.3 Conferir/ajustar `buildJsonixFromProjetoNorma` e `buildProjetoNormaFromJsonix` para título com `i`/`u`/`sub`/`sup`, título vazio não gravado e título em dispositivo de bloco de alteração (ida e volta), com testes unitários
+- [x] 1.1 Criar utilitário puro de sanitização do título (mantém só `i`, `u`, `sub`, `sup`; normaliza `em`→`i`; remove `<a>`/remissão preservando o texto interno) com testes unitários
+- [x] 1.2 Acrescentar a checagem de título em `validaDispositivo` (nível `WARNING`: título vazio com a mensagem "Não foi informado um texto para o título do <tipo de dispositivo>." e título iniciando em minúscula, ignorando tags e espaços) com testes unitários
+- [x] 1.3 Conferir/ajustar `buildJsonixFromProjetoNorma` e `buildProjetoNormaFromJsonix` para título com `i`/`u`/`sub`/`sup`, título vazio não gravado e título em dispositivo de bloco de alteração (ida e volta), com testes unitários
 
 ## 2. Action e reducer
 
