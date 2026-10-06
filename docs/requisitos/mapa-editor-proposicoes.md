@@ -33,17 +33,16 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 |---|---|---|---|
 | Estrutura hierárquica (artigo, caput, parágrafo, inciso, alínea, item) com rótulos e renumeração automáticos | Essencial | Implementado | Requisitos formais (João Lima) |
 | Inclusão de agrupadores de artigos (Parte a Subseção) conforme o contexto | Essencial | Implementado | `adicionarAgrupadorArtigoDialog.ts` |
-| Recategorizar agrupadores (subir ou descer um nível da hierarquia) | Desejável | A implementar (especificado) | Requisitos formais (João Lima) |
 | Recategorizar dispositivos (parágrafo em artigo, enumeradores de nível) | Essencial | Implementado | `transformaTipoElemento.ts`, `modificaTipoElementoWithTab.ts` |
 | Mover dispositivos para destinos compatíveis | Essencial | Implementado | `moveElementoAcima.ts`, `moveElementoAbaixo.ts` |
 | Blocos de alteração com omissis e nota (NR/AC) | Essencial | Implementado | `blocoAlteracaoAction.ts`, `atualizaNotaAlteracao.ts` |
-| Técnica legislativa penal (Pena, Penalidade, Medida Administrativa, Infração) | Desejável | Depende de especificação | Requisitos formais (João Lima); não há tipo no modelo |
-| Título de dispositivo (`TituloDispositivo`) | Desejável | Parcial (só apresenta o título; não permite edição) | `eta-blot-titulo-dispositivo.ts` |
+| Técnica legislativa penal (Pena, Penalidade, Medida Administrativa, Infração) | Essencial | Depende de especificação | Requisitos formais (João Lima); não há tipo no modelo |
+| Título de dispositivo (`TituloDispositivo`): adicionar, remover e editar | Essencial | Parcial (só apresenta o título; a edição está especificada) | Issue #1010, `eta-blot-titulo-dispositivo.ts` |
 | Validação das regras de técnica legislativa (LC 95/1998) e dos rótulos | Essencial | Implementado | `src/model/lexml/regras/`, `validaArticulacao.ts` |
 | Remissões internas (detecção, atualização na renumeração, invalidação) | Essencial | Implementado | `openspec/specs/remissao-interna/` |
 | Remissões externas (criação manual e detecção automática pelo lexml-linker) | Desejável | Implementado | `openspec/specs/remissao-externa/`, `docs/planos/PLANO_INTEGRACAO_LEXML_LINKER_WASM.md` |
 | Colar texto articulado com apoio do parser | Essencial | Implementado | `colarTextoArticuladoDialog.ts`, `colarUtil.ts` |
-| Importar documento articulado (DOCX, PDF) pelo parser e validá-lo | Desejável | Depende de especificação | Requisitos gerais (João Lima) |
+| Importar documento articulado (DOCX ou TXT) | Essencial | Depende de especificação | Requisitos gerais (João Lima) |
 | Revisão de texto e da articulação (marcar, aceitar, rejeitar) | Essencial | Parcial | `aceitaRevisao.ts`, `moduloRevisao.ts` |
 | Notas de rodapé na justificação | Desejável | Implementado | `moduloNotaRodape.ts` |
 | Paginação da articulação em documentos grandes | Desejável | Implementado | `openspec/specs/paginacao-articulacao/` |
@@ -139,7 +138,7 @@ Regras próprias de cada casa, independentes do componente que as implementa.
 | 2 | Tem sentido a configuração de destino do projeto? Talvez apenas para substitutivos. | B | | | |
 | 3 | Quais são os tipos de autoria? | B | | | |
 | 4 | Será necessária a autoria por comissão (`ColegiadoAutor`)? A especificação existe, mas não há issue. | B, C | | | Autoria por comissão (edição e persistência) |
-| 5 | Como tratar a técnica legislativa penal (Pena, Penalidade, Medida Administrativa, Infração), hoje sem tipo no modelo? | A | | | |
+| 5 | Como tratar a técnica legislativa penal (Pena, Penalidade, Medida Administrativa, Infração), hoje sem tipo no modelo? | A | | | Técnica legislativa penal (essencial) |
 | 6 | Quais funcionalidades de abrir, salvar, nomear, excluir e enviar a proposição cada aplicação já oferece? | E | | | |
 | 7 | Como serão gerados e lidos o PDF/A da proposição e o `documento-articulado.xml` anexo? Verificar o estado em `eta-backend-services`. | D | | | |
 | 8 | Quais regras específicas da Câmara dos Deputados precisam ser levantadas? | Todas | CD | | |
@@ -155,6 +154,10 @@ Regras próprias de cada casa, independentes do componente que as implementa.
 | 2026-09-30 | Visão sumária da hierarquia (árvore) está fora do escopo | Ver seção 7 |
 | 2026-09-30 | Gestão de modelos de texto com questionário associado está fora do escopo | Ver seção 7 |
 | 2026-09-30 | Geração assistida do bloco de alteração está fora do escopo; o texto da norma virá do SIGEN | Ver seção 7 |
+| 2026-10-06 | A técnica legislativa penal (Pena, Penalidade, Medida Administrativa, Infração) é essencial | Pendência 5 continua aberta: falta especificar como modelá-la |
+| 2026-10-06 | O título de dispositivo é essencial | A edição está especificada na issue #1010 |
+| 2026-10-06 | Recategorizar agrupadores (subir ou descer um nível da hierarquia) está fora do escopo | Ver seção 7 |
+| 2026-10-06 | Importar documento articulado é essencial e aceita DOCX ou TXT (não PDF) | Os requisitos gerais (João Lima) citavam DOCX e PDF |
 
 ## 7. Fora do escopo
 
@@ -163,6 +166,7 @@ Requisitos de referência que foram avaliados e deliberadamente não serão impl
 | Funcionalidade | Motivo | Referência |
 |---|---|---|
 | Recategorizar caput de artigo como parágrafo de outro artigo (com tratamento dos demais parágrafos) | Decisão de escopo | Requisitos formais (João Lima) |
+| Recategorizar agrupadores (subir ou descer um nível da hierarquia) | Decisão de escopo | Requisitos formais (João Lima) |
 | Visão sumária da hierarquia (árvore, com indicação de notas e comentários) | Decisão de escopo | Requisitos formais (João Lima) |
 | Gestão de modelos de texto com questionário associado | Decisão de escopo | Requisitos gerais (João Lima) |
 | Geração assistida do bloco de alteração a partir do texto da norma | O texto da norma virá do SIGEN | Requisitos gerais e formais (João Lima) |
