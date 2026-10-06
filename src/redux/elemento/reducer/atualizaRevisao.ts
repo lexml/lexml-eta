@@ -22,6 +22,15 @@ import {
   findRevisoesByElementoLexmlId,
   isRevisaoDeModificacao,
   associarRevisoesAosElementosDosEventos,
+  anexarOperacaoRevisao,
+  formatarOperacoesRevisao,
+  getOperacaoDeMovimentacaoOuTransformacao,
+  getOperacoesDaRevisao,
+  getRevisoesElementoAssociadas,
+  reconciliarOperacoesRevisao,
+  OPERACAO_ADICIONADO,
+  OPERACAO_ALTERADO,
+  OPERACAO_EXCLUIDO,
 } from '../util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
@@ -106,11 +115,21 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
       revisao.elementoAposRevisao = JSON.parse(JSON.stringify(e));
       state.usuario && (revisao.usuario = state.usuario);
       revisao.dataHora = formatDateTime(new Date());
+      if (revisao.elementoAntesRevisao && revisao.stateType !== StateType.ElementoRemovido) {
+        revisao.revisao = anexarOperacaoRevisao(getOperacoesDaRevisao(state, revisao), OPERACAO_ALTERADO);
+        reconciliarOperacoesRevisao(state, revisao);
+        // Sem operações restantes nada sobrou da revisão: ela e as associadas deixam de existir.
+        if (revisao.revisao === '') {
+          revisoesParaRemover.push(...getRevisoesElementoAssociadas(state.revisoes, revisao));
+        }
+      }
     } else {
       const eAux = getElementoAntesModificacao(state, e);
       // result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
       if (!isAjusteTextoOmitido(eAux, e)) {
-        result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
+        const nova = new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e)));
+        nova.revisao = OPERACAO_ALTERADO;
+        result.push(nova);
       }
     }
   });
@@ -149,6 +168,7 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
     );
 
     revInclusao.descricao = buildDescricaoRevisaoFromStateType(revInclusao, eAposRevisao);
+    revInclusao.revisao = formatarOperacoesRevisao([getOperacaoDeMovimentacaoOuTransformacao(state, eAntesRevisao, eAposRevisao)]);
     // revExclusao.idRevisaoAssociada = revInclusao.id;
     // revInclusao.idRevisaoAssociada = revExclusao.id;
     // result.push(revExclusao);
@@ -171,6 +191,9 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
 
         // result.push(montarNovaRevisao(revisao.elementoAntesRevisao! as Elemento, incluidos[index]));
 
+        // Revisão de dispositivo adicionado (sem antes) já cobre a movimentação; as demais acumulam a operação desta ação.
+        const operacao = revisao.elementoAntesRevisao ? getOperacaoDeMovimentacaoOuTransformacao(state, e, incluidos[index]) : undefined;
+
         revisao.stateType = StateType.ElementoIncluido;
         revisao.actionType = actionType;
         revisao.dataHora = formatDateTime(new Date());
@@ -178,6 +201,15 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
         removeAtributosDoElemento(revisao.elementoAposRevisao);
         revisao.usuario = state.usuario!;
         revisao.descricao = buildDescricaoRevisaoFromStateType(revisao, incluidos[index]);
+
+        if (operacao) {
+          revisao.revisao = anexarOperacaoRevisao(getOperacoesDaRevisao(state, revisao), operacao.nome, operacao.argumento);
+          reconciliarOperacoesRevisao(state, revisao);
+          if (revisao.revisao === '') {
+            revisoesParaRemover.push(...getRevisoesElementoAssociadas(state.revisoes, revisao));
+            return;
+          }
+        }
 
         revisao.idRevisaoElementoPai = revisoesParaRemover.find(r => r.id === revisao.idRevisaoElementoPai) ? undefined : revisao.idRevisaoElementoPai;
         revisao.idRevisaoElementoPrincipal = revisoesParaRemover.find(r => r.id === revisao.idRevisaoElementoPrincipal) ? undefined : revisao.idRevisaoElementoPrincipal;
@@ -193,6 +225,15 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
 
   return result;
 };
+
+const comOperacao = (revisao: RevisaoElemento, operacao: string): RevisaoElemento => {
+  revisao.revisao = operacao;
+  return revisao;
+};
+
+const adicionado = (revisao: RevisaoElemento): RevisaoElemento => comOperacao(revisao, OPERACAO_ADICIONADO);
+
+const excluido = (revisao: RevisaoElemento): RevisaoElemento => comOperacao(revisao, OPERACAO_EXCLUIDO);
 
 const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => {
   const eventos = getEventos(state, StateType.ElementoIncluido);
@@ -210,7 +251,9 @@ const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => 
       if (!uuidsElementosIncluidos.includes(e.hierarquia?.pai?.uuid)) {
         atualizaReferenciaElementoAnteriorSeNecessario(state.articulacao!, state.revisoes, e, 'inclusao');
       }
-      result.push(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, JSON.parse(JSON.stringify(e))));
+      result.push(
+        adicionado(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, JSON.parse(JSON.stringify(e))))
+      );
     }
   });
 
@@ -236,7 +279,7 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
         atualizaReferenciaElementoAnteriorSeNecessario(state.articulacao!, state.revisoes, e, 'exclusao');
       }
       const eAux = JSON.parse(JSON.stringify(e)) as Elemento;
-      result.push(new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), eAux, { ...eAux, acoesPossiveis: [] }));
+      result.push(excluido(new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), eAux, { ...eAux, acoesPossiveis: [] })));
     }
   });
 

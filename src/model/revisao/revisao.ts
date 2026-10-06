@@ -41,6 +41,8 @@ export class RevisaoElemento extends Revisao {
   elementoAposRevisao: Partial<Elemento>; // No caso de exclusão de elemento, o elementoAposRevisao terá o mesmo valor que o elementoAntesRevisao
   idRevisaoElementoPai?: string;
   idRevisaoElementoPrincipal?: string;
+  // Operações aplicadas, em ordem (ex.: "movido;3,alterado"); gramática em docs/extensao-formato-lexml/11-revisao-da-hierarquia.md.
+  revisao?: string;
 
   constructor(
     actionType: string,

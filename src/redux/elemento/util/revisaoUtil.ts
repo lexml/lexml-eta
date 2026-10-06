@@ -1,5 +1,5 @@
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isCaput } from '../../../model/dispositivo/tipo';
+import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento, Referencia } from '../../../model/elemento';
 import { getDispositivoFromElemento, createElemento } from '../../../model/elemento/elementoUtil';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
@@ -11,7 +11,15 @@ import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAci
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
-import { getDispositivoAndFilhosAsLista, getUltimoFilho, isArticulacaoAlteracao, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  findDispositivoByUuid,
+  findDispositivoByUuid2,
+  getArticulacao,
+  getDispositivoAndFilhosAsLista,
+  getUltimoFilho,
+  isArticulacaoAlteracao,
+  isDispositivoAlteracao,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { unificarEvento } from '../evento/eventosUtil';
@@ -464,4 +472,123 @@ export const mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes = (state: 
 
 export const countRevisoesByType = (revisoes: Revisao[] = [], type: string): number => {
   return revisoes.filter(r => r.type === type).length;
+};
+
+export const OPERACAO_ADICIONADO = 'adicionado';
+export const OPERACAO_EXCLUIDO = 'excluido';
+export const OPERACAO_ALTERADO = 'alterado';
+export const OPERACAO_MOVIDO = 'movido';
+export const OPERACAO_TRANSFORMADO = 'transformado';
+
+export interface OperacaoRevisao {
+  nome: string;
+  argumento?: string;
+}
+
+export const getOperacoesRevisao = (revisao?: string): OperacaoRevisao[] =>
+  (revisao ?? '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean)
+    .map(o => {
+      const sep = o.indexOf(';');
+      return sep < 0 ? { nome: o } : { nome: o.substring(0, sep), argumento: o.substring(sep + 1) };
+    });
+
+export const formatarOperacoesRevisao = (operacoes: OperacaoRevisao[]): string => operacoes.map(o => (o.argumento === undefined ? o.nome : `${o.nome};${o.argumento}`)).join(',');
+
+// Operação já presente não se repete: o argumento fica o da primeira ocorrência.
+export const anexarOperacaoRevisao = (revisao: string | undefined, nome: string, argumento?: string): string => {
+  const operacoes = getOperacoesRevisao(revisao);
+  return formatarOperacoesRevisao(operacoes.some(o => o.nome === nome) ? operacoes : [...operacoes, { nome, argumento }]);
+};
+
+export const removerOperacaoRevisao = (revisao: string | undefined, nome: string): string => formatarOperacoesRevisao(getOperacoesRevisao(revisao).filter(o => o.nome !== nome));
+
+const nomeTipoNaRevisao = (tipo?: string): string => (tipo ?? '').toLowerCase();
+
+const isMesmoPai = (a?: Referencia, b?: Referencia): boolean => (a?.uuid2 !== undefined && b?.uuid2 !== undefined ? a.uuid2 === b.uuid2 : a?.uuid === b?.uuid);
+
+const isMesmoLugar = (antes: Partial<Elemento>, apos: Partial<Elemento>): boolean =>
+  isMesmoPai(antes.hierarquia?.pai, apos.hierarquia?.pai) && antes.hierarquia?.posicao === apos.hierarquia?.posicao;
+
+// Artigo: sequencial entre todos os artigos da articulação; demais: posição entre os filhos do pai (iniciando em 1).
+export const getPosicaoOriginalParaMovimentacao = (state: State, antes: Partial<Elemento>, apos: Partial<Elemento>): number => {
+  const posicaoLocal = (antes.hierarquia?.posicao ?? 0) + 1;
+  if (apos.tipo !== 'Artigo' || !state.articulacao) {
+    return posicaoLocal;
+  }
+
+  const movido = getDispositivoFromElemento(state.articulacao, apos);
+  const paiAntes = antes.hierarquia?.pai;
+  if (!movido || !paiAntes) {
+    return posicaoLocal;
+  }
+
+  const raiz = getArticulacao(movido);
+  const paiAntigo = paiAntes.tipo === 'Articulacao' ? raiz : (paiAntes.uuid2 && findDispositivoByUuid2(raiz, paiAntes.uuid2)) || findDispositivoByUuid(raiz, paiAntes.uuid!, true);
+  if (!paiAntigo) {
+    return posicaoLocal;
+  }
+
+  // O marcador é o irmão que ocupa o lugar de origem quando o movido não está mais entre os filhos.
+  const lista = getDispositivoAndFilhosAsLista(raiz);
+  const marcador = paiAntigo.filhos.filter(f => f !== movido)[antes.hierarquia?.posicao ?? 0];
+  const indice = marcador ? lista.indexOf(marcador) : lista.indexOf(paiAntigo) + getDispositivoAndFilhosAsLista(paiAntigo).length;
+  if (indice < 0) {
+    return posicaoLocal;
+  }
+
+  const emAlteracao = isDispositivoAlteracao(movido);
+  return lista.slice(0, indice).filter(d => isArtigo(d) && d !== movido && isDispositivoAlteracao(d) === emAlteracao).length + 1;
+};
+
+// Mesmo tipo: movimentação; tipo diferente: transformação.
+export const getOperacaoDeMovimentacaoOuTransformacao = (state: State, antes: Partial<Elemento>, apos: Partial<Elemento>): OperacaoRevisao =>
+  antes.tipo !== apos.tipo
+    ? { nome: OPERACAO_TRANSFORMADO, argumento: nomeTipoNaRevisao(antes.tipo) }
+    : { nome: OPERACAO_MOVIDO, argumento: String(getPosicaoOriginalParaMovimentacao(state, antes, apos)) };
+
+// Para revisões que não têm o atributo (ex.: vindas de Proposicao.revisoes).
+export const derivarOperacoesRevisao = (state: State, revisao: RevisaoElemento): string => {
+  const antes = revisao.elementoAntesRevisao;
+  const apos = revisao.elementoAposRevisao;
+  if (revisao.stateType === StateType.ElementoRemovido) {
+    return OPERACAO_EXCLUIDO;
+  }
+  if (revisao.stateType === StateType.ElementoModificado) {
+    return OPERACAO_ALTERADO;
+  }
+  if (!antes) {
+    return OPERACAO_ADICIONADO;
+  }
+  let operacoes = '';
+  if (antes.tipo !== apos.tipo || !isMesmoLugar(antes, apos)) {
+    const operacao = getOperacaoDeMovimentacaoOuTransformacao(state, antes, apos);
+    operacoes = anexarOperacaoRevisao(operacoes, operacao.nome, operacao.argumento);
+  }
+  return antes.conteudo?.texto !== apos.conteudo?.texto ? anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO) : operacoes;
+};
+
+export const getOperacoesDaRevisao = (state: State, revisao: RevisaoElemento): string => revisao.revisao ?? derivarOperacoesRevisao(state, revisao);
+
+// Descarta as operações revertidas, mantendo a ordem das demais.
+// Revisões de descendentes acompanham a principal: o lugar relativo deles não muda quando o grupo se move.
+export const reconciliarOperacoesRevisao = (state: State, revisao: RevisaoElemento): void => {
+  const antes = revisao.elementoAntesRevisao;
+  if (!antes || revisao.revisao === undefined || revisao.idRevisaoElementoPrincipal || revisao.stateType === StateType.ElementoRemovido) {
+    return;
+  }
+  const apos = revisao.elementoAposRevisao;
+  let operacoes = revisao.revisao;
+  if (antes.tipo === apos.tipo) {
+    operacoes = removerOperacaoRevisao(operacoes, OPERACAO_TRANSFORMADO);
+  }
+  if (antes.conteudo?.texto === apos.conteudo?.texto) {
+    operacoes = removerOperacaoRevisao(operacoes, OPERACAO_ALTERADO);
+  }
+  if (isMesmoLugar(antes, apos)) {
+    operacoes = removerOperacaoRevisao(operacoes, OPERACAO_MOVIDO);
+  }
+  revisao.revisao = operacoes;
 };
