@@ -77,7 +77,7 @@ describe('lerRevisoesArticulacao — leitura tolerante das revisões da hierarqu
       const [r] = lerRevisoesArticulacao(lexedit([revisao({ revisao: 'excluido', artigo: no })]));
       expect(r.refIdDispositivo).to.be.undefined;
       expect(r.excluido!.name.localPart).to.equal('Artigo');
-      expect(r.excluido!.value).to.equal(no);
+      expect(r.excluido!.value).to.deep.equal(no);
     });
 
     it('lê o nome composto do elemento (agrupamentoHierarquico)', () => {

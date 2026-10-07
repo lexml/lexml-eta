@@ -36,8 +36,8 @@
 
 ## 6. Regressão e fechamento
 
-- [ ] 6.1 Rodar `npm test` e os specs Cypress de `cypress/e2e/revisao/` e `cypress/e2e/documento-articulado/`, e confirmar que nada regrediu (em especial os testes de `atualizaRevisao`, `aplicaRevisoes` e paginação com dispositivos excluídos).
-- [ ] 6.2 Registrar o fechamento: no `docs/extensao-formato-lexml/plano-xsd-lexedit.md`, os grupos `11` e `12` passam a "Implementado (alteracaoRotulo pendente)"; no item 13 do `CLAUDE.md`, o atributo `revisao` em `RevisaoElemento`, o id do excluído calculado ao salvar, a reaplicação imediata ao abrir e o ponto de coordenação com o host Java (`Proposicao.revisoes` deixa de ir ao backend). Verificar relendo os dois arquivos.
+- [x] 6.1 Rodar `npm test` e os specs Cypress de `cypress/e2e/revisao/` e `cypress/e2e/documento-articulado/`, e confirmar que nada regrediu (em especial os testes de `atualizaRevisao`, `aplicaRevisoes` e paginação com dispositivos excluídos).
+- [x] 6.2 Registrar o fechamento: no `docs/extensao-formato-lexml/plano-xsd-lexedit.md`, os grupos `11` e `12` passam a "Implementado (alteracaoRotulo pendente)"; no item 13 do `CLAUDE.md`, o atributo `revisao` em `RevisaoElemento`, o id do excluído calculado ao salvar, a reaplicação imediata ao abrir e o ponto de coordenação com o host Java (`Proposicao.revisoes` deixa de ir ao backend). Verificar relendo os dois arquivos.
 
 ## Workflow follow-up
 
