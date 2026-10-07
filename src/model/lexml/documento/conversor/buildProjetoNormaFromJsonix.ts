@@ -179,7 +179,7 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   return { ...lerFecho(lexedit), ...(opcoesImpressao && { opcoesImpressao }), ...(autoria && { autoria }), ...(revisoesLidas.length > 0 && { revisoesLidas }) };
 };
 
-const OPERACOES_CONHECIDAS = ['adicionado', 'excluido', 'alterado', 'movido', 'transformado'];
+const OPERACOES_CONHECIDAS = ['adicionado', 'excluido', 'alterado', 'movido', 'transformado', 'alteracaoRotulo'];
 
 const NOMES_DISPOSITIVO_NA_REVISAO = [
   'parte',
@@ -203,12 +203,12 @@ const NOMES_DISPOSITIVO_NA_REVISAO = [
 // O Jsonix entrega lista de um só elemento como objeto.
 const comoLista = (valor: any): any[] => (Array.isArray(valor) ? valor : valor === undefined || valor === null ? [] : [valor]);
 
-// Operação desconhecida (ex.: alteracaoRotulo) ou com argumento inválido é descartada, sem invalidar as demais.
+// Operação desconhecida ou com argumento inválido é descartada, sem invalidar as demais.
 const lerOperacoesRevisao = (revisao: unknown): LidaOperacao[] =>
   getOperacoesRevisao(typeof revisao === 'string' ? revisao : '').filter(o => {
     if (!OPERACOES_CONHECIDAS.includes(o.nome)) return false;
     if (o.nome === 'movido') return /^[1-9]\d*$/.test(o.argumento ?? '');
-    if (o.nome === 'transformado') return !!o.argumento;
+    if (o.nome === 'transformado' || o.nome === 'alteracaoRotulo') return !!o.argumento;
     return true;
   });
 

@@ -21,9 +21,9 @@
 
 ## 4. Salvar e abrir a operação
 
-- [ ] 4.1 Reconhecer `alteracaoRotulo` em `lerRevisoesArticulacao` (argumento obrigatório) e confirmar que `montaRevisoesArticulacao` a grava sem parágrafo anterior quando não há `alterado` (design.md, Decisão 7). Verificar com testes unitários: leitura da operação, argumento ausente (revisão descartada), operação combinada com `alterado` e `p` preservado, e gravação sem `p` na revisão só de rótulo.
-- [ ] 4.2 Implementar em `reconstroiRevisoes.ts` o ramo de `alteracaoRotulo` com o rótulo anterior derivado do id (design.md, Decisão 8), usando o resultado de 1.2, e a descrição da marca reaberta. Verificar com um teste de reabertura na MPV 1234/2024: renumerar em revisão → salvar → reabrir; a revisão reaberta tem as mesmas operações, e rejeitá-la e aceitá-la dá o mesmo resultado da sessão original (rótulo, ids dos descendentes, articulação), também combinada com `alterado` e com `movido`.
-- [ ] 4.3 Teste de ida e volta no código do editor: criar com a revisão → serializar → ler → reaplicar → serializar de novo produz `revisoesArticulacao`, `usuarios` e `pendencias` iguais, e o documento aberto exibe a marca na tela sem novo evento do dispositivo. Verificar com teste de componente em `documentoArticulado.component.test.ts`.
+- [x] 4.1 Reconhecer `alteracaoRotulo` em `lerRevisoesArticulacao` (argumento obrigatório) e confirmar que `montaRevisoesArticulacao` a grava sem parágrafo anterior quando não há `alterado` (design.md, Decisão 7). Verificar com testes unitários: leitura da operação, argumento ausente (revisão descartada), operação combinada com `alterado` e `p` preservado, e gravação sem `p` na revisão só de rótulo.
+- [x] 4.2 Implementar em `reconstroiRevisoes.ts` o ramo de `alteracaoRotulo` com o rótulo anterior derivado do id (design.md, Decisão 8), usando o resultado de 1.2, e a descrição da marca reaberta. Verificar com um teste de reabertura na MPV 1234/2024: renumerar em revisão → salvar → reabrir; a revisão reaberta tem as mesmas operações, e rejeitá-la e aceitá-la dá o mesmo resultado da sessão original (rótulo, ids dos descendentes, articulação), também combinada com `alterado` e com `movido`.
+- [x] 4.3 Teste de ida e volta no código do editor: criar com a revisão → serializar → ler → reaplicar → serializar de novo produz `revisoesArticulacao`, `usuarios` e `pendencias` iguais, e o documento aberto exibe a marca na tela sem novo evento do dispositivo. Verificar com teste de componente em `documentoArticulado.component.test.ts`.
 
 ## 5. Testes de integração e E2E
 

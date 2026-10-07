@@ -1,6 +1,8 @@
 import { expect } from '@open-wc/testing';
 import { State } from '../../../src/redux/state';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
+import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
+import { RENUMERAR_ELEMENTO } from '../../../src/model/lexml/acao/renumerarElementoAction';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { montaRevisoesArticulacao } from '../../../src/model/lexml/documento/conversor/revisaoArticulacao';
 import { criarDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
@@ -228,6 +230,35 @@ describe('montaRevisoesArticulacao (MPV 905/2019)', () => {
       const documento = criarDocumentoArticulado(state.articulacao!.projetoNorma!, urn, {}, {}, {});
       expect(documento.value.metadado.metadadoProprietario).to.be.undefined;
     });
+  });
+});
+
+describe('montaRevisoesArticulacao: alteracaoRotulo (MPV 1234/2024)', () => {
+  const PAR = 'art1_cpt_alt1_art4_par4';
+
+  beforeEach(() => {
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_1234_2024);
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
+    state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+    state = elementoReducer(state, { type: RENUMERAR_ELEMENTO, atual: elementoDe(PAR), novo: { numero: '9' } });
+  });
+
+  it('renumeração isolada grava o id original como argumento, o id atual como refIdDispositivo e não grava p', () => {
+    const [r] = revisoes();
+
+    expect(r.revisao).to.equal(`alteracaoRotulo;${PAR}`);
+    expect(r.refIdDispositivo).to.equal('art1_cpt_alt1_art4_par9');
+    expect(r.p).to.be.undefined;
+  });
+
+  it('combinada com alterado grava o texto anterior em p', () => {
+    alteraTexto('art1_cpt_alt1_art4_par9', 'Texto revisado:');
+
+    const [r] = revisoes();
+
+    expect(r.revisao).to.equal(`alteracaoRotulo;${PAR},alterado`);
+    // O texto original do parágrafo tem uma remissão externa, serializada como nó Remissao em p.
+    expect(JSON.stringify(r.p.content)).to.include('Lei Complementar');
   });
 });
 

@@ -4,9 +4,9 @@ import { Elemento, Referencia } from '../../../elemento';
 import { createElemento, getElementos } from '../../../elemento/elementoUtil';
 import { RevisaoElemento } from '../../../revisao/revisao';
 import { StateType } from '../../../../redux/state';
-import { buildDescricaoRevisaoFromStateType, formatarOperacoesRevisao } from '../../../../redux/elemento/util/revisaoUtil';
+import { buildDescricaoRevisaoElemento, buildDescricaoRevisaoFromStateType, formatarOperacoesRevisao } from '../../../../redux/elemento/util/revisaoUtil';
 import { APLICAR_REVISOES } from '../../acao/aplicarRevisoes';
-import { createArticulacao } from '../../dispositivo/dispositivoLexmlFactory';
+import { criaDispositivo, createArticulacao } from '../../dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById, getArticulacao, getDispositivoAndFilhosAsLista, getUltimoFilho, isDispositivoAlteracao } from '../../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../tipo/tipoDispositivo';
 import { converteNumeroArabicoParaLetra, converteNumeroArabicoParaRomano, comparaNumeracao } from '../../numeracao/numeracaoUtil';
@@ -43,6 +43,8 @@ const novaRevisao = (stateType: StateType, lida: RevisaoArticulacaoLida, antes: 
   revisao.revisao = formatarOperacoesRevisao(lida.operacoes);
   if (stateType === StateType.ElementoIncluido && antes) {
     revisao.descricao = buildDescricaoRevisaoFromStateType(revisao, apos as Elemento);
+  } else if (stateType === StateType.ElementoModificado) {
+    revisao.descricao = buildDescricaoRevisaoElemento(revisao);
   }
   return revisao;
 };
@@ -116,6 +118,25 @@ const rotuloDoTipo = (tipo: string | undefined, numero: string | undefined): str
   }
 };
 
+// Deriva número e rótulo anteriores do id (só em alteração de norma, onde o rótulo vem do id); id de outro tipo não se deriva.
+const derivaRotuloDoId = (dispositivo: Dispositivo, idOriginal: string): { numero: string; rotulo: string } | undefined => {
+  const segmento = (id: string): string => id.substring(id.lastIndexOf('_') + 1);
+  const atual = /^([a-z]+)/.exec(segmento(dispositivo.id ?? ''));
+  const original = /^([a-z]+)(\d+(?:-\d+)*)(u?)$/.exec(segmento(idOriginal));
+  if (!atual || !original || atual[1] !== original[1] || !dispositivo.pai || !isDispositivoAlteracao(dispositivo)) {
+    return undefined;
+  }
+  const hospedeiro = criaHospedeiro(createArticulacao(), dispositivo.pai);
+  const sonda = criaDispositivo(getDestinoDeCriacao(hospedeiro, { tipo: dispositivo.tipo }), dispositivo.tipo);
+  if (original[3] && dispositivo.tipo === TipoDispositivo.paragrafo.tipo) {
+    sonda.createNumeroFromRotulo('Parágrafo único.');
+  } else {
+    sonda.numero = original[2];
+  }
+  sonda.createRotulo(sonda);
+  return sonda.numero && sonda.rotulo ? { numero: sonda.numero, rotulo: sonda.rotulo } : undefined;
+};
+
 const reconstroiRevisoesDeDispositivo = (articulacao: Articulacao, lida: RevisaoArticulacaoLida): RevisaoElemento[] => {
   const dispositivo = buscaDispositivoById(articulacao, lida.refIdDispositivo!);
   if (!dispositivo) {
@@ -129,14 +150,32 @@ const reconstroiRevisoesDeDispositivo = (articulacao: Articulacao, lida: Revisao
 
   const posicaoOriginal = argumentoDe(lida, 'movido');
   const nomeTipoOriginal = argumentoDe(lida, 'transformado');
+
+  // Com transformação o id original tem o prefixo do tipo antigo e o rótulo anterior já sai do tipo original.
+  const idOriginal = nomeTipoOriginal ? undefined : argumentoDe(lida, 'alteracaoRotulo');
+  const rotuloOriginal = idOriginal ? derivaRotuloDoId(dispositivo, idOriginal) : undefined;
+  if (idOriginal && !rotuloOriginal) {
+    return [];
+  }
+  const comRotuloOriginal = (antes: Elemento): Elemento => {
+    if (idOriginal && rotuloOriginal) {
+      antes.lexmlId = idOriginal;
+      antes.numero = rotuloOriginal.numero;
+      antes.rotulo = rotuloOriginal.rotulo;
+      antes.hierarquia = { ...antes.hierarquia, numero: rotuloOriginal.numero };
+    }
+    return antes;
+  };
+
   if (!posicaoOriginal && !nomeTipoOriginal) {
-    return [novaRevisao(StateType.ElementoModificado, lida, comTexto(elementos[0], lida.textoAnterior), clone(elementos[0]))];
+    return [novaRevisao(StateType.ElementoModificado, lida, comRotuloOriginal(comTexto(elementos[0], lida.textoAnterior)), clone(elementos[0]))];
   }
 
   const tipoOriginal = nomeTipoOriginal && nomeDoTipo(nomeTipoOriginal);
   return elementos.map((apos, i) => {
     const antes = comTexto(apos, i === 0 ? lida.textoAnterior : undefined);
     if (i === 0) {
+      comRotuloOriginal(antes);
       if (tipoOriginal) {
         antes.tipo = tipoOriginal;
       }

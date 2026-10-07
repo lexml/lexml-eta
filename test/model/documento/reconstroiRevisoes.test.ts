@@ -1,6 +1,8 @@
 import { expect } from '@open-wc/testing';
 import { State } from '../../../src/redux/state';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
+import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
+import { RENUMERAR_ELEMENTO } from '../../../src/model/lexml/acao/renumerarElementoAction';
 import { buildProjetoNormaFromJsonix, lerRevisoesArticulacao } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { montaRevisoesArticulacao } from '../../../src/model/lexml/documento/conversor/revisaoArticulacao';
@@ -59,6 +61,132 @@ const abreComRevisoes = (origem: State): State => {
 };
 
 const resumo = (s: State): any[] => principais(s).map(r => ({ operacoes: r.revisao, stateType: r.stateType, tipo: r.elementoAposRevisao.tipo, usuario: r.usuario?.nome }));
+
+const descreveEquivalencia = (titulo: string, abreDocumento: () => State, definirCenarios: () => Array<[string, () => void]>, setA: (s: State) => void): void => {
+  describe(titulo, () => {
+    beforeEach(() => {
+      setA(abreDocumento());
+    });
+
+    definirCenarios().forEach(([nome, prepara]) => {
+      describe(nome, () => {
+        let b: State;
+
+        beforeEach(() => {
+          prepara();
+          b = abreComRevisoes(a);
+        });
+
+        it('reconstrói as mesmas revisões principais, com as mesmas operações e o mesmo usuário', () => {
+          expect(resumo(b)).to.deep.equal(resumo(a));
+        });
+
+        it('mantém a mesma articulação', () => {
+          expect(json(b)).to.equal(json(a));
+        });
+
+        it('rejeitar a revisão dá o mesmo resultado que na sessão original', () => {
+          const rejeitadaA = elementoReducer(a, { type: REJEITAR_REVISAO, revisao: principais(a)[0] });
+          const rejeitadaB = elementoReducer(b, { type: REJEITAR_REVISAO, revisao: principais(b)[0] });
+          expect(json(rejeitadaB)).to.equal(json(rejeitadaA));
+        });
+
+        it('aceitar a revisão dá o mesmo resultado que na sessão original', () => {
+          const aceitaA = elementoReducer(a, { type: ACEITAR_REVISAO, revisao: principais(a)[0] });
+          const aceitaB = elementoReducer(b, { type: ACEITAR_REVISAO, revisao: principais(b)[0] });
+          expect(json(aceitaB)).to.equal(json(aceitaA));
+          expect(aceitaB.revisoes!.filter(isRevisaoPrincipal)).to.have.length(aceitaA.revisoes!.filter(isRevisaoPrincipal).length);
+        });
+      });
+    });
+  });
+};
+
+const abre1234 = (): State => {
+  const projetoNorma = buildProjetoNormaFromJsonix(MPV_1234_2024);
+  const s = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
+  const comUsuario = elementoReducer(s, { type: ATUALIZAR_USUARIO, usuario: { nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' } });
+  return elementoReducer(comUsuario, { type: ATIVAR_DESATIVAR_REVISAO });
+};
+
+const ART4 = 'art1_cpt_alt1_art4';
+const PAR = `${ART4}_par4`;
+
+const renumera = (id: string, numero: string): void => {
+  a = elementoReducer(a, { type: RENUMERAR_ELEMENTO, atual: elemento(a, id), novo: { numero } });
+};
+
+descreveEquivalencia(
+  'reconstroiRevisoes — alteracaoRotulo reaberta equivale à da sessão (MPV 1234/2024)',
+  abre1234,
+  () => [
+    ['parágrafo existente renumerado', () => renumera(PAR, '9')],
+    ['parágrafo renumerado duas vezes', () => (renumera(PAR, '9'), renumera(`${ART4}_par9`, '4-A'))],
+    [
+      'parágrafo renumerado e alterado',
+      () => {
+        renumera(PAR, '9');
+        a = altera(a, `${ART4}_par9`, 'Texto revisado:');
+      },
+    ],
+    [
+      'parágrafo alterado e renumerado',
+      () => {
+        a = altera(a, PAR, 'Texto revisado:');
+        renumera(PAR, '9');
+      },
+    ],
+    ['artigo de alteração renumerado', () => renumera(ART4, '8')],
+    ['parágrafo movido (sem renumerar)', () => (a = elementoReducer(a, { type: MOVER_ELEMENTO_ACIMA, atual: elemento(a, PAR) }))],
+    [
+      'parágrafo movido e renumerado',
+      () => {
+        const par = buscaDispositivoById(a.articulacao!, PAR)!;
+        a = elementoReducer(a, { type: MOVER_ELEMENTO_ACIMA, atual: elemento(a, PAR) });
+        renumera(par.id!, '9');
+      },
+    ],
+  ],
+  s => (a = s)
+);
+
+describe('reconstroiRevisoes — alteracaoRotulo: valores reconstruídos (MPV 1234/2024)', () => {
+  beforeEach(() => {
+    a = abre1234();
+  });
+
+  it('o snapshot anterior tem id, número e rótulo originais; o atual, os novos', () => {
+    const original = buscaDispositivoById(a.articulacao!, PAR)!;
+    const { rotulo, numero } = original;
+    renumera(PAR, '9');
+
+    const [reaberta] = principais(abreComRevisoes(a));
+
+    expect(reaberta.revisao).to.equal(`alteracaoRotulo;${PAR}`);
+    expect(reaberta.elementoAntesRevisao).to.include({ lexmlId: PAR, numero, rotulo });
+    expect(reaberta.elementoAposRevisao.lexmlId).to.equal(`${ART4}_par9`);
+  });
+
+  it('a descrição da marca informa o rótulo anterior', () => {
+    const rotuloAnterior = buscaDispositivoById(a.articulacao!, PAR)!.rotulo;
+    renumera(PAR, '9');
+
+    const [reaberta] = principais(abreComRevisoes(a));
+
+    expect(reaberta.descricao).to.equal(`Rótulo do dispositivo foi alterado (rótulo antes era "${rotuloAnterior}")`);
+  });
+
+  it('id original de outro tipo descarta a revisão, sem impedir as demais', () => {
+    renumera(PAR, '9');
+    const [lida] = lerRevisoesArticulacao(montaRevisoesArticulacao(a)!);
+    const errada = { ...lida, operacoes: [{ nome: 'alteracaoRotulo', argumento: `${ART4}_inc4` }] };
+    const valida = { ...lida, operacoes: [{ nome: 'alterado' }] };
+
+    const reconstruidas = reconstroiRevisoes(a.articulacao!, [errada, valida]);
+
+    expect(reconstruidas.map(r => r.revisao)).to.deep.equal(['alterado']);
+  });
+});
 
 describe('reconstroiRevisoes — revisões reabertas equivalem às da sessão (MPV 905/2019)', () => {
   beforeEach(() => {

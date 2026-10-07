@@ -42,12 +42,34 @@ describe('lerRevisoesArticulacao — leitura tolerante das revisões da hierarqu
     });
 
     it('ignora a operação desconhecida e mantém as demais', () => {
-      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art1', revisao: 'alteracaoRotulo;art0,alterado' })]));
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art1', revisao: 'operacaoNova;x,alterado' })]));
       expect(r.operacoes).to.deep.equal([{ nome: 'alterado' }]);
     });
 
     it('ignora a revisão que só tem operações desconhecidas', () => {
-      expect(lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art1', revisao: 'alteracaoRotulo;art0' })]))).to.deep.equal([]);
+      expect(lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art1', revisao: 'operacaoNova;x' })]))).to.deep.equal([]);
+    });
+
+    it('lê alteracaoRotulo com o id original como argumento', () => {
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art4', revisao: 'alteracaoRotulo;art3' })]));
+      expect(r.operacoes).to.deep.equal([{ nome: 'alteracaoRotulo', argumento: 'art3' }]);
+    });
+
+    it('lê alteracaoRotulo combinada com alterado, mantendo o texto anterior de p', () => {
+      const p = { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: ['texto original'] };
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art4', revisao: 'alteracaoRotulo;art3,alterado', p })]));
+      expect(r.operacoes).to.deep.equal([{ nome: 'alteracaoRotulo', argumento: 'art3' }, { nome: 'alterado' }]);
+      expect(r.textoAnterior).to.equal('texto original');
+    });
+
+    it('descarta alteracaoRotulo sem argumento e mantém as demais', () => {
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art4', revisao: 'alteracaoRotulo,alterado' })]));
+      expect(r.operacoes).to.deep.equal([{ nome: 'alterado' }]);
+    });
+
+    it('ignora a revisão cuja única operação é alteracaoRotulo sem argumento', () => {
+      expect(lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art4', revisao: 'alteracaoRotulo' })]))).to.deep.equal([]);
+      expect(lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art4', revisao: 'alteracaoRotulo;' })]))).to.deep.equal([]);
     });
 
     it('descarta movido sem posição válida e transformado sem tipo', () => {
