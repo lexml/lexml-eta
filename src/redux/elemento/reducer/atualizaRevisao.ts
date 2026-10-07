@@ -30,8 +30,11 @@ import {
   getRevisoesElementoAssociadas,
   reconciliarOperacoesRevisao,
   OPERACAO_ADICIONADO,
+  OPERACAO_ALTERACAO_ROTULO,
   OPERACAO_ALTERADO,
   OPERACAO_EXCLUIDO,
+  buildDescricaoRevisaoElemento,
+  OperacaoRevisao,
 } from '../util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
@@ -121,11 +124,16 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
       state.usuario && (revisao.usuario = state.usuario);
       revisao.dataHora = formatDateTime(new Date());
       if (revisao.elementoAntesRevisao && revisao.stateType !== StateType.ElementoRemovido) {
-        revisao.revisao = anexarOperacaoRevisao(getOperacoesDaRevisao(state, revisao), OPERACAO_ALTERADO);
+        let operacoes = anexarOperacaoRevisao(getOperacoesDaRevisao(state, revisao), OPERACAO_ALTERADO);
+        const alteracaoRotulo = getOperacaoDeAlteracaoRotulo(state, actionType, e);
+        alteracaoRotulo && (operacoes = anexarOperacaoRevisao(operacoes, alteracaoRotulo.nome, alteracaoRotulo.argumento));
+        revisao.revisao = operacoes;
         reconciliarOperacoesRevisao(state, revisao);
         // Sem operações restantes nada sobrou da revisão: ela e as associadas deixam de existir.
         if (revisao.revisao === '') {
           revisoesParaRemover.push(...getRevisoesElementoAssociadas(state.revisoes, revisao));
+        } else if (revisao.stateType === StateType.ElementoModificado) {
+          revisao.descricao = buildDescricaoRevisaoElemento(revisao);
         }
       }
     } else {
@@ -133,7 +141,8 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
       // result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
       if (!isAjusteTextoOmitido(eAux, e)) {
         const nova = new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e)));
-        nova.revisao = OPERACAO_ALTERADO;
+        nova.revisao = getOperacoesDeNovaModificacao(state, actionType, e, eAux);
+        nova.descricao = buildDescricaoRevisaoElemento(nova);
         result.push(nova);
       }
     }
@@ -142,6 +151,24 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
   state.revisoes = state.revisoes?.filter(r => !revisoesParaRemover.includes(r));
 
   return result;
+};
+
+// UNDO não entra: o `past` já não guarda o evento desfeito, e a reconciliação por id descarta a operação revertida.
+const getOperacaoDeAlteracaoRotulo = (state: State, actionType: any, elemento: Elemento): OperacaoRevisao | undefined => {
+  if (![RENUMERAR_ELEMENTO, REDO].includes(actionType)) {
+    return undefined;
+  }
+  const anterior = getElementoAntesModificacao(state, elemento);
+  return anterior && anterior.tipo === elemento.tipo && anterior.rotulo !== elemento.rotulo ? { nome: OPERACAO_ALTERACAO_ROTULO, argumento: anterior.lexmlId } : undefined;
+};
+
+const getOperacoesDeNovaModificacao = (state: State, actionType: any, elemento: Elemento, anterior: Elemento | undefined): string => {
+  const alteracaoRotulo = getOperacaoDeAlteracaoRotulo(state, actionType, elemento);
+  if (!alteracaoRotulo) {
+    return OPERACAO_ALTERADO;
+  }
+  const operacoes = anexarOperacaoRevisao('', alteracaoRotulo.nome, alteracaoRotulo.argumento);
+  return anterior?.conteudo?.texto !== elemento.conteudo?.texto ? anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO) : operacoes;
 };
 
 const isAjusteTextoOmitido = (eAntesRevisao: Elemento | undefined, eAposRevisao: Elemento): boolean => {

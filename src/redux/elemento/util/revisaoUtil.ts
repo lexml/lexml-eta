@@ -122,12 +122,21 @@ const mapperStateTypeToDescricao = {
 };
 
 export const buildDescricaoRevisaoElemento = (revisao: RevisaoElemento): string => {
+  if (revisao.stateType === StateType.ElementoModificado && getOperacoesRevisao(revisao.revisao).some(o => o.nome === OPERACAO_ALTERACAO_ROTULO)) {
+    return buildDescricaoRevisaoDeRotulo(revisao);
+  }
   const fn = mapperActionTypeToDescricao[revisao.actionType];
   return fn ? mapperActionTypeToDescricao[revisao.actionType](revisao) : buildDescricaoRevisaoFromStateType(revisao);
 };
 
 export const buildDescricaoRevisaoTexto = (revisao: Revisao): string => {
   return revisao.descricao ?? '';
+};
+
+const buildDescricaoRevisaoDeRotulo = (revisao: RevisaoElemento): string => {
+  const rotuloAnterior = revisao.elementoAntesRevisao?.rotulo;
+  const combinada = getOperacoesRevisao(revisao.revisao).some(o => o.nome === OPERACAO_ALTERADO);
+  return `${combinada ? 'Rótulo e texto do dispositivo foram alterados' : 'Rótulo do dispositivo foi alterado'}${rotuloAnterior ? ` (rótulo antes era "${rotuloAnterior}")` : ''}`;
 };
 
 export const buildDescricaoRevisaoFromMovimentacaoElemento = (revisao: RevisaoElemento): string => {
@@ -479,6 +488,7 @@ export const OPERACAO_EXCLUIDO = 'excluido';
 export const OPERACAO_ALTERADO = 'alterado';
 export const OPERACAO_MOVIDO = 'movido';
 export const OPERACAO_TRANSFORMADO = 'transformado';
+export const OPERACAO_ALTERACAO_ROTULO = 'alteracaoRotulo';
 
 export interface OperacaoRevisao {
   nome: string;
@@ -557,7 +567,14 @@ export const derivarOperacoesRevisao = (state: State, revisao: RevisaoElemento):
     return OPERACAO_EXCLUIDO;
   }
   if (revisao.stateType === StateType.ElementoModificado) {
-    return OPERACAO_ALTERADO;
+    let operacoes = '';
+    if (antes && apos && antes.tipo === apos.tipo && antes.rotulo !== apos.rotulo) {
+      operacoes = anexarOperacaoRevisao(operacoes, OPERACAO_ALTERACAO_ROTULO, antes.lexmlId);
+    }
+    if (antes?.conteudo?.texto !== apos?.conteudo?.texto) {
+      operacoes = anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO);
+    }
+    return operacoes || OPERACAO_ALTERADO;
   }
   if (!antes) {
     return OPERACAO_ADICIONADO;
@@ -589,6 +606,11 @@ export const reconciliarOperacoesRevisao = (state: State, revisao: RevisaoElemen
   }
   if (isMesmoLugar(antes, apos)) {
     operacoes = removerOperacaoRevisao(operacoes, OPERACAO_MOVIDO);
+  }
+  // Compara pelo id (e não pelo rótulo): em dispositivo movido ou transformado o rótulo difere do original por outra causa.
+  const rotulo = getOperacoesRevisao(operacoes).find(o => o.nome === OPERACAO_ALTERACAO_ROTULO);
+  if (rotulo && rotulo.argumento === apos.lexmlId) {
+    operacoes = removerOperacaoRevisao(operacoes, OPERACAO_ALTERACAO_ROTULO);
   }
   revisao.revisao = operacoes;
 };

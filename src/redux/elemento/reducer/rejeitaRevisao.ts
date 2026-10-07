@@ -1,4 +1,6 @@
 import { isRevisaoDeModificacao, isRevisaoDeTransformacao, mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes } from './../util/revisaoUtil';
+import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
+import { updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 import { isCaput } from './../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento/elemento';
 import {
@@ -8,7 +10,7 @@ import {
   getDispositivoFromElemento,
   listaDispositivosRenumerados,
 } from '../../../model/elemento/elementoUtil';
-import { getDispositivoAnteriorNaSequenciaDeLeitura, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, getDispositivoAnteriorNaSequenciaDeLeitura, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getElementosRemovidosEIncluidos, unificarEvento } from '../evento/eventosUtil';
@@ -18,8 +20,11 @@ import {
   findRevisaoDeExclusaoComElementoAnteriorApontandoPara,
   findUltimaRevisaoDoGrupo,
   getRevisoesElementoAssociadas,
+  getOperacoesRevisao,
   isRevisaoDeMovimentacao,
   isRevisaoPrincipal,
+  OPERACAO_ALTERACAO_ROTULO,
+  OPERACAO_ALTERADO,
 } from '../util/revisaoUtil';
 import { buildPast } from '../util/stateReducerUtil';
 import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, ajustarHierarquivoAgrupadorIncluidoPorUndoRedo, incluir } from '../util/undoRedoReducerUtil';
@@ -120,7 +125,43 @@ const processaRevisoes = (state: State, revisoes: RevisaoElemento[]): StateEvent
 };
 
 const rejeitaModificacao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
-  return atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
+  const operacoes = getOperacoesRevisao(revisao.revisao);
+  if (!operacoes.some(o => o.nome === OPERACAO_ALTERACAO_ROTULO)) {
+    return atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
+  }
+
+  const eventosRotulo = restauraRotulo(state, revisao);
+  const eventosTexto = operacoes.some(o => o.nome === OPERACAO_ALTERADO) ? atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [] : [];
+  // O evento de texto já traz o dispositivo com o rótulo restaurado.
+  const textoModificou = eventosTexto.some(ev => ev.stateType === StateType.ElementoModificado);
+  return [...eventosRotulo.filter(ev => !(textoModificou && ev.stateType === StateType.ElementoModificado)), ...eventosTexto];
+};
+
+// Devolve número, rótulo e ids (do dispositivo e dos descendentes) do snapshot anterior à renumeração.
+const restauraRotulo = (state: State, revisao: RevisaoElemento): StateEvent[] => {
+  const antes = revisao.elementoAntesRevisao!;
+  const dispositivo = getDispositivoFromElemento(state.articulacao!, revisao.elementoAposRevisao, true);
+  if (!dispositivo) {
+    return [];
+  }
+
+  if (antes.numero !== undefined && antes.numero !== dispositivo.numero) {
+    dispositivo.numero = antes.numero;
+    dispositivo.rotulo = antes.rotulo;
+    updateIdDispositivoAndFilhos(dispositivo);
+  }
+
+  const elemento = createElemento(dispositivo, true);
+  elemento.mensagens = validaDispositivo(dispositivo);
+  const eventos: StateEvent[] = [{ stateType: StateType.ElementoModificado, elementos: [elemento] }];
+
+  const descendentes = getDispositivoAndFilhosAsLista(dispositivo)
+    .slice(1)
+    .map(d => createElemento(d));
+  descendentes.length && eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: descendentes });
+
+  eventos.push({ stateType: StateType.ElementoValidado, elementos: criaListaElementosAfinsValidados(dispositivo) });
+  return eventos;
 };
 
 const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] => {

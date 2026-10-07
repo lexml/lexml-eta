@@ -6,6 +6,7 @@ import {
   removerOperacaoRevisao,
   derivarOperacoesRevisao,
   reconciliarOperacoesRevisao,
+  buildDescricaoRevisaoElemento,
 } from '../../../src/redux/elemento/util/revisaoUtil';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { State, StateType } from '../../../src/redux/state';
@@ -81,6 +82,24 @@ describe('Operações de revisão da hierarquia (atributo "revisao")', () => {
         'movido;3,alterado'
       );
     });
+
+    it('deriva alteracaoRotulo, com o id anterior como argumento, quando só o rótulo mudou', () => {
+      const antes = { tipo: 'Paragrafo', rotulo: '§ 4º-A.', lexmlId: 'par4-1', conteudo: { texto: 'a' } };
+      const apos = { tipo: 'Paragrafo', rotulo: '§ 4º-B.', lexmlId: 'par4-2', conteudo: { texto: 'a' } };
+      expect(derivarOperacoesRevisao(state, novaRevisao(StateType.ElementoModificado, antes, apos))).to.equal('alteracaoRotulo;par4-1');
+    });
+
+    it('deriva alteracaoRotulo e alterado quando o rótulo e o texto mudaram', () => {
+      const antes = { tipo: 'Paragrafo', rotulo: '§ 4º-A.', lexmlId: 'par4-1', conteudo: { texto: 'a' } };
+      const apos = { tipo: 'Paragrafo', rotulo: '§ 4º-B.', lexmlId: 'par4-2', conteudo: { texto: 'b' } };
+      expect(derivarOperacoesRevisao(state, novaRevisao(StateType.ElementoModificado, antes, apos))).to.equal('alteracaoRotulo;par4-1,alterado');
+    });
+
+    it('deriva só alterado quando apenas o texto mudou', () => {
+      const antes = { tipo: 'Paragrafo', rotulo: '§ 4º-A.', lexmlId: 'par4-1', conteudo: { texto: 'a' } };
+      const apos = { tipo: 'Paragrafo', rotulo: '§ 4º-A.', lexmlId: 'par4-1', conteudo: { texto: 'b' } };
+      expect(derivarOperacoesRevisao(state, novaRevisao(StateType.ElementoModificado, antes, apos))).to.equal('alterado');
+    });
   });
 
   describe('reconciliarOperacoesRevisao', () => {
@@ -149,6 +168,56 @@ describe('Operações de revisão da hierarquia (atributo "revisao")', () => {
       const r = novaRevisao(StateType.ElementoIncluido, { tipo: 'Inciso', conteudo: { texto: 'a' } }, { tipo: 'Inciso', conteudo: { texto: 'b' } });
       reconciliarOperacoesRevisao(state, r);
       expect(r.revisao).to.be.undefined;
+    });
+
+    it('descarta alteracaoRotulo quando o id voltou ao original, mantendo alterado', () => {
+      const r = revisao(
+        'alteracaoRotulo;par4-1,alterado',
+        { tipo: 'Paragrafo', lexmlId: 'par4-1', hierarquia: lugar('p', 0), conteudo: { texto: 'a' } },
+        { tipo: 'Paragrafo', lexmlId: 'par4-1', hierarquia: lugar('p', 0), conteudo: { texto: 'b' } }
+      );
+      reconciliarOperacoesRevisao(state, r);
+      expect(r.revisao).to.equal('alterado');
+    });
+
+    it('mantém alteracaoRotulo enquanto o id for diferente do original', () => {
+      const r = revisao(
+        'alteracaoRotulo;par4-1',
+        { tipo: 'Paragrafo', lexmlId: 'par4-2', hierarquia: lugar('p', 0), conteudo: { texto: 'a' } },
+        { tipo: 'Paragrafo', lexmlId: 'par4-3', hierarquia: lugar('p', 0), conteudo: { texto: 'a' } }
+      );
+      reconciliarOperacoesRevisao(state, r);
+      expect(r.revisao).to.equal('alteracaoRotulo;par4-1');
+    });
+
+    it('mantém alteracaoRotulo em dispositivo movido, cujo rótulo difere por outra causa', () => {
+      const r = revisao(
+        'movido;2,alteracaoRotulo;par4-1',
+        { tipo: 'Paragrafo', lexmlId: 'par4-1', hierarquia: lugar('p', 1), conteudo: { texto: 'a' } },
+        { tipo: 'Paragrafo', lexmlId: 'par9-1', hierarquia: lugar('p', 8), conteudo: { texto: 'a' } }
+      );
+      reconciliarOperacoesRevisao(state, r);
+      expect(r.revisao).to.equal('movido;2,alteracaoRotulo;par4-1');
+    });
+  });
+
+  describe('descrição da marca de alteração de rótulo', () => {
+    const modificada = (operacoes: string): RevisaoElemento => {
+      const r = novaRevisao(StateType.ElementoModificado, { tipo: 'Paragrafo', rotulo: '§ 4º-A.' }, { tipo: 'Paragrafo', rotulo: '§ 4º-B.' });
+      r.revisao = operacoes;
+      return r;
+    };
+
+    it('descreve o rótulo isolado informando o rótulo anterior', () => {
+      expect(buildDescricaoRevisaoElemento(modificada('alteracaoRotulo;par4-1'))).to.equal('Rótulo do dispositivo foi alterado (rótulo antes era "§ 4º-A.")');
+    });
+
+    it('descreve a revisão combinada com alterado', () => {
+      expect(buildDescricaoRevisaoElemento(modificada('alteracaoRotulo;par4-1,alterado'))).to.equal('Rótulo e texto do dispositivo foram alterados (rótulo antes era "§ 4º-A.")');
+    });
+
+    it('mantém a descrição de texto quando não há alteração de rótulo', () => {
+      expect(buildDescricaoRevisaoElemento(modificada('alterado'))).to.equal('Texto do dispositivo foi alterado');
     });
   });
 });
