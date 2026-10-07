@@ -6,6 +6,28 @@ import { novoDocumentoArticulado, novoDocumentoComTextoLiteral } from '../doc/do
 import { MPV_885_2019 } from '../assets/mpv_885_2019';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
 import { Autoria } from '../../src/model/proposicao/proposicao';
+import { MPV_905_2019 } from '../doc/mpv_905_2019';
+import { State } from '../../src/redux/state';
+import { Elemento } from '../../src/model/elemento';
+import { createElemento } from '../../src/model/elemento/elementoUtil';
+import { RevisaoElemento } from '../../src/model/revisao/revisao';
+import { isRevisaoPrincipal } from '../../src/redux/elemento/util/revisaoUtil';
+import { buscaDispositivoById } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { elementoReducer } from '../../src/redux/elemento/reducer/elementoReducer';
+import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
+import { buildJsonixArticulacaoFromProjetoNorma } from '../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
+import { montaRevisoesArticulacao } from '../../src/model/lexml/documento/conversor/revisaoArticulacao';
+import { reconstroiRevisoes } from '../../src/model/lexml/documento/conversor/reconstroiRevisoes';
+import { aplicarRevisoesAction } from '../../src/model/lexml/acao/aplicarRevisoes';
+import { ABRIR_ARTICULACAO } from '../../src/model/lexml/acao/openArticulacaoAction';
+import { ATIVAR_DESATIVAR_REVISAO } from '../../src/model/lexml/acao/ativarDesativarRevisaoAction';
+import { ATUALIZAR_USUARIO } from '../../src/model/lexml/acao/atualizarUsuarioAction';
+import { ADICIONAR_ELEMENTO } from '../../src/model/lexml/acao/adicionarElementoAction';
+import { REMOVER_ELEMENTO } from '../../src/model/lexml/acao/removerElementoAction';
+import { ATUALIZAR_TEXTO_ELEMENTO } from '../../src/model/lexml/acao/atualizarTextoElementoAction';
+import { MOVER_ELEMENTO_ABAIXO } from '../../src/model/lexml/acao/moverElementoAbaixoAction';
+import { TAB } from '../../src/model/lexml/acao/tabAction';
+import { REJEITAR_REVISAO } from '../../src/model/lexml/acao/rejeitarRevisaoAction';
 
 describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
   for (const [nome, entrada] of [
@@ -141,5 +163,86 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
 
     expect(retorno.valido).to.equal(false);
     expect(retorno.erro).to.include('positiveInteger');
+  });
+});
+
+describe('Documento articulado — revisões da hierarquia pelo CLI real e XSD', () => {
+  const URN = 'urn:lex:br:senado.federal:projeto.lei:2026;1';
+  type Resultado = { valido: boolean; xml: string; jsonix: any; erro?: string };
+
+  const elemento = (s: State, id: string): Elemento => createElemento(buscaDispositivoById(s.articulacao!, id)!);
+  const principais = (s: State): RevisaoElemento[] => s.revisoes!.filter(isRevisaoPrincipal) as RevisaoElemento[];
+  // A ordem das revisões principais não é preservada (criação na sessão, ordem do documento ao reabrir).
+  const resumo = (s: State): string[] =>
+    principais(s)
+      .map(r => JSON.stringify({ operacoes: r.revisao, stateType: r.stateType, tipo: r.elementoAposRevisao.tipo, usuario: r.usuario?.nome }))
+      .sort();
+  const json = (s: State): string => JSON.stringify(buildJsonixArticulacaoFromProjetoNorma(s.articulacao!));
+  const abreArticulacao = (documento: unknown): State => {
+    const projetoNorma = buildProjetoNormaFromJsonix(documento, true);
+    return elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
+  };
+
+  // Em ordem decrescente de artigo, para que as exclusões e movimentações não desloquem os ids usados nas operações seguintes.
+  const sessaoComAsCincoOperacoes = (): State => {
+    let s = elementoReducer(undefined, {
+      type: ABRIR_ARTICULACAO,
+      articulacao: buildProjetoNormaFromJsonix(MPV_905_2019).articulacao!,
+      classificacao: ClassificacaoDocumento.PROJETO,
+    });
+    s = elementoReducer(s, { type: ATUALIZAR_USUARIO, usuario: { nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' } });
+    s = elementoReducer(s, { type: ATIVAR_DESATIVAR_REVISAO });
+    s = elementoReducer(s, { type: TAB, atual: elemento(s, 'art9_cpt_inc3') });
+    s = elementoReducer(s, { type: MOVER_ELEMENTO_ABAIXO, atual: elemento(s, 'art6_cpt_inc1') });
+    const alterado = elemento(s, 'art6_cpt_inc2');
+    alterado.conteudo!.texto = 'texto do movido, alterado;';
+    s = elementoReducer(s, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: alterado });
+    s = elementoReducer(s, { type: REMOVER_ELEMENTO, atual: elemento(s, 'art2') });
+    const textoAlterado = elemento(s, 'art1_par1u_inc1');
+    textoAlterado.conteudo!.texto = 'texto alterado;';
+    s = elementoReducer(s, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: textoAlterado });
+    return elementoReducer(s, { type: ADICIONAR_ELEMENTO, atual: elemento(s, 'art1_par1u_inc4'), novo: { tipo: 'Inciso' } });
+  };
+
+  it('as cinco operações (e uma combinada) vão e voltam pelo CLI, com revisoesArticulacao e usuarios iguais', async () => {
+    const sessao = sessaoComAsCincoOperacoes();
+    const grupo = montaRevisoesArticulacao(sessao)!;
+    const salvo = criarDocumentoArticulado(sessao.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: grupo });
+
+    const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    ['adicionado', 'alterado', 'excluido', 'movido;', 'transformado;inciso'].forEach(operacao => expect(retorno.xml).to.include(`revisao="${operacao}`));
+    expect(retorno.xml).to.match(/revisao="movido;\d+,alterado"/);
+    expect(retorno.xml).to.include('<lexedit:Usuario idUsuario="sf:fulano" nome="Fulano de Tal" sigla="FT"/>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+  });
+
+  it('o documento reaberto a partir do retorno do CLI reconstrói as mesmas revisões e rejeitá-las dá o mesmo resultado', async () => {
+    const sessao = sessaoComAsCincoOperacoes();
+    const salvo = criarDocumentoArticulado(sessao.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: montaRevisoesArticulacao(sessao)! });
+    const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+    expect(retorno.valido, retorno.erro).to.equal(true);
+
+    const aberto = abreArticulacao(lerDocumentoArticulado(retorno.jsonix));
+    const lidas = lerMetadadoLexEdit(retorno.jsonix).revisoesLidas!;
+    const reaberto = elementoReducer(aberto, aplicarRevisoesAction.execute(reconstroiRevisoes(aberto.articulacao!, lidas)));
+
+    expect(resumo(reaberto)).to.deep.equal(resumo(sessao));
+    expect(json(reaberto)).to.equal(json(sessao));
+    const rejeitada = (s: State): string => json(elementoReducer(s, { type: REJEITAR_REVISAO }));
+    expect(rejeitada(reaberto)).to.equal(rejeitada(sessao));
+  });
+
+  it('o XSD rejeita uma revisão sem o atributo obrigatório revisao', async () => {
+    const sessao = sessaoComAsCincoOperacoes();
+    const grupo = montaRevisoesArticulacao(sessao)!;
+    delete (grupo.revisoesArticulacao.revisaoArticulacao[0] as Record<string, unknown>).revisao;
+    const salvo = criarDocumentoArticulado(sessao.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: grupo });
+
+    const retorno = await executeServerCommand<{ valido: boolean; erro: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido).to.equal(false);
+    expect(retorno.erro).to.include('revisao');
   });
 });

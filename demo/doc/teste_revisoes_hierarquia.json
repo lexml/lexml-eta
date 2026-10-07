@@ -1,0 +1,591 @@
+{
+  "name": {
+    "key": "{http://www.lexml.gov.br/1.0}LexML",
+    "localPart": "LexML",
+    "namespaceURI": "http://www.lexml.gov.br/1.0",
+    "prefix": "",
+    "string": "{http://www.lexml.gov.br/1.0}LexML"
+  },
+  "value": {
+    "TYPE_NAME": "br_gov_lexml__1.LexML",
+    "metadado": {
+      "TYPE_NAME": "br_gov_lexml__1.Metadado",
+      "identificacao": {
+        "TYPE_NAME": "br_gov_lexml__1.Identificacao",
+        "urn": "urn:lex:br:senado.federal:projeto.resolucao;prs:2023;00092"
+      },
+      "metadadoProprietario": [
+        {
+          "TYPE_NAME": "br_gov_lexml__1.MetadadoProprietario",
+          "any": [
+            {
+              "name": {
+                "key": "{http://www.lexml.gov.br/lexedit/1.0}Metadado",
+                "localPart": "Metadado",
+                "namespaceURI": "http://www.lexml.gov.br/lexedit/1.0",
+                "prefix": "lexedit",
+                "string": "{http://www.lexml.gov.br/lexedit/1.0}lexedit:Metadado"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml_lexedit__1.Metadado",
+                "pendencias": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.Pendencias",
+                  "pendencia": [
+                    "Resolver marcas de revisão na articulação."
+                  ]
+                },
+                "revisoesArticulacao": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisoesArticulacao",
+                  "revisaoArticulacao": [
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisaoArticulacao",
+                      "data": "2026-10-07T14:44:43-03:00",
+                      "refIdDispositivo": "art1_cpt_inc3_ali1",
+                      "refIdUsuario": "sf:fulano",
+                      "revisao": "transformado;inciso"
+                    },
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisaoArticulacao",
+                      "data": "2026-10-07T14:44:43-03:00",
+                      "refIdDispositivo": "art2_par2",
+                      "refIdUsuario": "sf:fulano",
+                      "revisao": "movido;1"
+                    },
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisaoArticulacao",
+                      "data": "2026-10-07T14:44:43-03:00",
+                      "p": {
+                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                        "content": [
+                          "O Senado Federal prestará colaboração às atividades desenvolvidas pela Frente Parlamentar Mista de Combate à Violência Política de Gênero."
+                        ]
+                      },
+                      "refIdDispositivo": "art3",
+                      "refIdUsuario": "sf:fulano",
+                      "revisao": "alterado"
+                    },
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisaoArticulacao",
+                      "data": "2026-10-07T14:44:43-03:00",
+                      "refIdDispositivo": "art4_par1u",
+                      "refIdUsuario": "sf:fulano",
+                      "revisao": "adicionado"
+                    },
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisaoArticulacao",
+                      "artigo": {
+                        "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                        "id": "_art1-exc1",
+                        "lXcontainersOmissis": [
+                          {
+                            "name": {
+                              "key": "{http://www.lexml.gov.br/1.0}Caput",
+                              "localPart": "Caput",
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "prefix": "",
+                              "string": "{http://www.lexml.gov.br/1.0}Caput"
+                            },
+                            "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "_art1-exc1_cpt",
+                              "p": [
+                                {
+                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                  "content": [
+                                    "É instituída, no âmbito do Congresso Nacional, a Frente Parlamentar Mista de Combate à Violência Política de Gênero."
+                                  ]
+                                }
+                              ]
+                            }
+                          },
+                          {
+                            "name": {
+                              "key": "{http://www.lexml.gov.br/1.0}Paragrafo",
+                              "localPart": "Paragrafo",
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "prefix": "",
+                              "string": "{http://www.lexml.gov.br/1.0}Paragrafo"
+                            },
+                            "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                              "id": "_art1-exc1_par1",
+                              "p": [
+                                {
+                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                  "content": [
+                                    "A Frente de que trata o ",
+                                    {
+                                      "name": {
+                                        "key": "{http://www.lexml.gov.br/1.0}i",
+                                        "localPart": "i",
+                                        "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                        "prefix": "",
+                                        "string": "{http://www.lexml.gov.br/1.0}i"
+                                      },
+                                      "value": {
+                                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                        "content": [
+                                          "caput"
+                                        ]
+                                      }
+                                    },
+                                    " é órgão político de caráter suprapartidário, de natureza não governamental, sem fins lucrativos, com tempo indeterminado de duração e integrado por membros do Senado Federal e da Câmara dos Deputados."
+                                  ]
+                                }
+                              ],
+                              "rotulo": "Parágrafo único."
+                            }
+                          }
+                        ],
+                        "rotulo": "Art. 1º"
+                      },
+                      "data": "2026-10-07T14:44:43-03:00",
+                      "refIdUsuario": "sf:fulano",
+                      "revisao": "excluido"
+                    }
+                  ]
+                },
+                "usuarios": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.Usuarios",
+                  "usuario": [
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.Usuario",
+                      "idUsuario": "sf:fulano",
+                      "nome": "Fulano de Tal",
+                      "sigla": "FT"
+                    }
+                  ]
+                }
+              }
+            }
+          ],
+          "fonte": "http://www.lexml.gov.br/lexedit/1.0"
+        }
+      ]
+    },
+    "projetoNorma": {
+      "TYPE_NAME": "br_gov_lexml__1.ProjetoNorma",
+      "norma": {
+        "TYPE_NAME": "br_gov_lexml__1.HierarchicalStructure",
+        "articulacao": {
+          "TYPE_NAME": "br_gov_lexml__1.Articulacao",
+          "lXhier": [
+            {
+              "name": {
+                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                "localPart": "Artigo",
+                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                "prefix": "",
+                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                "id": "art1",
+                "lXcontainersOmissis": [
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                      "localPart": "Caput",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art1_cpt",
+                      "lXcontainersOmissis": [
+                        {
+                          "name": {
+                            "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                            "localPart": "Inciso",
+                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                            "prefix": "",
+                            "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                          },
+                          "value": {
+                            "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                            "id": "art1_cpt_inc1",
+                            "p": [
+                              {
+                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                "content": [
+                                  "reunir os membros do Congresso Nacional dedicados à garantia dos direitos de participação política da mulher;"
+                                ]
+                              }
+                            ],
+                            "rotulo": "I –"
+                          }
+                        },
+                        {
+                          "name": {
+                            "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                            "localPart": "Inciso",
+                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                            "prefix": "",
+                            "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                          },
+                          "value": {
+                            "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                            "id": "art1_cpt_inc2",
+                            "p": [
+                              {
+                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                "content": [
+                                  "promover debates, simpósios, seminários e outras iniciativas que busquem a prevenção e o combate à violência política de gênero;"
+                                ]
+                              }
+                            ],
+                            "rotulo": "II –"
+                          }
+                        },
+                        {
+                          "name": {
+                            "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                            "localPart": "Inciso",
+                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                            "prefix": "",
+                            "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                          },
+                          "value": {
+                            "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                            "id": "art1_cpt_inc3",
+                            "lXcontainersOmissis": [
+                              {
+                                "name": {
+                                  "key": "{http://www.lexml.gov.br/1.0}Alinea",
+                                  "localPart": "Alinea",
+                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                  "prefix": "",
+                                  "string": "{http://www.lexml.gov.br/1.0}Alinea"
+                                },
+                                "value": {
+                                  "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                                  "id": "art1_cpt_inc3_ali1",
+                                  "p": [
+                                    {
+                                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                      "content": [
+                                        "acompanhar proposições legislativas que abordem o tema, participando do processo legislativo inerente às comissões temáticas nas duas Casas do Congresso Nacional;"
+                                      ]
+                                    }
+                                  ],
+                                  "rotulo": "a)"
+                                }
+                              }
+                            ],
+                            "p": [
+                              {
+                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                "content": [
+                                  "acompanhar políticas e ações que envolvam o combate à violência política de gênero;"
+                                ]
+                              }
+                            ],
+                            "rotulo": "III –"
+                          }
+                        },
+                        {
+                          "name": {
+                            "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                            "localPart": "Inciso",
+                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                            "prefix": "",
+                            "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                          },
+                          "value": {
+                            "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                            "id": "art1_cpt_inc4",
+                            "p": [
+                              {
+                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                "content": [
+                                  "promover intercâmbios com entes assemelhados de parlamentos de outros estados ou países, visando o aprendizado e o aperfeiçoamento recíproco das respectivas políticas destinadas a combater a violência política de gênero."
+                                ]
+                              }
+                            ],
+                            "rotulo": "IV –"
+                          }
+                        }
+                      ],
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "A Frente Parlamentar Mista de Combate à Violência Política de Gênero tem como finalidades principais:"
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "rotulo": "Art. 1º"
+              }
+            },
+            {
+              "name": {
+                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                "localPart": "Artigo",
+                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                "prefix": "",
+                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                "id": "art2",
+                "lXcontainersOmissis": [
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                      "localPart": "Caput",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art2_cpt",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "A Frente Parlamentar Mista de Combate à Violência Política de Gênero reger-se-á por seu regimento próprio, aprovado por seus membros, observado o que dispõem o ",
+                            {
+                              "name": {
+                                "key": "{http://www.lexml.gov.br/1.0}Remissao",
+                                "localPart": "Remissao",
+                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                "prefix": "",
+                                "string": "{http://www.lexml.gov.br/1.0}Remissao"
+                              },
+                              "value": {
+                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                "content": [
+                                  "Regimento Interno do Senado Federal"
+                                ],
+                                "href": "urn:lex:br:senado.federal:regimento.interno:1970-11-27;1970"
+                              }
+                            },
+                            " e o ",
+                            {
+                              "name": {
+                                "key": "{http://www.lexml.gov.br/1.0}Remissao",
+                                "localPart": "Remissao",
+                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                "prefix": "",
+                                "string": "{http://www.lexml.gov.br/1.0}Remissao"
+                              },
+                              "value": {
+                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                "content": [
+                                  "Regimento Interno da Câmara dos Deputados"
+                                ],
+                                "href": "urn:lex:br:camara.deputados:regimento.interno:1989-09-21;1989"
+                              }
+                            },
+                            "."
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}Paragrafo",
+                      "localPart": "Paragrafo",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}Paragrafo"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art2_par1",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "A Frente Parlamentar Mista de Combate à Violência Política de Gênero reunir-se-á, preferencialmente, nas dependências do Senado Federal ou da Câmara dos Deputados, podendo, por conveniência ou necessidade, reunir-se em qualquer outro local."
+                          ]
+                        }
+                      ],
+                      "rotulo": "§ 1º"
+                    }
+                  },
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}Paragrafo",
+                      "localPart": "Paragrafo",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}Paragrafo"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art2_par2",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "A Frente Parlamentar Mista de Combate à Violência Política de Gênero será integrada, inicialmente, pelas Senadoras, Senadores, Deputadas Federais e Deputados Federais que assinarem a ata de sua instalação, podendo outros membros a ela aderir posteriormente."
+                          ]
+                        }
+                      ],
+                      "rotulo": "§ 2º"
+                    }
+                  },
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}Paragrafo",
+                      "localPart": "Paragrafo",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}Paragrafo"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art2_par3",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "Até a aprovação de seu regimento interno, o funcionamento da Frente Parlamentar Mista de Combate à Violência Política de Gênero observará as deliberações tomadas por maioria dos votos, presente a maioria absoluta de seus membros."
+                          ]
+                        }
+                      ],
+                      "rotulo": "§ 3º"
+                    }
+                  }
+                ],
+                "rotulo": "Art. 2º"
+              }
+            },
+            {
+              "name": {
+                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                "localPart": "Artigo",
+                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                "prefix": "",
+                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                "id": "art3",
+                "lXcontainersOmissis": [
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                      "localPart": "Caput",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art3_cpt",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "Texto do art. 4 alterado em revisão."
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ],
+                "rotulo": "Art. 3º"
+              }
+            },
+            {
+              "name": {
+                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                "localPart": "Artigo",
+                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                "prefix": "",
+                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                "id": "art4",
+                "lXcontainersOmissis": [
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                      "localPart": "Caput",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art4_cpt",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "Esta Resolução entra em vigor na data de sua publicação."
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}Paragrafo",
+                      "localPart": "Paragrafo",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}Paragrafo"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art4_par1u",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            ""
+                          ]
+                        }
+                      ],
+                      "rotulo": "Parágrafo único."
+                    }
+                  }
+                ],
+                "rotulo": "Art. 4º"
+              }
+            }
+          ]
+        },
+        "parteInicial": {
+          "TYPE_NAME": "br_gov_lexml__1.ParteInicial",
+          "ementa": {
+            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+            "content": [
+              "Institui a Frente Parlamentar Mista de Combate à Violência Política de Gênero."
+            ],
+            "id": "ementa"
+          },
+          "epigrafe": {
+            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+            "content": [
+              "PROJETO DE RESOLUÇÃO DO SENADO Nº 00092 de 2023"
+            ],
+            "id": "epigrafe"
+          },
+          "preambulo": {
+            "TYPE_NAME": "br_gov_lexml__1.TextoType",
+            "id": "preambulo",
+            "p": [
+              {
+                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                "content": [
+                  "O SENADO FEDERAL resolve:"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}
