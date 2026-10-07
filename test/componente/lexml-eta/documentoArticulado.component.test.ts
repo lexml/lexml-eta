@@ -419,4 +419,65 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(lexedit).to.not.have.property('pendencias');
     });
   });
+
+  describe('revisões da hierarquia — abrir', () => {
+    const estado = (): any => rootStore.getState().elementoReducer;
+    const principais = (): any[] => (estado().revisoes ?? []).filter((r: any) => !r.idRevisaoElementoPrincipal);
+
+    afterEach(() => {
+      if (estado().emRevisao) rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+    });
+
+    const salvaComRevisao = (): any => {
+      rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+      const elemento = createElemento(estado().articulacao.filhos[0]);
+      elemento.conteudo!.texto = 'Texto revisado.';
+      rootStore.dispatch({ type: ATUALIZAR_TEXTO_ELEMENTO, atual: elemento });
+      return component.getDocumentoArticulado();
+    };
+
+    it('reaplica as revisões do arquivo e entra em modo de revisão', async () => {
+      const salvo = salvaComRevisao();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(estado().emRevisao).to.equal(true);
+      expect(principais()).to.have.length(1);
+      expect(principais()[0]).to.include({ revisao: 'alterado' });
+    });
+
+    it('desenha na tela a marca da revisão reaplicada, sem depender de novo evento do dispositivo', async () => {
+      const salvo = salvaComRevisao();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(component.querySelectorAll('.container__revisao')).to.have.length(1);
+    });
+
+    it('salvar e reabrir preserva as revisões, os usuários e a pendência', async () => {
+      const salvo = salvaComRevisao();
+      const grupo = lexeditSalvo(salvo);
+
+      await component.abrirDocumentoArticulado(salvo);
+      const novo = lexeditSalvo(component.getDocumentoArticulado());
+
+      expect(novo.revisoesArticulacao).to.deep.equal(grupo.revisoesArticulacao);
+      expect(novo.usuarios).to.deep.equal(grupo.usuarios);
+      expect(novo.pendencias).to.deep.equal(grupo.pendencias);
+    });
+
+    it('abrir outro documento sem revisões não herda as marcas nem o modo de revisão', async () => {
+      await component.abrirDocumentoArticulado(salvaComRevisao());
+
+      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+      expect(principais()).to.have.length(0);
+      expect(estado().emRevisao).to.equal(false);
+    });
+
+    it('arquivo sem revisões abre sem modo de revisão', () => {
+      expect(estado().emRevisao).to.equal(false);
+      expect(principais()).to.have.length(0);
+    });
+  });
 });

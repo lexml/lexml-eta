@@ -15,8 +15,9 @@ import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
 import { Revisao } from '../model/revisao/revisao';
 import { LexmlEtaParametrosEdicao } from './lexml-eta.component';
 import { EditorComponent } from './editor/editor.component';
-import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
+import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado, RevisaoArticulacaoLida } from '../model/lexml/documento/documentoArticulado';
 import { montaRevisoesArticulacao } from '../model/lexml/documento/conversor/revisaoArticulacao';
+import { reconstroiRevisoes } from '../model/lexml/documento/conversor/reconstroiRevisoes';
 
 @customElement('lexml-eta-proposicao')
 export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) {
@@ -48,6 +49,18 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     // (situação padrão de todo dispositivo recém-criado), deslocando o cursor da ementa ~1s após o carregamento.
     if (revisoes?.length) {
       this.loadRevisoes();
+    }
+  }
+
+  /** Reaplica as revisões da hierarquia lidas do arquivo; valem sobre as revisões do host. */
+  async aplicarRevisoesDoArquivo(lidas: RevisaoArticulacaoLida[]): Promise<void> {
+    clearTimeout(this._timerLoadRevisoes);
+    // O evento de revisão precisa encontrar as linhas; esperar o carregamento (e não um timer) não atrasa o resize agendado pela abertura.
+    await this.editorComponent.aguardarCarregamentoDasLinhas();
+    const revisoes = reconstroiRevisoes(rootStore.getState().elementoReducer.articulacao!, lidas);
+    if (revisoes.length) {
+      this.revisoes = revisoes;
+      rootStore.dispatch(aplicarRevisoesAction.execute(revisoes));
     }
   }
 

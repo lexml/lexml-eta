@@ -231,6 +231,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const params = new LexmlEtaParametrosEdicao();
     params.projetoNorma = documento as any;
     await this.inicializarEdicao(params, true);
+    // Sem o atraso de setRevisoes (1 s): o documento aberto já sai com as marcas e em modo de revisão.
+    if (dados.revisoesLidas?.length) await this._lexmlEta!.aplicarRevisoesDoArquivo(dados.revisoesLidas);
     // Depois de inicializarEdicao: resetaProposicao sobrescreve o formulário com os valores padrão.
     if (dados.opcoesImpressao) this._lexmlOpcoesImpressao.opcoesImpressao = dados.opcoesImpressao;
     // Dados do arquivo como gravados, sem consultar a lista de parlamentares do host.

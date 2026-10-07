@@ -1652,27 +1652,40 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.timerOnChange = null;
   }
 
+  private carregamentoDasLinhas: Promise<void> = Promise.resolve();
+
+  /** Resolve quando as linhas da articulação carregada mais recentemente já existem no Quill. */
+  aguardarCarregamentoDasLinhas(): Promise<void> {
+    return this.carregamentoDasLinhas;
+  }
+
   private carregarArticulacao(elementos: Elemento[], isMudancaDePagina: boolean, paginacao?: Paginacao): void {
     let primeiraLinhaDaPagina: EtaContainerTable | undefined;
+    let concluirCarregamento!: () => void;
+    this.carregamentoDasLinhas = new Promise<void>(resolve => (concluirCarregamento = resolve));
     setTimeout(() => {
-      if (!this.quill) return;
-      this.quill.getLine(0)[0].remove();
-      // Set em vez do array de ids: a busca acontece uma vez por elemento do documento inteiro.
-      const idsDaPagina = new Set(paginacao?.paginaSelecionada?.ids);
-      const carregarTodos = !paginacao?.paginaSelecionada || paginacao.paginasArticulacao?.length === 1;
-      elementos.forEach((elemento: Elemento) => {
-        if ((elemento.tipo === 'Articulacao' && !elemento.lexmlId) || carregarTodos || idsDaPagina.has(elemento.lexmlId!)) {
-          const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
-          etaContainerTable.insertInto(this.quill.scroll);
-          etaContainerTable.setEstilo(elemento);
+      if (!this.quill) return concluirCarregamento();
+      try {
+        this.quill.getLine(0)[0].remove();
+        // Set em vez do array de ids: a busca acontece uma vez por elemento do documento inteiro.
+        const idsDaPagina = new Set(paginacao?.paginaSelecionada?.ids);
+        const carregarTodos = !paginacao?.paginaSelecionada || paginacao.paginasArticulacao?.length === 1;
+        elementos.forEach((elemento: Elemento) => {
+          if ((elemento.tipo === 'Articulacao' && !elemento.lexmlId) || carregarTodos || idsDaPagina.has(elemento.lexmlId!)) {
+            const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
+            etaContainerTable.insertInto(this.quill.scroll);
+            etaContainerTable.setEstilo(elemento);
 
-          elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
+            elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
 
-          if (!primeiraLinhaDaPagina && elemento.lexmlId) {
-            primeiraLinhaDaPagina = etaContainerTable;
+            if (!primeiraLinhaDaPagina && elemento.lexmlId) {
+              primeiraLinhaDaPagina = etaContainerTable;
+            }
           }
-        }
-      });
+        });
+      } finally {
+        concluirCarregamento();
+      }
       !isMudancaDePagina && this.quill.limparHistory();
       if (elementos.length > 1) {
         setTimeout(() => {
