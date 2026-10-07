@@ -4,7 +4,7 @@
 
 Ver proposal.md (Why). Fatos do estado atual, confirmados no código e por um teste descartável com a MPV 1234/2024 (parágrafo `art1_cpt_alt1_art4_par4-1`, "§ 4º-A", com um inciso, criado antes do modo de revisão):
 
-- **Caminho da renumeração manual:** `RENUMERAR_ELEMENTO` só é permitido em alteração de norma e em dispositivo que não existe na norma alterada (`podeRenumerar`). `renumeraElemento.ts` troca número, rótulo e id (do dispositivo e, se artigo, do caput) e emite `ElementoModificado` para o dispositivo; não emite `ElementoRenumerado` (esse evento é da renumeração automática dos irmãos, que `atualizaRevisao.ts` não processa).
+- **Caminho da renumeração manual:** `RENUMERAR_ELEMENTO` só é permitido em alteração de norma. Hoje `podeRenumerar` também o nega para dispositivo marcado como "Existente" na norma alterada (`existeNaNormaAlterada`), e as regras de cada tipo o omitem quando o pai é "Novo" (filhos numerados automaticamente). `renumeraElemento.ts` troca número, rótulo e id (do dispositivo e, se artigo, do caput) e emite `ElementoModificado` para o dispositivo; não emite `ElementoRenumerado` (esse evento é da renumeração automática dos irmãos, que `atualizaRevisao.ts` não processa).
 - **Produtor atual:** `processaEventosDeModificacao` trata esse `ElementoModificado` como qualquer modificação. Dispositivo pré-existente: cria uma revisão `ElementoModificado` com `revisao = "alterado"`, `antes` com o id e o rótulo antigos (`par4-1`, "§ 4º-A.") e `apos` com os novos (`par4-2`, "§ 4º-B."). Dispositivo criado na sessão de revisão: a revisão `adicionado` absorve a mudança. Renumerar de volta ao original remove a revisão, porque `revisaoDeElementoComMesmoUuid2RotuloEConteudo` já compara o rótulo.
 - **Rejeitar:** `rejeitaModificacao` só chama `atualizaTextoElemento` com o snapshot `antes`; rótulo, número e id **não** são restaurados (o dispositivo continuou `par4-2`, "§ 4º-B."). Aceitar só remove a marca.
 - **Ids dos descendentes:** após renumerar, o inciso filho ficou com `art1_cpt_alt1_art4_par4-1_inc[sn:16]` sob o pai `par4-2`: o id dos descendentes não é recalculado.
@@ -15,6 +15,7 @@ Ver proposal.md (Why). Fatos do estado atual, confirmados no código e por um te
 ## Goals / Non-Goals
 
 **Goals:**
+- Permitir renumerar manualmente também o dispositivo "Existente" em alteração de norma, sem alterar o selo.
 - A renumeração manual em revisão produz `alteracaoRotulo;<idOriginal>`, combinável com as demais operações, reconciliada quando revertida, e rejeitável com restauração real de número, rótulo e ids.
 - Os ids dos descendentes acompanham toda renumeração, com ou sem revisão.
 - Salvar e abrir a operação sem perda na ida e volta, inclusive pelo `jsonix-lexml` real.
@@ -22,7 +23,6 @@ Ver proposal.md (Why). Fatos do estado atual, confirmados no código e por um te
 **Non-Goals:**
 - O "Problema identificado" de `11-revisao-da-hierarquia.md` (desfazer transformação sem excluir dispositivo subsequente).
 - Revisão para a renumeração automática dos irmãos (`ElementoRenumerado`).
-- Permitir renumerar dispositivos que existem na norma alterada (a guarda de `podeRenumerar` não muda).
 - Migrar arquivos já salvos em que a renumeração foi gravada como `alterado`: continuam abrindo como estão.
 
 ## Decisions
@@ -68,6 +68,18 @@ O gatilho é a modificação em que o rótulo do dispositivo muda entre o elemen
 
 Achado da spike 1.1: hoje desfazer a renumeração **não** devolve o rótulo (ver tabela abaixo). `renumeraElemento.ts` grava no `past` um evento com um só elemento, o anterior (`buildUpdateEvent(dispositivo)` antes da troca), e `processarModificados` (`undoRedoReducerUtil.ts`) só restaura texto, `existeNaNormaAlterada` e nota de alteração. A correção segue o padrão do texto (`[valor do UNDO, valor do REDO]`): o `past` passa a guardar `[antes, depois]`, e `processarModificados` aplica número, rótulo e ids (do dispositivo e dos descendentes, com `updateIdDispositivoAndFilhos`) quando o snapshot difere do dispositivo atual. Os descendentes também são emitidos em `SituacaoElementoModificada`. É o que sustenta o requisito "Reversão da renumeração remove a operação" (desfazer) da spec `renumeracao-dispositivo`.
 
+### 10. Renumerar dispositivo existente na norma alterada
+
+O usuário precisa poder corrigir o rótulo de um dispositivo "Existente" (ex.: o § 1º do art. 3º indicado por engano em vez do § 2º). Os bloqueios, confirmados no código:
+- `podeRenumerar` (`numeracaoUtil.ts`) nega quando `isDispositivoAlteracao && existeNaNormaAlterada`; é o único ponto que produz o aviso "Nessa situação, não é possível renumerar o dispositivo" (o editor o chama antes de abrir o popup). A cláusula é removida; permanecem as guardas de estar em alteração de norma e de não ser omissis.
+- As regras de cada tipo (`regrasParagrafo`, `regrasInciso`, `regrasAlinea`, `regrasItem`) já oferecem a ação quando o pai não é "Novo"; essa guarda fica, porque os filhos de um pai "Novo" são numerados automaticamente. `regrasArtigo` e `regrasAgrupadores` não têm guarda de existência.
+
+O dispositivo renumerado continua com `existeNaNormaAlterada` e o selo "Existente": só o rótulo muda. A revisão segue o mesmo caminho das Decisões 1 a 4: um dispositivo existente renumerado em revisão gera `alteracaoRotulo;<idOriginal>`, o caso do exemplo da `11-revisao-da-hierarquia.md` (`art2_cpt_alt1_art3` para `art4`). A validação de numeração em alteração não muda: se o novo número exigir um omissis antes, o editor continua sugerindo o autofix.
+
+### 11. Numeração automática só nos filhos de dispositivo novo
+
+Achado em teste manual: o único parágrafo marcado como "Novo" sob um artigo "Existente", renumerado para `2`, virava "Parágrafo único.". Causa: `NumeracaoParagrafo.createRotulo` (`numeracaoParagrafo.ts`) testa `isDispositivoNovoNaNormaAlterada(dispositivo)` e, nesse caso, recalcula `informouParagrafoUnico` com `isParagrafoUnico(dispositivo)`, sobrescrevendo o número informado. O gatilho correto é o **pai** ser "Novo" (mesmo critério de `podeRenumerarFilhosAutomaticamente` e `renumeraFilhos`): o primeiro nível de um dispositivo "Novo" é numerado pelo usuário; só os filhos são automáticos. A correção troca o teste para `isDispositivoNovoNaNormaAlterada(dispositivo.pai)`, com guarda para pai indefinido. Só o parágrafo tem esse desvio; as demais classes de numeração não têm teste equivalente. Marcar um dispositivo como "Novo" não renumera (`informaExistenciaDoElementoNaNorma` só alterna o indicador).
+
 ## Resultados das spikes (tarefas 1.1 e 1.2)
 
 Ambas sobre a MPV 1234/2024, parágrafo `art1_cpt_alt1_art4_par4-1`, com e sem modo de revisão.
@@ -84,6 +96,8 @@ Derivação do rótulo a partir do id (spike 1.2): o número gravado no último 
 
 ## Risks / Trade-offs
 
+- **[Risco] Mensagens de numeração após renumerar um dispositivo existente.** O validador de alteração pode apontar omissis antes ou número fora de ordem; é o comportamento já existente para qualquer renumeração, mas passa a aparecer em dispositivos "Existente". Cobrir com teste de reducer e confirmar que a renumeração não é bloqueada por elas.
+- **[Risco] Dispositivos "Novo" sob pai "Existente" que dependiam do "único" automático (Decisão 11).** Cobrir com testes de adicionar, remover e validação de numeração.
 - **[Risco] Eventos dos descendentes em `ElementoModificado` criariam revisões `alterado` indevidas.** Os descendentes devem ser emitidos por um evento que `atualizaRevisao.ts` não processa (como `ElementoRenumerado` ou `SituacaoElementoModificada`). Verificar na spike da tarefa 1.1 qual evento atualiza o id das linhas do editor sem gerar revisão.
 - **[Risco] Desfazer e refazer.** Hoje o `past` da renumeração guarda o elemento anterior; é preciso mapear como `undo.ts` e `redo.ts` restauram rótulo, número e ids (e se o estado de `revisao` volta coerente), e registrar no `design.md`. A reconciliação por id (Decisão 3) cobre o caso comum, mas a spike confirma.
 - **[Risco] Revisões de descendentes com `lexmlId` desatualizado.** Descendentes com revisão própria (ex.: um inciso adicionado na sessão) guardam `elementoAposRevisao.lexmlId`; precisam ser atualizados na renumeração, senão o `refIdDispositivo` salvo aponta para um id que não existe mais.
