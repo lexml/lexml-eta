@@ -1,0 +1,37 @@
+# Tasks
+
+## 1. Investigações iniciais (spikes)
+
+- [x] 1.1 Mapear, com um teste descartável sobre a MPV 1234/2024 (parágrafo `art1_cpt_alt1_art4_par4-1` com um inciso), como a renumeração manual se comporta em UNDO, REDO, aceitar e rejeitar, e qual evento atualiza o id e o rótulo das linhas do editor para os descendentes **sem** gerar revisão (design.md, Riscos). Registrar no `design.md` uma tabela com cada ação, o ponto de código que mantém o atributo `revisao` e o evento escolhido para os descendentes. Verificar rodando o spike e apagando-o ao final.
+- [x] 1.2 Spike da derivação do rótulo a partir do id (design.md, Decisão 8): para artigo, parágrafo (inclusive "único"), inciso, alínea, item e agrupador em alteração de norma, derivar número e rótulo de um id com complemento (`par4-1`, `art3-2`, `ali1-27`) e comparar com o rótulo que o dispositivo teria ao ser renumerado de verdade. Verificar que os dois coincidem em todos os tipos e registrar no `design.md` os casos em que não coincidam.
+
+## 2. Ids dos descendentes na renumeração
+
+- [ ] 2.1 Fazer `renumeraElemento.ts` recalcular o id do dispositivo e de todos os descendentes com `updateIdDispositivoAndFilhos`, emitindo os descendentes no evento definido em 1.1, e atualizar o `lexmlId` dos snapshots de revisões de descendentes (design.md, Decisão 5 e Riscos). Verificar com testes de reducer: parágrafo com inciso e alínea renumerado (ids dos descendentes com o prefixo novo), artigo com caput, parágrafos e incisos, renumeração fora do modo de revisão, e que as linhas do editor e os `refIdDispositivo` das revisões de descendentes acompanham.
+- [ ] 2.2 Corrigir desfazer e refazer da renumeração (design.md, Decisão 9): o `past` de `renumeraElemento.ts` passa a guardar `[antes, depois]` e `processarModificados` restaura número, rótulo e ids do dispositivo e dos descendentes. Verificar com testes de reducer: renumerar → desfazer → refazer devolvendo os mesmos rótulos e ids com e sem modo de revisão, e a coerência com remissões ao dispositivo e a um descendente renumerados.
+
+## 3. Revisão `alteracaoRotulo` em modo de revisão
+
+- [ ] 3.1 Acrescentar `OPERACAO_ALTERACAO_ROTULO` e estender `derivarOperacoesRevisao`, a reconciliação por id (design.md, Decisão 3) e a descrição da marca (Decisão 6) em `revisaoUtil.ts`. Verificar com testes unitários: derivação com rótulo e texto, reconciliação descartando a operação quando o id volta ao original e mantendo-a em dispositivo movido ou transformado, e as descrições de rótulo isolado e combinado.
+- [ ] 3.2 Fazer `atualizaRevisao.ts` produzir a operação (design.md, Decisão 2). Verificar com testes de reducer em modo de revisão: renumeração isolada (`alteracaoRotulo;<idOriginal>`, sem `alterado`), segunda renumeração (argumento da primeira), renumerar de volta (revisão removida), renumerar e alterar o texto, alterar o texto e renumerar, dispositivo criado na sessão (permanece `adicionado`), dispositivo movido e depois renumerado, e desfazer a renumeração.
+- [ ] 3.3 Fazer `rejeitaRevisao.ts` restaurar número, rótulo e ids (design.md, Decisão 4), inclusive em revisão combinada, mantendo a aceitação como remoção da marca. Verificar com testes de reducer: rejeição isolada com inciso filho (ids de volta ao prefixo original), rejeição de `alteracaoRotulo,alterado`, rejeição com remissão ao dispositivo, aceitação, e desfazer e refazer da rejeição.
+
+## 4. Salvar e abrir a operação
+
+- [ ] 4.1 Reconhecer `alteracaoRotulo` em `lerRevisoesArticulacao` (argumento obrigatório) e confirmar que `montaRevisoesArticulacao` a grava sem parágrafo anterior quando não há `alterado` (design.md, Decisão 7). Verificar com testes unitários: leitura da operação, argumento ausente (revisão descartada), operação combinada com `alterado` e `p` preservado, e gravação sem `p` na revisão só de rótulo.
+- [ ] 4.2 Implementar em `reconstroiRevisoes.ts` o ramo de `alteracaoRotulo` com o rótulo anterior derivado do id (design.md, Decisão 8), usando o resultado de 1.2, e a descrição da marca reaberta. Verificar com um teste de reabertura na MPV 1234/2024: renumerar em revisão → salvar → reabrir; a revisão reaberta tem as mesmas operações, e rejeitá-la e aceitá-la dá o mesmo resultado da sessão original (rótulo, ids dos descendentes, articulação), também combinada com `alterado` e com `movido`.
+- [ ] 4.3 Teste de ida e volta no código do editor: criar com a revisão → serializar → ler → reaplicar → serializar de novo produz `revisoesArticulacao`, `usuarios` e `pendencias` iguais, e o documento aberto exibe a marca na tela sem novo evento do dispositivo. Verificar com teste de componente em `documentoArticulado.component.test.ts`.
+
+## 5. Testes de integração e E2E
+
+- [ ] 5.1 Em `documentoArticulado.integration.ts`, acrescentar o cenário com `alteracaoRotulo` isolada e combinada e fazer a ida e volta pelo CLI real (`toxml` + `lexedit.xsd` + `tojson`), exigindo `lexedit.revisoesArticulacao` e `usuarios` iguais. Verificar com `npm run test:documento-articulado:xml` e `JSONIX_LEXML_CLI` apontando para o `jsonix-lexml` 2.0.0.
+- [ ] 5.2 E2E Cypress, depois de consultar `docs/guia-cypress.md` (Shadow DOM, setup de documentos e diagnóstico de falhas): gerar com `criarDocumentoArticulado` (não à mão) a fixture `demo/doc/teste_revisao_alteracao_rotulo.json` a partir de um documento com alteração de norma e um parágrafo renumerado em revisão, e criar `cypress/e2e/revisao/abertura-revisao-alteracao-rotulo.cy.ts`, abrindo-a por `#fileUpload`. O spec verifica a marca com a descrição do rótulo anterior, que rejeitar a revisão devolve o rótulo `§ 4º-A` ao parágrafo e ao inciso filho, e que aceitar a mantém `§ 4º-B` sem marca. A renumeração ao vivo pelo diálogo "Informar numeração" fica sem E2E: depende do menu de contexto e de `sl-dialog` (guia §3, §4 e §12) e o risco que cobriria (produtor e rejeição) já é coberto por 3.2, 3.3 e 4.2; se o custo for baixo, avaliar acrescentar um caso ao vivo. Verificar rodando o spec e confirmando que `cypress/e2e/revisao/abertura-revisoes-hierarquia.cy.ts` e `revisao.cy.ts` continuam passando.
+
+## 6. Regressão e fechamento
+
+- [ ] 6.1 Rodar `npm test` e os specs Cypress de `cypress/e2e/revisao/`, `cypress/e2e/documento-articulado/` e `cypress/e2e/remissao-interna/` (a renumeração toca nas remissões, em especial o grupo G), e confirmar que nada regrediu.
+- [ ] 6.2 Registrar o fechamento: no `docs/extensao-formato-lexml/plano-xsd-lexedit.md`, o grupo `11` passa a "Implementado"; no `CLAUDE.md`, item 13, a operação `alteracaoRotulo`, o recálculo dos ids dos descendentes na renumeração e a regra de reconciliação por id; atualizar a spec principal `abrir-documento-articulado` se a sincronização das specs for feita no arquivamento. Verificar relendo os arquivos.
+
+## Workflow follow-up
+
+- Arquivar a change depois de atendidos os requisitos de revisão do projeto, sincronizando as specs principais.
