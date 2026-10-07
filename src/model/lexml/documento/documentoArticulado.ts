@@ -5,6 +5,7 @@ import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJs
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
 import { getAno, getNumero, getSigla } from './urnUtil';
 import { Autoria, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
+import { Usuario } from '../../revisao/usuario';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -63,6 +64,21 @@ export interface DadosLexEdit {
   opcoesImpressao?: OpcoesImpressao;
   autoria?: Autoria;
   revisoes?: RevisoesLexEdit;
+  // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
+  revisoesLidas?: RevisaoArticulacaoLida[];
+}
+
+/** `lexedit:RevisaoArticulacao` lida do arquivo, já sem as operações desconhecidas. */
+export interface RevisaoArticulacaoLida {
+  refIdDispositivo?: string;
+  operacoes: Array<{ nome: string; argumento?: string }>;
+  usuario: Usuario;
+  // Formato interno (`AAAA-MM-DD HH:mm:ss`, horário local).
+  dataHora: string;
+  // HTML do texto anterior, quando a revisão tem `p`.
+  textoAnterior?: string;
+  // Dispositivo excluído (nó jsonix `{ name, value }`), quando a revisão é de exclusão.
+  excluido?: { name: { namespaceURI: string; localPart: string }; value: any };
 }
 
 export interface ElementoMetadadoLexEdit {

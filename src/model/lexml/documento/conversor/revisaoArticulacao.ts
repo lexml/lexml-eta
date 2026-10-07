@@ -49,11 +49,11 @@ const montaRevisaoDeDispositivo = (state: State, revisao: RevisaoElemento): Revi
 };
 
 // Inciso de artigo mora no caput; as demais combinações usam o próprio pai.
-const getDestinoDeCriacao = (pai: Dispositivo, elemento: Partial<Elemento>): Dispositivo =>
+export const getDestinoDeCriacao = (pai: Dispositivo, elemento: Partial<Elemento>): Dispositivo =>
   isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.tipo || elemento.tipoOmissis === 'inciso-caput') ? (pai as Artigo).caput! : pai;
 
 // Reproduz, numa articulação temporária, a cadeia de ancestrais do pai real (até a articulação raiz ou de alteração).
-const criaHospedeiro = (temporaria: Articulacao, pai: Dispositivo): Dispositivo => {
+export const criaHospedeiro = (temporaria: Articulacao, pai: Dispositivo): Dispositivo => {
   if (isArticulacao(pai)) {
     if (!isArticulacaoAlteracao(pai)) {
       return temporaria;
@@ -112,7 +112,7 @@ const reescreveIds = (valor: any, idTemporario: string, idNovo: string): void =>
 };
 
 // Id que o dispositivo teria se fosse reincluído agora no seu lugar (mesmo cálculo do undo): sonda temporária no pai real.
-const calculaIdBase = (pai: Dispositivo, snapshot: Elemento): string => {
+export const calculaIdBase = (pai: Dispositivo, snapshot: Elemento): string => {
   const destino = getDestinoDeCriacao(pai, snapshot);
   const sonda = criaDispositivo(destino, snapshot.tipo!, undefined, snapshot.hierarquia?.posicao);
   pai.renumeraFilhos();

@@ -9,8 +9,11 @@ import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 import { Autoria, OpcoesImpressao, Parlamentar } from '../../../proposicao/proposicao';
-import { DadosLexEdit } from '../documentoArticulado';
+import { DadosLexEdit, RevisaoArticulacaoLida } from '../documentoArticulado';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
+import { Usuario } from '../../../revisao/usuario';
+import { getOperacoesRevisao } from '../../../../redux/elemento/util/revisaoUtil';
+import { formatDateTime, parseIsoToDateTime } from '../../../../util/date-util';
 
 let ultimoDispositivoCriado: Dispositivo;
 
@@ -172,7 +175,85 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const lexedit = lerConteudoLexEdit(documento);
   const opcoesImpressao = lerOpcoesImpressao(lexedit?.opcoesImpressao);
   const autoria = lerAutoria(lexedit?.autoria);
-  return { ...lerFecho(lexedit), ...(opcoesImpressao && { opcoesImpressao }), ...(autoria && { autoria }) };
+  const revisoesLidas = lerRevisoesArticulacao(lexedit);
+  return { ...lerFecho(lexedit), ...(opcoesImpressao && { opcoesImpressao }), ...(autoria && { autoria }), ...(revisoesLidas.length > 0 && { revisoesLidas }) };
+};
+
+const OPERACOES_CONHECIDAS = ['adicionado', 'excluido', 'alterado', 'movido', 'transformado'];
+
+const NOMES_DISPOSITIVO_NA_REVISAO = [
+  'parte',
+  'livro',
+  'titulo',
+  'subtitulo',
+  'capitulo',
+  'secao',
+  'subsecao',
+  'artigo',
+  'omissis',
+  'agrupamentoHierarquico',
+  'caput',
+  'paragrafo',
+  'inciso',
+  'alinea',
+  'item',
+  'dispositivoGenerico',
+];
+
+// O Jsonix entrega lista de um só elemento como objeto.
+const comoLista = (valor: any): any[] => (Array.isArray(valor) ? valor : valor === undefined || valor === null ? [] : [valor]);
+
+// Operação desconhecida (ex.: alteracaoRotulo) ou com argumento inválido é descartada, sem invalidar as demais.
+const lerOperacoesRevisao = (revisao: unknown): LidaOperacao[] =>
+  getOperacoesRevisao(typeof revisao === 'string' ? revisao : '').filter(o => {
+    if (!OPERACOES_CONHECIDAS.includes(o.nome)) return false;
+    if (o.nome === 'movido') return /^[1-9]\d*$/.test(o.argumento ?? '');
+    if (o.nome === 'transformado') return !!o.argumento;
+    return true;
+  });
+
+type LidaOperacao = RevisaoArticulacaoLida['operacoes'][number];
+
+export const lerUsuarios = (lido: any): Map<string, Usuario> =>
+  new Map(
+    comoLista(lido?.usuario)
+      .filter(u => isObjeto(u) && textoNaoVazio(u.idUsuario) && textoNaoVazio(u.nome))
+      .map((u): [string, Usuario] => [u.idUsuario, new Usuario(u.nome, u.idUsuario, textoNaoVazio(u.sigla) ? u.sigla : undefined)])
+  );
+
+/**
+ * Revisões da hierarquia (especificação 11) tolerantes: ignora a que não tem nenhuma operação conhecida, a não excluída sem
+ * `refIdDispositivo` e a de exclusão sem o dispositivo excluído; `refIdUsuario` sem registro vira usuário com o próprio id.
+ */
+export const lerRevisoesArticulacao = (lexedit: any): RevisaoArticulacaoLida[] => {
+  const usuarios = lerUsuarios(lexedit?.usuarios);
+  return comoLista(lexedit?.revisoesArticulacao?.revisaoArticulacao)
+    .filter(isObjeto)
+    .map((lida): RevisaoArticulacaoLida | undefined => {
+      const operacoes = lerOperacoesRevisao(lida.revisao);
+      if (!operacoes.length) return undefined;
+
+      const nomeDoExcluido = NOMES_DISPOSITIVO_NA_REVISAO.find(nome => isObjeto(lida[nome]));
+      const excluida = operacoes.some(o => o.nome === 'excluido');
+      if (excluida ? !nomeDoExcluido : !textoNaoVazio(lida.refIdDispositivo)) return undefined;
+
+      const refIdUsuario = textoNaoVazio(lida.refIdUsuario) ? lida.refIdUsuario : '';
+      const textoAnterior = isObjeto(comoLista(lida.p)[0]) ? buildContent(escaparTextoJsonix(comoLista(lida.p)[0].content)) : undefined;
+      return {
+        ...(!excluida && { refIdDispositivo: lida.refIdDispositivo }),
+        operacoes,
+        usuario: usuarios.get(refIdUsuario) ?? new Usuario(refIdUsuario || undefined, refIdUsuario || undefined),
+        dataHora: (typeof lida.data === 'string' && parseIsoToDateTime(lida.data)) || formatDateTime(new Date()),
+        ...(textoAnterior !== undefined && { textoAnterior }),
+        ...(excluida && {
+          excluido: {
+            name: { namespaceURI: 'http://www.lexml.gov.br/1.0', localPart: nomeDoExcluido![0].toUpperCase() + nomeDoExcluido!.slice(1) },
+            value: escaparTextoJsonix(lida[nomeDoExcluido!]),
+          },
+        }),
+      };
+    })
+    .filter((r): r is RevisaoArticulacaoLida => !!r);
 };
 
 const getMetadado = (documento: any): Metadado => {
@@ -282,6 +363,13 @@ const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[
       }
     }
   });
+};
+
+/** Lê um nó jsonix de dispositivo (com seus filhos) como filho de `pai`, sem passar pela articulação do documento; texto literal, sem aspas curvas. */
+export const buildDispositivoSoltoFromJsonix = (pai: Dispositivo, no: any): Dispositivo => {
+  const dispositivo = buildDispositivo(pai, no, [], true);
+  buildTree(dispositivo, no.value?.lXhier ?? no.value?.lXcontainersOmissis, [], true);
+  return dispositivo;
 };
 
 const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo[], preservarTexto: boolean): void => {
