@@ -197,6 +197,13 @@ export const processarModificados = (state: State, evento: StateEvent, operacao:
         if (permiteAtualizar) {
           dispositivo.texto = e.conteudo?.texto ?? '';
 
+          // Renumeração manual: o snapshot guarda o número, o rótulo e, por consequência, os ids anteriores.
+          if (e.numero !== undefined && e.numero !== dispositivo.numero) {
+            dispositivo.numero = e.numero;
+            dispositivo.rotulo = e.rotulo;
+            updateIdDispositivoAndFilhos(dispositivo);
+          }
+
           if (dispositivo.alteracoes) {
             dispositivo.alteracoes.base = e.norma;
           }

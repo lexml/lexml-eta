@@ -3,6 +3,7 @@ import { createElemento } from './../../../model/elemento/elementoUtil';
 import { Elemento } from '../../../model/elemento';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
+import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { formatDateTime } from '../../../util/date-util';
 import { State, StateEvent, StateType } from '../../state';
@@ -86,6 +87,10 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
   }
 
   state.revisoes!.push(...revisoes);
+
+  if ([RENUMERAR_ELEMENTO, UNDO, REDO].includes(actionType)) {
+    atualizarLexmlIdAposRenumeracao(state);
+  }
 
   associarRevisoesAosElementosDosEventos(state);
 
@@ -350,6 +355,19 @@ const adicionarOpcoesAoMenu = (state: State): void => {
 const existeEventoDeInclusaoOuExclusao = (state: State): boolean => {
   const eventos = state.ui?.events || [];
   return eventos.some(se => se.stateType === StateType.ElementoIncluido || se.stateType === StateType.ElementoRemovido);
+};
+
+// Só o `apos`: o `antes` preserva o id de origem da revisão.
+const atualizarLexmlIdAposRenumeracao = (state: State): void => {
+  getRevisoesElemento(state.revisoes || [])
+    .filter(r => !isRevisaoDeExclusao(r))
+    .forEach(r => {
+      const d = getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao);
+      if (d?.pai) {
+        r.elementoAposRevisao.lexmlId = d.id;
+        r.elementoAposRevisao.hierarquia!.pai!.lexmlId = d.pai.id;
+      }
+    });
 };
 
 const atualizarLexmlIdEmElementosDeRevisoes = (state: State): void => {
