@@ -7,6 +7,8 @@ import { MPV_885_2019 } from '../assets/mpv_885_2019';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
 import { Autoria } from '../../src/model/proposicao/proposicao';
 import { MPV_905_2019 } from '../doc/mpv_905_2019';
+import { MPV_1234_2024 } from '../doc/mpv_1234_2024';
+import { RENUMERAR_ELEMENTO } from '../../src/model/lexml/acao/renumerarElementoAction';
 import { State } from '../../src/redux/state';
 import { Elemento } from '../../src/model/elemento';
 import { createElemento } from '../../src/model/elemento/elementoUtil';
@@ -244,5 +246,56 @@ describe('Documento articulado — revisões da hierarquia pelo CLI real e XSD',
 
     expect(retorno.valido).to.equal(false);
     expect(retorno.erro).to.include('revisao');
+  });
+
+  describe('alteracaoRotulo (MPV 1234/2024)', () => {
+    const ART4 = 'art1_cpt_alt1_art4';
+
+    // Parágrafo 4 renumerado para 9 (só rótulo) e parágrafo 5 renumerado para 8 e com o texto alterado (rótulo e texto).
+    const sessaoComRenumeracoes = (): State => {
+      let s = elementoReducer(undefined, {
+        type: ABRIR_ARTICULACAO,
+        articulacao: buildProjetoNormaFromJsonix(MPV_1234_2024).articulacao!,
+        classificacao: ClassificacaoDocumento.PROJETO,
+      });
+      s = elementoReducer(s, { type: ATUALIZAR_USUARIO, usuario: { nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' } });
+      s = elementoReducer(s, { type: ATIVAR_DESATIVAR_REVISAO });
+      s = elementoReducer(s, { type: RENUMERAR_ELEMENTO, atual: elemento(s, `${ART4}_par4`), novo: { numero: '9' } });
+      s = elementoReducer(s, { type: RENUMERAR_ELEMENTO, atual: elemento(s, `${ART4}_par5`), novo: { numero: '8' } });
+      const alterado = elemento(s, `${ART4}_par8`);
+      alterado.conteudo!.texto = 'Texto revisado do parágrafo.';
+      return elementoReducer(s, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: alterado });
+    };
+
+    it('a operação isolada e a combinada com alterado vão e voltam pelo CLI, com revisoesArticulacao e usuarios iguais', async () => {
+      const sessao = sessaoComRenumeracoes();
+      const grupo = montaRevisoesArticulacao(sessao)!;
+      const salvo = criarDocumentoArticulado(sessao.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: grupo });
+
+      const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+
+      expect(retorno.valido, retorno.erro).to.equal(true);
+      expect(retorno.xml).to.include(`revisao="alteracaoRotulo;${ART4}_par4"`);
+      expect(retorno.xml).to.include(`revisao="alteracaoRotulo;${ART4}_par5,alterado"`);
+      expect(retorno.xml).to.include('<lexedit:Usuario idUsuario="sf:fulano" nome="Fulano de Tal" sigla="FT"/>');
+      expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+      expect(lerMetadadoLexEdit(retorno.jsonix).revisoesLidas).to.have.length(2);
+    });
+
+    it('o documento reaberto a partir do retorno do CLI reconstrói as mesmas revisões e rejeitá-las dá o mesmo resultado', async () => {
+      const sessao = sessaoComRenumeracoes();
+      const salvo = criarDocumentoArticulado(sessao.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: montaRevisoesArticulacao(sessao)! });
+      const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+      expect(retorno.valido, retorno.erro).to.equal(true);
+
+      const aberto = abreArticulacao(lerDocumentoArticulado(retorno.jsonix));
+      const lidas = lerMetadadoLexEdit(retorno.jsonix).revisoesLidas!;
+      const reaberto = elementoReducer(aberto, aplicarRevisoesAction.execute(reconstroiRevisoes(aberto.articulacao!, lidas)));
+
+      expect(resumo(reaberto)).to.deep.equal(resumo(sessao));
+      expect(json(reaberto)).to.equal(json(sessao));
+      const rejeitada = (s: State): string => json(elementoReducer(s, { type: REJEITAR_REVISAO }));
+      expect(rejeitada(reaberto)).to.equal(rejeitada(sessao));
+    });
   });
 });
