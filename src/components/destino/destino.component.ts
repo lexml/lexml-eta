@@ -22,8 +22,6 @@ export class DestinoComponent extends LitElement {
 
   private tipoColegiadoPlenario = false;
 
-  public isMateriaOrcamentaria = false;
-
   @state()
   private isErroComissaoSelecionada = false;
 
@@ -36,13 +34,8 @@ export class DestinoComponent extends LitElement {
     if (this._proposicao.sigla === 'MPV') {
       this.isMPV = true;
       this._colegiadoApreciador.tipoColegiado = 'Comissão';
-      if (this.isMateriaOrcamentaria) {
-        this._colegiadoApreciador.siglaComissao = 'CMO';
-        this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DE PLANOS, ORÇAMENTOS PÚBLICOS E FISCALIZAÇÃO`;
-      } else {
-        this._colegiadoApreciador.siglaComissao = `CMMPV ${this._proposicao.numero}/${this._proposicao.ano}`;
-        this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DA MEDIDA PROVISÓRIA N° ${this._proposicao.numero}, DE ${this._proposicao.ano}`;
-      }
+      this._colegiadoApreciador.siglaComissao = `CMMPV ${this._proposicao.numero}/${this._proposicao.ano}`;
+      this._autocomplete.value = `${this._colegiadoApreciador.siglaComissao} - COMISSÃO MISTA DA MEDIDA PROVISÓRIA N° ${this._proposicao.numero}, DE ${this._proposicao.ano}`;
     }
 
     this.requestUpdate();

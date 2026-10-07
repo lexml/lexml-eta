@@ -56,9 +56,6 @@ export class LexmlEtaParametrosEdicao {
   // Indica se é texto substitutivo. Quando true, sigla, numero e ano são obrigatórios.
   substitutivo = false;
 
-  // Indicação de matéria orçamentária.
-  isMateriaOrcamentaria = false;
-
   // Texto json da proposição para edição estruturada
   // Opcional para modo 'edicao'
   projetoNorma?: ProjetoNorma;
@@ -90,8 +87,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) lexmlEtaConfig: LexmlEtaConfig = new LexmlEtaConfig();
 
   private urn = '';
-
-  private isMateriaOrcamentaria = false;
 
   private projetoNorma: any;
 
@@ -331,8 +326,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this.destinoAoAbrir = undefined;
       this.anexoParecer = this.lexmlEtaConfig.anexoParecer ?? false;
       this.projetoNorma = params.projetoNorma;
-      this.isMateriaOrcamentaria = params.isMateriaOrcamentaria || (!!params.proposicao && params.proposicao.colegiadoApreciador?.siglaComissao === 'CMO');
-      this._lexmlDestino!.isMateriaOrcamentaria = this.isMateriaOrcamentaria;
 
       this.inicializaProposicao(params);
 

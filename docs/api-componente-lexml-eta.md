@@ -119,7 +119,6 @@ Casa legislativa: para `MPV`, `PDN` e `PRN` é sempre `CN`; senão vale `proposi
 | `proposicao` | `Proposicao` | Estado completo de uma edição anterior (veja `getProposicao()`). Restaura justificação, autoria, revisões, destino etc. |
 | `projetoNorma` | `ProjetoNorma` | Texto estruturado (JSON LexML/Jsonix) a editar. Opcional: sem ele, abre texto vazio. |
 | `substitutivo` | `boolean` | Indica texto substitutivo. Exige `sigla`, `numero` e `ano`. |
-| `isMateriaOrcamentaria` | `boolean` | Matéria orçamentária. Também vale `true` se o destino da `proposicao` for a comissão `CMO`. |
 | `usuario` | `Usuario` | Usuário das marcas de revisão. Se omitido, mantém o usuário atual do store. |
 | `autoriaPadrao` | `{ identificacao: string; siglaCasaLegislativa: 'SF' \| 'CD' }` | Parlamentar pré-selecionado na autoria. Só se aplica quando **não** se passa `proposicao`, e só funciona se o parlamentar existir na lista carregada. |
 | `opcoesImpressaoPadrao` | `{ imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number }` | Valores iniciais das opções de impressão (também só sem `proposicao`). |
