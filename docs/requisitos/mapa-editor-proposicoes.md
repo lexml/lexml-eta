@@ -4,6 +4,23 @@ Visão de ponta a ponta do editor de proposições: o que falta implementar e o 
 
 Fora do escopo: o editor de pareceres (ver `AGENTS.md`).
 
+## Índice
+
+1. [Componentes e responsabilidades](#1-componentes-e-responsabilidades)
+2. [Legenda](#2-legenda)
+3. [Mapa de funcionalidades](#3-mapa-de-funcionalidades)
+   - [A. Edição do documento](#a-edição-do-documento-lexml-eta)
+   - [B. Metadados e formulários](#b-metadados-e-formulários-lexml-eta)
+   - [C. Formato e persistência do documento](#c-formato-e-persistência-do-documento-lexml-eta)
+   - [D. Geração e leitura do PDF](#d-geração-e-leitura-do-pdf-eta-backend-services)
+   - [E. Funcionalidades da aplicação LexEdit](#e-funcionalidades-da-aplicação-lexedit)
+   - [F. Funcionalidades da aplicação Infoleg Editor](#f-funcionalidades-da-aplicação-infoleg-editor)
+   - [G. Transversais](#g-transversais)
+4. [Especificidades por casa legislativa](#4-especificidades-por-casa-legislativa)
+5. [Pendências de especificação](#5-pendências-de-especificação)
+6. [Decisões tomadas](#6-decisões-tomadas)
+7. [Fora do escopo](#7-fora-do-escopo)
+
 ## 1. Componentes e responsabilidades
 
 | Componente | Responsabilidade | Consome |
@@ -17,6 +34,8 @@ Fora do escopo: o editor de pareceres (ver `AGENTS.md`).
 
 A proposição é salva como um **PDF/A** com os metadados embutidos no arquivo anexo `documento-articulado.xml`.
 
+[↑ Voltar ao índice](#índice)
+
 ## 2. Legenda
 
 - **Prioridade:** Essencial | Desejável
@@ -24,6 +43,8 @@ A proposição é salva como um **PDF/A** com os metadados embutidos no arquivo 
 - **Responsável:** `lexml-eta` | `eta-backend-services` | LexEdit | Infoleg Editor
 
 As prioridades e situações desta versão são uma proposta inicial, derivada dos requisitos de referência, das specs em `openspec/` e de uma leitura do código; devem ser validadas.
+
+[↑ Voltar ao índice](#índice)
 
 ## 3. Mapa de funcionalidades
 
@@ -43,26 +64,33 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 | Remissões externas (criação manual e detecção automática pelo lexml-linker) | Desejável | Implementado | `openspec/specs/remissao-externa/`, `docs/planos/PLANO_INTEGRACAO_LEXML_LINKER_WASM.md` |
 | Colar texto articulado com apoio do parser | Essencial | Implementado | `colarTextoArticuladoDialog.ts`, `colarUtil.ts` |
 | Importar documento articulado (DOCX ou TXT) | Essencial | Depende de especificação | Requisitos gerais (João Lima) |
-| Revisão de texto e da articulação (marcar, aceitar, rejeitar) | Essencial | Parcial | `aceitaRevisao.ts`, `moduloRevisao.ts` |
+| Revisão do texto da justificação (marcar, aceitar, rejeitar) | Essencial | Implementado | `moduloRevisao.ts` |
+| Revisão da articulação (marcar, aceitar, rejeitar) | Essencial | Parcial | `aceitaRevisao.ts` |
 | Notas de rodapé na justificação | Desejável | Implementado | `moduloNotaRodape.ts` |
 | Paginação da articulação em documentos grandes | Desejável | Implementado | `openspec/specs/paginacao-articulacao/` |
 | Desfazer e refazer | Essencial | Implementado | `undo.ts`, `redo.ts` |
+| Modo de anexo de parecer | Essencial | Implementado | |
+| Alterar tipo da proposição (ex.: PL para PLP, MPV para PLV, PL para substitutivo ao PL) | Desejável | Depende de especificação | |
+
+[↑ Voltar ao índice](#índice)
 
 ### B. Metadados e formulários (`lexml-eta`)
 
 | Funcionalidade | Prioridade | Situação | Referência |
 |---|---|---|---|
 | Identificação: tipo, epígrafe, ementa e preâmbulo | Essencial | Implementado | `issues.md` #987 |
-| Opções de impressão | Essencial | Implementado | `02-opcoes-de-impressao.md`, issue #988 |
+| Opções de impressão (inclui o tamanho de fonte configurável) | Essencial | Implementado | `02-opcoes-de-impressao.md`, issue #988 |
 | Local e data do fecho | Essencial | Implementado | `03-fecho-local-e-data.md`, issue #989 |
 | Autoria por parlamentares (com assinaturas) | Essencial | Implementado | `04-assinaturas.md`, issue #990 |
 | Autoria por comissão (`ColegiadoAutor`) | Desejável | Depende de especificação (ainda não se sabe se será necessária) | `04-assinaturas.md` |
 | Destino da proposição (substitutivos) | Desejável | Depende de especificação | Pendência 2 |
 | Substitutivo e demais metadados do LexEdit | Desejável | A implementar (especificado) | `13-outros-metadados-do-lexedit.md`, issue #997 |
-| Anexos (apenas anexados, não estruturados) | Desejável | A implementar (especificado) — ainda sem issue | `05-anexos.md` |
-| Justificação com conteúdo rico | Essencial | Parcial (editor existe; persistência no item C) | `06-justificacao-e-conteudo-rico.md` |
+| Gestão de anexos | Desejável | A implementar (especificado) — ainda sem issue | `05-anexos.md` |
+| Justificação com conteúdo rico | Essencial | Implementado (a persistência está no item C) | `06-justificacao-e-conteudo-rico.md` |
 | Comentários | Desejável | A implementar (especificado) — ainda sem issue | `08-comentarios.md` |
 | Registro de usuários (autores de revisões e comentários) | Desejável | A implementar (especificado) — ainda sem issue | `12-registro-usuarios.md` |
+
+[↑ Voltar ao índice](#índice)
 
 ### C. Formato e persistência do documento (`lexml-eta`)
 
@@ -84,6 +112,8 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 | Salvar e abrir autoria por comissão | Desejável | Depende de especificação (ainda não se sabe se será necessária) | `04-assinaturas.md` |
 | Validar a estrutura e converter para LexML (XML) | Essencial | Implementado | `test:documento-articulado:xml`, `schemas/lexedit.xsd` |
 
+[↑ Voltar ao índice](#índice)
+
 ### D. Geração e leitura do PDF (`eta-backend-services`)
 
 | Funcionalidade | Prioridade | Situação | Referência |
@@ -92,26 +122,56 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 | Recuperar os dados (`documento-articulado.xml`) a partir do PDF | Essencial | Parcial (o serviço recupera o JSON de emenda e de parecer; idem) | `eta-backend-services/README.md` |
 | Converter LexML XML em jsonix e vice-versa | Essencial | Implementado | `jsonix-lexml` |
 
-### E. Funcionalidades da aplicação (LexEdit e Infoleg Editor)
+[↑ Voltar ao índice](#índice)
 
-Mesmo quando duplicadas, cada aplicação tem sua própria situação. O repositório de documentos já existe nos editores e não é escopo do `lexml-eta`.
+### E. Funcionalidades da aplicação LexEdit
 
-| Funcionalidade | Prioridade | LexEdit | Infoleg Editor | Referência |
-|---|---|---|---|---|
-| Abrir a proposição (PDF) de um repositório | Essencial | Depende de especificação | Depende de especificação | |
-| Salvar a proposição (PDF) em um repositório | Essencial | Depende de especificação | Depende de especificação | |
-| Nomear / renomear a proposição no repositório | Desejável | Depende de especificação | Depende de especificação | |
-| Excluir a proposição do repositório | Desejável | Depende de especificação | Depende de especificação | |
-| Enviar a proposição a terceiros | Desejável | Depende de especificação | Depende de especificação | |
-| Enviar a proposição a outra aplicação | Desejável | Depende de especificação | Depende de especificação | |
+O repositório de documentos já existe no editor e não é escopo do `lexml-eta`.
 
-### F. Transversais
+| Funcionalidade | Prioridade | Situação | Referência |
+|---|---|---|---|
+| Abrir a proposição (PDF) de um repositório | Essencial | A implementar (especificado) | |
+| Salvar a proposição (PDF) em um repositório | Essencial | A implementar (especificado) | |
+| Nomear / renomear a proposição no repositório | Essencial | A implementar (especificado) | |
+| Excluir a proposição do repositório | Essencial | A implementar (especificado) | |
+| Enviar cópia para outro usuário do Senado | Essencial | A implementar (especificado) | |
+| Salvar proposição no SEDOL | Essencial | A implementar (especificado) | |
+| Abrir proposição do SEDOL | Essencial | A implementar (especificado) | |
+| Visualizar proposição salva | Essencial | A implementar (especificado) | |
+| Visualizar proposição em edição | Essencial | A implementar (especificado) | |
+| Criar nova proposição | Essencial | A implementar (especificado) | |
+| Salvar e recuperar rascunho de proposição | Essencial | A implementar (especificado) | |
+| Baixar PDF de proposição | Essencial | A implementar (especificado) | |
+| Importar arquivo de proposição | Essencial | A implementar (especificado) | |
+
+[↑ Voltar ao índice](#índice)
+
+### F. Funcionalidades da aplicação Infoleg Editor
+
+O repositório de documentos já existe no editor e não é escopo do `lexml-eta`.
+
+| Funcionalidade | Prioridade | Situação | Referência |
+|---|---|---|---|
+| Abrir a proposição (PDF) de um repositório | Essencial | Depende de especificação | |
+| Salvar a proposição (PDF) em um repositório | Essencial | Depende de especificação | |
+| Nomear / renomear a proposição no repositório | Desejável | Depende de especificação | |
+| Excluir a proposição do repositório | Desejável | Depende de especificação | |
+| Visualizar proposição salva | Essencial | Depende de especificação | |
+| Visualizar proposição em edição | Essencial | Depende de especificação | |
+| Criar nova proposição | Essencial | Depende de especificação | |
+| Salvar e recuperar rascunho de proposição | Desejável | Depende de especificação | |
+| Baixar PDF de proposição | Essencial | Depende de especificação | |
+| Importar arquivo de proposição | Desejável | Depende de especificação | |
+
+[↑ Voltar ao índice](#índice)
+
+### G. Transversais
 
 | Funcionalidade | Prioridade | Responsável | Situação | Referência |
 |---|---|---|---|---|
-| Exportar o texto completo em DOCX, LexML e PDF/A-3 com LexML anexado | Desejável | LexEdit, Infoleg Editor, `eta-backend-services` | Depende de especificação | Requisitos gerais (João Lima) |
-| Tamanho de fonte configurável | Desejável | `lexml-eta` | Implementado | `02-opcoes-de-impressao.md` |
 | Uso em dispositivos móveis e nos navegadores Chrome, Firefox, Edge e Safari | Essencial | Todos | Depende de especificação | TAP (restrições) |
+
+[↑ Voltar ao índice](#índice)
 
 ## 4. Especificidades por casa legislativa
 
@@ -130,18 +190,24 @@ Regras próprias de cada casa, independentes do componente que as implementa.
 | Tratamento do parlamentar | Deputado / Deputada | `lexml-eta` (assinaturas) |
 | Demais regras | A levantar em momento posterior | — |
 
+[↑ Voltar ao índice](#índice)
+
 ## 5. Pendências de especificação
 
 | # | Pergunta | Área | Casa | Quem decide | O que bloqueia |
 |---|---|---|---|---|---|
 | 1 | Existem regras para o local no fecho do documento? | B | | | |
 | 2 | Tem sentido a configuração de destino do projeto? Talvez apenas para substitutivos. | B | | | |
-| 3 | Quais são os tipos de autoria? | B | | | |
+| 3 | Quais são os tipos de autoria? Inclui definir se será permitida assinatura não identificada. | B | | | |
 | 4 | Será necessária a autoria por comissão (`ColegiadoAutor`)? A especificação existe, mas não há issue. | B, C | | | Autoria por comissão (edição e persistência) |
 | 5 | Como tratar a técnica legislativa penal (Pena, Penalidade, Medida Administrativa, Infração), hoje sem tipo no modelo? | A | | | Técnica legislativa penal (essencial) |
-| 6 | Quais funcionalidades de abrir, salvar, nomear, excluir e enviar a proposição cada aplicação já oferece? | E | | | |
+| 6 | Quais funcionalidades de abrir, salvar, nomear, excluir e enviar a proposição cada aplicação já oferece? | E, F | | | |
 | 7 | Como serão gerados e lidos o PDF/A da proposição e o `documento-articulado.xml` anexo? Verificar o estado em `eta-backend-services`. | D | | | |
 | 8 | Quais regras específicas da Câmara dos Deputados precisam ser levantadas? | Todas | CD | | |
+| 9 | Quais tipos de proposição permitem substitutivo? | B | | | Destino da proposição (nº 2) e metadado de substitutivo (#997) |
+| 10 | Será necessário configurar a ordem padrão de escrita dos dispositivos nas remissões internas? | A | | | |
+
+[↑ Voltar ao índice](#índice)
 
 ## 6. Decisões tomadas
 
@@ -158,6 +224,9 @@ Regras próprias de cada casa, independentes do componente que as implementa.
 | 2026-10-06 | O título de dispositivo é essencial | A edição está especificada na issue #1010 |
 | 2026-10-06 | Recategorizar agrupadores (subir ou descer um nível da hierarquia) está fora do escopo | Ver seção 7 |
 | 2026-10-06 | Importar documento articulado é essencial e aceita DOCX ou TXT (não PDF) | Os requisitos gerais (João Lima) citavam DOCX e PDF |
+| 2026-10-07 | Exportar o texto completo em DOCX e em LexML está fora do escopo; o padrão de arquivo do editor é o PDF/A-3 com LexML anexado | Ver seção 7 |
+
+[↑ Voltar ao índice](#índice)
 
 ## 7. Fora do escopo
 
@@ -169,5 +238,10 @@ Requisitos de referência que foram avaliados e deliberadamente não serão impl
 | Recategorizar agrupadores (subir ou descer um nível da hierarquia) | Decisão de escopo | Requisitos formais (João Lima) |
 | Visão sumária da hierarquia (árvore, com indicação de notas e comentários) | Decisão de escopo | Requisitos formais (João Lima) |
 | Gestão de modelos de texto com questionário associado | Decisão de escopo | Requisitos gerais (João Lima) |
+| Exportar o texto completo em DOCX | Decisão de escopo | Requisitos gerais (João Lima) |
+| Exportar o texto completo em LexML | Decisão de escopo | Requisitos gerais (João Lima) |
 | Geração assistida do bloco de alteração a partir do texto da norma | O texto da norma virá do SIGEN | Requisitos gerais e formais (João Lima) |
+| Edição de normas | Decisão de escopo | |
 | Editor de pareceres | Fora do escopo do mapa | `AGENTS.md` |
+
+[↑ Voltar ao índice](#índice)

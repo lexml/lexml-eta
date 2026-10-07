@@ -1,11 +1,5 @@
 # Pendências
 
-## Especificação
-
-- Especificar edição de pena
-- Verificar quais tipos permitem substitutivo
-- Reavaliar necessidade de configurar ordem padrão de escrita dos dispositivos em remissões internas
-
 ## Decisões técnicas
 
 - Sobre importação de documentos em DOCX/TXT
@@ -30,4 +24,7 @@
     - Vazia
     - A partir de documento DOCX ou TXT
     - A partir de proposição existente (especialmente útil para substitutivos)
+- Salvar proposição
+- Visualizar proposição
+- Abrir proposição
 
