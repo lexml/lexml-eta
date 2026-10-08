@@ -670,7 +670,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   private isJustificacaoObrigatoria(): boolean {
-    return !this.anexoParecer && this.lexmlEtaConfig?.justificacaoObrigatoria !== false;
+    return !this.anexoParecer;
   }
 
   buildAlertaJustificativa(): void {

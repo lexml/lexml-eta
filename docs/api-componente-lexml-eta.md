@@ -151,7 +151,7 @@ Devolve o estado completo da edição, para o host persistir como quiser (por ex
 
 Campos preenchidos: `projetoNorma`, `justificativa`, `notasRodape`, `autoria`, `opcoesImpressao`, `ementa`, `epigrafe`, `revisoes`, `justificativaAntesRevisao`, `pendenciasPreenchimento`, `colegiadoApreciador`, `anexos`, `substitutivo`, `local`, `urn`, `sigla`, `numero`, `ano` e `dataUltimaModificacao`.
 
-`pendenciasPreenchimento` lista o que impede considerar o texto pronto: justificação vazia (quando obrigatória, ver `justificacaoObrigatoria`) e as mensagens de nível crítico da validação. No modo `anexoParecer`, os campos `justificativa`, `justificativaAntesRevisao`, `notasRodape`, `local` e `autoria` são removidos do objeto.
+`pendenciasPreenchimento` lista o que impede considerar o texto pronto: justificação vazia (sempre obrigatória, exceto em `anexoParecer`) e as mensagens de nível crítico da validação. No modo `anexoParecer`, os campos `justificativa`, `justificativaAntesRevisao`, `notasRodape`, `local` e `autoria` são removidos do objeto.
 
 ### 4.3 `getDocumentoArticulado(): DocumentoArticulado`
 
@@ -195,7 +195,6 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `urlPortalNormas` | `string` | `'https://normas.leg.br'` | Base dos links para abrir uma norma referenciada. |
 | `urlComissoes` | `string?` | — | Endpoint (GET `?siglaCasaLegislativa=`) de comissões. Se ausente, a lista de comissões fica vazia. |
 | `anexoParecer` | `boolean` | `false` | Modo "anexo de parecer": sem justificação, fecho, data nem autoria; só destino e impressão. |
-| `justificacaoObrigatoria` | `boolean` | `true` | Se `true`, justificação vazia gera pendência de preenchimento. Ignorado em `anexoParecer`. |
 | `tamanhoMaximoAnexo` | `number` | `5120` | Tamanho máximo de um anexo, em KB (5 MB). |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
 
