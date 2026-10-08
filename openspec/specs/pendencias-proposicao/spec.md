@@ -1,4 +1,4 @@
-# pendencias-proposicao Specification
+# Pendências da Proposição
 
 ## Purpose
 
