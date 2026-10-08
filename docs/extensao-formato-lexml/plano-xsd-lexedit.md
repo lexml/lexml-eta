@@ -46,7 +46,7 @@ Levantamento feito lendo os 13 arquivos de especificação. Coluna "Status" indi
 | `08` | `lexedit:Comentarios` > `lexedit:SequenciaComentario` > `lexedit:Comentario` | Não implementado |
 | `09` | `lexedit:RevisoesTextuais` > `lexedit:RevisaoTextual` (+ `ins`/`del` do LexML) | Não implementado |
 | `10` | `lexedit:RemissoesInternasInvalidas` (+ `Remissao` do LexML) | **Implementado** |
-| `11` | `lexedit:RevisoesArticulacao` > `lexedit:RevisaoArticulacao` | **Parcial**: salvar e abrir implementados (operações combinadas, exclusões com subárvore e id `_<base>-exc<seq>`, reaplicação imediata das revisões); `alteracaoRotulo` pendente (change própria) |
+| `11` | `lexedit:RevisoesArticulacao` > `lexedit:RevisaoArticulacao` | **Implementado**: salvar e abrir (operações combinadas, incluindo `alteracaoRotulo;<idOriginal>`; exclusões com subárvore e id `_<base>-exc<seq>`; reaplicação imediata das revisões) |
 | `12` | `lexedit:Usuarios` > `lexedit:Usuario` | **Implementado**: salvar (usuários das revisões da hierarquia) e abrir |
 | `13` | `lexedit:Metadado/@dataUltimaModificacao`, `@aplicacao`, `@versaoAplicacao`, `@substitutivo`, `@anexoParecer`; `lexedit:Pendencias` > `lexedit:Pendencia` | Parcial (`Pendencias` implementado, inclusive a de marcas de revisão na articulação) |
 

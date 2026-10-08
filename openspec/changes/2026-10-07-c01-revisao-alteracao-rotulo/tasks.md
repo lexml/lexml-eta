@@ -32,8 +32,8 @@
 
 ## 6. Regressão e fechamento
 
-- [ ] 6.1 Rodar `npm test` e os specs Cypress de `cypress/e2e/revisao/`, `cypress/e2e/documento-articulado/` e `cypress/e2e/remissao-interna/` (a renumeração toca nas remissões, em especial o grupo G), e confirmar que nada regrediu.
-- [ ] 6.2 Registrar o fechamento: no `docs/extensao-formato-lexml/plano-xsd-lexedit.md`, o grupo `11` passa a "Implementado"; no `CLAUDE.md`, item 13, a operação `alteracaoRotulo`, o recálculo dos ids dos descendentes na renumeração e a regra de reconciliação por id; atualizar a spec principal `abrir-documento-articulado` se a sincronização das specs for feita no arquivamento. Verificar relendo os arquivos.
+- [x] 6.1 Rodar `npm test` e os specs Cypress de `cypress/e2e/revisao/`, `cypress/e2e/documento-articulado/` e `cypress/e2e/remissao-interna/` (a renumeração toca nas remissões, em especial o grupo G), e confirmar que nada regrediu. Resultado: `npm test` passou por inteiro; no Cypress, só `grupo-g-atualizacao` (CT-G-02, 05, 06 e 08) e `grupo-f-invalidacao-restauracao` (CT-F-11) falharam, todos no `beforeEach`, esperando o id `art1_par1` onde o parágrafo único tem `art1_par1u`. As mesmas falhas ocorrem no commit `47da957b` (antes desta change) e no `05fba065` (antes da c02): são anteriores e fora do escopo.
+- [x] 6.2 Registrar o fechamento: no `docs/extensao-formato-lexml/plano-xsd-lexedit.md`, o grupo `11` passa a "Implementado"; no `CLAUDE.md`, item 13, a operação `alteracaoRotulo`, o recálculo dos ids dos descendentes na renumeração e a regra de reconciliação por id; atualizar a spec principal `abrir-documento-articulado` se a sincronização das specs for feita no arquivamento. Verificar relendo os arquivos.
 
 ## Workflow follow-up
 
