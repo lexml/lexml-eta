@@ -1,4 +1,5 @@
 import { expect, fixture, html } from '@open-wc/testing';
+import { SinonFakeTimers, useFakeTimers } from 'sinon';
 import { EditorTextoRicoComponent, Usuario } from '../../../src';
 import { ajustaHtmlFromEditor, ajustaHtmlToEditor } from '../../../src/components/editor-texto-rico/texto-rico-util';
 import { rootStore } from '../../../src/redux/store';
@@ -149,5 +150,42 @@ describe('Testando lexml-eta-editor-texto-rico (EditorTextoRicoComponent)', () =
         });
       });
     });
+  });
+});
+
+describe('Testando emissão de onchange do lexml-eta-editor-texto-rico', () => {
+  let clock: SinonFakeTimers;
+  let eventos: CustomEvent[];
+
+  beforeEach(async () => {
+    editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico registro-evento="justificativa"></lexml-eta-editor-texto-rico>`);
+    eventos = [];
+    editorTextoRico.addEventListener('onchange', e => eventos.push(e as CustomEvent));
+    clock = useFakeTimers();
+  });
+
+  afterEach(() => {
+    clock.restore();
+  });
+
+  it('emite um único onchange 1s depois da última alteração, com a origem do atributo registro-evento', () => {
+    editorTextoRico.quill?.insertText(0, 'A', 'user');
+    clock.tick(500);
+    editorTextoRico.quill?.insertText(1, 'B', 'user');
+    clock.tick(999);
+    expect(eventos).to.have.length(0);
+
+    clock.tick(1);
+    expect(eventos).to.have.length(1);
+    expect(eventos[0].detail.origemEvento).to.equal('justificativa');
+    expect(eventos[0].bubbles).to.be.true;
+    expect(eventos[0].composed).to.be.true;
+  });
+
+  it('não emite onchange ao carregar o texto com setContent', () => {
+    editorTextoRico.setContent('<p>Justificação carregada.</p>');
+    editorTextoRico.setContent('');
+    clock.tick(2000);
+    expect(eventos).to.have.length(0);
   });
 });

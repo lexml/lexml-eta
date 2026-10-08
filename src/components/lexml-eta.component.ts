@@ -295,7 +295,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const pendenciasPreenchimento: Array<string> = [];
 
     // Verifica preenchimento da justificação
-    if (this.isJustificacaoObrigatoria() && isHtmlSemTexto(proposicao.justificativa)) {
+    if (this.isJustificacaoNaoInformada(proposicao.justificativa)) {
       pendenciasPreenchimento.push('Não foi informado um texto de justificação.');
     }
 
@@ -354,6 +354,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       // populam alertas globais ao abrir (ABRIR_ARTICULACAO), que seriam apagados se essa chamada
       // viesse antes das limpezas.
       this._lexmlEta!.inicializarEdicao(this.urn, params, preservarTextoDocumento);
+
+      // Também depois das limpezas: abrir a justificação não emite onchange.
+      this.buildAlertaJustificativa();
 
       setTimeout(this.handleResize, 0);
 
@@ -676,13 +679,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return !this.anexoParecer && this.lexmlEtaConfig?.justificacaoObrigatoria !== false;
   }
 
-  buildAlertaJustificativa(): void {
-    if (!this.isJustificacaoObrigatoria()) {
-      rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
-      return;
-    }
+  // Condição única do alerta e da pendência de justificação.
+  private isJustificacaoNaoInformada(justificativa: string | undefined): boolean {
+    return this.isJustificacaoObrigatoria() && isHtmlSemTexto(justificativa);
+  }
 
-    if (this._lexmlJustificativa.isEditorVazio()) {
+  buildAlertaJustificativa(): void {
+    if (this.isJustificacaoNaoInformada(this._lexmlJustificativa.texto)) {
       this.disparaAlerta();
     } else {
       rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
@@ -693,7 +696,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const alerta = {
       id: 'alerta-global-justificativa',
       tipo: TipoMensagem.CRITICAL,
-      mensagem: 'A proposição não possui uma justificação',
+      mensagem: 'Não foi informado um texto de justificação.',
       podeFechar: false,
     };
     rootStore.dispatch(adicionarAlerta(alerta));
@@ -907,7 +910,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
                 .lexmlEtaConfig=${this.lexmlEtaConfig}
                 modo="justificativa"
                 id="lexml-eta-editor-texto-rico-justificativa"
-                registroEvento="justificativa"
+                registro-evento="justificativa"
                 @onchange=${this.onChange}
               ></lexml-eta-editor-texto-rico>
             </sl-tab-panel>

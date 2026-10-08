@@ -210,6 +210,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   disconnectedCallback(): void {
     this.quill?.off('text-change', this.updateTexto);
     this.quill?.off('selection-change', this.onSelectionChange);
+    clearTimeout(this.timerOnChange);
     super.disconnectedCallback();
   }
 
@@ -558,9 +559,26 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.texto = texto === '<p><br></p>' ? '' : texto;
   };
 
+  private agendarEmissaoEventoOnChange(): void {
+    clearTimeout(this.timerOnChange);
+    this.timerOnChange = setTimeout(() => {
+      this.dispatchEvent(
+        new CustomEvent('onchange', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            origemEvento: this.registroEvento,
+          },
+        })
+      );
+      this.onChange.notify(this.registroEvento);
+    }, 1000);
+  }
+
   updateTexto = (): void => {
     const texto = this.ajustaHtml(this.quill?.root.innerHTML);
     this.texto = texto === '<p><br></p>' ? '' : texto;
+    this.agendarEmissaoEventoOnChange();
     this.onSelectionChange(this.quill?.getSelection());
     this.atualizaStatusElementosRevisao(false);
     this.buildRevisoes();
