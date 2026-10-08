@@ -71,6 +71,8 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 | Desfazer e refazer | Essencial | Implementado | `undo.ts`, `redo.ts` |
 | Modo de anexo de parecer | Essencial | Implementado | |
 | Alterar tipo da proposição (ex.: PL para PLP, MPV para PLV, PL para substitutivo ao PL) | Desejável | Depende de especificação | |
+| Alteração de norma vigente que não segue a LC 95/1998 | Desejável | Depende de especificação | |
+| Reconhecimento de dispositivo genérico e transformação em dispositivo conhecido | Desejável | Depende de especificação | |
 
 [↑ Voltar ao índice](#índice)
 
@@ -206,6 +208,7 @@ Regras próprias de cada casa, independentes do componente que as implementa.
 | 8 | Quais regras específicas da Câmara dos Deputados precisam ser levantadas? | Todas | CD | | |
 | 9 | Quais tipos de proposição permitem substitutivo? | B | | | Destino da proposição (nº 2) e metadado de substitutivo (#997) |
 | 10 | Será necessário configurar a ordem padrão de escrita dos dispositivos nas remissões internas? | A | | | |
+| 11 | Ao propor novos dispositivos em uma norma vigente que não segue a LC 95/1998, podemos seguir a LC 95/1998 nesses dispositivos? | A | | | Alteração de norma vigente que não segue a LC 95/1998 |
 
 [↑ Voltar ao índice](#índice)
 
