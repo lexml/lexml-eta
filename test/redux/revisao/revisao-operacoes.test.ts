@@ -220,4 +220,80 @@ describe('Operações de revisão da hierarquia (atributo "revisao")', () => {
       expect(buildDescricaoRevisaoElemento(modificada('alterado'))).to.equal('Texto do dispositivo foi alterado');
     });
   });
+
+  describe('descrição da marca por operações', () => {
+    const comOperacoes = (operacoes: string | undefined, antes: any, apos: any, stateType = StateType.ElementoIncluido): RevisaoElemento => {
+      const r = novaRevisao(stateType, antes, apos);
+      r.revisao = operacoes;
+      return r;
+    };
+    const emProposicao = (tipo: string): any => ({ tipo, uuid: 1 });
+    const emAlteracao = (tipo: string): any => ({ tipo, uuid: 1, uuidAlteracao: 99 });
+
+    it('descreve movido de artigo derivando o rótulo anterior pela posição', () => {
+      const r = comOperacoes('movido;3', emProposicao('Artigo'), emProposicao('Artigo'));
+      expect(buildDescricaoRevisaoElemento(r)).to.equal('Dispositivo movido (antes era "Artigo Art. 3º")');
+    });
+
+    it('usa o formato com ponto a partir da décima posição', () => {
+      expect(buildDescricaoRevisaoElemento(comOperacoes('movido;10', emProposicao('Artigo'), emProposicao('Artigo')))).to.equal('Dispositivo movido (antes era "Artigo Art. 10.")');
+      expect(buildDescricaoRevisaoElemento(comOperacoes('movido;10', emProposicao('Paragrafo'), emProposicao('Paragrafo')))).to.equal(
+        'Dispositivo movido (antes era "Paragrafo § 10.")'
+      );
+    });
+
+    it('deriva o rótulo anterior de parágrafo, inciso, alínea e item', () => {
+      const descricao = (tipo: string): string => buildDescricaoRevisaoElemento(comOperacoes('movido;2', emProposicao(tipo), emProposicao(tipo)));
+      expect(descricao('Paragrafo')).to.equal('Dispositivo movido (antes era "Paragrafo § 2º")');
+      expect(descricao('Inciso')).to.equal('Dispositivo movido (antes era "Inciso II –")');
+      expect(descricao('Alinea')).to.equal('Dispositivo movido (antes era "Alinea b)")');
+      expect(descricao('Item')).to.equal('Dispositivo movido (antes era "Item 2.")');
+    });
+
+    it('em alteração de norma informa a posição original, sem rótulo anterior', () => {
+      const r = comOperacoes('movido;3', emAlteracao('Paragrafo'), emAlteracao('Paragrafo'));
+      expect(buildDescricaoRevisaoElemento(r)).to.equal('Dispositivo movido (posição original 3)');
+    });
+
+    it('usa a posição original quando o tipo não permite derivar o rótulo', () => {
+      expect(buildDescricaoRevisaoElemento(comOperacoes('movido;2', emProposicao('Capitulo'), emProposicao('Capitulo')))).to.equal('Dispositivo movido (posição original 2)');
+    });
+
+    it('lista movido e texto alterado', () => {
+      const r = comOperacoes('movido;3,alterado', emProposicao('Artigo'), emProposicao('Artigo'));
+      expect(buildDescricaoRevisaoElemento(r)).to.equal('Dispositivo movido (antes era "Artigo Art. 3º") e texto alterado');
+    });
+
+    it('descreve transformado pelo tipo anterior, com e sem texto alterado', () => {
+      expect(buildDescricaoRevisaoElemento(comOperacoes('transformado;alinea', emProposicao('Inciso'), emProposicao('Inciso')))).to.equal(
+        'Dispositivo transformado (antes era "alínea")'
+      );
+      expect(buildDescricaoRevisaoElemento(comOperacoes('transformado;inciso,alterado', emProposicao('Alinea'), emProposicao('Alinea')))).to.equal(
+        'Dispositivo transformado (antes era "inciso") e texto alterado'
+      );
+    });
+
+    it('lista movido com alteração de rótulo, informando o rótulo anterior', () => {
+      const r = comOperacoes('movido;2,alteracaoRotulo;par4-1', { tipo: 'Paragrafo', rotulo: '§ 4º-A.' }, emAlteracao('Paragrafo'));
+      expect(buildDescricaoRevisaoElemento(r)).to.equal('Dispositivo movido (posição original 2) e rótulo alterado (rótulo antes era "§ 4º-A.")');
+    });
+
+    it('omite o rótulo anterior desconhecido', () => {
+      const r = comOperacoes('movido;2,alteracaoRotulo;par4-1', emProposicao('Paragrafo'), emProposicao('Paragrafo'));
+      expect(buildDescricaoRevisaoElemento(r)).to.equal('Dispositivo movido (antes era "Paragrafo § 2º") e rótulo alterado');
+    });
+
+    it('mantém as descrições das operações isoladas', () => {
+      expect(buildDescricaoRevisaoElemento(comOperacoes('adicionado', undefined, emProposicao('Inciso')))).to.equal('Dispositivo adicionado');
+      expect(buildDescricaoRevisaoElemento(comOperacoes('excluido', emProposicao('Inciso'), emProposicao('Inciso'), StateType.ElementoRemovido))).to.equal('Dispositivo removido');
+      expect(buildDescricaoRevisaoElemento(comOperacoes('alterado', emProposicao('Inciso'), emProposicao('Inciso'), StateType.ElementoModificado))).to.equal(
+        'Texto do dispositivo foi alterado'
+      );
+    });
+
+    it('sem o atributo revisao cai no mapeamento legado', () => {
+      const r = comOperacoes(undefined, undefined, emProposicao('Inciso'));
+      expect(buildDescricaoRevisaoElemento(r)).to.equal('Dispositivo adicionado');
+    });
+  });
 });

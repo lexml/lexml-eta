@@ -4,12 +4,12 @@ import { Elemento, Referencia } from '../../../elemento';
 import { createElemento, getElementos } from '../../../elemento/elementoUtil';
 import { RevisaoElemento } from '../../../revisao/revisao';
 import { StateType } from '../../../../redux/state';
-import { buildDescricaoRevisaoElemento, buildDescricaoRevisaoFromStateType, formatarOperacoesRevisao } from '../../../../redux/elemento/util/revisaoUtil';
+import { buildDescricaoRevisaoElemento, buildDescricaoRevisaoFromStateType, formatarOperacoesRevisao, rotuloDoTipoPorNumero } from '../../../../redux/elemento/util/revisaoUtil';
 import { APLICAR_REVISOES } from '../../acao/aplicarRevisoes';
 import { criaDispositivo, createArticulacao } from '../../dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById, getArticulacao, getDispositivoAndFilhosAsLista, getUltimoFilho, isDispositivoAlteracao } from '../../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../tipo/tipoDispositivo';
-import { converteNumeroArabicoParaLetra, converteNumeroArabicoParaRomano, comparaNumeracao } from '../../numeracao/numeracaoUtil';
+import { comparaNumeracao } from '../../numeracao/numeracaoUtil';
 import { buildId, updateIdDispositivoAndFilhos } from '../../util/idUtil';
 import { RevisaoArticulacaoLida } from '../documentoArticulado';
 import { buildDispositivoSoltoFromJsonix } from './buildProjetoNormaFromJsonix';
@@ -101,23 +101,6 @@ const tipoOriginalDoDescendente = (tipoAtual: string | undefined, tipoOriginalDa
   return Number.isNaN(deslocamento) || !nivel ? tipoAtual : TIPO_DO_NIVEL[nivel - deslocamento] ?? tipoAtual;
 };
 
-// A numeração (arábica) é a mesma em qualquer tipo; só o formato do rótulo muda.
-const rotuloDoTipo = (tipo: string | undefined, numero: string | undefined): string | undefined => {
-  if (!numero || !/^\d+$/.test(numero)) {
-    return undefined;
-  }
-  switch (tipo) {
-    case 'Inciso':
-      return converteNumeroArabicoParaRomano(numero) + ' –';
-    case 'Alinea':
-      return converteNumeroArabicoParaLetra(numero) + ')';
-    case 'Item':
-      return numero + '.';
-    default:
-      return undefined;
-  }
-};
-
 // Deriva número e rótulo anteriores do id (só em alteração de norma, onde o rótulo vem do id); id de outro tipo não se deriva.
 const derivaRotuloDoId = (dispositivo: Dispositivo, idOriginal: string): { numero: string; rotulo: string } | undefined => {
   const segmento = (id: string): string => id.substring(id.lastIndexOf('_') + 1);
@@ -185,7 +168,7 @@ const reconstroiRevisoesDeDispositivo = (articulacao: Articulacao, lida: Revisao
       }
     } else if (tipoOriginal) {
       antes.tipo = tipoOriginalDoDescendente(apos.tipo, tipoOriginal, elementos[0].tipo!);
-      antes.rotulo = rotuloDoTipo(antes.tipo, apos.numero) ?? apos.rotulo;
+      antes.rotulo = rotuloDoTipoPorNumero(antes.tipo, apos.numero) ?? apos.rotulo;
     }
     return novaRevisao(StateType.ElementoIncluido, lida, antes, clone(apos));
   });

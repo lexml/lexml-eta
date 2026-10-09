@@ -1,7 +1,7 @@
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento, Referencia } from '../../../model/elemento';
-import { getDispositivoFromElemento, createElemento } from '../../../model/elemento/elementoUtil';
+import { getDispositivoFromElemento, createElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { ativarDesativarRevisaoAction } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
@@ -20,6 +20,8 @@ import {
   isArticulacaoAlteracao,
   isDispositivoAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { converteNumeroArabicoParaLetra, converteNumeroArabicoParaRomano, formatarMilhares } from '../../../model/lexml/numeracao/numeracaoUtil';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { unificarEvento } from '../evento/eventosUtil';
@@ -121,7 +123,72 @@ const mapperStateTypeToDescricao = {
   // [StateType.ElementoMovido]: (): string => 'Dispositivo movido',
 };
 
+// A numeração (arábica) é a mesma em qualquer tipo; só o formato do rótulo muda.
+export const rotuloDoTipoPorNumero = (tipo: string | undefined, numero: string | undefined): string | undefined => {
+  if (!numero || !/^\d+$/.test(numero)) {
+    return undefined;
+  }
+  const ordinal = parseInt(numero, 10) < 10;
+  switch (tipo) {
+    case 'Artigo':
+      return ordinal ? `Art. ${numero}º` : `Art. ${formatarMilhares(numero)}.`;
+    case 'Paragrafo':
+      return ordinal ? `§ ${numero}º` : `§ ${numero}.`;
+    case 'Inciso':
+      return converteNumeroArabicoParaRomano(numero) + ' –';
+    case 'Alinea':
+      return converteNumeroArabicoParaLetra(numero) + ')';
+    case 'Item':
+      return numero + '.';
+    default:
+      return undefined;
+  }
+};
+
+const nomeDoTipoNaRevisao = (nome: string): string =>
+  Object.values(TipoDispositivo)
+    .find(t => t.tipo.toLowerCase() === nome)
+    ?.descricao?.toLowerCase() ?? nome;
+
+// Só usa o que o arquivo guarda; em alteração de norma o rótulo anterior não se deduz da posição (Novo/Existente não é gravado).
+const trechoDeMovimentacao = (revisao: RevisaoElemento, posicaoOriginal?: string): string => {
+  const apos = revisao.elementoAposRevisao;
+  const rotulo = isElementoDispositivoAlteracao(apos) ? undefined : rotuloDoTipoPorNumero(apos.tipo, posicaoOriginal);
+  return rotulo ? `movido (antes era "${apos.tipo} ${rotulo}")` : `movido (posição original ${posicaoOriginal})`;
+};
+
+const trechoDaOperacao = (revisao: RevisaoElemento, operacao: OperacaoRevisao): string | undefined => {
+  switch (operacao.nome) {
+    case OPERACAO_MOVIDO:
+      return trechoDeMovimentacao(revisao, operacao.argumento);
+    case OPERACAO_TRANSFORMADO:
+      return `transformado (antes era "${nomeDoTipoNaRevisao(operacao.argumento ?? '')}")`;
+    case OPERACAO_ALTERADO:
+      return 'texto alterado';
+    case OPERACAO_ALTERACAO_ROTULO: {
+      const anterior = revisao.elementoAntesRevisao?.rotulo;
+      return `rótulo alterado${anterior ? ` (rótulo antes era "${anterior}")` : ''}`;
+    }
+    default:
+      return undefined;
+  }
+};
+
+// Devolve undefined quando a revisão não tem movimentação/transformação: as demais operações mantêm a descrição de sempre.
+export const buildDescricaoPorOperacoes = (revisao: RevisaoElemento): string | undefined => {
+  const operacoes = getOperacoesRevisao(revisao.revisao);
+  if (!operacoes.some(o => o.nome === OPERACAO_MOVIDO || o.nome === OPERACAO_TRANSFORMADO)) {
+    return undefined;
+  }
+  const trechos = operacoes.map(o => trechoDaOperacao(revisao, o)).filter((t): t is string => !!t);
+  return `Dispositivo ${trechos.length > 1 ? `${trechos.slice(0, -1).join(', ')} e ${trechos[trechos.length - 1]}` : trechos[0]}`;
+};
+
 export const buildDescricaoRevisaoElemento = (revisao: RevisaoElemento): string => {
+  const porOperacoes = buildDescricaoPorOperacoes(revisao);
+  if (porOperacoes) {
+    return porOperacoes;
+  }
   if (revisao.stateType === StateType.ElementoModificado && getOperacoesRevisao(revisao.revisao).some(o => o.nome === OPERACAO_ALTERACAO_ROTULO)) {
     return buildDescricaoRevisaoDeRotulo(revisao);
   }
