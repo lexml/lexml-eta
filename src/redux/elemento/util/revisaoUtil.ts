@@ -361,8 +361,9 @@ export const atualizaReferenciaElementoAnteriorSeNecessario = (articulacao: Arti
   const rAux = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(revisoes, elemento.elementoAnteriorNaSequenciaDeLeitura!);
   if (rAux) {
     if (tipoProcessamento === 'exclusao') {
-      // Pega a última revisão do grupo da revisão principal (rAux) e utiliza o "elementoAposRevisao" como elemento anterior do atual elemento removido
-      elemento.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(findUltimaRevisaoDoGrupo(revisoes, rAux).elementoAposRevisao));
+      // O excluído entra depois do último da cadeia de excluídos que partem do mesmo anterior, e não depois do primeiro.
+      const ultimaDaCadeia = seguirCadeiaDeExcluidos(revisoes, rAux);
+      elemento.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(findUltimaRevisaoDoGrupo(revisoes, ultimaDaCadeia).elementoAposRevisao));
       removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elemento.elementoAnteriorNaSequenciaDeLeitura!);
     } else {
       // Pega o último filho do elemento incluído e utiliza como elemento anterior da revisão principal (rAux)
@@ -396,6 +397,26 @@ export const findUltimaRevisaoDoGrupo = (revisoes: Revisao[] = [], revisao: Revi
       .filter(r => r.idRevisaoElementoPrincipal === revisao.id)
       .slice(-1)[0] || revisao
   );
+};
+
+// Excluídos vizinhos formam uma cadeia: cada um tem como anterior o último elemento do excluído que o precede.
+const seguirCadeiaDeExcluidos = (revisoes: Revisao[], inicio: RevisaoElemento): RevisaoElemento => {
+  const principais = revisoes
+    .filter(isRevisaoElemento)
+    .map(r => r as RevisaoElemento)
+    .filter(r => isRevisaoDeExclusao(r) && isRevisaoPrincipal(r));
+  const visitadas = new Set<RevisaoElemento>();
+  let atual = inicio;
+  while (!visitadas.has(atual)) {
+    visitadas.add(atual);
+    const ultimoDoGrupo = findUltimaRevisaoDoGrupo(revisoes, atual).elementoAposRevisao;
+    const seguinte = principais.find(r => !visitadas.has(r) && r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura?.uuid === ultimoDoGrupo.uuid);
+    if (!seguinte) {
+      break;
+    }
+    atual = seguinte;
+  }
+  return atual;
 };
 
 export const isRevisaoDeMovimentacao = (revisao: Revisao): boolean => {

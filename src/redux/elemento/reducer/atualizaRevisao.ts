@@ -427,23 +427,71 @@ const atualizarLexmlIdEmElementosDeRevisoes = (state: State): void => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const atualizarPosicaoDeElementosEmRevisoes = (state: State): void => {
-  const revisoes = getRevisoesElemento(state.revisoes || []).filter(r => isRevisaoPrincipal(r) && isRevisaoDeExclusao(r));
-  atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoIncluido));
-  atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoRemovido));
+  const exclusoes = getRevisoesElemento(state.revisoes || []).filter(isRevisaoDeExclusao);
+  const revisoes = exclusoes.filter(isRevisaoPrincipal);
+  const isRejeicao = !!state.ui?.events.some(ev => ev.stateType === StateType.RevisaoRejeitada);
+  atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoIncluido), isRejeicao, exclusoes);
+  atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoRemovido), isRejeicao, exclusoes);
 };
 
-const atualizarPosicaoDeElementosEmRevisoesByEvento = (revisoes: RevisaoElemento[] = [], evento: StateEvent | undefined): void => {
+const atualizarPosicaoDeElementosEmRevisoesByEvento = (
+  revisoes: RevisaoElemento[] = [],
+  evento: StateEvent | undefined,
+  isRejeicao = false,
+  exclusoes: RevisaoElemento[] = []
+): void => {
   if (!evento) {
     return;
   }
   const fator = evento.stateType === StateType.ElementoIncluido ? 1 : -1;
-  const fnCondicaoInclusao = (e: Elemento, posicaoAtual: number): boolean => e.hierarquia!.posicao! <= posicaoAtual;
+  const uuidsDoEvento = new Set((evento.elementos ?? []).map(e => e.uuid));
+  // Na reinclusão por rejeição, o empate de posição se desfaz pela cadeia de "elemento anterior": só desloca o excluído que vinha depois.
+  const fnCondicaoInclusao = (e: Elemento, posicaoAtual: number, r: RevisaoElemento): boolean =>
+    e.hierarquia!.posicao! < posicaoAtual || (e.hierarquia!.posicao! === posicaoAtual && (!isRejeicao || vemDepoisDosElementos(r, uuidsDoEvento, revisoes, exclusoes)));
   const fnCondicaoExclusao = (e: Elemento, posicaoAtual: number): boolean => e.hierarquia!.posicao! < posicaoAtual;
   const fnCondicao2 = evento.stateType === StateType.ElementoIncluido ? fnCondicaoInclusao : fnCondicaoExclusao;
   revisoes.forEach(r => {
     const lexmlIdPai = r.elementoAposRevisao.hierarquia!.pai!.lexmlId;
     const posicaoAtual = r.elementoAposRevisao.hierarquia!.posicao!;
-    const deslocamento = evento.elementos!.filter(e => e.hierarquia?.pai?.lexmlId === lexmlIdPai && fnCondicao2(e, posicaoAtual)).length * fator;
+    const deslocamento = evento.elementos!.filter(e => e.hierarquia?.pai?.lexmlId === lexmlIdPai && fnCondicao2(e, posicaoAtual, r)).length * fator;
     r.elementoAposRevisao.hierarquia!.posicao! += deslocamento;
+    // Na sessão `antes` e `apos` compartilham o objeto `hierarquia`; em revisão reconstruída ao abrir o arquivo, não.
+    const hierarquiaAntes = r.elementoAntesRevisao?.hierarquia;
+    if (hierarquiaAntes && hierarquiaAntes !== r.elementoAposRevisao.hierarquia) {
+      hierarquiaAntes.posicao! += deslocamento;
+    }
   });
+};
+
+// Segue a cadeia de "elemento anterior na leitura" entre excluídos vizinhos até achar (ou não) um dos elementos informados.
+const vemDepoisDosElementos = (revisao: RevisaoElemento, uuids: Set<number | undefined>, principais: RevisaoElemento[], exclusoes: RevisaoElemento[]): boolean => {
+  const visitadas = new Set<RevisaoElemento>();
+  let atual: RevisaoElemento | undefined = revisao;
+  while (atual && !visitadas.has(atual)) {
+    visitadas.add(atual);
+    const anterior = atual.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura;
+    if (!anterior) {
+      return false;
+    }
+    if (anterior.uuid !== undefined && uuids.has(anterior.uuid)) {
+      return true;
+    }
+    atual = anterior.uuid2 === '_encadeado' ? excluidoImediatamenteAntes(atual, principais) : principalDoExcluido(anterior.uuid, exclusoes, atual);
+  }
+  return false;
+};
+
+// O anterior pode ser um descendente do excluído (o último filho): a revisão que importa é a da principal do grupo.
+const principalDoExcluido = (uuid: number | undefined, exclusoes: RevisaoElemento[], atual: RevisaoElemento): RevisaoElemento | undefined => {
+  const encontrada = uuid === undefined ? undefined : exclusoes.find(r => r !== atual && r.elementoAposRevisao.uuid === uuid);
+  return encontrada?.idRevisaoElementoPrincipal ? exclusoes.find(r => r.id === encontrada.idRevisaoElementoPrincipal) : encontrada;
+};
+
+// Em documento reaberto o encadeamento não tem uuid: o anterior é o excluído que o precede no mesmo lugar.
+const excluidoImediatamenteAntes = (revisao: RevisaoElemento, principais: RevisaoElemento[]): RevisaoElemento | undefined => {
+  const h = revisao.elementoAposRevisao.hierarquia;
+  return principais
+    .slice(0, principais.indexOf(revisao))
+    .reverse()
+    .find(p => p.elementoAposRevisao.hierarquia?.posicao === h?.posicao && p.elementoAposRevisao.hierarquia?.pai?.lexmlId === h?.pai?.lexmlId);
 };
