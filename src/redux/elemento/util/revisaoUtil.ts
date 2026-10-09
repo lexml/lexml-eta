@@ -174,13 +174,21 @@ const trechoDaOperacao = (revisao: RevisaoElemento, operacao: OperacaoRevisao): 
   }
 };
 
-// Devolve undefined quando a revisão não tem movimentação/transformação: as demais operações mantêm a descrição de sempre.
+// Devolve undefined quando as operações não bastam (sem atributo, ou só alteração de rótulo): vale a descrição de sempre.
 export const buildDescricaoPorOperacoes = (revisao: RevisaoElemento): string | undefined => {
   const operacoes = getOperacoesRevisao(revisao.revisao);
-  if (!operacoes.some(o => o.nome === OPERACAO_MOVIDO || o.nome === OPERACAO_TRANSFORMADO)) {
-    return undefined;
+  const tem = (...nomes: string[]): boolean => operacoes.some(o => nomes.includes(o.nome));
+  if (tem(OPERACAO_EXCLUIDO)) {
+    return 'Dispositivo removido';
   }
-  const trechos = operacoes.map(o => trechoDaOperacao(revisao, o)).filter((t): t is string => !!t);
+  if (tem(OPERACAO_ADICIONADO)) {
+    return 'Dispositivo adicionado';
+  }
+  if (!tem(OPERACAO_MOVIDO, OPERACAO_TRANSFORMADO)) {
+    return tem(OPERACAO_ALTERADO) && !tem(OPERACAO_ALTERACAO_ROTULO) ? 'Texto do dispositivo foi alterado' : undefined;
+  }
+  const principais = operacoes.filter(o => o.nome === OPERACAO_MOVIDO || o.nome === OPERACAO_TRANSFORMADO);
+  const trechos = [...principais, ...operacoes.filter(o => !principais.includes(o))].map(o => trechoDaOperacao(revisao, o)).filter((t): t is string => !!t);
   return `Dispositivo ${trechos.length > 1 ? `${trechos.slice(0, -1).join(', ')} e ${trechos[trechos.length - 1]}` : trechos[0]}`;
 };
 

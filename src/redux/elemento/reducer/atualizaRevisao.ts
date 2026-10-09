@@ -14,7 +14,6 @@ import {
   isRevisaoDeTransformacao,
   identificarRevisaoElementoPai,
   existeRevisaoParaElementos,
-  buildDescricaoRevisaoFromStateType,
   removeAtributosDoElemento,
   atualizaReferenciaElementoAnteriorSeNecessario,
   isRevisaoPrincipal,
@@ -95,11 +94,22 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
     atualizarLexmlIdAposRenumeracao(state);
   }
 
+  atualizarDescricoesDasRevisoes(state);
+
   associarRevisoesAosElementosDosEventos(state);
 
   adicionarOpcoesAoMenu(state);
 
   return state;
+};
+
+// A descrição decorre das operações da revisão; recalculá-la aqui evita que fique desatualizada.
+const atualizarDescricoesDasRevisoes = (state: State): void => {
+  getRevisoesElemento(state.revisoes).forEach(r => {
+    if (r.revisao) {
+      r.descricao = buildDescricaoRevisaoElemento(r);
+    }
+  });
 };
 
 const isUndoDeRevisaoAceitaOuRejeitada = (state: State): boolean => {
@@ -132,8 +142,6 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
         // Sem operações restantes nada sobrou da revisão: ela e as associadas deixam de existir.
         if (revisao.revisao === '') {
           revisoesParaRemover.push(...getRevisoesElementoAssociadas(state.revisoes, revisao));
-        } else if (revisao.stateType === StateType.ElementoModificado) {
-          revisao.descricao = buildDescricaoRevisaoElemento(revisao);
         }
       }
     } else {
@@ -142,7 +150,6 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
       if (!isAjusteTextoOmitido(eAux, e)) {
         const nova = new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e)));
         nova.revisao = getOperacoesDeNovaModificacao(state, actionType, e, eAux);
-        nova.descricao = buildDescricaoRevisaoElemento(nova);
         result.push(nova);
       }
     }
@@ -199,7 +206,6 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
       JSON.parse(JSON.stringify(eAposRevisao))
     );
 
-    revInclusao.descricao = buildDescricaoRevisaoFromStateType(revInclusao, eAposRevisao);
     revInclusao.revisao = formatarOperacoesRevisao([getOperacaoDeMovimentacaoOuTransformacao(state, eAntesRevisao, eAposRevisao)]);
     // revExclusao.idRevisaoAssociada = revInclusao.id;
     // revInclusao.idRevisaoAssociada = revExclusao.id;
@@ -232,7 +238,6 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
         revisao.elementoAposRevisao = JSON.parse(JSON.stringify(incluidos[index]));
         removeAtributosDoElemento(revisao.elementoAposRevisao);
         revisao.usuario = state.usuario!;
-        revisao.descricao = buildDescricaoRevisaoFromStateType(revisao, incluidos[index]);
 
         if (operacao) {
           revisao.revisao = anexarOperacaoRevisao(getOperacoesDaRevisao(state, revisao), operacao.nome, operacao.argumento);

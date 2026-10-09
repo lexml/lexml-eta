@@ -6,7 +6,7 @@
 
 ## 2. Descrição acompanha as operações na sessão
 
-- [ ] 2.1 Em `atualizaRevisao.ts`, recalcular a descrição de todas as revisões de elemento que tenham o atributo `revisao` no fim da ação (design.md, Decisão 2), e remover as chamadas pontuais de `buildDescricaoRevisaoFromStateType`/`buildDescricaoRevisaoElemento` que ficam redundantes. Verificar com testes de reducer, incluindo o cenário do relato (artigo movido, alterado, movido de novo, alterado de novo): a descrição é `Dispositivo movido (antes era "Artigo Art. 3º") e texto alterado` ao fim; movido e depois alterado e depois desfeito volta a `Dispositivo movido (antes era "Artigo Art. 3º")`; transformado e alterado; desfazer e refazer da movimentação (design.md, Riscos); exclusão mantém "Dispositivo removido" e o editor continua tratando o dispositivo como excluído.
+- [x] 2.1 Em `atualizaRevisao.ts`, recalcular a descrição de todas as revisões de elemento que tenham o atributo `revisao` no fim da ação (design.md, Decisão 2), e remover as chamadas pontuais de `buildDescricaoRevisaoFromStateType`/`buildDescricaoRevisaoElemento` que ficam redundantes. Verificar com testes de reducer, incluindo o cenário do relato (artigo movido, alterado, movido de novo, alterado de novo): a descrição é `Dispositivo movido (antes era "Artigo Art. 3º") e texto alterado` ao fim; movido e depois alterado e depois desfeito volta a `Dispositivo movido (antes era "Artigo Art. 3º")`; transformado e alterado; desfazer e refazer da movimentação (design.md, Riscos); exclusão mantém "Dispositivo removido" e o editor continua tratando o dispositivo como excluído.
 
 ## 3. Descrição na reabertura
 
