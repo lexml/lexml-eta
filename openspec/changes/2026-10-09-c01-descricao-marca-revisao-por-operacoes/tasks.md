@@ -10,7 +10,7 @@
 
 ## 3. Descrição na reabertura
 
-- [ ] 3.1 Fazer `novaRevisao` em `reconstroiRevisoes.ts` calcular a descrição pela mesma função depois de gravar o atributo `revisao` (design.md, Decisão 4). Verificar com um teste de ida e volta (MPV 905/2019): para cada cenário de `reconstroiRevisoes.test.ts` (adicionado, alterado, movido, movido e alterado, transformado, excluído, alteracaoRotulo), a descrição da revisão reaberta é igual à da sessão original; incluir o cenário do relato (artigo 3 movido duas vezes e alterado duas vezes), um dispositivo de alteração de norma movido (`posição original <n>`, igual nos dois lados) e um dispositivo de cada tipo (parágrafo, inciso, alínea, item) movido fora de alteração de norma.
+- [x] 3.1 Fazer `novaRevisao` em `reconstroiRevisoes.ts` calcular a descrição pela mesma função depois de gravar o atributo `revisao` (design.md, Decisão 4). Verificar com um teste de ida e volta (MPV 905/2019): para cada cenário de `reconstroiRevisoes.test.ts` (adicionado, alterado, movido, movido e alterado, transformado, excluído, alteracaoRotulo), a descrição da revisão reaberta é igual à da sessão original; incluir o cenário do relato (artigo 3 movido duas vezes e alterado duas vezes), um dispositivo de alteração de norma movido (`posição original <n>`, igual nos dois lados) e um dispositivo de cada tipo (parágrafo, inciso, alínea, item) movido fora de alteração de norma.
 
 ## 4. E2E
 

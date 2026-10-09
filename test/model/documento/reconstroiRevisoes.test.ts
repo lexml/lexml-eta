@@ -62,6 +62,10 @@ const abreComRevisoes = (origem: State): State => {
 
 const resumo = (s: State): any[] => principais(s).map(r => ({ operacoes: r.revisao, stateType: r.stateType, tipo: r.elementoAposRevisao.tipo, usuario: r.usuario?.nome }));
 
+const descricoes = (s: State): (string | undefined)[] => principais(s).map(r => r.descricao);
+
+const descricoesDeTodas = (s: State): string[] => (s.revisoes as RevisaoElemento[]).map(r => `${r.elementoAposRevisao.lexmlId}: ${r.descricao}`).sort((x, y) => x.localeCompare(y));
+
 const descreveEquivalencia = (titulo: string, abreDocumento: () => State, definirCenarios: () => Array<[string, () => void]>, setA: (s: State) => void): void => {
   describe(titulo, () => {
     beforeEach(() => {
@@ -83,6 +87,10 @@ const descreveEquivalencia = (titulo: string, abreDocumento: () => State, defini
 
         it('mantém a mesma articulação', () => {
           expect(json(b)).to.equal(json(a));
+        });
+
+        it('reconstrói a mesma descrição da marca', () => {
+          expect(descricoes(b)).to.deep.equal(descricoes(a));
         });
 
         it('rejeitar a revisão dá o mesmo resultado que na sessão original', () => {
@@ -205,6 +213,17 @@ describe('reconstroiRevisoes — revisões reabertas equivalem às da sessão (M
       },
     ],
     ['artigo movido', () => (a = elementoReducer(a, { type: MOVER_ELEMENTO_ABAIXO, atual: elemento(a, 'art3') }))],
+    [
+      'artigo movido e alterado duas vezes',
+      () => {
+        a = elementoReducer(a, { type: MOVER_ELEMENTO_ABAIXO, atual: elemento(a, 'art3') });
+        a = altera(a, 'art4', 'primeira alteração;');
+        a = elementoReducer(a, { type: MOVER_ELEMENTO_ABAIXO, atual: elemento(a, 'art4') });
+        a = altera(a, 'art5', 'segunda alteração;');
+      },
+    ],
+    ['parágrafo movido', () => (a = elementoReducer(a, { type: MOVER_ELEMENTO_ABAIXO, atual: elemento(a, 'art2_par2') }))],
+    ['alínea movida', () => (a = elementoReducer(a, { type: MOVER_ELEMENTO_ACIMA, atual: elemento(a, 'art9_cpt_inc3_ali2') }))],
     ['artigo excluído', () => (a = elementoReducer(a, { type: REMOVER_ELEMENTO, atual: elemento(a, 'art2') }))],
     ['artigo com filhos excluído', () => (a = elementoReducer(a, { type: REMOVER_ELEMENTO, atual: elemento(a, 'art6') }))],
     ['inciso excluído', () => (a = elementoReducer(a, { type: REMOVER_ELEMENTO, atual: elemento(a, 'art6_cpt_inc1') }))],
@@ -237,6 +256,14 @@ describe('reconstroiRevisoes — revisões reabertas equivalem às da sessão (M
 
       it('mantém a mesma articulação', () => {
         expect(json(b)).to.equal(json(a));
+      });
+
+      it('reconstrói a mesma descrição da marca', () => {
+        expect(descricoes(b)).to.deep.equal(descricoes(a));
+      });
+
+      it('reconstrói a mesma descrição em todas as marcas, inclusive as dos descendentes', () => {
+        expect(descricoesDeTodas(b)).to.deep.equal(descricoesDeTodas(a));
       });
 
       it('rejeitar a revisão dá o mesmo resultado que na sessão original', () => {

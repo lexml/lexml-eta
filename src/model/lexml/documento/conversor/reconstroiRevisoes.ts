@@ -4,7 +4,7 @@ import { Elemento, Referencia } from '../../../elemento';
 import { createElemento, getElementos } from '../../../elemento/elementoUtil';
 import { RevisaoElemento } from '../../../revisao/revisao';
 import { StateType } from '../../../../redux/state';
-import { buildDescricaoRevisaoElemento, buildDescricaoRevisaoFromStateType, formatarOperacoesRevisao, rotuloDoTipoPorNumero } from '../../../../redux/elemento/util/revisaoUtil';
+import { buildDescricaoRevisaoElemento, formatarOperacoesRevisao, rotuloDoTipoPorNumero } from '../../../../redux/elemento/util/revisaoUtil';
 import { APLICAR_REVISOES } from '../../acao/aplicarRevisoes';
 import { criaDispositivo, createArticulacao } from '../../dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById, getArticulacao, getDispositivoAndFilhosAsLista, getUltimoFilho, isDispositivoAlteracao } from '../../hierarquia/hierarquiaUtil';
@@ -41,11 +41,7 @@ const referenciaDoPai = (pai: Dispositivo): Referencia => {
 const novaRevisao = (stateType: StateType, lida: RevisaoArticulacaoLida, antes: Partial<Elemento> | undefined, apos: Partial<Elemento>): RevisaoElemento => {
   const revisao = new RevisaoElemento(APLICAR_REVISOES, stateType, '', lida.usuario, lida.dataHora, antes, apos);
   revisao.revisao = formatarOperacoesRevisao(lida.operacoes);
-  if (stateType === StateType.ElementoIncluido && antes) {
-    revisao.descricao = buildDescricaoRevisaoFromStateType(revisao, apos as Elemento);
-  } else if (stateType === StateType.ElementoModificado) {
-    revisao.descricao = buildDescricaoRevisaoElemento(revisao);
-  }
+  revisao.descricao = buildDescricaoRevisaoElemento(revisao);
   return revisao;
 };
 
@@ -120,6 +116,10 @@ const derivaRotuloDoId = (dispositivo: Dispositivo, idOriginal: string): { numer
   return sonda.numero && sonda.rotulo ? { numero: sonda.numero, rotulo: sonda.rotulo } : undefined;
 };
 
+// Mesma regra da sessão: tipo diferente é transformação; senão, movimentação com a posição local (o descendente acompanha o pai).
+const operacaoDoDescendente = (antes: Elemento, apos: Elemento): { nome: string; argumento: string } =>
+  antes.tipo !== apos.tipo ? { nome: 'transformado', argumento: (antes.tipo ?? '').toLowerCase() } : { nome: 'movido', argumento: String((apos.hierarquia?.posicao ?? 0) + 1) };
+
 const reconstroiRevisoesDeDispositivo = (articulacao: Articulacao, lida: RevisaoArticulacaoLida): RevisaoElemento[] => {
   const dispositivo = buscaDispositivoById(articulacao, lida.refIdDispositivo!);
   if (!dispositivo) {
@@ -170,7 +170,9 @@ const reconstroiRevisoesDeDispositivo = (articulacao: Articulacao, lida: Revisao
       antes.tipo = tipoOriginalDoDescendente(apos.tipo, tipoOriginal, elementos[0].tipo!);
       antes.rotulo = rotuloDoTipoPorNumero(antes.tipo, apos.numero) ?? apos.rotulo;
     }
-    return novaRevisao(StateType.ElementoIncluido, lida, antes, clone(apos));
+    // Cada descendente tem a própria operação (a da sessão original), não as da principal.
+    const lidaDoElemento = i === 0 ? lida : { ...lida, operacoes: [operacaoDoDescendente(antes, apos)] };
+    return novaRevisao(StateType.ElementoIncluido, lidaDoElemento, antes, clone(apos));
   });
 };
 
