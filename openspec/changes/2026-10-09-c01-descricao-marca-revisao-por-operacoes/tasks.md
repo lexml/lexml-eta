@@ -18,8 +18,8 @@
 
 ## 5. Regressão e fechamento
 
-- [ ] 5.1 Rodar `npm test` e os specs Cypress de `cypress/e2e/revisao/` e `cypress/e2e/documento-articulado/`, e confirmar que nada regrediu. Os specs `grupo-g-atualizacao.cy.ts` e `grupo-f-invalidacao-restauracao.cy.ts` já falham antes desta change (esperam `art1_par1` onde o parágrafo único tem `art1_par1u`) e ficam fora da verificação.
-- [ ] 5.2 Registrar o fechamento: no `CLAUDE.md`, item 13, a regra de descrição por operações, o rótulo anterior derivado da posição fora de alteração de norma, a troca por "posição original <n>" dentro dela e a razão (o rótulo anterior e o "Novo/Existente" não estão no arquivo); atualizar a spec principal `abrir-documento-articulado` e criar a `descricao-marca-revisao` se a sincronização das specs for feita no arquivamento. Verificar relendo os arquivos.
+- [x] 5.1 Rodar `npm test` e os specs Cypress de `cypress/e2e/revisao/` e `cypress/e2e/documento-articulado/`, e confirmar que nada regrediu. Os specs `grupo-g-atualizacao.cy.ts` e `grupo-f-invalidacao-restauracao.cy.ts` já falham antes desta change (esperam `art1_par1` onde o parágrafo único tem `art1_par1u`) e ficam fora da verificação.
+- [x] 5.2 Registrar o fechamento: no `CLAUDE.md`, item 13, a regra de descrição por operações, o rótulo anterior derivado da posição fora de alteração de norma, a troca por "posição original <n>" dentro dela e a razão (o rótulo anterior e o "Novo/Existente" não estão no arquivo); atualizar a spec principal `abrir-documento-articulado` e criar a `descricao-marca-revisao` se a sincronização das specs for feita no arquivamento. Verificar relendo os arquivos.
 
 ## Workflow follow-up
 
