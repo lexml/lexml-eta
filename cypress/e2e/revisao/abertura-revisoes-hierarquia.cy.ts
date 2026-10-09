@@ -53,3 +53,46 @@ describe('Abertura de revisões da hierarquia persistidas', () => {
     cy.get(SEL_MARCA_REVISAO).should('have.length', 4);
   });
 });
+
+/**
+ * Descrição da marca ao reabrir (change 2026-10-09-c01-descricao-marca-revisao-por-operacoes).
+ *
+ * Fixture: demo/doc/teste_revisao_descricao_operacoes.json, gerada por criarDocumentoArticulado() a partir
+ * de demo/doc/prs_92_2023.json (artigo movido e alterado, inciso transformado em alínea e alterado,
+ * parágrafo movido) — não escrita à mão. A criação ao vivo das revisões pela interface fica sem E2E:
+ * depende do menu de contexto (docs/guia-cypress.md, §3 e §4) e é coberta pelos testes de reducer.
+ */
+describe('Descrição das marcas de revisão ao reabrir o documento', () => {
+  const titulos = ($marcas: JQuery<HTMLElement>): string[] => $marcas.toArray().map(m => m.getAttribute('title') ?? '');
+
+  beforeEach(() => {
+    cy.visit('/');
+    cy.window().then(win => win.localStorage.setItem('naoMostrarNovamenteDisclaimerMarcaAlteracao', 'true'));
+    cy.get('#fileUpload').selectFile('demo/doc/teste_revisao_descricao_operacoes.json', { force: true });
+    cy.get(SEL_MARCA_REVISAO).should('have.length.at.least', 3);
+  });
+
+  it('descreve o artigo movido e alterado com as duas operações', () => {
+    cy.get(SEL_MARCA_REVISAO).should($marcas => {
+      expect(titulos($marcas).some(t => t.includes('Dispositivo movido (antes era "Artigo Art. 4º") e texto alterado'))).to.equal(true);
+    });
+  });
+
+  it('descreve o inciso transformado em alínea e alterado', () => {
+    cy.get(SEL_MARCA_REVISAO).should($marcas => {
+      expect(titulos($marcas).some(t => t.includes('Dispositivo transformado (antes era "inciso") e texto alterado'))).to.equal(true);
+    });
+  });
+
+  it('descreve o parágrafo movido com o rótulo anterior', () => {
+    cy.get(SEL_MARCA_REVISAO).should($marcas => {
+      expect(titulos($marcas).some(t => t.includes('Dispositivo movido (antes era "Paragrafo § 1º")'))).to.equal(true);
+    });
+  });
+
+  it('nenhuma marca de dispositivo movido ou transformado diz "Dispositivo adicionado"', () => {
+    cy.get(SEL_MARCA_REVISAO).should($marcas => {
+      expect(titulos($marcas).filter(t => t.includes('Dispositivo adicionado'))).to.have.length(0);
+    });
+  });
+});
