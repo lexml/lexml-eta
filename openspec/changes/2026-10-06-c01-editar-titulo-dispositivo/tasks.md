@@ -37,10 +37,12 @@
 
 ## 7. Testes E2E (Cypress)
 
-- [ ] 7.1 Avaliar a viabilidade à luz de `docs/guia-cypress.md` e registrar a decisão aqui: o fluxo usa `sl-dialog`, `sl-dropdown` e um Quill dentro do diálogo; é viável com os comandos existentes (menu de contexto, `sl-dialog`, `.ql-editor`), com cuidado para a corrida do menu de contexto e para não editar o DOM direto. Se algum cenário não for viável, propor teste de integração alternativo cobrindo o mesmo risco
-- [ ] 7.2 Criar spec em `cypress/e2e/titulo-dispositivo/` com: adicionar, editar (pelo menu e pelo clique), remover, cancelar, aviso de vazio/minúscula, formatação restrita, undo/redo
-- [ ] 7.3 Cenário E2E de revisão (alterar com revisão ativa, rejeitar e aceitar) e de título em dispositivo dentro de bloco de alteração
-- [ ] 7.4 Rodar as suítes unitária (`npm test`), de lint (`npm run lint`) e as específicas do Cypress afetadas (revisão, alteração de norma) para checar regressão
+- [x] 7.1 Avaliar a viabilidade à luz de `docs/guia-cypress.md` e registrar a decisão aqui: o fluxo usa `sl-dialog`, `sl-dropdown` e um Quill dentro do diálogo; é viável com os comandos existentes (menu de contexto, `sl-dialog`, `.ql-editor`), com cuidado para a corrida do menu de contexto e para não editar o DOM direto. Se algum cenário não for viável, propor teste de integração alternativo cobrindo o mesmo risco
+  - **Decisão (viável):** o spec `cypress/e2e/titulo-dispositivo/titulo-dispositivo.cy.ts` cobre tudo com os comandos existentes (`selecionarOpcaoDeMenuDoDispositivo`, `getOpcoesDeMenuDoDispositivo`, revisão). O texto do diálogo é definido pela API do Quill do diálogo (`cy.type` não é confiável em contenteditable) e o undo/redo usa o botão da toolbar. Nenhum cenário precisou de alternativa de integração.
+- [x] 7.2 Criar spec em `cypress/e2e/titulo-dispositivo/` com: adicionar, editar (pelo menu e pelo clique), remover, cancelar, aviso de vazio/minúscula, formatação restrita, undo/redo
+- [x] 7.3 Cenário E2E de revisão (alterar com revisão ativa, rejeitar e aceitar) e de título em dispositivo dentro de bloco de alteração
+- [x] 7.4 Rodar as suítes unitária (`npm test`), de lint (`npm run lint`) e as específicas do Cypress afetadas (revisão, alteração de norma) para checar regressão
+  - **Resultado:** `npm test` e ESLint/Prettier dos arquivos da change sem erros; Cypress: título (12/12), revisão, alteração de norma, transformação e `grupo-l-caput-undo` passando. `remissao-interna/grupo-g-atualizacao` falha em 4 casos (CT-G-02/05/06/08, no `beforeEach`: `art1_par1u` no lugar de `art1_par1`) — **pré-existente**: reproduzido igual no commit anterior ao grupo 5 (73fadf35). Possível flakiness/dependência de timing do setup; não relacionado ao título.
 
 ## 8. Fechamento
 
