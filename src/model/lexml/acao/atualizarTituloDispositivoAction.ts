@@ -23,6 +23,6 @@ export class AtualizarTituloDispositivo implements ElementoAction {
   }
 }
 
-export const adicionarTituloDispositivoAction = new AtualizarTituloDispositivo('Adicionar título');
+export const adicionarTituloDispositivoAction = new AtualizarTituloDispositivo('Adicionar título do dispositivo');
 export const editarTituloDispositivoAction = new AtualizarTituloDispositivo('Editar título');
 export const removerTituloDispositivoAction = new AtualizarTituloDispositivo('Remover título', true);

@@ -38,7 +38,7 @@ describe('editarTituloDispositivoDialog', () => {
 
   it('usa o rótulo de adição e não avisa antes de o usuário digitar', () => {
     abre(undefined);
-    expect(dialog().label).to.equal('Adicionar título');
+    expect(dialog().label).to.equal('Adicionar título do dispositivo');
     expect(aviso()).to.equal('');
   });
 
@@ -71,11 +71,38 @@ describe('editarTituloDispositivoDialog', () => {
     expect(acoes[0].tituloDispositivo).to.equal('<i>Novo</i><sub> texto</sub>');
   });
 
-  it('ok vazio ao adicionar grava título vazio (com aviso)', () => {
+  it('ok fica desabilitado sem texto (adicionar e editar) e não despacha', () => {
     abre(undefined);
+    expect(botao(1).disabled).to.be.true;
     botao(1).dispatchEvent(new MouseEvent('click'));
+    expect(acoes).to.have.length(0);
+    quillDoDialogo().setText('Novo');
+    expect(botao(1).disabled).to.be.false;
+    quillDoDialogo().setText('   ');
+    expect(botao(1).disabled).to.be.true;
+    dialog().remove();
+
+    abre('Objeto');
+    expect(botao(1).disabled).to.be.false;
+    quillDoDialogo().setText('');
+    expect(botao(1).disabled).to.be.true;
+    botao(1).dispatchEvent(new MouseEvent('click'));
+    expect(acoes).to.have.length(0);
+    expect(dialog()).to.not.be.null;
+  });
+
+  it('remover só existe com título e despacha a remoção', () => {
+    abre(undefined);
+    expect(dialog().querySelector('.titulo-dispositivo-remover')).to.be.null;
+    dialog().remove();
+    abre('Objeto');
+    const btn = dialog().querySelector('.titulo-dispositivo-remover');
+    expect(btn.variant).to.equal('danger');
+    btn.dispatchEvent(new MouseEvent('click'));
     expect(acoes).to.have.length(1);
-    expect(acoes[0].tituloDispositivo).to.equal('');
+    expect(acoes[0].type).to.equal(ATUALIZAR_TITULO_DISPOSITIVO);
+    expect(acoes[0].remover).to.be.true;
+    expect(dialog()).to.be.null;
   });
 
   it('avisa título vazio e título iniciado em minúscula', () => {

@@ -68,7 +68,7 @@ describe('Ações de título no menu do dispositivo', () => {
   });
 
   it('os rótulos das ações correspondem ao pedido', () => {
-    expect(adicionarTituloDispositivoAction.descricao).to.equal('Adicionar título');
+    expect(adicionarTituloDispositivoAction.descricao).to.equal('Adicionar título do dispositivo');
     expect(editarTituloDispositivoAction.descricao).to.equal('Editar título');
     expect(removerTituloDispositivoAction.descricao).to.equal('Remover título');
   });
