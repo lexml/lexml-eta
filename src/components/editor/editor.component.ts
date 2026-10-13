@@ -70,6 +70,8 @@ import { AtalhosModalComponent } from '../ajuda/atalhos.modal.component';
 import { atualizarNotaAlteracaoAction } from '../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
+import { editarTituloDispositivoDialog } from './editarTituloDispositivoDialog';
+import { nomeDispositivoComArtigo } from '../../model/lexml/dispositivo/dispositivoValidator';
 import { AtualizarTituloDispositivo, removerTituloDispositivoAction } from '../../model/lexml/acao/atualizarTituloDispositivoAction';
 import { informarNormaDialog } from './informarNormaDialog';
 import { RevisaoElemento } from '../../model/revisao/revisao';
@@ -85,7 +87,7 @@ import { findDispositivoByUuid } from '../../model/lexml/hierarquia/hierarquiaUt
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
-import { createElementoValidadoComExtras, createElemento } from '../../model/elemento/elementoUtil';
+import { createElementoValidadoComExtras, createElemento, getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
 import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
@@ -543,10 +545,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editarNotaAlteracaoDialog(elemento, this.quill, rootStore);
   }
 
-  // O diálogo de edição entra na task 6.2; até lá, só a remoção (sem diálogo) está ligada.
   private editarTituloDispositivo(elemento: Elemento, itemMenu?: AtualizarTituloDispositivo): void {
     if (itemMenu === removerTituloDispositivoAction) {
       rootStore.dispatch(removerTituloDispositivoAction.execute(elemento));
+      return;
+    }
+    const dispositivo = getDispositivoFromElemento(rootStore.getState().elementoReducer.articulacao, elemento, true);
+    if (dispositivo) {
+      editarTituloDispositivoDialog(elemento, nomeDispositivoComArtigo(dispositivo), this.quill, rootStore);
     }
   }
 

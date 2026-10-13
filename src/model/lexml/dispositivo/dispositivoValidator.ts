@@ -25,24 +25,28 @@ const validaReferencia = (dispositivo: Dispositivo): Mensagem[] => {
 };
 
 // Só avisa: título vazio ou iniciado em minúscula não bloqueia a edição.
-export const validaTitulo = (dispositivo: Dispositivo): Mensagem[] => {
-  if (dispositivo.tituloDispositivo === undefined) {
-    return [];
-  }
-
-  const nome = `${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()}`;
-  const texto = getTextoSemHtml(dispositivo.tituloDispositivo.replace(/&nbsp;/g, ' '));
+export const mensagensTitulo = (titulo: string, nomeDispositivo: string): Mensagem[] => {
+  const texto = getTextoSemHtml(titulo.replace(/&nbsp;/g, ' '));
 
   if (texto === '') {
-    return [{ tipo: TipoMensagem.WARNING, descricao: `Não foi informado um texto para o título d${nome}.` }];
+    return [{ tipo: TipoMensagem.WARNING, descricao: `Não foi informado um texto para o título d${nomeDispositivo}.` }];
   }
 
   const primeiro = texto.match(/[\p{L}\p{N}]/u)?.[0];
   if (primeiro && primeiro !== primeiro.toUpperCase()) {
-    return [{ tipo: TipoMensagem.WARNING, descricao: `O título d${nome} deveria iniciar com letra maiúscula.` }];
+    return [{ tipo: TipoMensagem.WARNING, descricao: `O título d${nomeDispositivo} deveria iniciar com letra maiúscula.` }];
   }
 
   return [];
+};
+
+export const nomeDispositivoComArtigo = (dispositivo: Dispositivo): string => `${dispositivo.artigoDefinido} ${dispositivo.descricao?.toLowerCase()}`;
+
+export const validaTitulo = (dispositivo: Dispositivo): Mensagem[] => {
+  if (dispositivo.tituloDispositivo === undefined) {
+    return [];
+  }
+  return mensagensTitulo(dispositivo.tituloDispositivo, nomeDispositivoComArtigo(dispositivo));
 };
 
 export const validaDispositivo = (dispositivo: Dispositivo): Mensagem[] => {
