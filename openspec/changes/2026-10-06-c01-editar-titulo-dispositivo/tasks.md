@@ -6,7 +6,7 @@
 
 ## 2. Action e reducer
 
-- [x] 2.1 Criar `atualizarTituloDispositivoAction` (`ATUALIZAR_TITULO_DISPOSITIVO`) e a classe de ação com os rótulos "Adicionar título", "Editar título" e "Remover título"
+- [x] 2.1 Criar `atualizarTituloDispositivoAction` (`ATUALIZAR_TITULO_DISPOSITIVO`) e a classe de ação com os rótulos "Adicionar título do dispositivo", "Editar título" e "Remover título"
 - [x] 2.2 Criar o reducer `atualizaTituloDispositivo` (localiza o dispositivo, valida permissão/bloqueio, sanitiza, ignora quando inalterado, emite `ElementoModificado` e `ElementoValidado`, registra um passo de histórico) e registrá-lo no `elementoReducer`
 - [x] 2.3 Incluir a ação nas regras de menu de Artigo, Parágrafo, Inciso, Alínea e Item (rótulo conforme exista título; fora de agrupador, caput, omissis, bloqueado e removido em revisão; vale também em bloco de alteração)
 - [x] 2.4 Testes unitários do reducer: adicionar, alterar, remover, sem mudança, bloqueado, dentro de bloco de alteração, título vazio
@@ -48,3 +48,13 @@
 
 - [x] 8.1 Validar a change (`openspec validate`) e revisar os artefatos contra o que foi implementado
 - [x] 8.2 Atualizar `docs/sessao/TODO.md` e, se houver aprendizado novo, o `CLAUDE.md` (itens do projeto)
+
+## 9. Evolução: rótulo e botão Remover no diálogo
+
+- [x] 9.1 Renomear "Adicionar título" para "Adicionar título do dispositivo" (ação de menu e título do diálogo) e atualizar testes unitários e E2E
+- [x] 9.2 Botão "Remover" (danger) no diálogo, visível só quando há título, reutilizando `removerTituloDispositivoAction`
+- [x] 9.3 Teste unitário do botão (ausente sem título; com título, variante danger, despacha a remoção e fecha o diálogo)
+- [x] 9.4 Ok desabilitado sem texto (adicionar e editar; Enter respeita o bloqueio): código, teste unitário (substitui "ok vazio grava título vazio") e ajuste do E2E de aviso de vazio
+- [x] 9.5 E2E Cypress: remover pelo botão do diálogo (título some, menu volta a oferecer "Adicionar título do dispositivo", desfazer restaura) e botão ausente ao adicionar
+- [x] 9.6 Rodar `npm test`, lint e o spec `titulo-dispositivo`; revalidar a change (`openspec validate --strict`)
+  - **Resultado 9.6:** `npm test` (106 arquivos, todos os lotes) sem falhas; ESLint e `tsc --noEmit` limpos; Cypress `titulo-dispositivo` 15/15.

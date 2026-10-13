@@ -4,11 +4,13 @@ O título de dispositivo (ex.: o título de um artigo na MPV 1170/2023) já é l
 
 ## What Changes
 
-- Novas ações de menu de contexto, por dispositivo: **Adicionar título** (quando não há título), **Editar título** e **Remover título** (quando há). Aplicam-se a Artigo, Parágrafo, Inciso, Alínea e Item, inclusive dentro de bloco de alteração.
+- Novas ações de menu de contexto, por dispositivo: **Adicionar título do dispositivo** (quando não há título; o rótulo evita ambiguidade com título de agrupador), **Editar título** e **Remover título** (quando há). Aplicam-se a Artigo, Parágrafo, Inciso, Alínea e Item, inclusive dentro de bloco de alteração.
 - O título também pode ser editado clicando nele, como já ocorre com a nota de alteração "(NR)".
 - A edição acontece em um diálogo modal com um mini-editor de texto rico restrito às formatações `i`, `u`, `sub` e `sup`; qualquer outra tag é removida automaticamente (inclusive no reducer, como defesa).
+- O diálogo de um dispositivo que já tem título oferece também o botão **Remover** (danger), com o mesmo efeito da ação de menu "Remover título".
 - Título **não** admite remissão (interna ou externa): links são reduzidos a texto na sanitização.
-- Validação apenas informativa, sem bloquear: mensagem quando o título está vazio ("Não foi informado um texto para o título do <tipo de dispositivo>.") e quando não começa com letra maiúscula.
+- O diálogo não permite confirmar um título vazio (sem texto, desconsiderando tags e espaços): o botão Ok fica desabilitado, tanto ao adicionar quanto ao editar. Para eliminar o título, usa-se Remover.
+- Validação apenas informativa, sem bloquear: mensagem quando o título está vazio ("Não foi informado um texto para o título do <tipo de dispositivo>.", que continua útil para títulos vazios vindos de arquivo e explica no diálogo por que o Ok está desabilitado) e quando não começa com letra maiúscula.
 - Undo/redo: cada operação de título é um passo atômico do histórico e restaura o título anterior ao desfazer.
 - Revisão: com o modo de revisão ativo, alterar, adicionar ou remover o título gera revisão de modificação, com descrição própria; aceitar/rejeitar a revisão e desfazer/refazer restauram o título.
 - Renderização: a linha do editor passa a criar, atualizar e remover o título dinamicamente, sem exigir que o título já exista na criação da linha.
