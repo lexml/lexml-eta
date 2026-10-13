@@ -43,6 +43,8 @@ export class RevisaoElemento extends Revisao {
   idRevisaoElementoPrincipal?: string;
   // Operações aplicadas, em ordem (ex.: "movido;3,alterado"); gramática em docs/extensao-formato-lexml/11-revisao-da-hierarquia.md.
   revisao?: string;
+  // Lugar de origem de movimentação/transformação: uuid2 do dispositivo que o seguia, `null` se era o fim do pai, `undefined` se desconhecido.
+  origemAntesDeUuid2?: string | null;
 
   constructor(
     actionType: string,

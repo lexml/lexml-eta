@@ -1,6 +1,6 @@
 import { getRevisoesElemento, isRevisaoDeExclusao } from './../util/revisaoUtil';
 import { createElemento } from './../../../model/elemento/elementoUtil';
-import { Elemento, Referencia } from '../../../model/elemento';
+import { Elemento } from '../../../model/elemento';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
@@ -28,6 +28,8 @@ import {
   getOperacoesDaRevisao,
   getOperacoesRevisao,
   getPosicaoOriginalParaMovimentacao,
+  getPosicaoDeOrigem,
+  getReferenciaDeOrigem,
   getRevisoesElementoAssociadas,
   reconciliarOperacoesRevisao,
   OPERACAO_ADICIONADO,
@@ -210,6 +212,7 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
     );
 
     revInclusao.revisao = formatarOperacoesRevisao([getOperacaoDeMovimentacaoOuTransformacao(state, eAntesRevisao, eAposRevisao)]);
+    revInclusao.origemAntesDeUuid2 = getReferenciaDeOrigem(state.articulacao!, eAntesRevisao, eAposRevisao);
     // revExclusao.idRevisaoAssociada = revInclusao.id;
     // revInclusao.idRevisaoAssociada = revExclusao.id;
     // result.push(revExclusao);
@@ -243,6 +246,7 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
         revisao.usuario = state.usuario!;
 
         if (operacao) {
+          revisao.origemAntesDeUuid2 = revisao.origemAntesDeUuid2 ?? getReferenciaDeOrigem(state.articulacao!, e, incluidos[index]);
           revisao.revisao = anexarOperacaoRevisao(getOperacoesDaRevisao(state, revisao), operacao.nome, operacao.argumento);
           reconciliarOperacoesRevisao(state, revisao);
           if (revisao.revisao === '') {
@@ -443,36 +447,15 @@ const atualizarPosicaoDeElementosEmRevisoes = (state: State): void => {
   atualizarPosicaoOriginalDasMovimentacoes(state);
 };
 
-const isMesmoPaiDaReferencia = (a?: Referencia, b?: Referencia): boolean => {
-  if (a?.uuid !== undefined && b?.uuid !== undefined) {
-    return a.uuid === b.uuid;
-  }
-  if (a?.uuid2 !== undefined && b?.uuid2 !== undefined) {
-    return a.uuid2 === b.uuid2;
-  }
-  return a?.tipo !== undefined && a.tipo === b?.tipo && a.lexmlId === b?.lexmlId;
-};
-
-// O lugar de origem (`antes`) é contado sem o próprio dispositivo; acompanha as inclusões e remoções anteriores a ele no mesmo pai, senão a rejeição o reinsere fora do lugar.
+// O lugar de origem (`antes`) decorre da referência guardada na criação; recalculá-lo aqui o mantém certo após qualquer inclusão, remoção, undo ou redo.
 const atualizarPosicaoOriginalDasMovimentacoes = (state: State): void => {
-  const incluidos = getEvento(state.ui!.events, StateType.ElementoIncluido)?.elementos ?? [];
-  const removidos = getEvento(state.ui!.events, StateType.ElementoRemovido)?.elementos ?? [];
   getRevisoesElemento(state.revisoes || [])
-    .filter(r => isRevisaoPrincipal(r) && !isRevisaoDeExclusao(r) && r.elementoAntesRevisao?.hierarquia?.posicao !== undefined)
+    .filter(r => isRevisaoPrincipal(r) && !isRevisaoDeExclusao(r) && r.elementoAntesRevisao?.hierarquia && r.origemAntesDeUuid2 !== undefined)
     .forEach(r => {
       const origem = r.elementoAntesRevisao!.hierarquia!;
-      const movido = getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao);
-      const atualDoMovido = movido?.pai ? createElemento(movido, false, true).hierarquia : undefined;
-      const anteriorAoLugar = (e: Elemento): boolean => {
-        if (e.uuid === r.elementoAposRevisao.uuid || !isMesmoPaiDaReferencia(e.hierarquia?.pai, origem.pai)) {
-          return false;
-        }
-        const antecedidoPeloMovido = !!atualDoMovido && isMesmoPaiDaReferencia(atualDoMovido.pai, origem.pai) && atualDoMovido.posicao! < e.hierarquia!.posicao!;
-        return e.hierarquia!.posicao! - (antecedidoPeloMovido ? 1 : 0) < origem.posicao!;
-      };
-      const deslocamento = incluidos.filter(anteriorAoLugar).length - removidos.filter(anteriorAoLugar).length;
-      if (deslocamento) {
-        origem.posicao! += deslocamento;
+      const posicao = getPosicaoDeOrigem(state.articulacao!, r.elementoAntesRevisao!, r.elementoAposRevisao, r.origemAntesDeUuid2);
+      if (posicao !== undefined && posicao !== origem.posicao) {
+        origem.posicao = posicao;
         atualizarPosicaoOriginalNaOperacaoMovido(state, r);
       }
     });

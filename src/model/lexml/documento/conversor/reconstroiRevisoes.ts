@@ -4,7 +4,7 @@ import { Elemento, Referencia } from '../../../elemento';
 import { createElemento, getElementos } from '../../../elemento/elementoUtil';
 import { RevisaoElemento } from '../../../revisao/revisao';
 import { StateType } from '../../../../redux/state';
-import { buildDescricaoRevisaoElemento, formatarOperacoesRevisao, rotuloDoTipoPorNumero } from '../../../../redux/elemento/util/revisaoUtil';
+import { buildDescricaoRevisaoElemento, formatarOperacoesRevisao, getReferenciaDeOrigem, rotuloDoTipoPorNumero } from '../../../../redux/elemento/util/revisaoUtil';
 import { APLICAR_REVISOES } from '../../acao/aplicarRevisoes';
 import { criaDispositivo, createArticulacao } from '../../dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById, getArticulacao, getDispositivoAndFilhosAsLista, getUltimoFilho, isDispositivoAlteracao } from '../../hierarquia/hierarquiaUtil';
@@ -172,7 +172,11 @@ const reconstroiRevisoesDeDispositivo = (articulacao: Articulacao, lida: Revisao
     }
     // Cada descendente tem a própria operação (a da sessão original), não as da principal.
     const lidaDoElemento = i === 0 ? lida : { ...lida, operacoes: [operacaoDoDescendente(antes, apos)] };
-    return novaRevisao(StateType.ElementoIncluido, lidaDoElemento, antes, clone(apos));
+    const revisao = novaRevisao(StateType.ElementoIncluido, lidaDoElemento, antes, clone(apos));
+    if (i === 0) {
+      revisao.origemAntesDeUuid2 = getReferenciaDeOrigem(articulacao, antes, apos);
+    }
+    return revisao;
   });
 };
 

@@ -21,6 +21,7 @@ import {
   findUltimaRevisaoDoGrupo,
   getRevisoesElementoAssociadas,
   getOperacoesRevisao,
+  getPosicaoDeOrigem,
   isRevisaoDeMovimentacao,
   isRevisaoPrincipal,
   OPERACAO_ALTERACAO_ROTULO,
@@ -189,7 +190,17 @@ const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
   return result;
 };
 
+// Estado já sem o movido: a referência de origem dá o lugar certo mesmo que a posição guardada esteja defasada.
+const atualizaPosicaoDeOrigem = (state: State, revisao: RevisaoElemento): void => {
+  const antes = revisao.elementoAntesRevisao;
+  const posicao = antes ? getPosicaoDeOrigem(state.articulacao!, antes, revisao.elementoAposRevisao, revisao.origemAntesDeUuid2) : undefined;
+  if (antes?.hierarquia && posicao !== undefined) {
+    antes.hierarquia.posicao = posicao;
+  }
+};
+
 const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
+  atualizaPosicaoDeOrigem(state, revisao);
   const revisoesAssociadas = getRevisoesElementoAssociadas(state.revisoes, revisao);
   const evento: StateEvent = { stateType: StateType.ElementoRemovido, elementos: revisoesAssociadas.map(r => r.elementoAntesRevisao as Elemento) };
   const eventoAux: StateEvent = { stateType: StateType.ElementoIncluido, elementos: [] };

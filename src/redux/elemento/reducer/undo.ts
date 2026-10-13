@@ -53,8 +53,15 @@ export const undo = (state: any): State => {
     // remove incluídos
     events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoIncluido)));
 
-    retorno.ui!.events = [...events.build(), ...retorno.ui!.events];
-    retorno.present = [...events.build(), ...retorno.present];
+    // Sem isto, desfazer a rejeição de uma revisão cujo dispositivo volta com o mesmo id não devolve a revisão ao estado.
+    const eventosRevisao = [
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAceita),
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoRejeitada),
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAdicionalRejeitada),
+    ].filter(ev => ev.elementos?.length);
+
+    retorno.ui!.events = [...eventosRevisao, ...events.build(), ...retorno.ui!.events];
+    retorno.present = [...eventosRevisao, ...events.build(), ...retorno.present];
 
     return retorno;
   }

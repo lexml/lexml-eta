@@ -618,6 +618,41 @@ const isMesmoPai = (a?: Referencia, b?: Referencia): boolean => (a?.uuid2 !== un
 const isMesmoLugar = (antes: Partial<Elemento>, apos: Partial<Elemento>): boolean =>
   isMesmoPai(antes.hierarquia?.pai, apos.hierarquia?.pai) && antes.hierarquia?.posicao === apos.hierarquia?.posicao;
 
+const localizaPaiDeOrigem = (raiz: Articulacao, pai?: Referencia): Dispositivo | undefined => {
+  if (!pai) {
+    return undefined;
+  }
+  return pai.tipo === 'Articulacao'
+    ? raiz
+    : (pai.uuid2 && findDispositivoByUuid2(raiz, pai.uuid2)) || (pai.uuid !== undefined && findDispositivoByUuid(raiz, pai.uuid, true)) || undefined;
+};
+
+// Quem seguia o lugar de origem, sem contar o movido: seu uuid2; `null` se o lugar era o fim do pai; `undefined` se o pai não foi achado.
+export const getReferenciaDeOrigem = (raiz: Articulacao, antes: Partial<Elemento>, apos: Partial<Elemento>): string | null | undefined => {
+  const posicao = antes.hierarquia?.posicao;
+  const pai = localizaPaiDeOrigem(raiz, antes.hierarquia?.pai);
+  if (!pai || posicao === undefined) {
+    return undefined;
+  }
+  const movido = getDispositivoFromElemento(raiz, apos);
+  return pai.filhos.filter(f => f !== movido)[posicao]?.uuid2 ?? null;
+};
+
+// Deriva o lugar de origem da referência guardada, para não depender de quantas inclusões e remoções ocorreram desde então (nem do undo/redo).
+export const getPosicaoDeOrigem = (raiz: Articulacao, antes: Partial<Elemento>, apos: Partial<Elemento>, referencia: string | null | undefined): number | undefined => {
+  const pai = localizaPaiDeOrigem(raiz, antes.hierarquia?.pai);
+  if (!pai || referencia === undefined) {
+    return undefined;
+  }
+  const movido = getDispositivoFromElemento(raiz, apos);
+  const irmaos = pai.filhos.filter(f => f !== movido);
+  if (referencia === null) {
+    return irmaos.length;
+  }
+  const indice = irmaos.findIndex(f => f.uuid2 === referencia);
+  return indice < 0 ? undefined : indice;
+};
+
 // Artigo: sequencial entre todos os artigos da articulação; demais: posição entre os filhos do pai (iniciando em 1).
 export const getPosicaoOriginalParaMovimentacao = (state: State, antes: Partial<Elemento>, apos: Partial<Elemento>): number => {
   const posicaoLocal = (antes.hierarquia?.posicao ?? 0) + 1;
