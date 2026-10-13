@@ -46,5 +46,5 @@
 
 ## 8. Fechamento
 
-- [ ] 8.1 Validar a change (`openspec validate`) e revisar os artefatos contra o que foi implementado
-- [ ] 8.2 Atualizar `docs/sessao/TODO.md` e, se houver aprendizado novo, o `CLAUDE.md` (itens do projeto)
+- [x] 8.1 Validar a change (`openspec validate`) e revisar os artefatos contra o que foi implementado
+- [x] 8.2 Atualizar `docs/sessao/TODO.md` e, se houver aprendizado novo, o `CLAUDE.md` (itens do projeto)
