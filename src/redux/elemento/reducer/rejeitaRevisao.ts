@@ -22,6 +22,7 @@ import {
   getRevisoesElementoAssociadas,
   getOperacoesRevisao,
   getPosicaoDeOrigem,
+  isMovimentacaoSemEfeito,
   isRevisaoDeMovimentacao,
   isRevisaoPrincipal,
   OPERACAO_ALTERACAO_ROTULO,
@@ -45,14 +46,14 @@ export const rejeitarRevisaoEmLote = (state: State, revisoes: Revisao[] = []): S
   const tempStates: State[] = [];
   revisoes.filter(isRevisaoPrincipal).forEach((revisao: Revisao) => {
     const tempState = { ...state, past: [], present: [], future: [], ui: { ...state.ui, events: [] } };
-    tempStates.push(rejeitarRevisao(tempState, { revisao }));
+    tempStates.push(rejeitarRevisao(tempState, { revisao }, false));
   });
   const tempState = mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes(state, tempStates, revisoes, 'rejeitar');
   tempState.revisoes = state.revisoes?.filter(r => !isRevisaoPrincipal(r));
   return tempState;
 };
 
-export const rejeitarRevisao = (state: any, action: any): State => {
+export const rejeitarRevisao = (state: any, action: any, descartarMovimentacoesSemEfeito = true): State => {
   const revisao = (action.revisao || findRevisaoByElementoUuid(state.revisoes, action.elemento.uuid)) as RevisaoElemento;
   const revisoesAssociadas = getRevisoesElementoAssociadas(state.revisoes, revisao);
   const idsRevisoesAssociadas = revisoesAssociadas.map(r => r.id);
@@ -87,6 +88,28 @@ export const rejeitarRevisao = (state: any, action: any): State => {
   const tempState = { ...state, past: [] };
 
   eventos.push(...processaRevisoes(tempState, revisoesAssociadas.filter(isRevisaoPrincipal)));
+
+  if (descartarMovimentacoesSemEfeito) {
+    // Entram no mesmo evento de rejeição, que o undo/redo já sabe devolver/remover.
+    const descartadas = state.revisoes
+      .filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id) && isRevisaoPrincipal(r) && isMovimentacaoSemEfeito(state.articulacao!, r as RevisaoElemento))
+      .flatMap((r: RevisaoElemento) => getRevisoesElementoAssociadas(state.revisoes, r));
+    if (descartadas.length) {
+      descartadas.forEach((r: RevisaoElemento) => {
+        r.elementoAposRevisao.revisao = JSON.parse(JSON.stringify(r));
+        elementos.push(r.elementoAposRevisao as Elemento);
+      });
+      idsRevisoesAssociadas.push(...descartadas.map((r: RevisaoElemento) => r.id));
+      eventos.push({
+        stateType: StateType.SituacaoElementoModificada,
+        elementos: descartadas
+          .map((r: RevisaoElemento) => getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao))
+          .filter(Boolean)
+          .map((d: any) => createElemento(d)),
+      });
+    }
+  }
+
   const eventosPast = isRevisaoDeModificacao(revisao) ? montarEventosDeModificacaoParaHistorico(eventos, revisao, state) : eventos;
 
   return {

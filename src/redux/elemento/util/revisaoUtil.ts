@@ -647,6 +647,18 @@ export const getReferenciaDeOrigem = (raiz: Articulacao, antes: Partial<Elemento
   return pai.filhos.filter(f => f !== movido)[posicao]?.uuid2 ?? null;
 };
 
+// Movimentação pura cujo lugar de origem voltou a ser o atual (ex.: o dispositivo que a deslocava teve a inclusão rejeitada).
+export const isMovimentacaoSemEfeito = (raiz: Articulacao, revisao: RevisaoElemento): boolean => {
+  const antes = revisao.elementoAntesRevisao;
+  const operacoes = getOperacoesRevisao(revisao.revisao);
+  if (!antes || !isRevisaoDeMovimentacao(revisao) || operacoes.length !== 1 || operacoes[0].nome !== OPERACAO_MOVIDO) {
+    return false;
+  }
+  const movido = getDispositivoFromElemento(raiz, revisao.elementoAposRevisao);
+  const pai = localizaPaiDeOrigem(raiz, antes.hierarquia?.pai);
+  return !!movido && !!pai && movido.pai === pai && getPosicaoDeOrigem(raiz, antes, revisao.elementoAposRevisao, revisao.origemAntesDeUuid2) === pai.filhos.indexOf(movido);
+};
+
 // Deriva o lugar de origem da referência guardada, para não depender de quantas inclusões e remoções ocorreram desde então (nem do undo/redo).
 export const getPosicaoDeOrigem = (raiz: Articulacao, antes: Partial<Elemento>, apos: Partial<Elemento>, referencia: string | null | undefined): number | undefined => {
   const pai = localizaPaiDeOrigem(raiz, antes.hierarquia?.pai);

@@ -95,34 +95,68 @@ describe('Desfazer a rejeição de revisões de inclusão e de movimentação de
         state = prepara(criado.state);
         comAsDuasRevisoes = operacoes(state);
         state = rejeitaPorOperacao(state, 'adicionado');
-        state = rejeitaPorOperacao(state, 'movido');
       });
 
-      it('desfazer duas vezes devolve as duas revisões', () => {
+      it('rejeitar a inclusão descarta também a movimentação que voltou ao lugar de origem', () => {
+        expect(operacoes(state)).to.deep.equal([]);
+        expect(resumo(state)).to.deep.equal(inicial);
+      });
+
+      it('as marcas somem do artigo movido ao rejeitar a inclusão e voltam ao desfazer', () => {
+        const marcas = (s: State): string[] =>
+          (s.ui!.events as any[])
+            .filter(ev => ev.stateType === 'SituacaoElementoModificada')
+            .flatMap(ev => ev.elementos)
+            .filter(e => e.revisao)
+            .map(e => e.revisao.revisao as string);
+        expect(marcas(state).filter(m => m.startsWith('movido'))).to.deep.equal([]);
+        // Ao reabrir, aplicar as revisões já deixa o modo ligado; sem ele as marcas não são associadas aos eventos.
+        if (!state.emRevisao) {
+          state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+        }
         state = elementoReducer(state, { type: UNDO });
+        expect(marcas(state).some(m => m.startsWith('movido'))).to.equal(true);
+      });
+
+      it('desfazer uma vez devolve as duas revisões', () => {
         state = elementoReducer(state, { type: UNDO });
         expect(operacoes(state)).to.deep.equal(comAsDuasRevisoes);
       });
 
-      it('o primeiro desfazer já devolve a revisão de movimentação', () => {
-        state = elementoReducer(state, { type: UNDO });
-        expect(operacoes(state)).to.deep.equal(['movido']);
-      });
-
-      it('rejeitar a movimentação depois de desfazer duas vezes devolve o artigo para depois do artigo novo', () => {
-        state = elementoReducer(state, { type: UNDO });
+      it('rejeitar a movimentação depois de desfazer devolve o artigo para depois do artigo novo', () => {
         state = elementoReducer(state, { type: UNDO });
         state = rejeitaPorOperacao(state, 'movido');
         expect(resumo(state)).to.deep.equal(antesDeMover);
       });
 
-      it('refazer depois de desfazer repete as rejeições', () => {
+      it('refazer depois de desfazer descarta de novo as duas revisões', () => {
         state = elementoReducer(state, { type: UNDO });
-        state = elementoReducer(state, { type: UNDO });
-        state = elementoReducer(state, { type: REDO });
         state = elementoReducer(state, { type: REDO });
         expect(operacoes(state)).to.deep.equal([]);
         expect(resumo(state)).to.deep.equal(inicial);
+      });
+
+      describe('rejeitando a movimentação antes da inclusão', () => {
+        beforeEach(() => {
+          state = elementoReducer(state, { type: UNDO });
+          state = rejeitaPorOperacao(state, 'movido');
+          state = rejeitaPorOperacao(state, 'adicionado');
+        });
+
+        it('desfazer duas vezes devolve as duas revisões', () => {
+          state = elementoReducer(state, { type: UNDO });
+          state = elementoReducer(state, { type: UNDO });
+          expect(operacoes(state)).to.deep.equal(comAsDuasRevisoes);
+        });
+
+        it('refazer depois de desfazer repete as rejeições', () => {
+          state = elementoReducer(state, { type: UNDO });
+          state = elementoReducer(state, { type: UNDO });
+          state = elementoReducer(state, { type: REDO });
+          state = elementoReducer(state, { type: REDO });
+          expect(operacoes(state)).to.deep.equal([]);
+          expect(resumo(state)).to.deep.equal(inicial);
+        });
       });
     });
   });

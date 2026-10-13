@@ -40,6 +40,9 @@ const rejeitaPorOperacao = (state: State, operacao: 'adicionado' | 'movido'): St
   return elementoReducer(state, { type: REJEITAR_REVISAO, revisao });
 };
 
+const temRevisao = (state: State, operacao: 'adicionado' | 'movido'): boolean =>
+  (state.revisoes!.filter(isRevisaoPrincipal) as RevisaoElemento[]).some(r => r.revisao?.startsWith(operacao));
+
 const elementoPorUuid = (state: State, uuid: number): ReturnType<typeof createElemento> => createElemento(state.articulacao!.artigos.find(a => a.uuid === uuid)!);
 
 type Sentido = 'acima' | 'abaixo';
@@ -69,7 +72,10 @@ const executa = (c: Cenario): { inicial: string[]; final: string[] } => {
 
   if (c.rejeitarInclusaoPrimeiro) {
     state = rejeitaPorOperacao(state, 'adicionado');
-    state = rejeitaPorOperacao(state, 'movido');
+    // A movimentação que voltou ao lugar de origem é descartada junto com a inclusão.
+    if (temRevisao(state, 'movido')) {
+      state = rejeitaPorOperacao(state, 'movido');
+    }
   } else {
     state = rejeitaPorOperacao(state, 'movido');
     state = rejeitaPorOperacao(state, 'adicionado');
@@ -81,6 +87,22 @@ describe('Rejeição de inclusão e de movimentação de artigos em modo de revi
   it('relato: artigo novo na posição 4, "Teste 4." movido para cima; rejeitar a inclusão e depois a movimentação', () => {
     const { inicial, final } = executa({ adicionarDepoisDe: 2, mover: 3, sentido: 'acima', movimentarAntes: false, rejeitarInclusaoPrimeiro: true });
     expect(final).to.deep.equal(inicial);
+  });
+
+  it('rejeitar a inclusão descarta a movimentação que voltou ao lugar de origem', () => {
+    const { state: aberto, artigos } = criaArtigos();
+    let state = elementoReducer(aberto, { type: ADICIONAR_ELEMENTO, atual: elementoPorUuid(aberto, artigos[2].uuid), novo: { tipo: 'Artigo' } });
+    state = elementoReducer(state, { type: MOVER_ELEMENTO_ACIMA, atual: elementoPorUuid(state, artigos[3].uuid) });
+    state = rejeitaPorOperacao(state, 'adicionado');
+    expect(state.revisoes!.filter(isRevisaoPrincipal)).to.have.length(0);
+  });
+
+  it('rejeitar a inclusão mantém a movimentação que ainda muda o lugar do artigo', () => {
+    const { state: aberto, artigos } = criaArtigos();
+    let state = elementoReducer(aberto, { type: ADICIONAR_ELEMENTO, atual: elementoPorUuid(aberto, artigos[0].uuid), novo: { tipo: 'Artigo' } });
+    state = elementoReducer(state, { type: MOVER_ELEMENTO_ACIMA, atual: elementoPorUuid(state, artigos[5].uuid) });
+    state = rejeitaPorOperacao(state, 'adicionado');
+    expect(temRevisao(state, 'movido')).to.equal(true);
   });
 
   const indices = Array.from({ length: TOTAL }, (_, i) => i);
