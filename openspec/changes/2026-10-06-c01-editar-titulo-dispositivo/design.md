@@ -72,3 +72,11 @@ Nenhuma mudança de formato. `buildStructuredContent(dispositivo, 'tituloDisposi
 - **Condição de corrida do menu de contexto** (pré-existente, ver `docs/analises/ANALISE_CORRIDA_CLIQUE_MENU_CONTEXTO.md`) pode afetar um E2E que clique no menu logo após outra ação → intercalar passos no teste, como orienta `docs/guia-cypress.md`.
 - **Título com remissão vindo de arquivo antigo** → a leitura continua entregando HTML com `<a>`; a sanitização só age ao editar. Aceito: renderizar como hoje até o usuário editar.
 - **Tipos de mensagem**: usar `WARNING` pode ter peso visual diferente de `ERROR` nos alertas globais → conferir na implementação como o editor trata `WARNING` na linha e no painel de alertas.
+
+## Ajustes durante a implementação
+
+- **D5:** o ciclo de vida do blot no container (`EtaContainerTable.atualizarTituloDispositivo`, chamado por `atualizarAtributos`) funcionou sem fragilidade; a contingência de recriar a linha não foi necessária. O blot também passou a ser registrado no Quill privado (`configure-private-quill`), o que não estava.
+- **Clique no título:** o blot só dispara o evento `titulo-dispositivo` (e só ganha cursor de ponteiro) quando o elemento tem a ação de título entre as possíveis; título de dispositivo bloqueado ou removido em revisão não abre o diálogo.
+- **D6:** as regras de aviso foram extraídas para `mensagensTitulo` (`dispositivoValidator`), usadas pelo validador e pelo diálogo. Ao adicionar, o aviso do diálogo só aparece depois da primeira edição (não avisa de um campo que ainda não foi preenchido); ao editar, aparece desde a abertura.
+- **Diálogo:** Enter confirma (título de linha única) e quebras de linha coladas viram espaço; o Quill do diálogo usa o tema `snow` já carregado pelo componente raiz.
+- **Testes de diálogo:** o clique em `sl-button` deve ser disparado por `dispatchEvent(new MouseEvent('click'))`; `SlButton.click()` depende do botão interno já renderizado.
