@@ -24,10 +24,10 @@
 
 ## 5. Renderização na linha do editor
 
-- [ ] 5.1 Ensinar `EtaContainerTable` a criar, atualizar e remover o blot do título dinamicamente (exibir para `tituloDispositivo !== undefined`); se a inserção dinâmica for frágil, recriar a linha como contingência
-- [ ] 5.2 Fazer o blot do título disparar o `CustomEvent` de edição ao clique, e o `editor.component` tratar o evento e a escolha de menu das novas ações
-- [ ] 5.3 Ajustar o CSS do título se necessário (linha de alteração com aspas; título vazio)
-- [ ] 5.4 Teste de DOM/unitário da linha: título aparece, atualiza e some sem recriar a linha indevidamente
+- [x] 5.1 Ensinar `EtaContainerTable` a criar, atualizar e remover o blot do título dinamicamente (exibir para `tituloDispositivo !== undefined`); se a inserção dinâmica for frágil, recriar a linha como contingência
+- [x] 5.2 Fazer o blot do título disparar o `CustomEvent` de edição ao clique, e o `editor.component` tratar o evento e a escolha de menu das novas ações
+- [x] 5.3 Ajustar o CSS do título se necessário (linha de alteração com aspas; título vazio)
+- [x] 5.4 Teste de DOM/unitário da linha: título aparece, atualiza e some sem recriar a linha indevidamente
 
 ## 6. Diálogo de edição
 
