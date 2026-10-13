@@ -14,6 +14,7 @@ import {
   identificarRevisaoElementoPai,
   existeRevisaoParaElementos,
   buildDescricaoRevisaoFromStateType,
+  buildDescricaoRevisaoDeModificacao,
   removeAtributosDoElemento,
   atualizaReferenciaElementoAnteriorSeNecessario,
   isRevisaoPrincipal,
@@ -104,6 +105,7 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
         revisoesParaRemover.push(revisao);
       }
       revisao.elementoAposRevisao = JSON.parse(JSON.stringify(e));
+      isRevisaoDeModificacao(revisao) && (revisao.descricao = buildDescricaoRevisaoDeModificacao(revisao));
       state.usuario && (revisao.usuario = state.usuario);
       revisao.dataHora = formatDateTime(new Date());
     } else {
@@ -274,6 +276,7 @@ const revisaoDeElementoComMesmoUuid2RotuloEConteudo = (r: RevisaoElemento, e: El
     r.elementoAntesRevisao?.uuid2 === e.uuid2 &&
     r.elementoAntesRevisao?.rotulo === e.rotulo &&
     r.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto &&
+    r.elementoAntesRevisao?.tituloDispositivo === e.tituloDispositivo &&
     r.elementoAntesRevisao?.hierarquia?.pai?.lexmlId === e.hierarquia?.pai?.lexmlId // Checa se elementos estão na mesma hierarquia
   );
 };
