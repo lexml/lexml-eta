@@ -35,7 +35,7 @@ const noQuillDoDialogoT = (preencher: (quill: any) => void): void => {
 
 const digitarNoDialogoT = (texto: string): void => noQuillDoDialogoT(quill => quill.setText(texto));
 
-const clicarBotaoDoDialogoT = (variante: 'primary' | 'default'): void => {
+const clicarBotaoDoDialogoT = (variante: 'primary' | 'default' | 'danger'): void => {
   cy.get(`sl-dialog sl-button[variant="${variante}"]`).shadow().find('button').should('not.have.attr', 'disabled');
   cy.get(`sl-dialog sl-button[variant="${variante}"]`).click({ force: true });
 };
@@ -46,7 +46,7 @@ const confirmarDialogoT = (): void => {
 };
 
 const adicionarTituloT = (numeroArtigo: number, texto: string): void => {
-  cy.getContainerArtigoByNumero(numeroArtigo).selecionarOpcaoDeMenuDoDispositivo('Adicionar título');
+  cy.getContainerArtigoByNumero(numeroArtigo).selecionarOpcaoDeMenuDoDispositivo('Adicionar título do dispositivo');
   digitarNoDialogoT(texto);
   confirmarDialogoT();
 };
@@ -77,7 +77,7 @@ describe('Título de dispositivo', () => {
           'remover'
         ).to.be.true;
         expect(
-          textos.some(t => t.startsWith('Adicionar título')),
+          textos.some(t => t.startsWith('Adicionar título do dispositivo')),
           'adicionar'
         ).to.be.false;
       });
@@ -124,13 +124,16 @@ describe('Título de dispositivo', () => {
     tituloDoArtigoT(1).should('have.text', 'Do objeto');
   });
 
-  it('avisa título vazio e título iniciado em minúscula, sem bloquear', () => {
-    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar título');
+  it('avisa título vazio e minúscula; Ok fica desabilitado sem texto', () => {
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar título do dispositivo');
+    cy.get('sl-dialog sl-button[variant="primary"]').should('have.attr', 'disabled');
 
     // Ao adicionar, o aviso só aparece depois da primeira edição
     digitarNoDialogoT('x');
+    cy.get('sl-dialog sl-button[variant="primary"]').should('not.have.attr', 'disabled');
     digitarNoDialogoT('');
     cy.get(SEL_AVISO_DIALOGO_T).should('contain.text', 'Não foi informado um texto para o título do artigo');
+    cy.get('sl-dialog sl-button[variant="primary"]').should('have.attr', 'disabled');
 
     digitarNoDialogoT('do objeto');
     cy.get(SEL_AVISO_DIALOGO_T).should('contain.text', 'deveria iniciar com letra maiúscula');
@@ -139,8 +142,18 @@ describe('Título de dispositivo', () => {
     tituloDoArtigoT(1).should('have.text', 'do objeto');
   });
 
+  it('Ok fica desabilitado ao apagar todo o texto na edição', () => {
+    adicionarTituloT(1, 'Do objeto');
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Editar título');
+    digitarNoDialogoT('');
+    cy.get('sl-dialog sl-button[variant="primary"]').should('have.attr', 'disabled');
+    clicarBotaoDoDialogoT('default');
+    cy.get('sl-dialog').should('not.exist');
+    tituloDoArtigoT(1).should('have.text', 'Do objeto');
+  });
+
   it('aceita só itálico, sublinhado, subscrito e sobrescrito', () => {
-    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar título');
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar título do dispositivo');
     noQuillDoDialogoT(quill => {
       quill.setText('');
       quill.insertText(0, 'Ital', { italic: true });
@@ -176,6 +189,26 @@ describe('Título de dispositivo', () => {
 
     cy.get('.lx-eta-btn-desfazer').click();
     tituloDoArtigoT(1).should('have.text', 'Do objeto');
+  });
+
+  it('remove o título pelo botão Remover do diálogo e desfaz', () => {
+    adicionarTituloT(1, 'Do objeto');
+
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Editar título');
+    clicarBotaoDoDialogoT('danger');
+    cy.get('sl-dialog').should('not.exist');
+    cy.getContainerArtigoByNumero(1).find(SEL_TITULO_T).should('not.exist');
+
+    cy.get('.lx-eta-btn-desfazer').click();
+    tituloDoArtigoT(1).should('have.text', 'Do objeto');
+  });
+
+  it('não oferece o botão Remover ao adicionar', () => {
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar título do dispositivo');
+    cy.get('sl-dialog .titulo-dispositivo-editor').should('exist');
+    cy.get('sl-dialog sl-button[variant="danger"]').should('not.exist');
+    clicarBotaoDoDialogoT('default');
+    cy.get('sl-dialog').should('not.exist');
   });
 });
 
@@ -220,7 +253,7 @@ describe('Título de dispositivo - bloco de alteração', () => {
   });
 
   it('adiciona título ao artigo dentro do bloco de alteração', () => {
-    cy.get('div.container__elemento.elemento-tipo-artigo').eq(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar título');
+    cy.get('div.container__elemento.elemento-tipo-artigo').eq(1).selecionarOpcaoDeMenuDoDispositivo('Adicionar título do dispositivo');
     digitarNoDialogoT('Da redação');
     confirmarDialogoT();
 
