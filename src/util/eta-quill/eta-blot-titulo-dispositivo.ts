@@ -1,5 +1,6 @@
 import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
+import { AtualizarTituloDispositivo } from '../../model/lexml/acao/atualizarTituloDispositivoAction';
 
 export class EtaBlotTituloDispositivo extends EtaBlot {
   static blotName = 'EtaBlotTituloDispositivo';
@@ -34,9 +35,16 @@ export class EtaBlotTituloDispositivo extends EtaBlot {
 
   private static __atualizarAtributos(elemento: Elemento, node: HTMLElement): void {
     node.innerHTML = EtaBlotTituloDispositivo.montarHTML(elemento);
+    node.onclick = onclick(node, elemento);
   }
 
   private static montarHTML(elemento: Elemento): string {
     return elemento.tituloDispositivo ?? '';
   }
 }
+
+const onclick = (node: HTMLElement, elemento: Elemento): (() => boolean) => {
+  const editavel = !!elemento.acoesPossiveis?.some(acao => acao instanceof AtualizarTituloDispositivo);
+  node.classList.toggle('titulo-dispositivo-editavel', editavel);
+  return editavel ? (): boolean => node.dispatchEvent(new CustomEvent('titulo-dispositivo', { bubbles: true, cancelable: true, detail: { elemento } })) : (): boolean => false;
+};

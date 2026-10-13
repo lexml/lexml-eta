@@ -70,6 +70,7 @@ import { AtalhosModalComponent } from '../ajuda/atalhos.modal.component';
 import { atualizarNotaAlteracaoAction } from '../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
+import { AtualizarTituloDispositivo, removerTituloDispositivoAction } from '../../model/lexml/acao/atualizarTituloDispositivoAction';
 import { informarNormaDialog } from './informarNormaDialog';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
@@ -542,6 +543,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editarNotaAlteracaoDialog(elemento, this.quill, rootStore);
   }
 
+  // O diálogo de edição entra na task 6.2; até lá, só a remoção (sem diálogo) está ligada.
+  private editarTituloDispositivo(elemento: Elemento, itemMenu?: AtualizarTituloDispositivo): void {
+    if (itemMenu === removerTituloDispositivoAction) {
+      rootStore.dispatch(removerTituloDispositivoAction.execute(elemento));
+    }
+  }
+
   private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const elemento: Elemento = this.criarElemento(
@@ -1010,6 +1018,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.renumerarElemento();
     } else if (itemMenu === atualizarNotaAlteracaoAction) {
       this.editarNotaAlteracao(this.quill.linhaAtual.elemento);
+    } else if (itemMenu instanceof AtualizarTituloDispositivo) {
+      this.editarTituloDispositivo(this.quill.linhaAtual.elemento, itemMenu);
     } else if (itemMenu instanceof AdicionarAgrupadorArtigo) {
       this.adicionarAgrupadorArtigo(this.quill.linhaAtual.elemento);
     } else if (itemMenu === removerElementoAction) {
@@ -1351,6 +1361,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editorHtml.addEventListener('rotulo', (event: any) => {
       event.stopImmediatePropagation();
       this.renumerarElemento();
+    });
+
+    editorHtml.addEventListener('titulo-dispositivo', (event: any) => {
+      event.stopImmediatePropagation();
+      this.editarTituloDispositivo(event.detail.elemento);
     });
 
     editorHtml.addEventListener('nota-alteracao', (event: any) => {
@@ -1822,6 +1837,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.editarNotaAlteracao(event.detail.elemento);
   };
 
+  private listenerTituloDispositivo = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.editarTituloDispositivo(event.detail.elemento);
+  };
+
   private listenerToggleExistencia = (event: any): void => {
     event.stopImmediatePropagation();
     this.toggleExistenciaElemento(event.detail.elemento);
@@ -1879,6 +1899,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
     editorHtml.addEventListener('rotulo', this.listenerRotulo);
     editorHtml.addEventListener('nota-alteracao', this.listenerNotaAlteracao);
+    editorHtml.addEventListener('titulo-dispositivo', this.listenerTituloDispositivo);
     editorHtml.addEventListener('toggle-existencia', this.listenerToggleExistencia);
     editorHtml.addEventListener('mensagem', this.listenerMensagem);
     editorHtml.addEventListener('aceitar-revisao', this.listenerAceitarRevisao);
@@ -1890,6 +1911,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
     editorHtml.removeEventListener('rotulo', this.listenerRotulo);
     editorHtml.removeEventListener('nota-alteracao', this.listenerNotaAlteracao);
+    editorHtml.removeEventListener('titulo-dispositivo', this.listenerTituloDispositivo);
     editorHtml.removeEventListener('toggle-existencia', this.listenerToggleExistencia);
     editorHtml.removeEventListener('mensagem', this.listenerMensagem);
     editorHtml.removeEventListener('aceitar-revisao', this.listenerAceitarRevisao);
