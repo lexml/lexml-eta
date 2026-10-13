@@ -18,9 +18,9 @@
 
 ## 4. Revisão
 
-- [ ] 4.1 Mapear descrição própria da revisão de título em `revisaoUtil` e incluir `tituloDispositivo` na comparação de "voltou ao original" em `atualizaRevisao`
-- [ ] 4.2 Ajustar `rejeitaRevisao.rejeitaModificacao` para restaurar o título do `elementoAntesRevisao` (sem passo de histórico duplicado) e garantir que aceitar mantém o novo título
-- [ ] 4.3 Testes unitários: gerar revisão, rejeitar, aceitar, voltar ao valor original, undo/redo com revisão ativa
+- [x] 4.1 Mapear descrição própria da revisão de título em `revisaoUtil` e incluir `tituloDispositivo` na comparação de "voltou ao original" em `atualizaRevisao`
+- [x] 4.2 Ajustar `rejeitaRevisao.rejeitaModificacao` para restaurar o título do `elementoAntesRevisao` (sem passo de histórico duplicado) e garantir que aceitar mantém o novo título
+- [x] 4.3 Testes unitários: gerar revisão, rejeitar, aceitar, voltar ao valor original, undo/redo com revisão ativa
 
 ## 5. Renderização na linha do editor
 
