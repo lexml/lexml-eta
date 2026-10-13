@@ -3,7 +3,7 @@ import {
   getQuantidadeRevisoes,
   isRevisaoDeTransformacao,
   isRevisaoDeExclusao,
-  isRevisaoDeModificacao,
+  isRevisaoComTextoAlterado,
   setCheckedElement,
 } from '../../redux/elemento/util/revisaoUtil';
 import { uploadAnexoDialog } from '../editor-texto-rico/uploadAnexoDialog';
@@ -1949,7 +1949,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       .forEach(e => mapElementos.set(e.uuid!, e));
 
     const elementos: Elemento[] = [...mapElementos.values()];
-    const uuidsElementosComModificacao = elementos.filter(e => e.revisao && isRevisaoDeModificacao(e.revisao)).map(e => e.uuid!);
+    const uuidsElementosComModificacao = elementos.filter(e => e.revisao && isRevisaoComTextoAlterado(e.revisao)).map(e => e.uuid!);
     const uuidsElementosSemModificacao = elementos.filter(e => !uuidsElementosComModificacao.includes(e.uuid!)).map(e => e.uuid!);
 
     uuidsElementosSemModificacao.forEach(uuid => {

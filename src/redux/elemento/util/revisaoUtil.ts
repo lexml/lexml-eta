@@ -514,6 +514,15 @@ export const isRevisaoDeModificacao = (revisao: Revisao): boolean => {
   return isRevisaoElemento(revisao) && (revisao as RevisaoElemento).stateType === StateType.ElementoModificado;
 };
 
+// Modificação, ou movimentação/transformação que também alterou o texto: nos dois casos há texto anterior para comparar.
+export const isRevisaoComTextoAlterado = (revisao: Revisao): boolean => {
+  if (isRevisaoDeModificacao(revisao)) {
+    return true;
+  }
+  const r = revisao as RevisaoElemento;
+  return isRevisaoElemento(revisao) && !!r.elementoAntesRevisao && getOperacoesRevisao(r.revisao).some(o => o.nome === OPERACAO_ALTERADO);
+};
+
 export const isAtualizarPosicaoDeElementoExcluido = (elementoIncluido: Elemento, elementoExcluido: Partial<Elemento>): boolean => {
   return elementoIncluido.hierarquia?.pai?.lexmlId === elementoExcluido.hierarquia?.pai?.lexmlId && elementoIncluido.uuid! < elementoExcluido.uuid!;
 };

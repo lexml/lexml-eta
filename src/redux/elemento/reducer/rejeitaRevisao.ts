@@ -242,7 +242,8 @@ const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
 
     result.push(...tempState.ui!.events!);
   } else {
-    result.push({ stateType: StateType.ElementoIncluido, elementos: incluir(state, evento, eventoAux) });
+    // Sem a referência a interface não acha onde desenhar a linha quando o elemento não traz o anterior na leitura (ex.: revisão nascida como modificação).
+    result.push({ stateType: StateType.ElementoIncluido, elementos: incluir(state, evento, eventoAux), referencia: eventoAux.referencia });
   }
 
   atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao(state, revisao, result[0].elementos![0]);

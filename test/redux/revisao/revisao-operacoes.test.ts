@@ -7,6 +7,7 @@ import {
   derivarOperacoesRevisao,
   reconciliarOperacoesRevisao,
   buildDescricaoRevisaoElemento,
+  isRevisaoComTextoAlterado,
 } from '../../../src/redux/elemento/util/revisaoUtil';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { State, StateType } from '../../../src/redux/state';
@@ -294,6 +295,30 @@ describe('Operações de revisão da hierarquia (atributo "revisao")', () => {
     it('sem o atributo revisao cai no mapeamento legado', () => {
       const r = comOperacoes(undefined, undefined, emProposicao('Inciso'));
       expect(buildDescricaoRevisaoElemento(r)).to.equal('Dispositivo adicionado');
+    });
+  });
+
+  describe('revisão com texto alterado (oferece a exibição das diferenças)', () => {
+    const revisaoCom = (operacoes: string | undefined, stateType: StateType, antes: any = { tipo: 'Artigo' }): RevisaoElemento => {
+      const r = novaRevisao(stateType, antes, { tipo: 'Artigo' });
+      r.revisao = operacoes;
+      return r;
+    };
+
+    it('vale para modificação, com ou sem o atributo revisao', () => {
+      expect(isRevisaoComTextoAlterado(revisaoCom('alterado', StateType.ElementoModificado))).to.equal(true);
+      expect(isRevisaoComTextoAlterado(revisaoCom(undefined, StateType.ElementoModificado))).to.equal(true);
+    });
+
+    it('vale para movimentação ou transformação que também alterou o texto', () => {
+      expect(isRevisaoComTextoAlterado(revisaoCom('alterado,movido;5', StateType.ElementoIncluido))).to.equal(true);
+      expect(isRevisaoComTextoAlterado(revisaoCom('transformado;inciso,alterado', StateType.ElementoIncluido))).to.equal(true);
+    });
+
+    it('não vale para movimentação, adição ou exclusão sem alteração de texto', () => {
+      expect(isRevisaoComTextoAlterado(revisaoCom('movido;5', StateType.ElementoIncluido))).to.equal(false);
+      expect(isRevisaoComTextoAlterado(revisaoCom('adicionado', StateType.ElementoIncluido, undefined))).to.equal(false);
+      expect(isRevisaoComTextoAlterado(revisaoCom('excluido', StateType.ElementoRemovido))).to.equal(false);
     });
   });
 });
