@@ -31,9 +31,9 @@
 
 ## 6. Diálogo de edição
 
-- [ ] 6.1 Criar `editarTituloDispositivoDialog` (`sl-dialog` + Quill leve restrito a itálico, sublinhado, subscrito, sobrescrito; botões Cancelar e Ok; mostra aviso de título vazio/minúscula; limpa o `sl-dialog` e devolve o foco ao editor)
-- [ ] 6.2 Ligar o diálogo às ações do menu e ao clique no título, despachando a action apenas quando o texto mudou
-- [ ] 6.3 Teste unitário do diálogo (abertura, valor inicial, cancelar sem efeito, confirmar com sanitização)
+- [x] 6.1 Criar `editarTituloDispositivoDialog` (`sl-dialog` + Quill leve restrito a itálico, sublinhado, subscrito, sobrescrito; botões Cancelar e Ok; mostra aviso de título vazio/minúscula; limpa o `sl-dialog` e devolve o foco ao editor)
+- [x] 6.2 Ligar o diálogo às ações do menu e ao clique no título, despachando a action apenas quando o texto mudou
+- [x] 6.3 Teste unitário do diálogo (abertura, valor inicial, cancelar sem efeito, confirmar com sanitização)
 
 ## 7. Testes E2E (Cypress)
 
