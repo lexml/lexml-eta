@@ -10,7 +10,7 @@ import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoA
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
 import { updateIdDispositivoAndFilhos } from '../../../src/model/lexml/util/idUtil';
-import { findRevisaoByElementoUuid, isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
+import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { State } from '../../../src/redux/state';
 
@@ -33,7 +33,12 @@ const criaArtigos = (): { state: State; artigos: any[] } => {
 
 const resumo = (state: State): string[] => state.articulacao!.artigos.map(a => `${a.rotulo} ${a.texto}`);
 
-const rejeitaPorUuid = (state: State, uuid: number): State => elementoReducer(state, { type: REJEITAR_REVISAO, revisao: findRevisaoByElementoUuid(state.revisoes, uuid) });
+// O dispositivo movido ganha novo uuid; sem revisão, a ação rejeitaria todas em lote e mascararia o resultado.
+const rejeitaPorOperacao = (state: State, operacao: 'adicionado' | 'movido'): State => {
+  const revisao = (state.revisoes!.filter(isRevisaoPrincipal) as RevisaoElemento[]).find(r => r.revisao?.startsWith(operacao));
+  expect(revisao, `revisão "${operacao}" não encontrada`).to.exist;
+  return elementoReducer(state, { type: REJEITAR_REVISAO, revisao });
+};
 
 const elementoPorUuid = (state: State, uuid: number): ReturnType<typeof createElemento> => createElemento(state.articulacao!.artigos.find(a => a.uuid === uuid)!);
 
@@ -61,14 +66,13 @@ const executa = (c: Cenario): { inicial: string[]; final: string[] } => {
   };
 
   c.movimentarAntes ? (movimenta(), adiciona()) : (adiciona(), movimenta());
-  const uuidNovo = (state.revisoes!.filter(isRevisaoPrincipal) as RevisaoElemento[]).find(r => r.revisao === 'adicionado')!.elementoAposRevisao.uuid!;
 
   if (c.rejeitarInclusaoPrimeiro) {
-    state = rejeitaPorUuid(state, uuidNovo);
-    state = rejeitaPorUuid(state, uuidMovido);
+    state = rejeitaPorOperacao(state, 'adicionado');
+    state = rejeitaPorOperacao(state, 'movido');
   } else {
-    state = rejeitaPorUuid(state, uuidMovido);
-    state = rejeitaPorUuid(state, uuidNovo);
+    state = rejeitaPorOperacao(state, 'movido');
+    state = rejeitaPorOperacao(state, 'adicionado');
   }
   return { inicial, final: resumo(state) };
 };
@@ -93,9 +97,7 @@ describe('Rejeição de inclusão e de movimentação de artigos em modo de revi
             const nome = `adiciona após o ${adicionarDepoisDe + 1}º, move o ${mover + 1}º para ${sentido}, ${
               movimentarAntes ? 'movimenta antes de adicionar' : 'adiciona antes de movimentar'
             }, rejeita ${rejeitarInclusaoPrimeiro ? 'a inclusão primeiro' : 'a movimentação primeiro'}`;
-            // Lacuna pré-existente, fora do escopo desta correção: rejeitar a movimentação antes da inclusão, com o novo artigo acima do movido, apaga o artigo novo.
-            const lacunaConhecida = !rejeitarInclusaoPrimeiro && !movimentarAntes && adicionarDepoisDe < mover && mover < TOTAL - 1;
-            (lacunaConhecida ? it.skip : it)(nome, () => {
+            it(nome, () => {
               const { inicial, final } = executa({ adicionarDepoisDe, mover, sentido, movimentarAntes, rejeitarInclusaoPrimeiro });
               expect(final).to.deep.equal(inicial);
             });
