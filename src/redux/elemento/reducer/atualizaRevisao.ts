@@ -1,6 +1,6 @@
 import { getRevisoesElemento, isRevisaoDeExclusao } from './../util/revisaoUtil';
 import { createElemento } from './../../../model/elemento/elementoUtil';
-import { Elemento } from '../../../model/elemento';
+import { Elemento, Referencia } from '../../../model/elemento';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
@@ -26,12 +26,15 @@ import {
   formatarOperacoesRevisao,
   getOperacaoDeMovimentacaoOuTransformacao,
   getOperacoesDaRevisao,
+  getOperacoesRevisao,
+  getPosicaoOriginalParaMovimentacao,
   getRevisoesElementoAssociadas,
   reconciliarOperacoesRevisao,
   OPERACAO_ADICIONADO,
   OPERACAO_ALTERACAO_ROTULO,
   OPERACAO_ALTERADO,
   OPERACAO_EXCLUIDO,
+  OPERACAO_MOVIDO,
   buildDescricaoRevisaoElemento,
   OperacaoRevisao,
 } from '../util/revisaoUtil';
@@ -437,6 +440,50 @@ const atualizarPosicaoDeElementosEmRevisoes = (state: State): void => {
   const isRejeicao = !!state.ui?.events.some(ev => ev.stateType === StateType.RevisaoRejeitada);
   atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoIncluido), isRejeicao, exclusoes);
   atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoRemovido), isRejeicao, exclusoes);
+  atualizarPosicaoOriginalDasMovimentacoes(state);
+};
+
+const isMesmoPaiDaReferencia = (a?: Referencia, b?: Referencia): boolean => {
+  if (a?.uuid !== undefined && b?.uuid !== undefined) {
+    return a.uuid === b.uuid;
+  }
+  if (a?.uuid2 !== undefined && b?.uuid2 !== undefined) {
+    return a.uuid2 === b.uuid2;
+  }
+  return a?.tipo !== undefined && a.tipo === b?.tipo && a.lexmlId === b?.lexmlId;
+};
+
+// O lugar de origem (`antes`) é contado sem o próprio dispositivo; acompanha as inclusões e remoções anteriores a ele no mesmo pai, senão a rejeição o reinsere fora do lugar.
+const atualizarPosicaoOriginalDasMovimentacoes = (state: State): void => {
+  const incluidos = getEvento(state.ui!.events, StateType.ElementoIncluido)?.elementos ?? [];
+  const removidos = getEvento(state.ui!.events, StateType.ElementoRemovido)?.elementos ?? [];
+  getRevisoesElemento(state.revisoes || [])
+    .filter(r => isRevisaoPrincipal(r) && !isRevisaoDeExclusao(r) && r.elementoAntesRevisao?.hierarquia?.posicao !== undefined)
+    .forEach(r => {
+      const origem = r.elementoAntesRevisao!.hierarquia!;
+      const movido = getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao);
+      const atualDoMovido = movido?.pai ? createElemento(movido, false, true).hierarquia : undefined;
+      const anteriorAoLugar = (e: Elemento): boolean => {
+        if (e.uuid === r.elementoAposRevisao.uuid || !isMesmoPaiDaReferencia(e.hierarquia?.pai, origem.pai)) {
+          return false;
+        }
+        const antecedidoPeloMovido = !!atualDoMovido && isMesmoPaiDaReferencia(atualDoMovido.pai, origem.pai) && atualDoMovido.posicao! < e.hierarquia!.posicao!;
+        return e.hierarquia!.posicao! - (antecedidoPeloMovido ? 1 : 0) < origem.posicao!;
+      };
+      const deslocamento = incluidos.filter(anteriorAoLugar).length - removidos.filter(anteriorAoLugar).length;
+      if (deslocamento) {
+        origem.posicao! += deslocamento;
+        atualizarPosicaoOriginalNaOperacaoMovido(state, r);
+      }
+    });
+};
+
+const atualizarPosicaoOriginalNaOperacaoMovido = (state: State, revisao: RevisaoElemento): void => {
+  const operacoes = getOperacoesRevisao(revisao.revisao);
+  if (operacoes.some(o => o.nome === OPERACAO_MOVIDO)) {
+    const posicao = String(getPosicaoOriginalParaMovimentacao(state, revisao.elementoAntesRevisao!, revisao.elementoAposRevisao));
+    revisao.revisao = formatarOperacoesRevisao(operacoes.map(o => (o.nome === OPERACAO_MOVIDO ? { ...o, argumento: posicao } : o)));
+  }
 };
 
 const atualizarPosicaoDeElementosEmRevisoesByEvento = (
