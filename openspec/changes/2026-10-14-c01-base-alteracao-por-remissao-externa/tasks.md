@@ -1,7 +1,7 @@
 ## 1. Número composto no nome da norma
 
-- [ ] 1.1 Corrigir `formataNumero` (`urnUtil.ts`) para números com sufixo (`2158-35` → `2.158-35`) e nunca devolver `NaN`; verificar com teste unitário cobrindo `14133`, `2158-35` e entrada não numérica
-- [ ] 1.2 Verificar que o texto gerado para a URN `urn:lex:br:federal:medida.provisoria:2001;2158-35` exibe "Medida Provisória nº 2.158-35, de 2001" (teste unitário do gerador de texto da norma)
+- [x] 1.1 Corrigir `formataNumero` (`urnUtil.ts`) para números com sufixo (`2158-35` → `2.158-35`) e nunca devolver `NaN`; verificar com teste unitário cobrindo `14133`, `2158-35` e entrada não numérica
+- [x] 1.2 Verificar que o texto gerado para a URN `urn:lex:br:federal:medida.provisoria:2001;2158-35` exibe "Medida Provisória nº 2.158-35, de 2001" (teste unitário do gerador de texto da norma)
 
 ## 2. "Corrigir agora" preserva a remissão externa
 
