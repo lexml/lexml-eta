@@ -74,3 +74,7 @@ Quando um mesmo dispositivo sofre mais de uma operação de revisão, o sistema 
 #### Scenario: Adicionado e depois alterado
 - **WHEN** o usuário, em modo de revisão, adiciona um dispositivo e depois altera o seu texto
 - **THEN** a revisão tem `revisao` igual a `adicionado`, sem conteúdo anterior
+
+#### Scenario: Revisão sem alterado não grava conteúdo anterior
+- **WHEN** o usuário, em modo de revisão, apenas adiciona, move ou transforma um dispositivo, ou apenas renumera um dispositivo de alteração de norma, e salva
+- **THEN** a revisão tem apenas os atributos `refIdDispositivo`, `revisao`, `refIdUsuario` e `data`, sem dispositivo filho

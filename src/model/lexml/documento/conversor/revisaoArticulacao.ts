@@ -20,10 +20,9 @@ import { getArticulacao, getDispositivoAndFilhosAsLista, isArticulacaoAlteracao,
 import { TipoDispositivo } from '../../tipo/tipoDispositivo';
 import { buildId, updateIdDispositivoAndFilhos } from '../../util/idUtil';
 import { RevisaoArticulacaoLexEdit, RevisoesLexEdit } from '../documentoArticulado';
-import { buildJsonixContentFromHtml, buildJsonixDispositivo } from './buildJsonixFromProjetoNorma';
+import { buildJsonixDispositivo, buildJsonixEstadoAnterior } from './buildJsonixFromProjetoNorma';
 
 const TYPE_REVISAO = 'br_gov_lexml_lexedit__1.RevisaoArticulacao';
-const TYPE_GEN_INLINE = 'br_gov_lexml__1.GenInline';
 
 const lowerFirst = (texto: string): string => texto.charAt(0).toLowerCase() + texto.slice(1);
 
@@ -41,9 +40,10 @@ const montaRevisaoDeDispositivo = (state: State, revisao: RevisaoElemento): Revi
     return undefined;
   }
   const resultado: RevisaoArticulacaoLexEdit = { ...montaRevisaoBase(revisao, operacoes), refIdDispositivo: dispositivo.id };
-  const textoAnterior = revisao.elementoAntesRevisao?.conteudo?.texto;
-  if (textoAnterior !== undefined && getOperacoesRevisao(operacoes).some(o => o.nome === OPERACAO_ALTERADO)) {
-    resultado.p = { TYPE_NAME: TYPE_GEN_INLINE, content: buildJsonixContentFromHtml(textoAnterior) };
+  const antes = revisao.elementoAntesRevisao;
+  const tipo = revisao.elementoAposRevisao.tipo;
+  if (tipo && antes?.conteudo?.texto !== undefined && getOperacoesRevisao(operacoes).some(o => o.nome === OPERACAO_ALTERADO)) {
+    resultado[lowerFirst(tipo)] = buildJsonixEstadoAnterior(tipo, antes.conteudo.texto, antes.tituloDispositivo);
   }
   return resultado;
 };

@@ -14,6 +14,7 @@ import { ATUALIZAR_USUARIO } from '../../../src/model/lexml/acao/atualizarUsuari
 import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualizarTextoElementoAction';
+import { adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction } from '../../../src/model/lexml/acao/atualizarTituloDispositivoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../src/model/lexml/acao/moverElementoAbaixoAction';
 import { TAB } from '../../../src/model/lexml/acao/tabAction';
 import { buscaDispositivoById, getDispositivoAndFilhosAsLista } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
@@ -42,6 +43,18 @@ const alteraTexto = (id: string, texto: string): void => {
 
 const revisoes = (): any[] => montaRevisoesArticulacao(state)!.revisoesArticulacao.revisaoArticulacao;
 
+const defineTitulo = (id: string, titulo: string): void => {
+  const acao = buscaDispositivoById(state.articulacao!, id)!.tituloDispositivo === undefined ? adicionarTituloDispositivoAction : editarTituloDispositivoAction;
+  state = elementoReducer(state, acao.execute(elementoDe(id), titulo));
+};
+
+// O título inicial é definido antes da revisão, para que a revisão registre o título anterior.
+const defineTituloForaDeRevisao = (id: string, titulo: string): void => {
+  state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+  defineTitulo(id, titulo);
+  state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+};
+
 const coletaIds = (valor: any, ids: string[] = []): string[] => {
   if (Array.isArray(valor)) valor.forEach(v => coletaIds(v, ids));
   else if (valor && typeof valor === 'object') {
@@ -69,15 +82,75 @@ describe('montaRevisoesArticulacao (MPV 905/2019)', () => {
       expect(r.refIdDispositivo).to.equal('art1_par1u_inc2');
       expect(r.revisao).to.equal('adicionado');
       expect(r.p).to.be.undefined;
+      expect(r.inciso).to.be.undefined;
     });
 
-    it('alteração de texto: o texto original vai em p', () => {
+    it('alteração de texto: o texto original vai em um inciso sem id e sem rótulo', () => {
       const original = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!.texto;
       alteraTexto('art1_par1u_inc1', 'texto revisado;');
       const [r] = revisoes();
       expect(r.refIdDispositivo).to.equal('art1_par1u_inc1');
       expect(r.revisao).to.equal('alterado');
-      expect(r.p.content).to.deep.equal([original]);
+      expect(r.p).to.be.undefined;
+      expect(r.inciso.TYPE_NAME).to.equal('br_gov_lexml__1.DispositivoType');
+      expect(r.inciso).to.not.have.property('id');
+      expect(r.inciso).to.not.have.property('rotulo');
+      expect(r.inciso).to.not.have.property('tituloDispositivo');
+      expect(r.inciso.p[0].content).to.deep.equal([original]);
+    });
+
+    it('alteração de texto de artigo: o texto original vai no caput de um artigo sem id', () => {
+      const original = buscaDispositivoById(state.articulacao!, 'art4')!.texto;
+      alteraTexto('art4', 'texto revisado;');
+      const [r] = revisoes();
+      expect(r.revisao).to.equal('alterado');
+      expect(r.artigo).to.not.have.property('id');
+      expect(r.artigo.lXcontainersOmissis).to.have.length(1);
+      expect(r.artigo.lXcontainersOmissis[0].name.localPart).to.equal('Caput');
+      expect(r.artigo.lXcontainersOmissis[0].value).to.not.have.property('id');
+      expect(r.artigo.lXcontainersOmissis[0].value.p[0].content).to.deep.equal([original]);
+    });
+
+    it('título adicionado: o inciso anterior não tem título', () => {
+      const original = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!.texto;
+      defineTitulo('art1_par1u_inc1', 'Do objeto');
+      const [r] = revisoes();
+      expect(r.revisao).to.equal('alterado');
+      expect(r.inciso).to.not.have.property('tituloDispositivo');
+      expect(r.inciso.p[0].content).to.deep.equal([original]);
+    });
+
+    it('título alterado: o inciso anterior tem o título anterior', () => {
+      defineTituloForaDeRevisao('art1_par1u_inc1', 'Original');
+      defineTitulo('art1_par1u_inc1', 'Alterado');
+      const [r] = revisoes();
+      expect(r.inciso.tituloDispositivo.TYPE_NAME).to.equal('br_gov_lexml__1.GenInline');
+      expect(r.inciso.tituloDispositivo.content).to.deep.equal(['Original']);
+    });
+
+    it('título removido: o inciso anterior tem o título removido', () => {
+      defineTituloForaDeRevisao('art1_par1u_inc1', 'Original');
+      state = elementoReducer(state, removerTituloDispositivoAction.execute(elementoDe('art1_par1u_inc1')));
+      const [r] = revisoes();
+      expect(r.inciso.tituloDispositivo.content).to.deep.equal(['Original']);
+    });
+
+    it('título com itálico e subscrito: a formatação segue no título anterior', () => {
+      defineTituloForaDeRevisao('art1_par1u_inc1', 'Do <i>objeto</i> H<sub>2</sub>O');
+      defineTitulo('art1_par1u_inc1', 'Alterado');
+      const [r] = revisoes();
+      const tags = r.inciso.tituloDispositivo.content.filter((c: any) => typeof c !== 'string').map((c: any) => c.name.localPart);
+      expect(tags).to.deep.equal(['i', 'sub']);
+    });
+
+    it('título e texto alterados: o inciso anterior tem os dois', () => {
+      const original = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc1')!.texto;
+      defineTituloForaDeRevisao('art1_par1u_inc1', 'Original');
+      defineTitulo('art1_par1u_inc1', 'Alterado');
+      alteraTexto('art1_par1u_inc1', 'texto revisado;');
+      const [r] = revisoes();
+      expect(r.inciso.tituloDispositivo.content).to.deep.equal(['Original']);
+      expect(r.inciso.p[0].content).to.deep.equal([original]);
     });
 
     it('movimentação de inciso: posição original e id na nova posição', () => {
@@ -85,6 +158,7 @@ describe('montaRevisoesArticulacao (MPV 905/2019)', () => {
       const [r] = revisoes();
       expect(r.refIdDispositivo).to.equal('art1_par1u_inc2');
       expect(r.revisao).to.equal('movido;1');
+      expect(r.inciso).to.be.undefined;
     });
 
     it('movido e depois alterado: operações em ordem e conteúdo anterior', () => {
@@ -93,7 +167,7 @@ describe('montaRevisoesArticulacao (MPV 905/2019)', () => {
       alteraTexto('art1_par1u_inc2', 'texto do movido alterado;');
       const [r] = revisoes();
       expect(r.revisao).to.equal('movido;1,alterado');
-      expect(r.p.content).to.deep.equal([original]);
+      expect(r.inciso.p[0].content).to.deep.equal([original]);
     });
 
     it('transformação de inciso em alínea', () => {
@@ -101,6 +175,16 @@ describe('montaRevisoesArticulacao (MPV 905/2019)', () => {
       const [r] = revisoes();
       expect(r.refIdDispositivo).to.equal('art1_par1u_inc1_ali1');
       expect(r.revisao).to.equal('transformado;inciso');
+      expect(r.alinea).to.be.undefined;
+    });
+
+    it('transformado e depois alterado: o conteúdo anterior vai em um dispositivo do tipo atual', () => {
+      const original = buscaDispositivoById(state.articulacao!, 'art1_par1u_inc2')!.texto;
+      state = elementoReducer(state, { type: TAB, atual: elementoDe('art1_par1u_inc2') });
+      alteraTexto('art1_par1u_inc1_ali1', 'texto da alínea alterado;');
+      const [r] = revisoes();
+      expect(r.revisao).to.equal('transformado;inciso,alterado');
+      expect(r.alinea.p[0].content).to.deep.equal([original]);
     });
 
     it('data em ISO 8601 com fuso', () => {
@@ -249,16 +333,18 @@ describe('montaRevisoesArticulacao: alteracaoRotulo (MPV 1234/2024)', () => {
     expect(r.revisao).to.equal(`alteracaoRotulo;${PAR}`);
     expect(r.refIdDispositivo).to.equal('art1_cpt_alt1_art4_par9');
     expect(r.p).to.be.undefined;
+    expect(r.paragrafo).to.be.undefined;
   });
 
-  it('combinada com alterado grava o texto anterior em p', () => {
+  it('combinada com alterado grava o texto anterior no dispositivo anterior', () => {
     alteraTexto('art1_cpt_alt1_art4_par9', 'Texto revisado:');
 
     const [r] = revisoes();
 
     expect(r.revisao).to.equal(`alteracaoRotulo;${PAR},alterado`);
     // O texto original do parágrafo tem uma remissão externa, serializada como nó Remissao em p.
-    expect(JSON.stringify(r.p.content)).to.include('Lei Complementar');
+    expect(JSON.stringify(r.paragrafo.p[0].content)).to.include('Lei Complementar');
+    expect(r.paragrafo).to.not.have.property('id');
   });
 });
 

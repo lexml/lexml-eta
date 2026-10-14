@@ -53,6 +53,15 @@ const comTexto = (elemento: Elemento, texto?: string): Elemento => {
   return copia;
 };
 
+// Título anterior: null no arquivo é "não havia título"; sem informação, o título atual vale.
+const comEstadoAnterior = (elemento: Elemento, lida: RevisaoArticulacaoLida): Elemento => {
+  const copia = comTexto(elemento, lida.textoAnterior);
+  if (lida.tituloAnterior !== undefined) {
+    copia.tituloDispositivo = lida.tituloAnterior ?? undefined;
+  }
+  return copia;
+};
+
 // Artigo: sequencial entre todos os artigos; o lugar de origem é antes do artigo que o seguia (ou depois do último).
 const origemDoArtigoMovido = (artigo: Dispositivo, posicaoOriginal: number): { pai: Referencia; posicao: number } | undefined => {
   const artigos = (getArticulacao(artigo) as Articulacao).artigos.filter(a => a !== artigo);
@@ -151,12 +160,12 @@ const reconstroiRevisoesDeDispositivo = (articulacao: Articulacao, lida: Revisao
   };
 
   if (!posicaoOriginal && !nomeTipoOriginal) {
-    return [novaRevisao(StateType.ElementoModificado, lida, comRotuloOriginal(comTexto(elementos[0], lida.textoAnterior)), clone(elementos[0]))];
+    return [novaRevisao(StateType.ElementoModificado, lida, comRotuloOriginal(comEstadoAnterior(elementos[0], lida)), clone(elementos[0]))];
   }
 
   const tipoOriginal = nomeTipoOriginal && nomeDoTipo(nomeTipoOriginal);
   return elementos.map((apos, i) => {
-    const antes = comTexto(apos, i === 0 ? lida.textoAnterior : undefined);
+    const antes = i === 0 ? comEstadoAnterior(apos, lida) : comTexto(apos);
     if (i === 0) {
       comRotuloOriginal(antes);
       if (tipoOriginal) {

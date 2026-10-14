@@ -114,6 +114,62 @@ describe('lerRevisoesArticulacao — leitura tolerante das revisões da hierarqu
       );
       expect(a.textoAnterior).to.equal('texto <b>original</b>');
       expect(b.textoAnterior).to.equal(a.textoAnterior);
+      expect(a.tituloAnterior).to.be.undefined;
+    });
+  });
+
+  describe('Dispositivo anterior (texto e título)', () => {
+    const inline = (...content: any[]): any => ({ TYPE_NAME: 'br_gov_lexml__1.GenInline', content });
+    const dispositivo = (extra: any): any => ({ TYPE_NAME: 'br_gov_lexml__1.DispositivoType', ...extra });
+
+    it('lê o texto e o título anteriores de um dispositivo com título', () => {
+      const inciso = dispositivo({ tituloDispositivo: inline('Do objeto'), p: [inline('texto original')] });
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art1_cpt_inc1', revisao: 'alterado', inciso })]));
+      expect(r.textoAnterior).to.equal('texto original');
+      expect(r.tituloAnterior).to.equal('Do objeto');
+    });
+
+    it('dispositivo sem título lê o título anterior como null (não havia título)', () => {
+      const inciso = dispositivo({ p: [inline('texto original')] });
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art1_cpt_inc1', revisao: 'alterado', inciso })]));
+      expect(r.textoAnterior).to.equal('texto original');
+      expect(r.tituloAnterior).to.equal(null);
+    });
+
+    it('lê o título com formatação', () => {
+      const titulo = inline('Do ', { name: { localPart: 'i' }, value: { content: ['objeto'] } });
+      const inciso = dispositivo({ tituloDispositivo: titulo, p: [inline('texto')] });
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art1_cpt_inc1', revisao: 'alterado', inciso })]));
+      expect(r.tituloAnterior).to.equal('Do <i>objeto</i>');
+    });
+
+    it('lê o texto de artigo do caput e o título do artigo', () => {
+      const caput = { name: { localPart: 'Caput' }, value: dispositivo({ p: [inline('texto do caput')] }) };
+      const artigo = dispositivo({ tituloDispositivo: inline('Do artigo'), lXcontainersOmissis: [caput] });
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art4', revisao: 'alterado', artigo })]));
+      expect(r.textoAnterior).to.equal('texto do caput');
+      expect(r.tituloAnterior).to.equal('Do artigo');
+    });
+
+    it('lê o texto anterior de agrupador em nomeAgrupador', () => {
+      const capitulo = { TYPE_NAME: 'br_gov_lexml__1.Hierarchy', nomeAgrupador: inline('Das disposições') };
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'cap1', revisao: 'alterado', capitulo })]));
+      expect(r.textoAnterior).to.equal('Das disposições');
+      expect(r.tituloAnterior).to.equal(null);
+    });
+
+    it('p solto é tolerado e deixa o título anterior sem informação', () => {
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ refIdDispositivo: 'art1_cpt_inc1', revisao: 'alterado', p: inline('texto original') })]));
+      expect(r.textoAnterior).to.equal('texto original');
+      expect(r.tituloAnterior).to.be.undefined;
+    });
+
+    it('revisão de exclusão continua lendo só o dispositivo excluído', () => {
+      const no = dispositivo({ id: '_art3-exc1', tituloDispositivo: inline('Do artigo'), p: [inline('texto')] });
+      const [r] = lerRevisoesArticulacao(lexedit([revisao({ revisao: 'excluido', artigo: no })]));
+      expect(r.excluido!.value).to.deep.equal(no);
+      expect(r).to.not.have.property('textoAnterior');
+      expect(r).to.not.have.property('tituloAnterior');
     });
   });
 

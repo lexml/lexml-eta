@@ -31,7 +31,7 @@ export interface MetadadoLexEdit {
   usuarios?: RevisoesLexEdit['usuarios'];
 }
 
-/** `lexedit:RevisaoArticulacao`: o conteúdo filho é uma única propriedade do choice do XSD (`p` ou o dispositivo excluído, ex.: `artigo`). */
+/** `lexedit:RevisaoArticulacao`: o conteúdo filho é uma única propriedade do choice do XSD (o dispositivo anterior ou excluído, ex.: `artigo`; ou `p`, só na leitura). */
 export interface RevisaoArticulacaoLexEdit {
   TYPE_NAME: string;
   refIdDispositivo?: string;
@@ -75,8 +75,10 @@ export interface RevisaoArticulacaoLida {
   usuario: Usuario;
   // Formato interno (`AAAA-MM-DD HH:mm:ss`, horário local).
   dataHora: string;
-  // HTML do texto anterior, quando a revisão tem `p`.
+  // HTML do texto anterior, quando a revisão traz o conteúdo anterior.
   textoAnterior?: string;
+  // Título anterior: ausente = o arquivo não informa (`p` solto); null = o dispositivo não tinha título.
+  tituloAnterior?: string | null;
   // Dispositivo excluído (nó jsonix `{ name, value }`), quando a revisão é de exclusão.
   excluido?: { name: { namespaceURI: string; localPart: string }; value: any };
 }

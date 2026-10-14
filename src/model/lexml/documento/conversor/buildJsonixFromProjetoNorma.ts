@@ -408,7 +408,7 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remi
     }
   }
 
-  if (isValidText(getTextoSemHtml((dispositivo.tituloDispositivo ?? '').replace(/&nbsp;/g, ' ')))) {
+  if (tituloTemTexto(dispositivo.tituloDispositivo)) {
     value.tituloDispositivo = {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       content: buildStructuredContent(dispositivo, 'tituloDispositivo', remissoes, remissoesExternas),
@@ -863,6 +863,35 @@ export const buildJsonixDispositivo = (dispositivo: Dispositivo): any => {
 
 /** Conteúdo inline jsonix de um trecho de HTML do editor (ex.: o texto anterior de uma revisão). */
 export const buildJsonixContentFromHtml = (html: string): any[] => buildStructuredContent({ texto: html } as unknown as Dispositivo, 'texto');
+
+// Título vazio ou só com marcação não é gravado.
+const tituloTemTexto = (titulo?: string): boolean => isValidText(getTextoSemHtml((titulo ?? '').replace(/&nbsp;/g, ' ')));
+
+/** Valor jsonix, sem id nem rótulo, do estado anterior (texto e título) de um dispositivo de tipo `tipo` numa revisão `alterado`. */
+export const buildJsonixEstadoAnterior = (tipo: string, texto: string, titulo?: string): any => {
+  const dispositivo = { tipo } as unknown as Dispositivo;
+  const value: any = { TYPE_NAME: buildTypeName(dispositivo) };
+  if (tituloTemTexto(titulo)) {
+    value.tituloDispositivo = { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildJsonixContentFromHtml(titulo!) };
+  }
+  const inline = { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildJsonixContentFromHtml(texto) };
+  if (isAgrupador(dispositivo)) {
+    value.nomeAgrupador = inline;
+  } else if (isArtigo(dispositivo)) {
+    const caput = 'Caput';
+    const nome = {
+      namespaceURI: 'http://www.lexml.gov.br/1.0',
+      localPart: caput,
+      prefix: '',
+      key: `{http://www.lexml.gov.br/1.0}${caput}`,
+      string: `{http://www.lexml.gov.br/1.0}${caput}`,
+    };
+    value.lXcontainersOmissis = [{ name: nome, value: { TYPE_NAME: 'br_gov_lexml__1.DispositivoType', p: [inline] } }];
+  } else {
+    value.p = [inline];
+  }
+  return value;
+};
 
 const buildSpan = (m: string): any => {
   const resultHref = m.match(/href="([^"]*)"/i);

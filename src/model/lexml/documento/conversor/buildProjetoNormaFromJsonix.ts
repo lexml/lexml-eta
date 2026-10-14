@@ -214,6 +214,19 @@ const lerOperacoesRevisao = (revisao: unknown): LidaOperacao[] =>
 
 type LidaOperacao = RevisaoArticulacaoLida['operacoes'][number];
 
+// Estado anterior de uma revisão não excluída: dispositivo sem id (sem título = não havia) ou, por tolerância, `p` solto (título não informado).
+const lerEstadoAnterior = (lida: any): Pick<RevisaoArticulacaoLida, 'textoAnterior' | 'tituloAnterior'> => {
+  const nome = NOMES_DISPOSITIVO_NA_REVISAO.find(n => isObjeto(lida[n]));
+  const dispositivo = nome && lida[nome];
+  const caput = dispositivo && comoLista(dispositivo.lXcontainersOmissis).find(n => n?.name?.localPart === 'Caput');
+  const p = comoLista(dispositivo ? (caput?.value ?? dispositivo).p : lida.p)[0];
+  const nomeAgrupador = dispositivo?.nomeAgrupador;
+  const textoAnterior = isObjeto(nomeAgrupador) ? buildContent(escaparTextoJsonix(nomeAgrupador.content)) : isObjeto(p) ? buildContent(escaparTextoJsonix(p.content)) : undefined;
+  const titulo = dispositivo?.tituloDispositivo;
+  const tituloAnterior = dispositivo ? (isObjeto(titulo) ? buildContent(escaparTextoJsonix(titulo.content)) : null) : undefined;
+  return { ...(textoAnterior !== undefined && { textoAnterior }), ...(tituloAnterior !== undefined && { tituloAnterior }) };
+};
+
 export const lerUsuarios = (lido: any): Map<string, Usuario> =>
   new Map(
     comoLista(lido?.usuario)
@@ -238,13 +251,13 @@ export const lerRevisoesArticulacao = (lexedit: any): RevisaoArticulacaoLida[] =
       if (excluida ? !nomeDoExcluido : !textoNaoVazio(lida.refIdDispositivo)) return undefined;
 
       const refIdUsuario = textoNaoVazio(lida.refIdUsuario) ? lida.refIdUsuario : '';
-      const textoAnterior = isObjeto(comoLista(lida.p)[0]) ? buildContent(escaparTextoJsonix(comoLista(lida.p)[0].content)) : undefined;
+      const anterior = excluida ? {} : lerEstadoAnterior(lida);
       return {
         ...(!excluida && { refIdDispositivo: lida.refIdDispositivo }),
         operacoes,
         usuario: usuarios.get(refIdUsuario) ?? new Usuario(refIdUsuario || undefined, refIdUsuario || undefined),
         dataHora: (typeof lida.data === 'string' && parseIsoToDateTime(lida.data)) || formatDateTime(new Date()),
-        ...(textoAnterior !== undefined && { textoAnterior }),
+        ...anterior,
         ...(excluida && {
           excluido: {
             name: { namespaceURI: 'http://www.lexml.gov.br/1.0', localPart: nomeDoExcluido![0].toUpperCase() + nomeDoExcluido!.slice(1) },
