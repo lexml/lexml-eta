@@ -6,6 +6,7 @@ import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoA
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { ativarDesativarRevisaoAction } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
+import { ATUALIZAR_TITULO_DISPOSITIVO } from '../../../model/lexml/acao/atualizarTituloDispositivoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { REDO } from '../../../model/lexml/acao/redoAction';
@@ -95,10 +96,23 @@ export const buildDescricaoRevisao = (revisao: Revisao): string => {
   return isRevisaoElemento(revisao) ? buildDescricaoRevisaoElemento(revisao as RevisaoElemento) : buildDescricaoRevisaoTexto(revisao);
 };
 
+// A descrição acompanha o que de fato mudou entre o elemento antes e depois da revisão.
+export const buildDescricaoRevisaoDeModificacao = (revisao: RevisaoElemento): string => {
+  const { elementoAntesRevisao: antes, elementoAposRevisao: apos } = revisao;
+  const tituloMudou = !!antes && antes.tituloDispositivo !== apos.tituloDispositivo;
+  const textoMudou = !antes || antes.conteudo?.texto !== apos.conteudo?.texto;
+
+  if (tituloMudou) {
+    return textoMudou ? 'Texto e título do dispositivo foram alterados' : 'Título do dispositivo foi alterado';
+  }
+  return 'Texto do dispositivo foi alterado';
+};
+
 const mapperActionTypeToDescricao = {
   [ADICIONAR_ELEMENTO]: (): string => 'Dispositivo adicionado',
   [REMOVER_ELEMENTO]: (): string => 'Dispositivo removido',
-  [ATUALIZAR_TEXTO_ELEMENTO]: (): string => 'Texto do dispositivo foi alterado',
+  [ATUALIZAR_TEXTO_ELEMENTO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoDeModificacao(revisao),
+  [ATUALIZAR_TITULO_DISPOSITIVO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoDeModificacao(revisao),
   [MOVER_ELEMENTO_ABAIXO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromMovimentacaoElemento(revisao),
   [MOVER_ELEMENTO_ACIMA]: (): string => 'Dispositivo movido',
   [ADICIONAR_ELEMENTOS_FROM_CLIPBOARD]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromStateType(revisao),
@@ -109,7 +123,7 @@ const mapperActionTypeToDescricao = {
 const mapperStateTypeToDescricao = {
   [StateType.ElementoIncluido]: (): string => 'Dispositivo adicionado',
   [StateType.ElementoRemovido]: (): string => 'Dispositivo removido',
-  [StateType.ElementoModificado]: (): string => 'Texto do dispositivo foi alterado',
+  [StateType.ElementoModificado]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoDeModificacao(revisao),
   // [StateType.ElementoMovido]: (): string => 'Dispositivo movido',
 };
 
@@ -129,7 +143,7 @@ export const buildDescricaoRevisaoFromMovimentacaoElemento = (revisao: RevisaoEl
 
 export const buildDescricaoRevisaoFromStateType = (revisao: RevisaoElemento, elementoAposRevisao?: Elemento): string => {
   const isUndoRedoDeMovimentacao = revisao.elementoAntesRevisao && elementoAposRevisao && revisao.elementoAntesRevisao.numero !== elementoAposRevisao.numero;
-  return isUndoRedoDeMovimentacao ? buildDescricaoRevisaoFromMovimentacaoElemento(revisao) : mapperStateTypeToDescricao[revisao.stateType]();
+  return isUndoRedoDeMovimentacao ? buildDescricaoRevisaoFromMovimentacaoElemento(revisao) : mapperStateTypeToDescricao[revisao.stateType](revisao);
 };
 
 const getUuidPaiElementoRevisado = (state: State, revisao: RevisaoElemento): number => {

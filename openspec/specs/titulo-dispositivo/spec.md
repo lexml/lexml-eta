@@ -1,19 +1,21 @@
+# Título de Dispositivo
+
 ## Purpose
 
 Define como o usuário adiciona, altera e remove o título de um dispositivo (Artigo, Parágrafo, Inciso, Alínea e Item) no editor, inclusive dentro de bloco de alteração, e como essa edição interage com validação, desfazer/refazer, revisão e persistência.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Ações de título no menu do dispositivo
-O editor SHALL oferecer, no menu de contexto de Artigo, Parágrafo, Inciso, Alínea e Item, a ação "Adicionar título" quando o dispositivo não possui título, e as ações "Editar título" e "Remover título" quando possui. O editor SHALL oferecer essas ações também para dispositivos dentro de bloco de alteração. O editor SHALL NOT oferecer essas ações em agrupadores, caput, omissis, dispositivos bloqueados nem em dispositivos marcados como removidos em revisão.
+O editor SHALL oferecer, no menu de contexto de Artigo, Parágrafo, Inciso, Alínea e Item, a ação "Adicionar título do dispositivo" quando o dispositivo não possui título, e as ações "Editar título" e "Remover título" quando possui. O editor SHALL oferecer essas ações também para dispositivos dentro de bloco de alteração. O editor SHALL NOT oferecer essas ações em agrupadores, caput, omissis, dispositivos bloqueados nem em dispositivos marcados como removidos em revisão.
 
 #### Scenario: Dispositivo sem título
 - **WHEN** o usuário abre o menu de um artigo sem título
-- **THEN** a opção "Adicionar título" é oferecida e as opções "Editar título" e "Remover título" não são
+- **THEN** a opção "Adicionar título do dispositivo" é oferecida e as opções "Editar título" e "Remover título" não são
 
 #### Scenario: Dispositivo com título
 - **WHEN** o usuário abre o menu de um parágrafo que possui título
-- **THEN** as opções "Editar título" e "Remover título" são oferecidas e "Adicionar título" não é
+- **THEN** as opções "Editar título" e "Remover título" são oferecidas e "Adicionar título do dispositivo" não é
 
 #### Scenario: Dispositivo dentro de bloco de alteração
 - **WHEN** o usuário abre o menu de um inciso que está dentro de um bloco de alteração de norma e não é bloqueado
@@ -24,10 +26,14 @@ O editor SHALL oferecer, no menu de contexto de Artigo, Parágrafo, Inciso, Alí
 - **THEN** nenhuma opção de título é oferecida
 
 ### Requirement: Diálogo de edição do título
-Ao escolher "Adicionar título" ou "Editar título", ou ao clicar no título exibido, o editor SHALL abrir um diálogo modal com um editor de texto contendo o título atual (vazio ao adicionar) e as ações Cancelar e Ok. O diálogo SHALL oferecer apenas as formatações itálico, sublinhado, subscrito e sobrescrito.
+Ao escolher "Adicionar título do dispositivo" ou "Editar título", ou ao clicar no título exibido, o editor SHALL abrir um diálogo modal com um editor de texto contendo o título atual (vazio ao adicionar) e as ações Cancelar, Ok e, quando o dispositivo já possui título, Remover. O diálogo SHALL oferecer apenas as formatações itálico, sublinhado, subscrito e sobrescrito. O botão Ok SHALL permanecer desabilitado enquanto o editor não tiver texto (tags e espaços desconsiderados), tanto ao adicionar quanto ao editar, e a confirmação por Enter SHALL respeitar essa condição.
+
+#### Scenario: Ok desabilitado sem texto
+- **WHEN** o usuário abre o diálogo por "Adicionar título do dispositivo" sem digitar, ou apaga todo o texto ao editar
+- **THEN** o botão Ok está desabilitado e passa a habilitado assim que houver algum texto
 
 #### Scenario: Adicionar título
-- **WHEN** o usuário escolhe "Adicionar título", digita "Plano de Carreira" e confirma com Ok
+- **WHEN** o usuário escolhe "Adicionar título do dispositivo", digita "Plano de Carreira" e confirma com Ok
 - **THEN** o título "Plano de Carreira" passa a ser exibido acima do rótulo do dispositivo
 
 #### Scenario: Editar título pelo clique
@@ -54,11 +60,11 @@ O título SHALL conter apenas texto e as formatações `i`, `u`, `sub` e `sup`. 
 - **THEN** nenhuma remissão é criada para o título e o link, se existir, é reduzido a texto simples
 
 ### Requirement: Validação informativa do título
-O sistema SHALL exibir mensagem de aviso, sem bloquear a edição, quando o título de um dispositivo está vazio ("Não foi informado um texto para o título do <tipo de dispositivo>.") ou não começa com letra maiúscula. A verificação da maiúscula SHALL ignorar as tags de formatação e espaços iniciais.
+O sistema SHALL exibir mensagem de aviso, sem bloquear a edição, quando o título de um dispositivo está vazio ("Não foi informado um texto para o título d<o|a> <tipo de dispositivo>.", concordando com o gênero do tipo, como em "do artigo" e "da alínea") ou não começa com letra maiúscula. A verificação da maiúscula SHALL ignorar as tags de formatação e espaços iniciais.
 
 #### Scenario: Título vazio
-- **WHEN** o usuário confirma o diálogo de um artigo com o texto vazio
-- **THEN** a edição é aceita e o dispositivo exibe o aviso "Não foi informado um texto para o título do Artigo."
+- **WHEN** o título de um artigo está vazio (por exemplo, vindo de um arquivo) ou o usuário apaga o texto no diálogo
+- **THEN** o aviso "Não foi informado um texto para o título do artigo." é exibido (no dispositivo ou no diálogo), e o diálogo não permite confirmar o vazio
 
 #### Scenario: Título iniciando em minúscula
 - **WHEN** o usuário confirma o título "plano de carreira"
@@ -77,7 +83,18 @@ A ação "Remover título" SHALL eliminar o título do dispositivo, que deixa de
 
 #### Scenario: Remoção
 - **WHEN** o usuário escolhe "Remover título" em um artigo com título
-- **THEN** o título deixa de ser exibido, o menu volta a oferecer "Adicionar título" e o restante do dispositivo permanece igual
+- **THEN** o título deixa de ser exibido, o menu volta a oferecer "Adicionar título do dispositivo" e o restante do dispositivo permanece igual
+
+### Requirement: Remover título pelo diálogo
+Quando o dispositivo já possui título, o diálogo SHALL oferecer o botão "Remover" (variante danger) que elimina o título, com o mesmo efeito da ação de menu "Remover título". O botão SHALL NOT aparecer ao adicionar um título.
+
+#### Scenario: Remover pelo diálogo
+- **WHEN** o usuário abre o diálogo de um artigo com título e clica em "Remover"
+- **THEN** o diálogo fecha, o título deixa de ser exibido e a remoção é um único passo do histórico, que o desfazer restaura
+
+#### Scenario: Adicionar não oferece remoção
+- **WHEN** o usuário abre o diálogo por "Adicionar título do dispositivo"
+- **THEN** o botão "Remover" não é exibido
 
 ### Requirement: Desfazer e refazer do título
 Cada operação de adicionar, alterar ou remover título SHALL ser um único passo do histórico. Desfazer SHALL restaurar o título anterior (inclusive ausência de título) e refazer SHALL reaplicá-lo, com a exibição da linha refletindo o resultado.

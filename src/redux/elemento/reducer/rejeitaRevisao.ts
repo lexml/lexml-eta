@@ -11,7 +11,7 @@ import {
 import { getDispositivoAnteriorNaSequenciaDeLeitura, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
-import { getElementosRemovidosEIncluidos, unificarEvento } from '../evento/eventosUtil';
+import { buildEventoAtualizacaoElemento, getElementosRemovidosEIncluidos, unificarEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import {
   findRevisaoByElementoUuid,
@@ -120,7 +120,19 @@ const processaRevisoes = (state: State, revisoes: RevisaoElemento[]): StateEvent
 };
 
 const rejeitaModificacao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
-  return atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
+  const antes = revisao.elementoAntesRevisao;
+  const dispositivo = antes ? getDispositivoFromElemento(state.articulacao!, antes, true) : undefined;
+  const tituloMudou = !!dispositivo && dispositivo.tituloDispositivo !== antes!.tituloDispositivo;
+
+  // O título é restaurado antes do texto para que o elemento do evento já o traga.
+  if (tituloMudou) {
+    dispositivo!.tituloDispositivo = antes!.tituloDispositivo;
+  }
+
+  const eventos = atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
+
+  // Sem mudança de texto o reducer de texto não emite nada, mas a linha precisa refletir o título.
+  return tituloMudou && !eventos.length ? buildEventoAtualizacaoElemento(dispositivo!).build() : eventos;
 };
 
 const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
