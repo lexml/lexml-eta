@@ -553,8 +553,8 @@ export const editorStyles = html`
       margin-bottom: 5px;
     }
 
-    .titulo-dispositivo:empty::before {
-      content: '(título vazio)';
+    .titulo-dispositivo-vazio::before {
+      content: '(título do dispositivo vazio)';
       color: #888;
       font-weight: normal;
       font-style: italic;

@@ -1,5 +1,6 @@
 import { Elemento } from '../../model/elemento';
 import { EtaBlot } from './eta-blot';
+import { getTextoSemHtml } from '../../util/string-util';
 import { AtualizarTituloDispositivo } from '../../model/lexml/acao/atualizarTituloDispositivoAction';
 
 export class EtaBlotTituloDispositivo extends EtaBlot {
@@ -35,6 +36,8 @@ export class EtaBlotTituloDispositivo extends EtaBlot {
 
   private static __atualizarAtributos(elemento: Elemento, node: HTMLElement): void {
     node.innerHTML = EtaBlotTituloDispositivo.montarHTML(elemento);
+    // :empty não cobre título só com espaço/&nbsp;/<br>; a classe garante o marcador de título vazio.
+    node.classList.toggle('titulo-dispositivo-vazio', getTextoSemHtml(node.innerHTML.replace(/&nbsp;/g, ' ')) === '');
     node.onclick = onclick(node, elemento);
   }
 

@@ -62,6 +62,16 @@ describe('EtaContainerTable - título do dispositivo', () => {
     expect(tituloNoDom()?.innerHTML).to.equal('');
   });
 
+  it('marca como vazio o título sem texto visível (inclusive espaço, &nbsp; e <br>)', () => {
+    ['', ' ', '&nbsp;', '<br>', '<i> </i>'].forEach(vazio => {
+      criaLinha(criaElemento(vazio));
+      expect(tituloNoDom()?.classList.contains('titulo-dispositivo-vazio'), `"${vazio}"`).to.be.true;
+      linha.domNode.remove();
+    });
+    criaLinha(criaElemento('Objeto'));
+    expect(tituloNoDom()?.classList.contains('titulo-dispositivo-vazio')).to.be.false;
+  });
+
   it('cria o título em linha existente sem recriar a linha', () => {
     criaLinha(criaElemento());
     const domAntes = linha.domNode;
