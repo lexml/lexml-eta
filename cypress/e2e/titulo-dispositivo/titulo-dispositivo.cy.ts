@@ -304,6 +304,44 @@ describe('Título de dispositivo - revisão', () => {
     cy.getContainerArtigoByNumero(1).find(SEL_TITULO_T).should('not.exist');
     cy.get('@contadorRevisaoTitulo').contains('0');
   });
+
+  it('salvar e reabrir preserva a revisão e rejeitar restaura o título anterior', () => {
+    // O download é um blob: captura o conteúdo em vez de depender do diretório de downloads do navegador.
+    const arquivosSalvos: Promise<string>[] = [];
+    cy.window().then(win => {
+      const criarOriginal = win.URL.createObjectURL.bind(win.URL);
+      cy.stub(win.URL, 'createObjectURL').callsFake((obj: Blob) => {
+        arquivosSalvos.push(obj.text());
+        return criarOriginal(obj);
+      });
+    });
+
+    adicionarEAceitarTituloT('Do objeto');
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Editar título');
+    digitarNoDialogoT('Da finalidade');
+    confirmarDialogoT();
+    tituloDoArtigoT(1).should('have.text', 'Da finalidade');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    cy.get('input[type="button"][value="Salvar"]').click();
+    cy.wrap(null).should(() => expect(arquivosSalvos, 'o arquivo deve ter sido gerado').to.have.length(1));
+
+    cy.wrap(null)
+      .then(() => cy.wrap(arquivosSalvos[0]))
+      .then(conteudo => {
+        cy.visit('/');
+        cy.window().then(win => win.localStorage.setItem('naoMostrarNovamenteDisclaimerMarcaAlteracao', 'true'));
+        cy.get('#fileUpload').selectFile({ contents: Cypress.Buffer.from(conteudo as string), fileName: 'titulo-em-revisao.json' }, { force: true });
+      });
+
+    tituloDoArtigoT(1).should('have.text', 'Da finalidade');
+    cy.getSwitchRevisaoDispositivo().getContadorRevisao().should('contain.text', '1');
+
+    cy.get('[id^="buttonRevisaoRecusar"]').first().click({ force: true });
+
+    tituloDoArtigoT(1).should('have.text', 'Do objeto');
+    cy.getSwitchRevisaoDispositivo().getContadorRevisao().should('contain.text', '0');
+  });
 });
 
 describe('Título de dispositivo - bloco de alteração', () => {
