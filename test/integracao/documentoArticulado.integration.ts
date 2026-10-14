@@ -30,6 +30,7 @@ import { ATUALIZAR_TEXTO_ELEMENTO } from '../../src/model/lexml/acao/atualizarTe
 import { MOVER_ELEMENTO_ABAIXO } from '../../src/model/lexml/acao/moverElementoAbaixoAction';
 import { TAB } from '../../src/model/lexml/acao/tabAction';
 import { REJEITAR_REVISAO } from '../../src/model/lexml/acao/rejeitarRevisaoAction';
+import { adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction } from '../../src/model/lexml/acao/atualizarTituloDispositivoAction';
 
 describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
   for (const [nome, entrada] of [
@@ -296,6 +297,75 @@ describe('Documento articulado — revisões da hierarquia pelo CLI real e XSD',
       expect(json(reaberto)).to.equal(json(sessao));
       const rejeitada = (s: State): string => json(elementoReducer(s, { type: REJEITAR_REVISAO }));
       expect(rejeitada(reaberto)).to.equal(rejeitada(sessao));
+    });
+  });
+
+  describe('título do dispositivo em revisão (MPV 905/2019)', () => {
+    const INCISOS = { adicionado: 'art1_par1u_inc1', alterado: 'art1_par1u_inc2', removido: 'art1_par1u_inc3', formatado: 'art1_par1u_inc4' };
+    const ARTIGO = 'art4';
+    const FORMATADO = 'Do <i>objeto</i> H<sub>2</sub>O';
+
+    const titulo = (s: State, id: string): string | undefined => buscaDispositivoById(s.articulacao!, id)!.tituloDispositivo;
+    const defineTitulo = (s: State, id: string, valor: string): State =>
+      elementoReducer(s, (titulo(s, id) === undefined ? adicionarTituloDispositivoAction : editarTituloDispositivoAction).execute(elemento(s, id), valor));
+    const revisaoDe = (retorno: Resultado, id: string): any =>
+      retorno.jsonix.value.metadado.metadadoProprietario[0].any[0].value.revisoesArticulacao.revisaoArticulacao.find((r: any) => r.refIdDispositivo === id);
+
+    // Os títulos "anteriores" são definidos fora de revisão; depois, em revisão, um é adicionado, dois alterados, um removido e o do artigo alterado junto com o texto.
+    const sessao = (): { antes: Record<string, string | undefined>; depois: State } => {
+      let s = elementoReducer(undefined, {
+        type: ABRIR_ARTICULACAO,
+        articulacao: buildProjetoNormaFromJsonix(MPV_905_2019).articulacao!,
+        classificacao: ClassificacaoDocumento.PROJETO,
+      });
+      s = elementoReducer(s, { type: ATUALIZAR_USUARIO, usuario: { nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' } });
+      s = defineTitulo(s, INCISOS.alterado, 'Original');
+      s = defineTitulo(s, INCISOS.removido, 'Removível');
+      s = defineTitulo(s, INCISOS.formatado, FORMATADO);
+      s = defineTitulo(s, ARTIGO, 'Do artigo');
+      // Valores, não o estado: o reducer altera a articulação compartilhada.
+      const antes = Object.fromEntries([...Object.values(INCISOS), ARTIGO].map(id => [id, titulo(s, id)]));
+      s = elementoReducer(s, { type: ATIVAR_DESATIVAR_REVISAO });
+      s = defineTitulo(s, INCISOS.adicionado, 'Novo título');
+      s = defineTitulo(s, INCISOS.alterado, 'Alterado');
+      s = elementoReducer(s, removerTituloDispositivoAction.execute(elemento(s, INCISOS.removido)));
+      s = defineTitulo(s, INCISOS.formatado, 'Sem formatação');
+      s = defineTitulo(s, ARTIGO, 'Artigo alterado');
+      const artigo = elemento(s, ARTIGO);
+      artigo.conteudo!.texto = 'texto do artigo, alterado;';
+      return { antes, depois: elementoReducer(s, { type: ATUALIZAR_TEXTO_ELEMENTO, atual: artigo }) };
+    };
+
+    it('o título anterior vai no dispositivo da revisão e a revisão volta idêntica pelo CLI', async () => {
+      const { depois } = sessao();
+      const salvo = criarDocumentoArticulado(depois.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: montaRevisoesArticulacao(depois)! });
+
+      const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+
+      expect(retorno.valido, retorno.erro).to.equal(true);
+      expect(retorno.xml).to.include('<TituloDispositivo>Original</TituloDispositivo>');
+      expect(retorno.xml).to.include('<TituloDispositivo>Removível</TituloDispositivo>');
+      expect(retorno.xml).to.include('<TituloDispositivo>Do <i>objeto</i> H<sub>2</sub>O</TituloDispositivo>');
+      expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+      expect(revisaoDe(retorno, INCISOS.adicionado).inciso).to.not.have.property('tituloDispositivo');
+      expect(revisaoDe(retorno, INCISOS.alterado).inciso.tituloDispositivo).to.exist;
+    });
+
+    it('o documento reaberto restaura os títulos anteriores, inclusive a ausência, ao rejeitar as revisões', async () => {
+      const { antes, depois } = sessao();
+      const salvo = criarDocumentoArticulado(depois.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: montaRevisoesArticulacao(depois)! });
+      const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+      expect(retorno.valido, retorno.erro).to.equal(true);
+
+      const aberto = abreArticulacao(lerDocumentoArticulado(retorno.jsonix));
+      const lidas = lerMetadadoLexEdit(retorno.jsonix).revisoesLidas!;
+      const reaberto = elementoReducer(aberto, aplicarRevisoesAction.execute(reconstroiRevisoes(aberto.articulacao!, lidas)));
+      // O reducer altera a articulação compartilhada: rejeitar só depois de conferir o estado reaberto.
+      expect(resumo(reaberto)).to.deep.equal(resumo(depois));
+      expect(titulo(reaberto, INCISOS.alterado)).to.equal('Alterado');
+      expect(titulo(reaberto, ARTIGO)).to.equal('Artigo alterado');
+      const rejeitado = elementoReducer(reaberto, { type: REJEITAR_REVISAO });
+      [...Object.values(INCISOS), ARTIGO].forEach(id => expect(titulo(rejeitado, id), id).to.equal(antes[id]));
     });
   });
 });

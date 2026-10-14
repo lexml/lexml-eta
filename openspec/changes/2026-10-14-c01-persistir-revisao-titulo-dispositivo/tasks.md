@@ -17,7 +17,7 @@
 
 ## 4. Integração com o conversor real
 
-- [ ] 4.1 Em `test/integracao/documentoArticulado.integration.ts`, adicionar um cenário com revisão de texto e com título adicionado, alterado, removido e com formatação, em inciso e em artigo: `toxml` + validação com `schemas/lexedit.xsd` + `tojson`, conferindo `TituloDispositivo` no XML, a ausência dele no wrapper de título adicionado, o retorno idêntico das revisões e a rejeição depois de reaberto. Verificar rodando a suíte com `JSONIX_LEXML_CLI=C:\Desenv\jsonix\bin\jsonix-lexml-win.exe` (`npm run test:documento-articulado:xml`).
+- [x] 4.1 Em `test/integracao/documentoArticulado.integration.ts`, adicionar um cenário com revisão de texto e com título adicionado, alterado, removido e com formatação, em inciso e em artigo: `toxml` + validação com `schemas/lexedit.xsd` + `tojson`, conferindo `TituloDispositivo` no XML, a ausência dele no wrapper de título adicionado, o retorno idêntico das revisões e a rejeição depois de reaberto. Verificar rodando a suíte com `JSONIX_LEXML_CLI=C:\Desenv\jsonix\bin\jsonix-lexml-win.exe` (`npm run test:documento-articulado:xml`).
 
 ## 5. E2E (Cypress)
 
