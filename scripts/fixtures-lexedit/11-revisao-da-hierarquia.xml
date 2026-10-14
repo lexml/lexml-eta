@@ -26,13 +26,64 @@
       </Artigo>
     </lexedit:RevisaoArticulacao>
 
-    <!-- Alteração de texto de dispositivo -->
+    <!-- Alteração de texto de dispositivo: o estado anterior é um dispositivo do mesmo tipo, sem id -->
     <lexedit:RevisaoArticulacao
         refIdDispositivo="art4_cpt_inc2"
         revisao="alterado"
         refIdUsuario="sf:fulano"
         data="2026-05-11T15:51:00-03:00">
-      <p>Texto original do dispositivo</p>
+      <Inciso>
+        <p>Texto original do dispositivo</p>
+      </Inciso>
+    </lexedit:RevisaoArticulacao>
+
+    <!-- Alteração do texto de um dispositivo com título: o título anterior acompanha o texto -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art6_cpt_inc1"
+        revisao="alterado"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00">
+      <Inciso>
+        <TituloDispositivo>Do objeto</TituloDispositivo>
+        <p>Texto original do inciso</p>
+      </Inciso>
+    </lexedit:RevisaoArticulacao>
+
+    <!-- Título adicionado: o estado anterior não tem TituloDispositivo -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art6_cpt_inc2"
+        revisao="alterado"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00">
+      <Inciso>
+        <p>Texto do inciso, que não tinha título</p>
+      </Inciso>
+    </lexedit:RevisaoArticulacao>
+
+    <!-- Título alterado (ou removido): o estado anterior traz o título original -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art6_cpt_inc3"
+        revisao="alterado"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00">
+      <Inciso>
+        <TituloDispositivo>Do <i>objeto</i> original</TituloDispositivo>
+        <p>Texto do inciso, que não mudou</p>
+      </Inciso>
+    </lexedit:RevisaoArticulacao>
+
+    <!-- Alteração de texto de artigo: o texto anterior fica no Caput -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art7"
+        revisao="alterado"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00">
+      <Artigo>
+        <TituloDispositivo>Da vigência</TituloDispositivo>
+        <Caput>
+          <p>Texto original do caput</p>
+        </Caput>
+      </Artigo>
     </lexedit:RevisaoArticulacao>
 
     <!-- Movimentação de dispositivo -->
@@ -48,7 +99,9 @@
         revisao="movido;3,alterado"
         refIdUsuario="sf:fulano"
         data="2026-05-11T15:51:00-03:00">
-      <p>Conteúdo do inciso III original.</p>
+      <Inciso>
+        <p>Conteúdo do inciso III original.</p>
+      </Inciso>
     </lexedit:RevisaoArticulacao>
 
     <!-- Transformação de tipo: inciso transformado em alínea -->

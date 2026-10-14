@@ -25,9 +25,9 @@
 
 ## 6. Documentação
 
-- [ ] 6.1 Atualizar `docs/extensao-formato-lexml/11-revisao-da-hierarquia.md` com a convenção do estado anterior: o filho de `RevisaoArticulacao` em `alterado` é sempre um dispositivo do mesmo tipo, sem `id`, com o texto anterior e com `TituloDispositivo` quando havia título (sua ausência significa que não havia); atualizar os exemplos de `alterado` e `movido;3,alterado` e acrescentar exemplos de título adicionado, alterado e removido, em XML. Verificar relendo o documento contra os cenários dos deltas de spec desta change.
-- [ ] 6.2 Registrar no `CLAUDE.md`, no item "Metadados do LexEdit", a convenção e o invariante de que o estado anterior de `alterado` é sempre gravado como dispositivo, com leitura tolerante ao `p` solto. Verificar que o texto menciona a leitura tolerante.
-- [ ] 6.3 Rodar `openspec validate 2026-10-14-c01-persistir-revisao-titulo-dispositivo` e confirmar que não há erros.
+- [x] 6.1 Atualizar `docs/extensao-formato-lexml/11-revisao-da-hierarquia.md` com a convenção do estado anterior: o filho de `RevisaoArticulacao` em `alterado` é sempre um dispositivo do mesmo tipo, sem `id`, com o texto anterior e com `TituloDispositivo` quando havia título (sua ausência significa que não havia); atualizar os exemplos de `alterado` e `movido;3,alterado` e acrescentar exemplos de título adicionado, alterado e removido, em XML. Verificar relendo o documento contra os cenários dos deltas de spec desta change.
+- [x] 6.2 Registrar no `CLAUDE.md`, no item "Metadados do LexEdit", a convenção e o invariante de que o estado anterior de `alterado` é sempre gravado como dispositivo, com leitura tolerante ao `p` solto. Verificar que o texto menciona a leitura tolerante.
+- [x] 6.3 Rodar `openspec validate 2026-10-14-c01-persistir-revisao-titulo-dispositivo` e confirmar que não há erros.
 
 ## 7. Verificação final
 
