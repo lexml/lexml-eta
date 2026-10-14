@@ -1,0 +1,36 @@
+## Context
+
+Ver `proposal.md` (Why). Causa identificada por leitura do código (confirmar com teste, task 1.1):
+
+- `adicionaElemento.ts` marca toda cabeça de alteração com `existeNaNormaAlterada = true` (ela designa um artigo que já existe na norma alterada) e cria o rótulo genérico, que dispara o alerta de numeração.
+- `validaNumeracaoDispositivoAlteracao` emite `AutoFix.RENUMERAR_DISPOSITIVO` com `fix: true` quando o rótulo termina com o tipo, **sem consultar** se a renumeração é permitida.
+- `podeRenumerar` (`numeracaoUtil.ts`) nega a renumeração de qualquer dispositivo de alteração com `existeNaNormaAlterada = true`. O "Corrigir agora" chama `renumerarElemento()` (`editor.component.ts`), que consulta `podeRenumerar` e exibe o aviso.
+- Há um bloco comentado em `podeRenumerar` com uma regra anterior, mais permissiva.
+
+## Goals / Non-Goals
+
+**Goals:**
+- Permitir numerar a cabeça de alteração com rótulo pendente.
+- Garantir que o alerta só ofereça a correção quando ela funciona.
+
+**Non-Goals:**
+- Não alterar a renumeração de dispositivos de alteração já numerados e marcados como existentes na norma.
+- Não alterar a numeração automática dos demais dispositivos.
+- Não alterar a norma alterada nem remissões (change `2026-10-14-c01-base-alteracao-por-remissao-externa`).
+
+## Decisions
+
+**D1. A cabeça com rótulo pendente é numerável (opção a).**
+O usuário precisa informar qual artigo da norma está sendo alterado ("Art. 5º"); sem isso a cabeça não tem identidade. A regra de `podeRenumerar` passa a admitir a renumeração de dispositivo de alteração com rótulo pendente mesmo com `existeNaNormaAlterada = true`; com rótulo já informado e `existeNaNormaAlterada = true`, continua negando.
+**Decisão ainda a confirmar com produto** (a pessoa responsável pela change vai verificar se hoje há outro caminho para numerar a cabeça, por exemplo pelo assistente de alteração). Task 1.1 é um portão: sem a confirmação, não aplicar.
+Alternativa (b): não emitir `fix` no alerta quando a renumeração não é permitida. Elimina a contradição, mas deixa a cabeça sem caminho para ser numerada. Só se aplicaria se a confirmação indicar que a cabeça nunca deve ser numerada à mão.
+
+**D2. Uma única regra para alerta e ação.**
+O validador passa a decidir `fix` com o mesmo critério de `podeRenumerar` (função compartilhada, sem duplicar a condição). Assim a invariante "alerta com correção ⇒ ação disponível" vale por construção, também para dispositivos filhos de alteração com `existeNaNormaAlterada = true` e rótulo pendente, que sofrem do mesmo conflito.
+O validador é puro e não recebe o `Elemento`; o critério será expresso sobre o `Dispositivo` (rótulo pendente, tipo, `existeNaNormaAlterada`), e `podeRenumerar` passa a chamá-lo.
+
+## Risks / Trade-offs
+
+- [Liberar numeração de dispositivo existente na norma pode permitir rótulo incoerente] → só vale com rótulo pendente; a validação de rótulo inválido (zero à esquerda, formato) continua no reducer.
+- [Mudar o critério pode afetar outros fluxos que usam `existeNaNormaAlterada`] → o campo não é alterado; só a decisão de renumerar muda. Cobrir com testes de reducer e de validação para cabeça, filhos e dispositivos já numerados.
+- [Condição de corrida do menu de contexto no editor (`docs/analises/ANALISE_CORRIDA_CLIQUE_MENU_CONTEXTO.md`) pode tornar o E2E instável] → ancorar sincronização conforme `docs/guia-cypress.md`.
