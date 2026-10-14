@@ -116,7 +116,6 @@ export class DemoView extends LitElement {
     this.etaConfig.urlConsultaParlamentares = '/parlamentares';
     this.etaConfig.urlComissoes = '/comissoes';
     this.etaConfig.anexoParecer = this.anexoParecer;
-    this.etaConfig.justificacaoObrigatoria = true;
   }
 
   createRenderRoot(): LitElement {

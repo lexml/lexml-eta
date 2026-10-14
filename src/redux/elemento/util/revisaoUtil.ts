@@ -6,6 +6,7 @@ import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoA
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { ativarDesativarRevisaoAction } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
+import { ATUALIZAR_TITULO_DISPOSITIVO } from '../../../model/lexml/acao/atualizarTituloDispositivoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { REDO } from '../../../model/lexml/acao/redoAction';
@@ -105,10 +106,23 @@ export const buildDescricaoRevisao = (revisao: Revisao): string => {
   return isRevisaoElemento(revisao) ? buildDescricaoRevisaoElemento(revisao as RevisaoElemento) : buildDescricaoRevisaoTexto(revisao);
 };
 
+// A descrição acompanha o que de fato mudou entre o elemento antes e depois da revisão.
+export const buildDescricaoRevisaoDeModificacao = (revisao: RevisaoElemento): string => {
+  const { elementoAntesRevisao: antes, elementoAposRevisao: apos } = revisao;
+  const tituloMudou = !!antes && antes.tituloDispositivo !== apos.tituloDispositivo;
+  const textoMudou = !antes || antes.conteudo?.texto !== apos.conteudo?.texto;
+
+  if (tituloMudou) {
+    return textoMudou ? 'Texto e título do dispositivo foram alterados' : 'Título do dispositivo foi alterado';
+  }
+  return 'Texto do dispositivo foi alterado';
+};
+
 const mapperActionTypeToDescricao = {
   [ADICIONAR_ELEMENTO]: (): string => 'Dispositivo adicionado',
   [REMOVER_ELEMENTO]: (): string => 'Dispositivo removido',
-  [ATUALIZAR_TEXTO_ELEMENTO]: (): string => 'Texto do dispositivo foi alterado',
+  [ATUALIZAR_TEXTO_ELEMENTO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoDeModificacao(revisao),
+  [ATUALIZAR_TITULO_DISPOSITIVO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoDeModificacao(revisao),
   [MOVER_ELEMENTO_ABAIXO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromMovimentacaoElemento(revisao),
   [MOVER_ELEMENTO_ACIMA]: (): string => 'Dispositivo movido',
   [ADICIONAR_ELEMENTOS_FROM_CLIPBOARD]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromStateType(revisao),
@@ -119,7 +133,7 @@ const mapperActionTypeToDescricao = {
 const mapperStateTypeToDescricao = {
   [StateType.ElementoIncluido]: (): string => 'Dispositivo adicionado',
   [StateType.ElementoRemovido]: (): string => 'Dispositivo removido',
-  [StateType.ElementoModificado]: (): string => 'Texto do dispositivo foi alterado',
+  [StateType.ElementoModificado]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoDeModificacao(revisao),
   // [StateType.ElementoMovido]: (): string => 'Dispositivo movido',
 };
 
@@ -185,7 +199,7 @@ export const buildDescricaoPorOperacoes = (revisao: RevisaoElemento): string | u
     return 'Dispositivo adicionado';
   }
   if (!tem(OPERACAO_MOVIDO, OPERACAO_TRANSFORMADO)) {
-    return tem(OPERACAO_ALTERADO) && !tem(OPERACAO_ALTERACAO_ROTULO) ? 'Texto do dispositivo foi alterado' : undefined;
+    return tem(OPERACAO_ALTERADO) && !tem(OPERACAO_ALTERACAO_ROTULO) ? buildDescricaoRevisaoDeModificacao(revisao) : undefined;
   }
   const principais = operacoes.filter(o => o.nome === OPERACAO_MOVIDO || o.nome === OPERACAO_TRANSFORMADO);
   const trechos = [...principais, ...operacoes.filter(o => !principais.includes(o))].map(o => trechoDaOperacao(revisao, o)).filter((t): t is string => !!t);
@@ -221,7 +235,7 @@ export const buildDescricaoRevisaoFromMovimentacaoElemento = (revisao: RevisaoEl
 
 export const buildDescricaoRevisaoFromStateType = (revisao: RevisaoElemento, elementoAposRevisao?: Elemento): string => {
   const isUndoRedoDeMovimentacao = revisao.elementoAntesRevisao && elementoAposRevisao && revisao.elementoAntesRevisao.numero !== elementoAposRevisao.numero;
-  return isUndoRedoDeMovimentacao ? buildDescricaoRevisaoFromMovimentacaoElemento(revisao) : mapperStateTypeToDescricao[revisao.stateType]();
+  return isUndoRedoDeMovimentacao ? buildDescricaoRevisaoFromMovimentacaoElemento(revisao) : mapperStateTypeToDescricao[revisao.stateType](revisao);
 };
 
 const getUuidPaiElementoRevisado = (state: State, revisao: RevisaoElemento): number => {
@@ -624,6 +638,10 @@ const nomeTipoNaRevisao = (tipo?: string): string => (tipo ?? '').toLowerCase();
 
 const isMesmoPai = (a?: Referencia, b?: Referencia): boolean => (a?.uuid2 !== undefined && b?.uuid2 !== undefined ? a.uuid2 === b.uuid2 : a?.uuid === b?.uuid);
 
+// O título também é conteúdo revisável: mudar só o título conta como alteração.
+export const isMesmoTextoETitulo = (a?: Partial<Elemento>, b?: Partial<Elemento>): boolean =>
+  a?.conteudo?.texto === b?.conteudo?.texto && a?.tituloDispositivo === b?.tituloDispositivo;
+
 const isMesmoLugar = (antes: Partial<Elemento>, apos: Partial<Elemento>): boolean =>
   isMesmoPai(antes.hierarquia?.pai, apos.hierarquia?.pai) && antes.hierarquia?.posicao === apos.hierarquia?.posicao;
 
@@ -723,7 +741,7 @@ export const derivarOperacoesRevisao = (state: State, revisao: RevisaoElemento):
     if (antes && apos && antes.tipo === apos.tipo && antes.rotulo !== apos.rotulo) {
       operacoes = anexarOperacaoRevisao(operacoes, OPERACAO_ALTERACAO_ROTULO, antes.lexmlId);
     }
-    if (antes?.conteudo?.texto !== apos?.conteudo?.texto) {
+    if (!isMesmoTextoETitulo(antes, apos)) {
       operacoes = anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO);
     }
     return operacoes || OPERACAO_ALTERADO;
@@ -736,7 +754,7 @@ export const derivarOperacoesRevisao = (state: State, revisao: RevisaoElemento):
     const operacao = getOperacaoDeMovimentacaoOuTransformacao(state, antes, apos);
     operacoes = anexarOperacaoRevisao(operacoes, operacao.nome, operacao.argumento);
   }
-  return antes.conteudo?.texto !== apos.conteudo?.texto ? anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO) : operacoes;
+  return !isMesmoTextoETitulo(antes, apos) ? anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO) : operacoes;
 };
 
 export const getOperacoesDaRevisao = (state: State, revisao: RevisaoElemento): string => revisao.revisao ?? derivarOperacoesRevisao(state, revisao);
@@ -753,7 +771,7 @@ export const reconciliarOperacoesRevisao = (state: State, revisao: RevisaoElemen
   if (antes.tipo === apos.tipo) {
     operacoes = removerOperacaoRevisao(operacoes, OPERACAO_TRANSFORMADO);
   }
-  if (antes.conteudo?.texto === apos.conteudo?.texto) {
+  if (isMesmoTextoETitulo(antes, apos)) {
     operacoes = removerOperacaoRevisao(operacoes, OPERACAO_ALTERADO);
   }
   if (isMesmoLugar(antes, apos)) {

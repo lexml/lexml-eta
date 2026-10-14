@@ -34,7 +34,7 @@ export class EtaQuillUtil {
     const etaTdTexto: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito(this.alinhamentoMenu);
 
-    if (elemento.tituloDispositivo) {
+    if (elemento.tituloDispositivo !== undefined) {
       new EtaBlotTituloDispositivo(elemento).insertInto(etaTdTexto);
     }
 

@@ -1,5 +1,6 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { ElementoAction } from '../acao';
+import { adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction } from '../acao/atualizarTituloDispositivoAction';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { getDispositivoAnterior, getDispositivoPosterior, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
@@ -14,6 +15,18 @@ export const adicionaAcoesDeExistenciaNaNorma = (dispositivo: Dispositivo, acoes
     acoes.push(considerarElementoNovoNaNorma, considerarElementoExistenteNaNorma);
   } else {
     acoes.push(dispositivo.existeNaNormaAlterada ? considerarElementoNovoNaNorma : considerarElementoExistenteNaNorma);
+  }
+};
+
+export const adicionaAcoesDeTitulo = (dispositivo: Dispositivo, acoes: ElementoAction[]): void => {
+  if (isBloqueado(dispositivo)) {
+    return;
+  }
+
+  if (dispositivo.tituloDispositivo === undefined) {
+    acoes.push(adicionarTituloDispositivoAction);
+  } else {
+    acoes.push(editarTituloDispositivoAction, removerTituloDispositivoAction);
   }
 };
 

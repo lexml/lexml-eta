@@ -13,7 +13,7 @@ import {
 import { getDispositivoAndFilhosAsLista, getDispositivoAnteriorNaSequenciaDeLeitura, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
-import { getElementosRemovidosEIncluidos, unificarEvento } from '../evento/eventosUtil';
+import { buildEventoAtualizacaoElemento, getElementosRemovidosEIncluidos, unificarEvento } from '../evento/eventosUtil';
 import { getElementosAlteracaoASeremAtualizados } from '../util/reducerUtil';
 import {
   findRevisaoByElementoUuid,
@@ -151,11 +151,11 @@ const processaRevisoes = (state: State, revisoes: RevisaoElemento[]): StateEvent
 const rejeitaModificacao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
   const operacoes = getOperacoesRevisao(revisao.revisao);
   if (!operacoes.some(o => o.nome === OPERACAO_ALTERACAO_ROTULO)) {
-    return atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
+    return restauraTextoETitulo(state, revisao);
   }
 
   const eventosRotulo = restauraRotulo(state, revisao);
-  const eventosTexto = operacoes.some(o => o.nome === OPERACAO_ALTERADO) ? atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [] : [];
+  const eventosTexto = operacoes.some(o => o.nome === OPERACAO_ALTERADO) ? restauraTextoETitulo(state, revisao) : [];
   // O evento de texto já traz o dispositivo com o rótulo restaurado.
   const textoModificou = eventosTexto.some(ev => ev.stateType === StateType.ElementoModificado);
   return [...eventosRotulo.filter(ev => !(textoModificou && ev.stateType === StateType.ElementoModificado)), ...eventosTexto];
@@ -186,6 +186,22 @@ const restauraRotulo = (state: State, revisao: RevisaoElemento): StateEvent[] =>
 
   eventos.push({ stateType: StateType.ElementoValidado, elementos: criaListaElementosAfinsValidados(dispositivo) });
   return eventos;
+};
+
+const restauraTextoETitulo = (state: State, revisao: RevisaoElemento): StateEvent[] => {
+  const antes = revisao.elementoAntesRevisao;
+  const dispositivo = antes ? getDispositivoFromElemento(state.articulacao!, antes, true) : undefined;
+  const tituloMudou = !!dispositivo && dispositivo.tituloDispositivo !== antes!.tituloDispositivo;
+
+  // O título é restaurado antes do texto para que o elemento do evento já o traga.
+  if (tituloMudou) {
+    dispositivo!.tituloDispositivo = antes!.tituloDispositivo;
+  }
+
+  const eventos = atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
+
+  // Sem mudança de texto o reducer de texto não emite nada, mas a linha precisa refletir o título.
+  return tituloMudou && !eventos.length ? buildEventoAtualizacaoElemento(dispositivo!).build() : eventos;
 };
 
 const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] => {

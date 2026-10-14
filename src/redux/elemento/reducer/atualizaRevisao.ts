@@ -14,6 +14,7 @@ import {
   isRevisaoDeTransformacao,
   identificarRevisaoElementoPai,
   existeRevisaoParaElementos,
+  buildDescricaoRevisaoDeModificacao,
   removeAtributosDoElemento,
   atualizaReferenciaElementoAnteriorSeNecessario,
   isRevisaoPrincipal,
@@ -31,6 +32,7 @@ import {
   getPosicaoDeOrigem,
   getReferenciaDeOrigem,
   getRevisoesElementoAssociadas,
+  isMesmoTextoETitulo,
   reconciliarOperacoesRevisao,
   OPERACAO_ADICIONADO,
   OPERACAO_ALTERACAO_ROTULO,
@@ -136,6 +138,7 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
         revisoesParaRemover.push(revisao);
       }
       revisao.elementoAposRevisao = JSON.parse(JSON.stringify(e));
+      isRevisaoDeModificacao(revisao) && (revisao.descricao = buildDescricaoRevisaoDeModificacao(revisao));
       state.usuario && (revisao.usuario = state.usuario);
       revisao.dataHora = formatDateTime(new Date());
       if (revisao.elementoAntesRevisao && revisao.stateType !== StateType.ElementoRemovido) {
@@ -180,7 +183,7 @@ const getOperacoesDeNovaModificacao = (state: State, actionType: any, elemento: 
     return OPERACAO_ALTERADO;
   }
   const operacoes = anexarOperacaoRevisao('', alteracaoRotulo.nome, alteracaoRotulo.argumento);
-  return anterior?.conteudo?.texto !== elemento.conteudo?.texto ? anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO) : operacoes;
+  return !isMesmoTextoETitulo(anterior, elemento) ? anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO) : operacoes;
 };
 
 const isAjusteTextoOmitido = (eAntesRevisao: Elemento | undefined, eAposRevisao: Elemento): boolean => {
@@ -361,6 +364,7 @@ const revisaoDeElementoComMesmoUuid2RotuloEConteudo = (r: RevisaoElemento, e: El
     r.elementoAntesRevisao?.uuid2 === e.uuid2 &&
     r.elementoAntesRevisao?.rotulo === e.rotulo &&
     r.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto &&
+    r.elementoAntesRevisao?.tituloDispositivo === e.tituloDispositivo &&
     r.elementoAntesRevisao?.hierarquia?.pai?.lexmlId === e.hierarquia?.pai?.lexmlId // Checa se elementos estão na mesma hierarquia
   );
 };

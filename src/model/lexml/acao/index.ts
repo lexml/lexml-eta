@@ -1,5 +1,6 @@
 import { adicionarAgrupadorArtigoAction, adicionarAgrupadorArtigoAntesAction } from './adicionarAgrupadorArtigoAction';
 import { atualizarNotaAlteracaoAction } from './atualizarNotaAlteracaoAction';
+import { adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction } from './atualizarTituloDispositivoAction';
 import { Referencia } from '../../elemento';
 import {
   adicionarAlinea,
@@ -83,6 +84,9 @@ acoesMenu.push(InformarDadosAssistenteAction);
 acoesMenu.push(considerarElementoExistenteNaNorma);
 acoesMenu.push(considerarElementoNovoNaNorma);
 acoesMenu.push(atualizarNotaAlteracaoAction);
+acoesMenu.push(adicionarTituloDispositivoAction);
+acoesMenu.push(editarTituloDispositivoAction);
+acoesMenu.push(removerTituloDispositivoAction);
 acoesMenu.push(moverElementoAbaixoAction);
 acoesMenu.push(moverElementoAcimaAction);
 acoesMenu.push(renumerarElementoAction);
