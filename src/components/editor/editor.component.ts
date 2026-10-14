@@ -895,13 +895,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           setTimeout(() => this.marcarLinha(event), 0);
           break;
 
-        case StateType.SituacaoElementoModificada:
-          this.atualizarQuill(event);
-          this.atualizarSituacao(event);
-          this.atualizarAtributos(event);
-          this.atualizarMensagemQuill(event);
-          this.atualizarOmissis(event);
+        case StateType.SituacaoElementoModificada: {
+          const eventoSemLinhasARecriar = this.semLinhasARecriar(event, uuidsIncluidosNoLote);
+          this.atualizarQuill(eventoSemLinhasARecriar);
+          this.atualizarSituacao(eventoSemLinhasARecriar);
+          this.atualizarAtributos(eventoSemLinhasARecriar);
+          this.atualizarMensagemQuill(eventoSemLinhasARecriar);
+          this.atualizarOmissis(eventoSemLinhasARecriar);
           break;
+        }
 
         case StateType.RevisaoAtivada:
           this.checkedSwitchMarcaAlteracao();
@@ -927,6 +929,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
 
     this.processarPosLoopEventos(events);
+  }
+
+  // Atualizar antes da inclusão uma linha de outro tipo que será recriada a retipa, e a inclusão passa a só atualizá-la sem reposicioná-la.
+  private semLinhasARecriar(event: StateEvent, uuidsIncluidosNoLote: Set<number | undefined>): StateEvent {
+    const elementos = event.elementos?.filter(e => !(uuidsIncluidosNoLote.has(e.uuid) && this.quill.getLinha(e.uuid ?? 0) && this.quill.getLinha(e.uuid ?? 0)!.tipo !== e.tipo));
+    return { ...event, elementos };
   }
 
   private handleRemissaoEvent(event: StateEvent): void {
