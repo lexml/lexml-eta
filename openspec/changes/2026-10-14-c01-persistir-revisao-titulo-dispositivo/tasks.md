@@ -31,7 +31,7 @@
 
 ## 7. Verificação final
 
-- [ ] 7.1 Rodar `npx tsc`, o lint dos arquivos alterados, a suíte unitária completa (`npm test`), os specs Cypress de `titulo-dispositivo/`, `revisao/` e `documento-articulado/` e a integração com o conversor real; conferir a contagem de testes em relação à de antes da change, sem testes removidos ou ignorados.
+- [x] 7.1 Rodar `npx tsc`, o lint dos arquivos alterados, a suíte unitária completa (`npm test`), os specs Cypress de `titulo-dispositivo/`, `revisao/` e `documento-articulado/` e a integração com o conversor real; conferir a contagem de testes em relação à de antes da change, sem testes removidos ou ignorados.
 
 ## Workflow follow-up
 
