@@ -51,6 +51,22 @@ const adicionarTituloT = (numeroArtigo: number, texto: string): void => {
   confirmarDialogoT();
 };
 
+const SEL_POPUP_DIFERENCAS_T = '#slDialogExibirDiferencas';
+const SEL_CARDS_DIFERENCAS_T = `${SEL_POPUP_DIFERENCAS_T} sl-tab-panel[name="modificadoRevisao"] sl-card`;
+
+const abrirPopupDiferencasT = (numeroArtigo: number): void => {
+  cy.getContainerArtigoByNumero(numeroArtigo).find('[id^="buttonExibirDiferencas"]').click({ force: true });
+  cy.get(SEL_CARDS_DIFERENCAS_T).should('have.length', 3);
+};
+
+// Índice do card: 0 = antes da revisão, 1 = diferença, 2 = atual.
+const cardDoPopupT = (indice: number): Cypress.Chainable<JQuery<HTMLElement>> => cy.get(SEL_CARDS_DIFERENCAS_T).eq(indice);
+
+const fecharPopupDiferencasT = (): void => {
+  cy.get(`${SEL_POPUP_DIFERENCAS_T} sl-button`).click({ force: true });
+  cy.get(SEL_POPUP_DIFERENCAS_T).should('not.exist');
+};
+
 describe('Título de dispositivo', () => {
   beforeEach(() => {
     cy.visit('/');
@@ -305,6 +321,47 @@ describe('Título de dispositivo - revisão', () => {
     cy.get('@contadorRevisaoTitulo').contains('0');
   });
 
+  it('o popup de diferenças mostra o título anterior, o atual e a comparação quando o título é alterado', () => {
+    adicionarEAceitarTituloT('Do objeto');
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Editar título');
+    digitarNoDialogoT('Da finalidade');
+    confirmarDialogoT();
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    abrirPopupDiferencasT(1);
+
+    cardDoPopupT(0).find('.titulo-diff').should('have.text', 'Do objeto');
+    cardDoPopupT(2).find('.titulo-diff').should('have.text', 'Da finalidade');
+    cardDoPopupT(1).find('.titulo-diff del').should('exist');
+    cardDoPopupT(1).find('.titulo-diff ins').should('exist');
+    fecharPopupDiferencasT();
+  });
+
+  it('o popup de diferenças mostra "Sem título" no card anterior quando o título é adicionado', () => {
+    adicionarTituloT(1, 'Do objeto');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    abrirPopupDiferencasT(1);
+
+    cardDoPopupT(0).find('.titulo-diff--ausente').should('have.text', 'Sem título');
+    cardDoPopupT(2).find('.titulo-diff').should('have.text', 'Do objeto');
+    cardDoPopupT(1).find('.titulo-diff ins').should('have.text', 'Do objeto');
+    fecharPopupDiferencasT();
+  });
+
+  it('o popup de diferenças mostra "Sem título" no card atual quando o título é removido', () => {
+    adicionarEAceitarTituloT('Do objeto');
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Remover título');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    abrirPopupDiferencasT(1);
+
+    cardDoPopupT(0).find('.titulo-diff').should('have.text', 'Do objeto');
+    cardDoPopupT(2).find('.titulo-diff--ausente').should('have.text', 'Sem título');
+    cardDoPopupT(1).find('.titulo-diff del').should('have.text', 'Do objeto');
+    fecharPopupDiferencasT();
+  });
+
   it('salvar e reabrir preserva a revisão e rejeitar restaura o título anterior', () => {
     // O download é um blob: captura o conteúdo em vez de depender do diretório de downloads do navegador.
     const arquivosSalvos: Promise<string>[] = [];
@@ -336,6 +393,11 @@ describe('Título de dispositivo - revisão', () => {
 
     tituloDoArtigoT(1).should('have.text', 'Da finalidade');
     cy.getSwitchRevisaoDispositivo().getContadorRevisao().should('contain.text', '1');
+
+    abrirPopupDiferencasT(1);
+    cardDoPopupT(0).find('.titulo-diff').should('have.text', 'Do objeto');
+    cardDoPopupT(2).find('.titulo-diff').should('have.text', 'Da finalidade');
+    fecharPopupDiferencasT();
 
     cy.get('[id^="buttonRevisaoRecusar"]').first().click({ force: true });
 
