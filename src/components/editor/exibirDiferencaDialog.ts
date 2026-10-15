@@ -1,4 +1,5 @@
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
+import { sanitizarTituloDispositivo } from '../../util/html-util';
 import { substituiEspacosEntreTagsPorNbsp, substituiMultiplosEspacosPorNbsp, textoDiffAsHtml } from '../../util/string-util';
 
 export class TextoDiff {
@@ -6,10 +7,33 @@ export class TextoDiff {
   textoOriginal!: string;
   textoAntesRevisao!: string;
   textoAtual!: string;
+  // undefined = sem título; '' = título vazio.
+  tituloAntesRevisao?: string;
+  tituloAtual?: string;
+  comRevisao = false;
   adicionado = false;
 }
 
 const OMISSIS = '....................';
+
+// Título aparece quando existe em algum dos lados; o lado sem título mostra o marcador, que fica fora da comparação.
+const montaTitulosDaRevisao = (diff: TextoDiff): { antes: string; diferenca: string; atual: string } => {
+  if (diff.tituloAntesRevisao === undefined && diff.tituloAtual === undefined) {
+    return { antes: '', diferenca: '', atual: '' };
+  }
+  const linha = (titulo?: string): string =>
+    titulo === undefined ? '<div class="titulo-diff titulo-diff--ausente">Sem título</div>' : `<div class="titulo-diff">${sanitizarTituloDispositivo(titulo)}</div>`;
+  const antes = sanitizarTituloDispositivo(diff.tituloAntesRevisao);
+  const atual = sanitizarTituloDispositivo(diff.tituloAtual);
+  return { antes: linha(diff.tituloAntesRevisao), diferenca: `<div class="titulo-diff">${comparaHtml(antes, atual)}</div>`, atual: linha(diff.tituloAtual) };
+};
+
+// Compara por palavras e depois por caracteres sobre o resultado sem espaços duplicados.
+const comparaHtml = (antes: string, depois: string): string => {
+  const porPalavras = textoDiffAsHtml(antes, depois, 'diffWords');
+  const semEspacosDuplicados = porPalavras.replace(/\s+/g, ' ');
+  return substituiEspacosEntreTagsPorNbsp(textoDiffAsHtml(semEspacosDuplicados, porPalavras, 'diffChars'), ['ins', 'del']);
+};
 
 export const exibirDiferencasDialog = (diff: TextoDiff): void => {
   Array.from(document.querySelectorAll('#slDialogExibirDiferencas')).forEach(el => document.body.removeChild(el));
@@ -36,28 +60,20 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 
   diff = trataOmissisDiff(diff);
 
-  const contemRevisao = !!diff.textoAntesRevisao;
+  const contemRevisao = diff.comRevisao;
 
-  let diferencaModificado = textoDiffAsHtml(diff.textoOriginal, diff.textoAtual, 'diffWords');
-  let diferencaSemEspacosDuplicados = diferencaModificado.replace(/\s+/g, ' ');
-  diferencaModificado = substituiEspacosEntreTagsPorNbsp(textoDiffAsHtml(diferencaSemEspacosDuplicados, diferencaModificado, 'diffChars'), ['ins', 'del']);
+  const diferencaModificado = comparaHtml(diff.textoOriginal, diff.textoAtual);
 
   const tabModificado = !diff.adicionado && diferencaModificado !== diff.textoOriginal ? `<sl-tab slot="nav" panel="modificado"> Texto original </sl-tab>` : '';
   const tabModificadoRevisao = contemRevisao ? `<sl-tab slot="nav" panel="modificadoRevisao">Texto antes da revisão</sl-tab>` : '';
 
-  let diferencaEntreTextoAtualETextoAntesRevisao = contemRevisao ? textoDiffAsHtml(diff.textoAntesRevisao, diff.textoAtual, 'diffWords') : undefined;
-  if (contemRevisao) {
-    diferencaSemEspacosDuplicados = diferencaEntreTextoAtualETextoAntesRevisao!.replace(/\s+/g, ' ');
-    diferencaEntreTextoAtualETextoAntesRevisao = substituiEspacosEntreTagsPorNbsp(
-      textoDiffAsHtml(diferencaSemEspacosDuplicados, diferencaEntreTextoAtualETextoAntesRevisao!, 'diffChars'),
-      ['ins', 'del']
-    );
-  }
+  const diferencaEntreTextoAtualETextoAntesRevisao = contemRevisao ? comparaHtml(diff.textoAntesRevisao ?? '', diff.textoAtual) : undefined;
+  const titulos = montaTitulosDaRevisao(diff);
 
   diff.textoOriginal = substituiMultiplosEspacosPorNbsp(diff.textoOriginal);
   diff.textoAtual = substituiMultiplosEspacosPorNbsp(diff.textoAtual);
   if (contemRevisao) {
-    diff.textoAntesRevisao = substituiMultiplosEspacosPorNbsp(diff.textoAntesRevisao);
+    diff.textoAntesRevisao = substituiMultiplosEspacosPorNbsp(diff.textoAntesRevisao ?? '');
   }
   const tabPanelModificado =
     !diff.adicionado && diferencaModificado !== diff.textoOriginal
@@ -100,6 +116,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
             <div slot="header">
               Texto antes da revisão
             </div>
+            ${titulos.antes}
             <p class="texto-quill">
               ${diff.textoAntesRevisao}
             </p>
@@ -109,6 +126,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
             <div slot="header">
               Diferença
             </div>
+            ${titulos.diferenca}
             <p class="texto-quill">
               ${diferencaEntreTextoAtualETextoAntesRevisao!}
             </p>
@@ -118,6 +136,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
             <div slot="header">
               Texto atual
             </div>
+            ${titulos.atual}
             <p class="texto-quill">
               ${diff.textoAtual}
             </p>
@@ -144,6 +163,17 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 
     .texto-alterado del {
       background-color: #ffc6c6;
+    }
+
+    .titulo-diff {
+      font-weight: bold;
+      margin: 0 0 0.5rem;
+    }
+
+    .titulo-diff--ausente {
+      font-weight: normal;
+      font-style: italic;
+      color: var(--sl-color-neutral-500);
     }
 
     p .texto-quill {
