@@ -5,8 +5,8 @@
 
 ## 2. "Corrigir agora" preserva a remissão externa
 
-- [ ] 2.1 Escrever teste unitário que reproduz o bug: artigo de alteração com `base` vazio e uma remissão externa no texto; ao informar a norma, o HTML ainda contém `data-urn`/`lexml-remissao-externa` e o registro não fica órfão (o teste deve falhar antes da correção)
-- [ ] 2.2 Corrigir `atualizaReferenciaElemento` para só definir o `base` quando o artigo já tem remissão externa, sem reescrever o link; manter a geração da frase para artigo sem texto e a inserção da citação quando não há referência; verificar com o teste de 2.1 e os testes existentes do reducer
+- [x] 2.1 Escrever teste unitário que reproduz o bug: artigo de alteração com `base` vazio e uma remissão externa no texto; ao informar a norma, o HTML ainda contém `data-urn`/`lexml-remissao-externa` e o registro não fica órfão (o teste deve falhar antes da correção)
+- [x] 2.2 Corrigir `atualizaReferenciaElemento` para só definir o `base` quando o artigo já tem remissão externa, sem reescrever o link; manter a geração da frase para artigo sem texto e a inserção da citação quando não há referência; verificar com o teste de 2.1 e os testes existentes do reducer
 
 ## 3. Preenchimento do `base` pela remissão única
 

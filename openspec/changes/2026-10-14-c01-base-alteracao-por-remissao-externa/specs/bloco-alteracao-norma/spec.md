@@ -82,7 +82,7 @@ Ao informar a norma alterada pelo diálogo "Corrigir agora" de um artigo que já
 
 #### Scenario: Informar a norma num artigo sem texto continua gerando a frase
 - **WHEN** o artigo de alteração está sem texto e o usuário informa a norma alterada pelo diálogo
-- **THEN** o texto "A/O <norma>, passa a vigorar com as seguintes alterações:" é gerado com a norma como remissão externa, como já ocorre hoje
+- **THEN** o texto "A/O <norma>, passa a vigorar com as seguintes alterações:" é gerado com a norma citada como link, como já ocorre hoje
 
 ### Requirement: Nome da norma gerado para números compostos
 O texto gerado automaticamente com o nome da norma SHALL exibir números compostos de forma legível (ex.: "Medida Provisória nº 2.158-35, de 2001") e SHALL NOT exibir "NaN".
