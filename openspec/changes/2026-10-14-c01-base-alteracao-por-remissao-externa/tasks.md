@@ -10,9 +10,9 @@
 
 ## 3. Preenchimento do `base` pela remissão única
 
-- [ ] 3.1 No reducer de `ADICIONAR_REMISSAO_EXTERNA`, preencher o `base` quando o artigo tem bloco de alteração, `base` vazio e exatamente uma entrada no registro para o `sourceUuid`; revalidar o artigo e registrar o passo no histórico. Verificar com testes unitários: remissão automática, manual, `base` já preenchido (não muda), duas remissões (não preenche), duas da mesma norma (não preenche), registro com entrada órfã
-- [ ] 3.2 Verificar que desfazer volta o `base` a vazio (teste de undo) e que remover a remissão depois não altera o `base`
-- [ ] 3.3 Verificar que o alerta "É necessário informar a norma a ser alterada" desaparece do artigo após o preenchimento (teste de validação do elemento resultante)
+- [x] 3.1 No reducer de `ADICIONAR_REMISSAO_EXTERNA`, preencher o `base` quando o artigo tem bloco de alteração, `base` vazio e exatamente uma entrada no registro para o `sourceUuid`; revalidar o artigo e registrar o passo no histórico. Verificar com testes unitários: remissão automática, manual, `base` já preenchido (não muda), duas remissões (não preenche), duas da mesma norma (não preenche), registro com entrada órfã
+- [x] 3.2 Verificar que desfazer volta o `base` a vazio (teste de undo) e que remover a remissão depois não altera o `base`
+- [x] 3.3 Verificar que o alerta "É necessário informar a norma a ser alterada" desaparece do artigo após o preenchimento (teste de validação do elemento resultante)
 
 ## 4. Aviso de divergência
 
