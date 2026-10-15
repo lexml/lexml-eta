@@ -1590,16 +1590,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     for (const match of matches) {
       rootStore.dispatch(
-        adicionarRemissaoExternaAction({
-          refId: gerarRefId(),
-          targetUrn: match.targetUrn,
-          targetNomeNorma: '',
-          targetFragmento: match.targetFragmento,
-          textoRef: match.textoRef,
-          sourceUuid,
-          inicio: match.inicio,
-          fim: match.fim,
-        })
+        adicionarRemissaoExternaAction(
+          {
+            refId: gerarRefId(),
+            targetUrn: match.targetUrn,
+            targetNomeNorma: '',
+            targetFragmento: match.targetFragmento,
+            textoRef: match.textoRef,
+            sourceUuid,
+            inicio: match.inicio,
+            fim: match.fim,
+          },
+          matches.length
+        )
       );
     }
 
