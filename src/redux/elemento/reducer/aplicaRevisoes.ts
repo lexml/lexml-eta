@@ -55,7 +55,7 @@ export const aplicaRevisoes = (state: any, action: any): State => {
 
   retorno.ui!.events.push({
     stateType: StateType.SituacaoElementoModificada,
-    elementos: getElementosAlteracaoASeremAtualizados(state.articulacao, elementosInseridos),
+    elementos: [...getElementosAlteracaoASeremAtualizados(state.articulacao, elementosInseridos), ...getElementosRevisadosPresentesNaArticulacao(retorno)],
   });
 
   if (retorno.emRevisao) {
@@ -64,6 +64,14 @@ export const aplicaRevisoes = (state: any, action: any): State => {
 
   return retorno;
 };
+
+// Sem esses elementos no evento, o editor não desenha as marcas das revisões que não são exclusão até o próximo evento do dispositivo.
+const getElementosRevisadosPresentesNaArticulacao = (state: State): Elemento[] =>
+  (state.revisoes ?? [])
+    .filter(r => isRevisaoElemento(r) && !isRevisaoDeExclusao(r as RevisaoElemento))
+    .map(r => buscaDispositivoById(state.articulacao!, (r as RevisaoElemento).elementoAposRevisao.lexmlId!))
+    .filter((d): d is Dispositivo => !!d)
+    .map(d => createElemento(d));
 
 const renumeraParagrafosUnicos = (state: any): Dispositivo[] => {
   // Trata renumeração de parágrafo único

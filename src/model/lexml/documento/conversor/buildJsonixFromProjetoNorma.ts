@@ -23,6 +23,7 @@ import { Autoria, OpcoesImpressao, tratamentoParlamentar } from '../../../propos
 import { formatarLocalDataFecho } from '../urnUtil';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
+export const PENDENCIA_REVISAO_ARTICULACAO = 'Resolver marcas de revisão na articulação.';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
@@ -107,6 +108,11 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
   if (idsRemissoesInvalidas.length > 0) {
     lexedit.remissoesInternasInvalidas = { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idsRemissoesInvalidas.join(' ') };
     pendencias.push('Corrigir remissões internas inválidas.');
+  }
+  if (dados?.revisoes?.revisoesArticulacao.revisaoArticulacao.length) {
+    lexedit.revisoesArticulacao = dados.revisoes.revisoesArticulacao;
+    lexedit.usuarios = dados.revisoes.usuarios;
+    pendencias.push(PENDENCIA_REVISAO_ARTICULACAO);
   }
   if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
   // > 1 porque TYPE_NAME está sempre presente.
@@ -402,7 +408,7 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remi
     }
   }
 
-  if (isValidText(getTextoSemHtml((dispositivo.tituloDispositivo ?? '').replace(/&nbsp;/g, ' ')))) {
+  if (tituloTemTexto(dispositivo.tituloDispositivo)) {
     value.tituloDispositivo = {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       content: buildStructuredContent(dispositivo, 'tituloDispositivo', remissoes, remissoesExternas),
@@ -846,6 +852,45 @@ const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remisso
   // Sem tags HTML, retorna o conteúdo como está
   const fim = conteudo.indexOf('” (NR)');
   return [conteudo.substring(0, fim === -1 ? undefined : fim)];
+};
+
+/** Nó jsonix (`{ name, value }`) de um dispositivo solto, com seus filhos; usado para o conteúdo das revisões de exclusão. */
+export const buildJsonixDispositivo = (dispositivo: Dispositivo): any => {
+  const node = buildNode(dispositivo);
+  buildTree(dispositivo, node.value);
+  return node;
+};
+
+/** Conteúdo inline jsonix de um trecho de HTML do editor (ex.: o texto anterior de uma revisão). */
+export const buildJsonixContentFromHtml = (html: string): any[] => buildStructuredContent({ texto: html } as unknown as Dispositivo, 'texto');
+
+// Título vazio ou só com marcação não é gravado.
+const tituloTemTexto = (titulo?: string): boolean => isValidText(getTextoSemHtml((titulo ?? '').replace(/&nbsp;/g, ' ')));
+
+/** Valor jsonix, sem id nem rótulo, do estado anterior (texto e título) de um dispositivo de tipo `tipo` numa revisão `alterado`. */
+export const buildJsonixEstadoAnterior = (tipo: string, texto: string, titulo?: string): any => {
+  const dispositivo = { tipo } as unknown as Dispositivo;
+  const value: any = { TYPE_NAME: buildTypeName(dispositivo) };
+  if (tituloTemTexto(titulo)) {
+    value.tituloDispositivo = { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildJsonixContentFromHtml(titulo!) };
+  }
+  const inline = { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildJsonixContentFromHtml(texto) };
+  if (isAgrupador(dispositivo)) {
+    value.nomeAgrupador = inline;
+  } else if (isArtigo(dispositivo)) {
+    const caput = 'Caput';
+    const nome = {
+      namespaceURI: 'http://www.lexml.gov.br/1.0',
+      localPart: caput,
+      prefix: '',
+      key: `{http://www.lexml.gov.br/1.0}${caput}`,
+      string: `{http://www.lexml.gov.br/1.0}${caput}`,
+    };
+    value.lXcontainersOmissis = [{ name: nome, value: { TYPE_NAME: 'br_gov_lexml__1.DispositivoType', p: [inline] } }];
+  } else {
+    value.p = [inline];
+  }
+  return value;
 };
 
 const buildSpan = (m: string): any => {

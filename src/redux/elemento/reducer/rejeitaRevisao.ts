@@ -1,4 +1,6 @@
 import { isRevisaoDeModificacao, isRevisaoDeTransformacao, mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes } from './../util/revisaoUtil';
+import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
+import { updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 import { isCaput } from './../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento/elemento';
 import {
@@ -8,7 +10,7 @@ import {
   getDispositivoFromElemento,
   listaDispositivosRenumerados,
 } from '../../../model/elemento/elementoUtil';
-import { getDispositivoAnteriorNaSequenciaDeLeitura, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, getDispositivoAnteriorNaSequenciaDeLeitura, getUltimoFilho } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { buildEventoAtualizacaoElemento, getElementosRemovidosEIncluidos, unificarEvento } from '../evento/eventosUtil';
@@ -18,8 +20,13 @@ import {
   findRevisaoDeExclusaoComElementoAnteriorApontandoPara,
   findUltimaRevisaoDoGrupo,
   getRevisoesElementoAssociadas,
+  getOperacoesRevisao,
+  getPosicaoDeOrigem,
+  isMovimentacaoSemEfeito,
   isRevisaoDeMovimentacao,
   isRevisaoPrincipal,
+  OPERACAO_ALTERACAO_ROTULO,
+  OPERACAO_ALTERADO,
 } from '../util/revisaoUtil';
 import { buildPast } from '../util/stateReducerUtil';
 import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, ajustarHierarquivoAgrupadorIncluidoPorUndoRedo, incluir } from '../util/undoRedoReducerUtil';
@@ -39,14 +46,14 @@ export const rejeitarRevisaoEmLote = (state: State, revisoes: Revisao[] = []): S
   const tempStates: State[] = [];
   revisoes.filter(isRevisaoPrincipal).forEach((revisao: Revisao) => {
     const tempState = { ...state, past: [], present: [], future: [], ui: { ...state.ui, events: [] } };
-    tempStates.push(rejeitarRevisao(tempState, { revisao }));
+    tempStates.push(rejeitarRevisao(tempState, { revisao }, false));
   });
   const tempState = mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes(state, tempStates, revisoes, 'rejeitar');
   tempState.revisoes = state.revisoes?.filter(r => !isRevisaoPrincipal(r));
   return tempState;
 };
 
-export const rejeitarRevisao = (state: any, action: any): State => {
+export const rejeitarRevisao = (state: any, action: any, descartarMovimentacoesSemEfeito = true): State => {
   const revisao = (action.revisao || findRevisaoByElementoUuid(state.revisoes, action.elemento.uuid)) as RevisaoElemento;
   const revisoesAssociadas = getRevisoesElementoAssociadas(state.revisoes, revisao);
   const idsRevisoesAssociadas = revisoesAssociadas.map(r => r.id);
@@ -81,6 +88,28 @@ export const rejeitarRevisao = (state: any, action: any): State => {
   const tempState = { ...state, past: [] };
 
   eventos.push(...processaRevisoes(tempState, revisoesAssociadas.filter(isRevisaoPrincipal)));
+
+  if (descartarMovimentacoesSemEfeito) {
+    // Entram no mesmo evento de rejeição, que o undo/redo já sabe devolver/remover.
+    const descartadas = state.revisoes
+      .filter((r: Revisao) => !idsRevisoesAssociadas.includes(r.id) && isRevisaoPrincipal(r) && isMovimentacaoSemEfeito(state.articulacao!, r as RevisaoElemento))
+      .flatMap((r: RevisaoElemento) => getRevisoesElementoAssociadas(state.revisoes, r));
+    if (descartadas.length) {
+      descartadas.forEach((r: RevisaoElemento) => {
+        r.elementoAposRevisao.revisao = JSON.parse(JSON.stringify(r));
+        elementos.push(r.elementoAposRevisao as Elemento);
+      });
+      idsRevisoesAssociadas.push(...descartadas.map((r: RevisaoElemento) => r.id));
+      eventos.push({
+        stateType: StateType.SituacaoElementoModificada,
+        elementos: descartadas
+          .map((r: RevisaoElemento) => getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao))
+          .filter(Boolean)
+          .map((d: any) => createElemento(d)),
+      });
+    }
+  }
+
   const eventosPast = isRevisaoDeModificacao(revisao) ? montarEventosDeModificacaoParaHistorico(eventos, revisao, state) : eventos;
 
   return {
@@ -120,6 +149,46 @@ const processaRevisoes = (state: State, revisoes: RevisaoElemento[]): StateEvent
 };
 
 const rejeitaModificacao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
+  const operacoes = getOperacoesRevisao(revisao.revisao);
+  if (!operacoes.some(o => o.nome === OPERACAO_ALTERACAO_ROTULO)) {
+    return restauraTextoETitulo(state, revisao);
+  }
+
+  const eventosRotulo = restauraRotulo(state, revisao);
+  const eventosTexto = operacoes.some(o => o.nome === OPERACAO_ALTERADO) ? restauraTextoETitulo(state, revisao) : [];
+  // O evento de texto já traz o dispositivo com o rótulo restaurado.
+  const textoModificou = eventosTexto.some(ev => ev.stateType === StateType.ElementoModificado);
+  return [...eventosRotulo.filter(ev => !(textoModificou && ev.stateType === StateType.ElementoModificado)), ...eventosTexto];
+};
+
+// Devolve número, rótulo e ids (do dispositivo e dos descendentes) do snapshot anterior à renumeração.
+const restauraRotulo = (state: State, revisao: RevisaoElemento): StateEvent[] => {
+  const antes = revisao.elementoAntesRevisao!;
+  const dispositivo = getDispositivoFromElemento(state.articulacao!, revisao.elementoAposRevisao, true);
+  if (!dispositivo) {
+    return [];
+  }
+
+  if (antes.numero !== undefined && antes.numero !== dispositivo.numero) {
+    dispositivo.numero = antes.numero;
+    dispositivo.rotulo = antes.rotulo;
+    updateIdDispositivoAndFilhos(dispositivo);
+  }
+
+  const elemento = createElemento(dispositivo, true);
+  elemento.mensagens = validaDispositivo(dispositivo);
+  const eventos: StateEvent[] = [{ stateType: StateType.ElementoModificado, elementos: [elemento] }];
+
+  const descendentes = getDispositivoAndFilhosAsLista(dispositivo)
+    .slice(1)
+    .map(d => createElemento(d));
+  descendentes.length && eventos.push({ stateType: StateType.SituacaoElementoModificada, elementos: descendentes });
+
+  eventos.push({ stateType: StateType.ElementoValidado, elementos: criaListaElementosAfinsValidados(dispositivo) });
+  return eventos;
+};
+
+const restauraTextoETitulo = (state: State, revisao: RevisaoElemento): StateEvent[] => {
   const antes = revisao.elementoAntesRevisao;
   const dispositivo = antes ? getDispositivoFromElemento(state.articulacao!, antes, true) : undefined;
   const tituloMudou = !!dispositivo && dispositivo.tituloDispositivo !== antes!.tituloDispositivo;
@@ -160,7 +229,17 @@ const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
   return result;
 };
 
+// Estado já sem o movido: a referência de origem dá o lugar certo mesmo que a posição guardada esteja defasada.
+const atualizaPosicaoDeOrigem = (state: State, revisao: RevisaoElemento): void => {
+  const antes = revisao.elementoAntesRevisao;
+  const posicao = antes ? getPosicaoDeOrigem(state.articulacao!, antes, revisao.elementoAposRevisao, revisao.origemAntesDeUuid2) : undefined;
+  if (antes?.hierarquia && posicao !== undefined) {
+    antes.hierarquia.posicao = posicao;
+  }
+};
+
 const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] => {
+  atualizaPosicaoDeOrigem(state, revisao);
   const revisoesAssociadas = getRevisoesElementoAssociadas(state.revisoes, revisao);
   const evento: StateEvent = { stateType: StateType.ElementoRemovido, elementos: revisoesAssociadas.map(r => r.elementoAntesRevisao as Elemento) };
   const eventoAux: StateEvent = { stateType: StateType.ElementoIncluido, elementos: [] };
@@ -202,7 +281,8 @@ const rejeitaExclusao = (state: State, revisao: RevisaoElemento): StateEvent[] =
 
     result.push(...tempState.ui!.events!);
   } else {
-    result.push({ stateType: StateType.ElementoIncluido, elementos: incluir(state, evento, eventoAux) });
+    // Sem a referência a interface não acha onde desenhar a linha quando o elemento não traz o anterior na leitura (ex.: revisão nascida como modificação).
+    result.push({ stateType: StateType.ElementoIncluido, elementos: incluir(state, evento, eventoAux), referencia: eventoAux.referencia });
   }
 
   atualizaReferenciaElementoAnteriorEmRevisoesDeExclusaoAposRejeicao(state, revisao, result[0].elementos![0]);

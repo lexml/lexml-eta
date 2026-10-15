@@ -5,6 +5,7 @@ import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJs
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
 import { getAno, getNumero, getSigla } from './urnUtil';
 import { Autoria, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
+import { Usuario } from '../../revisao/usuario';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -26,6 +27,24 @@ export interface MetadadoLexEdit {
   // Ids separados por espaço: xsd:string em lexedit.xsd; o conversor rejeita array.
   remissoesInternasInvalidas?: { TYPE_NAME: string; refIdsRemissoesInternas: string };
   pendencias?: { TYPE_NAME: string; pendencia: string[] };
+  revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
+  usuarios?: RevisoesLexEdit['usuarios'];
+}
+
+/** `lexedit:RevisaoArticulacao`: o conteúdo filho é uma única propriedade do choice do XSD (o dispositivo anterior ou excluído, ex.: `artigo`; ou `p`, só na leitura). */
+export interface RevisaoArticulacaoLexEdit {
+  TYPE_NAME: string;
+  refIdDispositivo?: string;
+  revisao: string;
+  refIdUsuario: string;
+  data: string;
+  [conteudo: string]: unknown;
+}
+
+/** Grupos `RevisoesArticulacao` e `Usuarios` já no formato do conversor (especificações 11 e 12). */
+export interface RevisoesLexEdit {
+  revisoesArticulacao: { TYPE_NAME: string; revisaoArticulacao: RevisaoArticulacaoLexEdit[] };
+  usuarios: { TYPE_NAME: string; usuario: Array<{ TYPE_NAME: string; idUsuario: string; nome: string; sigla?: string }> };
 }
 
 /** Formato provisório gravado antes do conversor 2.0.0 (chave `lexedit`); só lido, nunca gravado. */
@@ -44,6 +63,24 @@ export interface DadosLexEdit {
   data?: string;
   opcoesImpressao?: OpcoesImpressao;
   autoria?: Autoria;
+  revisoes?: RevisoesLexEdit;
+  // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
+  revisoesLidas?: RevisaoArticulacaoLida[];
+}
+
+/** `lexedit:RevisaoArticulacao` lida do arquivo, já sem as operações desconhecidas. */
+export interface RevisaoArticulacaoLida {
+  refIdDispositivo?: string;
+  operacoes: Array<{ nome: string; argumento?: string }>;
+  usuario: Usuario;
+  // Formato interno (`AAAA-MM-DD HH:mm:ss`, horário local).
+  dataHora: string;
+  // HTML do texto anterior, quando a revisão traz o conteúdo anterior.
+  textoAnterior?: string;
+  // Título anterior: ausente = o arquivo não informa (`p` solto); null = o dispositivo não tinha título.
+  tituloAnterior?: string | null;
+  // Dispositivo excluído (nó jsonix `{ name, value }`), quando a revisão é de exclusão.
+  excluido?: { name: { namespaceURI: string; localPart: string }; value: any };
 }
 
 export interface ElementoMetadadoLexEdit {

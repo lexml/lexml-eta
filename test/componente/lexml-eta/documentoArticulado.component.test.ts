@@ -6,6 +6,12 @@ import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { criarDocumentoArticulado, lerDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { Autoria, Parlamentar } from '../../../src/model/proposicao/proposicao';
+import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
+import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualizarTextoElementoAction';
+import { RENUMERAR_ELEMENTO } from '../../../src/model/lexml/acao/renumerarElementoAction';
+import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
+import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import {
   lexeditSalvo,
   metadadoProprietarioLexEdit,
@@ -379,6 +385,135 @@ describe('ETA — salvar e abrir documento articulado', () => {
         opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...OPCOES },
         remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idRemissao },
         pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: ['Corrigir remissões internas inválidas.'] },
+      });
+    });
+  });
+
+  describe('revisões da hierarquia — salvar', () => {
+    const emRevisao = (): boolean => !!rootStore.getState().elementoReducer.emRevisao;
+
+    const alteraPrimeiroArtigoEmRevisao = (): void => {
+      rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+      const elemento = createElemento(rootStore.getState().elementoReducer.articulacao.filhos[0]);
+      elemento.conteudo!.texto = 'Texto revisado.';
+      rootStore.dispatch({ type: ATUALIZAR_TEXTO_ELEMENTO, atual: elemento });
+    };
+
+    afterEach(() => {
+      if (emRevisao()) rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+    });
+
+    it('exporta as revisões, os usuários e a pendência', () => {
+      alteraPrimeiroArtigoEmRevisao();
+
+      const lexedit = lexeditSalvo(component.getDocumentoArticulado());
+
+      expect(lexedit.revisoesArticulacao.revisaoArticulacao).to.have.length(1);
+      expect(lexedit.revisoesArticulacao.revisaoArticulacao[0]).to.include({ revisao: 'alterado', refIdDispositivo: 'art1' });
+      expect(lexedit.usuarios.usuario).to.have.length(1);
+      expect(lexedit.pendencias.pendencia).to.include('Resolver marcas de revisão na articulação.');
+    });
+
+    it('sem revisão não exporta o grupo, os usuários nem a pendência', () => {
+      const lexedit = lexeditSalvo(component.getDocumentoArticulado());
+
+      expect(lexedit).to.not.have.property('revisoesArticulacao');
+      expect(lexedit).to.not.have.property('usuarios');
+      expect(lexedit).to.not.have.property('pendencias');
+    });
+  });
+
+  describe('revisões da hierarquia — abrir', () => {
+    const estado = (): any => rootStore.getState().elementoReducer;
+    const principais = (): any[] => (estado().revisoes ?? []).filter((r: any) => !r.idRevisaoElementoPrincipal);
+
+    afterEach(() => {
+      if (estado().emRevisao) rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+    });
+
+    const salvaComRevisao = (): any => {
+      rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+      const elemento = createElemento(estado().articulacao.filhos[0]);
+      elemento.conteudo!.texto = 'Texto revisado.';
+      rootStore.dispatch({ type: ATUALIZAR_TEXTO_ELEMENTO, atual: elemento });
+      return component.getDocumentoArticulado();
+    };
+
+    it('reaplica as revisões do arquivo e entra em modo de revisão', async () => {
+      const salvo = salvaComRevisao();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(estado().emRevisao).to.equal(true);
+      expect(principais()).to.have.length(1);
+      expect(principais()[0]).to.include({ revisao: 'alterado' });
+    });
+
+    it('desenha na tela a marca da revisão reaplicada, sem depender de novo evento do dispositivo', async () => {
+      const salvo = salvaComRevisao();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(component.querySelectorAll('.container__revisao')).to.have.length(1);
+    });
+
+    it('salvar e reabrir preserva as revisões, os usuários e a pendência', async () => {
+      const salvo = salvaComRevisao();
+      const grupo = lexeditSalvo(salvo);
+
+      await component.abrirDocumentoArticulado(salvo);
+      const novo = lexeditSalvo(component.getDocumentoArticulado());
+
+      expect(novo.revisoesArticulacao).to.deep.equal(grupo.revisoesArticulacao);
+      expect(novo.usuarios).to.deep.equal(grupo.usuarios);
+      expect(novo.pendencias).to.deep.equal(grupo.pendencias);
+    });
+
+    it('abrir outro documento sem revisões não herda as marcas nem o modo de revisão', async () => {
+      await component.abrirDocumentoArticulado(salvaComRevisao());
+
+      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+      expect(principais()).to.have.length(0);
+      expect(estado().emRevisao).to.equal(false);
+    });
+
+    it('arquivo sem revisões abre sem modo de revisão', () => {
+      expect(estado().emRevisao).to.equal(false);
+      expect(principais()).to.have.length(0);
+    });
+
+    describe('renumeração em alteração de norma (alteracaoRotulo)', () => {
+      const PAR = 'art1_cpt_alt1_art4_par4';
+
+      const salvaComRenumeracao = async (): Promise<any> => {
+        await component.abrirDocumentoArticulado(JSON.parse(JSON.stringify(MPV_1234_2024)));
+        rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+        rootStore.dispatch({ type: RENUMERAR_ELEMENTO, atual: createElemento(buscaDispositivoById(estado().articulacao, PAR)!), novo: { numero: '9' } });
+        return component.getDocumentoArticulado();
+      };
+
+      it('salva a operação com o id original e a reabre com a marca na tela', async () => {
+        const salvo = await salvaComRenumeracao();
+        expect(lexeditSalvo(salvo).revisoesArticulacao.revisaoArticulacao[0]).to.include({ revisao: `alteracaoRotulo;${PAR}`, refIdDispositivo: 'art1_cpt_alt1_art4_par9' });
+
+        await component.abrirDocumentoArticulado(salvo);
+
+        expect(principais()).to.have.length(1);
+        expect(principais()[0]).to.include({ revisao: `alteracaoRotulo;${PAR}` });
+        expect(component.querySelectorAll('.container__revisao')).to.have.length(1);
+      });
+
+      it('criar, serializar, ler, reaplicar e serializar de novo mantém revisões, usuários e pendências', async () => {
+        const salvo = await salvaComRenumeracao();
+        const grupo = lexeditSalvo(salvo);
+
+        await component.abrirDocumentoArticulado(salvo);
+        const novo = lexeditSalvo(component.getDocumentoArticulado());
+
+        expect(novo.revisoesArticulacao).to.deep.equal(grupo.revisoesArticulacao);
+        expect(novo.usuarios).to.deep.equal(grupo.usuarios);
+        expect(novo.pendencias).to.deep.equal(grupo.pendencias);
       });
     });
   });

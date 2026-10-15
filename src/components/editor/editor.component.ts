@@ -3,7 +3,7 @@ import {
   getQuantidadeRevisoes,
   isRevisaoDeTransformacao,
   isRevisaoDeExclusao,
-  isRevisaoDeModificacao,
+  isRevisaoComTextoAlterado,
   setCheckedElement,
 } from '../../redux/elemento/util/revisaoUtil';
 import { uploadAnexoDialog } from '../editor-texto-rico/uploadAnexoDialog';
@@ -909,13 +909,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           setTimeout(() => this.marcarLinha(event), 0);
           break;
 
-        case StateType.SituacaoElementoModificada:
-          this.atualizarQuill(event);
-          this.atualizarSituacao(event);
-          this.atualizarAtributos(event);
-          this.atualizarMensagemQuill(event);
-          this.atualizarOmissis(event);
+        case StateType.SituacaoElementoModificada: {
+          const eventoSemLinhasARecriar = this.semLinhasARecriar(event, uuidsIncluidosNoLote);
+          this.atualizarQuill(eventoSemLinhasARecriar);
+          this.atualizarSituacao(eventoSemLinhasARecriar);
+          this.atualizarAtributos(eventoSemLinhasARecriar);
+          this.atualizarMensagemQuill(eventoSemLinhasARecriar);
+          this.atualizarOmissis(eventoSemLinhasARecriar);
           break;
+        }
 
         case StateType.RevisaoAtivada:
           this.checkedSwitchMarcaAlteracao();
@@ -941,6 +943,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
 
     this.processarPosLoopEventos(events);
+  }
+
+  // Atualizar antes da inclusão uma linha de outro tipo que será recriada a retipa, e a inclusão passa a só atualizá-la sem reposicioná-la.
+  private semLinhasARecriar(event: StateEvent, uuidsIncluidosNoLote: Set<number | undefined>): StateEvent {
+    const elementos = event.elementos?.filter(e => !(uuidsIncluidosNoLote.has(e.uuid) && this.quill.getLinha(e.uuid ?? 0) && this.quill.getLinha(e.uuid ?? 0)!.tipo !== e.tipo));
+    return { ...event, elementos };
   }
 
   private handleRemissaoEvent(event: StateEvent): void {
@@ -1673,27 +1681,40 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.timerOnChange = null;
   }
 
+  private carregamentoDasLinhas: Promise<void> = Promise.resolve();
+
+  /** Resolve quando as linhas da articulação carregada mais recentemente já existem no Quill. */
+  aguardarCarregamentoDasLinhas(): Promise<void> {
+    return this.carregamentoDasLinhas;
+  }
+
   private carregarArticulacao(elementos: Elemento[], isMudancaDePagina: boolean, paginacao?: Paginacao): void {
     let primeiraLinhaDaPagina: EtaContainerTable | undefined;
+    let concluirCarregamento!: () => void;
+    this.carregamentoDasLinhas = new Promise<void>(resolve => (concluirCarregamento = resolve));
     setTimeout(() => {
-      if (!this.quill) return;
-      this.quill.getLine(0)[0].remove();
-      // Set em vez do array de ids: a busca acontece uma vez por elemento do documento inteiro.
-      const idsDaPagina = new Set(paginacao?.paginaSelecionada?.ids);
-      const carregarTodos = !paginacao?.paginaSelecionada || paginacao.paginasArticulacao?.length === 1;
-      elementos.forEach((elemento: Elemento) => {
-        if ((elemento.tipo === 'Articulacao' && !elemento.lexmlId) || carregarTodos || idsDaPagina.has(elemento.lexmlId!)) {
-          const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
-          etaContainerTable.insertInto(this.quill.scroll);
-          etaContainerTable.setEstilo(elemento);
+      if (!this.quill) return concluirCarregamento();
+      try {
+        this.quill.getLine(0)[0].remove();
+        // Set em vez do array de ids: a busca acontece uma vez por elemento do documento inteiro.
+        const idsDaPagina = new Set(paginacao?.paginaSelecionada?.ids);
+        const carregarTodos = !paginacao?.paginaSelecionada || paginacao.paginasArticulacao?.length === 1;
+        elementos.forEach((elemento: Elemento) => {
+          if ((elemento.tipo === 'Articulacao' && !elemento.lexmlId) || carregarTodos || idsDaPagina.has(elemento.lexmlId!)) {
+            const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
+            etaContainerTable.insertInto(this.quill.scroll);
+            etaContainerTable.setEstilo(elemento);
 
-          elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
+            elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
 
-          if (!primeiraLinhaDaPagina && elemento.lexmlId) {
-            primeiraLinhaDaPagina = etaContainerTable;
+            if (!primeiraLinhaDaPagina && elemento.lexmlId) {
+              primeiraLinhaDaPagina = etaContainerTable;
+            }
           }
-        }
-      });
+        });
+      } finally {
+        concluirCarregamento();
+      }
       !isMudancaDePagina && this.quill.limparHistory();
       if (elementos.length > 1) {
         setTimeout(() => {
@@ -1964,7 +1985,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       .forEach(e => mapElementos.set(e.uuid!, e));
 
     const elementos: Elemento[] = [...mapElementos.values()];
-    const uuidsElementosComModificacao = elementos.filter(e => e.revisao && isRevisaoDeModificacao(e.revisao)).map(e => e.uuid!);
+    const uuidsElementosComModificacao = elementos.filter(e => e.revisao && isRevisaoComTextoAlterado(e.revisao)).map(e => e.uuid!);
     const uuidsElementosSemModificacao = elementos.filter(e => !uuidsElementosComModificacao.includes(e.uuid!)).map(e => e.uuid!);
 
     uuidsElementosSemModificacao.forEach(uuid => {
