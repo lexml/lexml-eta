@@ -5,16 +5,20 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
+import { escapeRegex } from '../../../util/string-util';
+
+const REGEX_REMISSAO_EXTERNA = /<a\b[^>]*\bdata-urn="/i;
 
 export const atualizaReferenciaElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
 
   const urnNova = action.atual.norma;
   const urnAnterior = dispositivo?.alteracoes!.base || '';
-  const regex = new RegExp(`<a.+href=.${urnAnterior}.*?>.*?</a>`, 'ig');
+  // Só casa o link comum da norma anterior; sem norma anterior não há link a trocar (antes casava qualquer <a>, inclusive remissões).
+  const regex = urnAnterior ? new RegExp(`<a(?![^>]*lexml-remissao)[^>]*href=.${escapeRegex(urnAnterior)}[^>]*>.*?</a>`, 'ig') : undefined;
   const normaExtenso = getNomeExtensoComDataExtenso(urnNova);
 
-  if (dispositivo === undefined || !dispositivo.alteracoes || (urnAnterior === urnNova && dispositivo.texto.match(regex))) {
+  if (dispositivo === undefined || !dispositivo.alteracoes || (urnAnterior === urnNova && regex && dispositivo.texto.match(regex))) {
     state.ui.events = [];
     return state;
   }
@@ -22,7 +26,9 @@ export const atualizaReferenciaElemento = (state: any, action: any): State => {
   const normaLink = buildHtmlLink(urnNova);
   const textoDispositivo = dispositivo.texto;
 
-  if (dispositivo.texto.match(regex)) {
+  if (REGEX_REMISSAO_EXTERNA.test(textoDispositivo)) {
+    // Texto já cita a norma como remissão externa: só o base muda, o link é preservado.
+  } else if (regex && dispositivo.texto.match(regex)) {
     dispositivo.texto = textoDispositivo.replace(regex, normaLink);
   } else if (dispositivo.texto.includes(normaExtenso)) {
     dispositivo.texto = textoDispositivo.replace(normaExtenso, normaLink);
