@@ -18,8 +18,8 @@
 
 ## 4. Documentação e verificação final
 
-- [ ] 4.1 Registrar no `CLAUDE.md`, no item do título de dispositivo (item 14), que o popup de diferenças exibe o título nos três cards e que a aba de revisão depende de `comRevisao`. Verificar relendo o texto contra os cenários do delta de spec.
-- [ ] 4.2 Rodar `openspec validate 2026-10-14-c03-titulo-no-popup-de-diferencas`, `npx tsc`, o lint dos arquivos alterados, `npm test` (comparando a contagem com a de antes da change, sem testes removidos ou ignorados) e os specs Cypress de `titulo-dispositivo/` e `revisao/`. Verificar que tudo passa; as falhas já conhecidas de `remissao-interna` (CT-F-11, CT-G-02, 05, 06, 08) não fazem parte desta verificação.
+- [x] 4.1 Registrar no `CLAUDE.md`, no item do título de dispositivo (item 14), que o popup de diferenças exibe o título nos três cards e que a aba de revisão depende de `comRevisao`. Verificar relendo o texto contra os cenários do delta de spec.
+- [x] 4.2 Rodar `openspec validate 2026-10-14-c03-titulo-no-popup-de-diferencas`, `npx tsc`, o lint dos arquivos alterados, `npm test` (comparando a contagem com a de antes da change, sem testes removidos ou ignorados) e os specs Cypress de `titulo-dispositivo/` e `revisao/`. Verificar que tudo passa; as falhas já conhecidas de `remissao-interna` (CT-F-11, CT-G-02, 05, 06, 08) não fazem parte desta verificação.
 
 ## Workflow follow-up
 
