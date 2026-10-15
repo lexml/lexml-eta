@@ -1455,12 +1455,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   exibirDiferencas(elemento: Elemento): void {
     const diff: TextoDiff = new TextoDiff();
     diff.textoAtual = elemento.conteudo!.texto!;
+    diff.tituloAtual = elemento.tituloDispositivo;
     diff.quill = this.quill;
 
     const revisao = elemento.revisao as RevisaoElemento;
 
     if (revisao) {
+      diff.comRevisao = true;
       diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
+      diff.tituloAntesRevisao = revisao.elementoAntesRevisao!.tituloDispositivo;
       diff.textoOriginal = diff.textoAntesRevisao;
       // Em proposição todo dispositivo nasce novo: não há texto de norma vigente para a aba "Texto original".
       diff.adicionado = true;
