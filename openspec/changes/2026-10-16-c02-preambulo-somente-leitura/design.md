@@ -45,8 +45,8 @@ Alternativas descartadas: indexar por sigla (depende de `getSigla` e deixaria o 
 Os dois fluxos passam por `buildProjetoNormaFromJsonix`, então a regra "vazio mais tipo conhecido implica padrão" fica em um único lugar. Consequência aceita: um arquivo antigo com preâmbulo vazio ganha o padrão no próximo salvamento.
 Normas não precisam de regra própria: o padrão depende do tipo, e tipos como `lei` ou `decreto.lei` não aparecem no mapa.
 
-### D6. Vários parágrafos preservados no texto, exibidos sem tratamento especial
-Para manter a especificação existente (`abrir-documento-articulado` e `salvar-documento-articulado`), o `texto` do dispositivo continua guardando o HTML com `<p>..</p><p>..</p>` e `montaParagrafosPreambulo` o devolve como vários parágrafos. Não há esforço para renderizar vários parágrafos em linhas separadas: o caso é tratado como erro de dado e a linha do Quill mostra o que o Quill conseguir. Como o dispositivo é bloqueado, esse texto nunca é reescrito a partir do Quill.
+### D6. Vários parágrafos preservados no dispositivo e exibidos em uma única linha
+Para manter a especificação existente (`abrir-documento-articulado` e `salvar-documento-articulado`), o `texto` do dispositivo continua guardando o HTML com `<p>..</p><p>..</p>` e `montaParagrafosPreambulo` o devolve como vários parágrafos. O Quill não aceita bloco dentro da linha (`Cannot insert block into EtaBlotConteudo`, comprovado pelo teste do componente com dois parágrafos), então só o `Elemento` do preâmbulo, criado em `createElemento`, recebe o texto com os `<p>` removidos e os parágrafos separados por espaço. Como o dispositivo é bloqueado, o texto exibido nunca é reescrito no dispositivo.
 
 ### D7. Função única para a "última linha da parte inicial"
 Uma função em `hierarquiaUtil.ts` (nome sugerido `getUltimoDispositivoDaParteInicial`) devolve o preâmbulo quando existe e, senão, a ementa. `ajustaReferencia`, `elementoUtil` (referência anterior e `getElementos`), `agrupaElemento`, `removeElemento`, `undoRedoReducerUtil`, `paginacaoUtil` e `navegaEntreDispositivosAlterados` passam a usá-la onde hoje leem `projetoNorma.ementa` como referência de posição. `getElementos` e `paginacaoUtil` incluem também o preâmbulo na lista, logo depois da ementa. O cursor inicial continua na ementa.
@@ -65,7 +65,7 @@ Alternativa descartada: ajustar cada ponto com seu próprio `if (preambulo)`, o 
 - [URN com autoridade inesperada em `projeto.resolucao` fica sem padrão] → aceito: preâmbulo vazio é válido; testar o caso.
 - [Testes existentes que contam elementos de documentos com tipo conhecido passam a ter uma linha a mais] → D3 limita o efeito a documentos com texto ou padrão; atualizar os testes afetados.
 - [Arquivos antigos mudam ao serem salvos de novo por ganharem o padrão] → comportamento aceito (D5), registrado nas specs.
-- [Multi-parágrafo exibido de forma imperfeita no Quill] → aceito (D6).
+- [Multi-parágrafo exibido de forma imperfeita no Quill] → aceito (D6): os parágrafos aparecem juntos em uma linha, mas são preservados ao salvar.
 
 ## Open Questions
 

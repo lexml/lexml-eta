@@ -19,7 +19,13 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
-import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteracao, hasEmenta } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getDispositivoCabecaAlteracao,
+  isDispositivoAlteracao,
+  isUltimaAlteracao,
+  hasEmenta,
+  getUltimoDispositivoDaParteInicial,
+} from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import {
   associarRevisoesAosElementos,
   existeRevisaoCriadaPorExclusao,
@@ -154,7 +160,7 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
       let referencia = posicao === 0 ? (isArticulacao(pai!) && isArticulacaoAlteracao(pai as Articulacao) ? pai!.pai! : pai) : getUltimoFilho(getDispositivoAnterior(novos[0])!);
 
       if (referencia) {
-        referencia = isArticulacao(referencia) && hasEmenta(referencia) ? (referencia as Articulacao).projetoNorma!.ementa! : referencia;
+        referencia = isArticulacao(referencia) && hasEmenta(referencia) ? getUltimoDispositivoDaParteInicial(referencia)! : referencia;
         const dispositivo = getDispositivoFromElemento(state.articulacao!, referencia);
         dispositivo ? (novosEvento.referencia = createElemento(dispositivo!)) : retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Erro inesperado' });
       }

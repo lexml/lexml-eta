@@ -15,10 +15,10 @@
 
 ## 3. Estado e reducers
 
-- [ ] 3.1 Criar `hasPreambulo` e `getUltimoDispositivoDaParteInicial` em `hierarquiaUtil.ts`, resolver o id `'preambulo'` em `buscaDispositivoById` e incluir o preâmbulo em `getElementos`, logo depois da ementa; verificar com teste unitário da ordem dos elementos
-- [ ] 3.2 Substituir a ementa por `getUltimoDispositivoDaParteInicial` onde ela é referência de posição (`ajustaReferencia`, `elementoUtil`, `agrupaElemento`, `removeElemento`, `undoRedoReducerUtil`, `paginacaoUtil`, `navegaEntreDispositivosAlterados`); verificar com testes de reducer: adicionar artigo e agrupador a partir da ementa, remover o primeiro agrupador, desfazer e refazer, em documentos com e sem preâmbulo
-- [ ] 3.3 Impedir avisos de validação do preâmbulo em `conteudoValidator`, excluí-lo dos diálogos de remissão e de `inicializaRemissoesExternasAoAbrir`; verificar com testes unitários
-- [ ] 3.4 Executar `npm test` e corrigir os testes que contavam elementos de documentos que agora têm preâmbulo, verificando que a suíte passa
+- [x] 3.1 Criar `hasPreambulo` e `getUltimoDispositivoDaParteInicial` em `hierarquiaUtil.ts`, resolver o id `'preambulo'` em `buscaDispositivoById` e incluir o preâmbulo em `getElementos`, logo depois da ementa; verificar com teste unitário da ordem dos elementos
+- [x] 3.2 Substituir a ementa por `getUltimoDispositivoDaParteInicial` onde ela é referência de posição (`ajustaReferencia`, `elementoUtil`, `agrupaElemento`, `removeElemento`, `undoRedoReducerUtil`, `paginacaoUtil`, `navegaEntreDispositivosAlterados`); verificar com testes de reducer: adicionar artigo e agrupador a partir da ementa, remover o primeiro agrupador, desfazer e refazer, em documentos com e sem preâmbulo
+- [x] 3.3 Impedir avisos de validação do preâmbulo em `conteudoValidator`, excluí-lo dos diálogos de remissão e de `inicializaRemissoesExternasAoAbrir`; verificar com testes unitários
+- [x] 3.4 Executar `npm test` e corrigir os testes que contavam elementos de documentos que agora têm preâmbulo, verificando que a suíte passa
 
 ## 4. Interface do editor
 
