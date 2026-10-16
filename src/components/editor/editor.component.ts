@@ -46,6 +46,7 @@ import { tabAction } from '../../model/lexml/acao/tabAction';
 import { UndoAction } from '../../model/lexml/acao/undoAction';
 import { validarArticulacaAction } from '../../model/lexml/acao/validarArticulacaoAction';
 import { validarElementoAction } from '../../model/lexml/acao/validarElementoAction';
+import { avaliarNormaAlteradaDivergente, reunirUrnsCitadas } from '../../model/lexml/conteudo/normaAlteradaDivergente';
 import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
@@ -1190,15 +1191,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.children.tail.remove();
         }
 
-        if (elemento.mensagens && elemento.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
+        const elementoComAvisos = this.comAvisoNormaAlterada(elemento);
+        if (elementoComAvisos.mensagens && elementoComAvisos.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
           const avisoJaExiste = document.getElementById('onmodalsufixos');
 
-          if (this.isMensagemSufixos(elemento)) {
+          if (this.isMensagemSufixos(elementoComAvisos)) {
             if (avisoJaExiste === null) {
-              EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+              EtaQuillUtil.criarContainerMensagens(elementoComAvisos).insertInto(linha);
             }
           } else {
-            EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+            EtaQuillUtil.criarContainerMensagens(elementoComAvisos).insertInto(linha);
           }
         }
       }
@@ -1272,19 +1274,35 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.children.tail.remove();
         }
 
-        if (elemento.mensagens && elemento.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
+        const elementoComAvisos = this.comAvisoNormaAlterada(elemento);
+        if (elementoComAvisos.mensagens && elementoComAvisos.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
           const avisoJaExiste = document.getElementById('onmodalsufixos');
 
-          if (this.isMensagemSufixos(elemento)) {
+          if (this.isMensagemSufixos(elementoComAvisos)) {
             if (avisoJaExiste === null) {
-              EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+              EtaQuillUtil.criarContainerMensagens(elementoComAvisos).insertInto(linha);
             }
           } else {
-            EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+            EtaQuillUtil.criarContainerMensagens(elementoComAvisos).insertInto(linha);
           }
         }
       }
     });
+  }
+
+  // Aviso só da tela (ver design D2): trabalha sobre cópia, pois o elemento do evento faz parte do estado e do histórico.
+  private comAvisoNormaAlterada(elemento: Elemento): Elemento {
+    if (!elemento.norma || elemento.uuid === undefined) return elemento;
+
+    const dom = this.quill.getLinha(elemento.uuid)?.blotConteudo?.domNode as HTMLElement | undefined;
+    if (!dom) return elemento;
+
+    const links = Array.from(dom.querySelectorAll<HTMLElement>('a.lexml-remissao-externa[data-urn]')).map(a => ({ refId: a.dataset.refId, urn: a.dataset.urn! }));
+    const registro = Object.values<RemissaoExternaValue>(rootStore.getState().elementoReducer.remissoesExternas ?? {}).filter(r => r.sourceUuid === elemento.uuid);
+    const aviso = avaliarNormaAlteradaDivergente(elemento.norma, reunirUrnsCitadas(links, registro, dom.textContent ?? ''));
+
+    // O uuid evita depender da linha onde está o cursor quando o usuário clica em "Corrigir agora".
+    return aviso ? ({ ...elemento, mensagens: [...(elemento.mensagens ?? []), { ...aviso, detalhe: { ...aviso.detalhe, uuid: elemento.uuid } }] } as Elemento) : elemento;
   }
 
   private isMensagemSufixos(elemento: Elemento): boolean | undefined {
@@ -1625,6 +1643,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const remissoesExternas = rootStore.getState().elementoReducer.remissoesExternas ?? {};
     remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
+
+    // O desenho do link não gera evento; revalida para o aviso de norma divergente usar o link já no DOM.
+    const artigo = findDispositivoByUuid(rootStore.getState().elementoReducer.articulacao, sourceUuid, true);
+    artigo?.alteracoes?.base && rootStore.dispatch(validarElementoAction.execute(createElemento(artigo, true)));
   }
 
   // Rede de segurança determinística (docs/PLANO_DETECCAO_BLUR.md §2.4/§4.4), chamada por getProjetoAtualizado() para garantir sincronismo mesmo sem sair da linha antes de salvar.
