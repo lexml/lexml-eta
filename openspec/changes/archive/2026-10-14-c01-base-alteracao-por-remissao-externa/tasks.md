@@ -41,5 +41,5 @@ Reaberto após a validação em tela: o aviso baseado no texto do estado não ap
 
 ## 7. Fechamento
 
-- [ ] 7.1 Executar a suíte completa (`npm test`) e `npm run lint`, e os specs E2E novos; registrar o resultado
+- [x] 7.1 Executar a suíte completa (`npm test`) e `npm run lint`, e os specs E2E novos; registrar o resultado
 - [ ] 7.2 Atualizar `openspec/specs/bloco-alteracao-norma/spec.md` via arquivamento da change e conferir `openspec validate --strict`
