@@ -104,6 +104,15 @@ describe('adicionaRemissaoExterna (preenchimento do base pela remissão única)'
     expect(artigo.alteracoes!.base).to.equal(URN_LEI_14133);
   });
 
+  it('conta a remissão anterior ainda sem link no texto (textoRef presente), p.ex. após desfazer o base', () => {
+    criaEstado('A Lei nº 14.133 e a Lei nº 8.666, passam a vigorar:');
+    state.remissoesExternas = { r1: { refId: 'r1', targetUrn: URN_LEI_14133, targetNomeNorma: '', textoRef: 'Lei nº 14.133', sourceUuid: artigo.uuid } };
+
+    adiciona('r2', URN_LEI_8666);
+
+    expect(artigo.alteracoes!.base ?? '').to.equal('');
+  });
+
   it('ignora remissões de outros artigos', () => {
     criaEstado('A Lei, passa a vigorar com as seguintes alterações:');
     state.remissoesExternas = { outra: { refId: 'outra', targetUrn: URN_LEI_8666, targetNomeNorma: '', sourceUuid: artigo.uuid! + 1000 } };
