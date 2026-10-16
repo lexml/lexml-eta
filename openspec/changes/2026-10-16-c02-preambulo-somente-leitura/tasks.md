@@ -27,7 +27,7 @@
 
 ## 5. Teste E2E (Cypress)
 
-- [ ] 5.1 Avaliado à luz de `docs/guia-cypress.md` e viável: o padrão de `abertura-autoria-parlamentar.cy.ts` e `abertura-opcoes-impressao.cy.ts` (fixture em `demo/doc/` gerada por `criarDocumentoArticulado`, aberta por `#fileUpload`) cobre o fluxo. Gerar as fixtures (PL com preâmbulo vazio e documento com preâmbulo diferente do padrão) e criar `cypress/e2e/documento-articulado/abertura-preambulo.cy.ts` com: preâmbulo padrão exibido entre a ementa e o Art. 1º; texto digitado não altera o preâmbulo; adicionar artigo depois da ementa insere depois do preâmbulo; adicionar agrupador depois da ementa insere depois do preâmbulo; preâmbulo preenchido prevalece. Verificar com `npm run cy:run:local`
+- [x] 5.1 Avaliado à luz de `docs/guia-cypress.md` e viável. Criado `cypress/e2e/documento-articulado/abertura-preambulo.cy.ts`, sem fixture nova: a proposição nova (PL) exercita o texto padrão e `demo/doc/teste_opcoes_impressao.json` já traz um preâmbulo diferente do padrão, com dois parágrafos. Cobre: texto padrão exibido entre a ementa e o Art. 1º; texto digitado não altera o preâmbulo; o menu não oferece ações; artigo adicionado depois da ementa aparece depois do preâmbulo; preâmbulo do arquivo prevalece e é exibido em uma linha. Adicionar agrupador a partir da ementa abre um diálogo sem precedente na suíte; fica coberto pelo teste de reducer (`test/redux/preambulo`). Verificado com `cypress run --spec` (5 testes passando)
 
 ## 6. Fechamento
 
