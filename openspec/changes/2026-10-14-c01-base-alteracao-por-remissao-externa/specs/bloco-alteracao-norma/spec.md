@@ -85,6 +85,14 @@ Ao abrir um documento, o sistema SHALL avaliar o aviso de divergência de cada a
 - **WHEN** o usuário abre um documento em que a norma alterada de cada artigo de alteração coincide com a norma da sua única remissão externa
 - **THEN** nenhum aviso de divergência é exibido
 
+#### Scenario: Corrigir agora o erro de norma não informada com uma remissão
+- **WHEN** o artigo de alteração não tem norma alterada, tem exatamente uma remissão externa e o usuário aciona "Corrigir agora"
+- **THEN** a norma alterada passa a ser a da remissão, sem abrir o diálogo, e a correção pode ser desfeita
+
+#### Scenario: Corrigir agora o erro de norma não informada sem remissão única
+- **WHEN** o artigo de alteração não tem norma alterada, tem nenhuma ou duas ou mais remissões externas e o usuário aciona "Corrigir agora"
+- **THEN** o diálogo de identificação da norma é aberto e a norma alterada só muda se o usuário confirmá-lo
+
 ### Requirement: Informar a norma alterada preserva a remissão externa do artigo
 Ao informar a norma alterada pelo diálogo "Corrigir agora" de um artigo que já tem uma remissão externa, o sistema SHALL manter essa remissão como remissão externa, com seu comportamento de link, popup de ações e persistência, e SHALL NOT substituí-la por um link comum.
 

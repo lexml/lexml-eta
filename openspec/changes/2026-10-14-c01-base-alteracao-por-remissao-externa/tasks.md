@@ -27,8 +27,9 @@ Reaberto após a validação em tela: o aviso baseado no texto do estado não ap
 
 ## 5. Abertura do documento
 
-- [ ] 5.1 Aplicar o aviso na abertura no mesmo ponto em que `ativarRemissoesInternas` trata a remissão inválida (o DOM só existe depois do carregamento) e verificar que o `base` nunca é alterado
-- [ ] 5.2 Teste unitário de abertura: documento divergente mostra o aviso e preserva o `base`; documento sem `base` e com uma remissão mantém o alerta de norma não informada; documentos coerentes (fixtures de `test/assets` com alterações) abrem sem nenhum aviso de divergência
+- [x] 5.1 Aplicar o aviso na abertura no mesmo ponto em que `ativarRemissoesInternas` trata a remissão inválida (o DOM só existe depois do carregamento) e verificar que o `base` nunca é alterado
+- [x] 5.2 Teste unitário de abertura: documento divergente mostra o aviso e preserva o `base`; documento sem `base` e com uma remissão mantém o alerta de norma não informada; documentos coerentes (fixtures de `test/assets` com alterações) abrem sem nenhum aviso de divergência
+- [x] 5.3 "Corrigir agora" do erro "informar a norma" preenche o `base` pela remissão externa única do artigo, sem abrir o diálogo; com 0 ou 2+ remissões abre o diálogo (helper `remissoesDoArtigo` compartilhado com o preenchimento automático; testes em `autoFixNormaDivergente.test.ts`)
 
 ## 6. Testes E2E (Cypress)
 
