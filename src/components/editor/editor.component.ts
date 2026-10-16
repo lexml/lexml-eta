@@ -2136,6 +2136,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (!remissoesExternas || Object.keys(remissoesExternas).length === 0) return;
     const remissaoModule = this.quill?.getModule('remissaoInterna');
     remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
+    this.avisarNormaAlteradaAoAbrir(remissoesExternas);
+  }
+
+  // Só mostra o aviso (os eventos de load() chegam antes do DOM); nunca altera o base nem o estado.
+  private avisarNormaAlteradaAoAbrir(remissoesExternas: Record<string, RemissaoExternaValue>): void {
+    const articulacao = rootStore.getState().elementoReducer.articulacao;
+    const uuids = new Set(Object.values(remissoesExternas).map(r => r.sourceUuid));
+    uuids.forEach(uuid => {
+      if (uuid === undefined) return;
+      const artigo = findDispositivoByUuid(articulacao, uuid, true);
+      if (!artigo?.alteracoes?.base) return;
+      this.atualizarMensagemQuill({ stateType: StateType.ElementoValidado, elementos: [createElementoValidadoComExtras(artigo, [])] });
+    });
   }
 
   private ativarRemissoesInternas(): void {
