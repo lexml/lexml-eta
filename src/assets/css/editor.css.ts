@@ -473,6 +473,14 @@ export const editorStyles = html`
       display: none;
     }
 
+    .preambulo {
+      margin-bottom: 30px;
+    }
+
+    .texto__rotulo--preambulo {
+      display: none;
+    }
+
     .mensagem {
       font-family: var(--sl-font-sans);
       font-size: 0.8em;

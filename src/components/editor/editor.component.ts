@@ -111,6 +111,9 @@ import { lexmlLinkerClient } from '../../util/lexml-linker/lexmlLinkerClient';
 import PrivateQuill from '../../internal/quill/private-quill';
 import { QuillOptions, QuillRange, QuillSelectionChangeHandler, QuillSource } from '../../internal/quill/quill-types';
 
+// A busca da linha dessas partes não parte da linha anterior (não pertencem à articulação).
+const ehParteInicial = (elemento: Elemento): boolean => elemento.tipo === 'Ementa' || elemento.tipo === 'Preambulo';
+
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) lexmlEtaConfig: LexmlEtaConfig = new LexmlEtaConfig();
@@ -1112,7 +1115,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, ehParteInicial(elemento) ? undefined : linha);
       if (linha) {
         linha.setEstilo(elemento);
         linha.atualizarElemento(elemento);
@@ -1125,7 +1128,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, ehParteInicial(elemento) ? undefined : linha);
       if (linha) {
         linha.atualizarElemento(elemento);
       }
@@ -1157,7 +1160,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.map((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, ehParteInicial(elemento) ? undefined : linha);
       if (linha) {
         let nivelAlerado = false;
 

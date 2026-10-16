@@ -115,7 +115,7 @@ describe('Redo de remoção invalida de novo as remissões', () => {
       classificacao: ClassificacaoDocumento.NORMA,
       epigrafe: { texto: 'TESTE' },
       ementa: { texto: 'Ementa' } as any,
-      preambulo: { texto: '' },
+      preambulo: { texto: '' } as any,
       articulacao: result.articulacao!,
     };
     const jsonix = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste', registroCompleto);

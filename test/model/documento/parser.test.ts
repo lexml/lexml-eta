@@ -24,7 +24,7 @@ describe('Parser de medida provisória sem alteração e sem agrupador', () => {
     expect(documento?.ementa?.texto).equals('Institui o Contrato de Trabalho Verde e Amarelo, altera a legislação trabalhista, e dá outras providências.');
   });
   it('Deveria apresentar preâmbulo', () => {
-    expect(documento?.preambulo).equals(
+    expect(documento?.preambulo?.texto).equals(
       'O PRESIDENTE DA REPÚBLICA, no uso da atribuição que lhe confere o art. 62 da Constituição, adota a seguinte Medida Provisória, com força de lei:'
     );
   });
@@ -49,7 +49,7 @@ describe('Parser de medida provisória com alteração e sem agrupador', () => {
     );
   });
   it('Deveria apresentar preâmbulo', () => {
-    expect(documento?.preambulo).equals(
+    expect(documento?.preambulo?.texto).equals(
       'O PRESIDENTE DA REPÚBLICA, no uso da atribuição que lhe confere o art. 62 da Constituição, adota a seguinte Medida Provisória, com força de lei:'
     );
   });

@@ -9,6 +9,7 @@ import {
   getDispositivoPosteriorNaSequenciaDeLeitura,
   getUltimoFilho,
   hasEmenta,
+  hasPreambulo,
   isDispositivoAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Elemento } from '../../../model/elemento';
@@ -135,7 +136,7 @@ export const paginarArticulacaoByNumerosArtigos = (articulacao: Articulacao, ran
       // Adiciona pais do primeiro artigo
       dispositivosPagina.unshift(...getPaisDoPrimeiroArtigo(dispositivosPagina[0]));
       if (hasEmenta(articulacao)) {
-        dispositivosPagina.unshift(articulacao.projetoNorma!.ementa!);
+        dispositivosPagina.unshift(articulacao.projetoNorma!.ementa!, ...(hasPreambulo(articulacao) ? [articulacao.projetoNorma!.preambulo!] : []));
       }
     } else {
       // Adicionar dispositivos entre o ultimo artigo anterior e o primeiro artigo da pagina atual

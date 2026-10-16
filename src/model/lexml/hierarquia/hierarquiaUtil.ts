@@ -719,6 +719,10 @@ export const buscaDispositivoById = (articulacao: Articulacao, id: string): Disp
     return articulacao.projetoNorma?.ementa;
   }
 
+  if (id === 'preambulo') {
+    return articulacao.projetoNorma?.preambulo;
+  }
+
   const idArtigo = extraiIdArtigo(id);
   let raiz: Dispositivo = articulacao;
   if (idArtigo) {
@@ -1076,6 +1080,16 @@ export const getParagrafosEOmissis = (art: Artigo): Dispositivo[] => {
 
 export const hasEmenta = (referencia: Dispositivo): boolean => {
   return !!getArticulacao(referencia).projetoNorma?.ementa;
+};
+
+export const hasPreambulo = (referencia: Dispositivo): boolean => {
+  return !!getArticulacao(referencia).projetoNorma?.preambulo;
+};
+
+// Linha que precede a articulação: o preâmbulo, quando existe, senão a ementa.
+export const getUltimoDispositivoDaParteInicial = (referencia: Dispositivo): Dispositivo | undefined => {
+  const projetoNorma = getArticulacao(referencia).projetoNorma;
+  return projetoNorma?.preambulo ?? projetoNorma?.ementa;
 };
 
 export const findDispositivoByUuid2 = (dispositivo: Dispositivo, uuid2: string): Dispositivo | null => {

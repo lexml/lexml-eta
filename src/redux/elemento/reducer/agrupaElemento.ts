@@ -12,6 +12,7 @@ import {
   getTiposAgrupadoresQuePodemSerInseridosDepois,
   getPrimeiroAgrupadorNaArticulacao,
   hasEmenta,
+  getUltimoDispositivoDaParteInicial,
   getPaiQuePodeReceberFilhoDoTipo,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { getElementos } from './../../../model/elemento/elementoUtil';
@@ -160,7 +161,7 @@ export const agrupaElemento = (state: any, action: any): State => {
 
   const eventos = new Eventos();
   if (isArticulacao(ref) && hasEmenta(ref)) {
-    eventos.setReferencia(createElemento(state.articulacao.projetoNorma.ementa));
+    eventos.setReferencia(createElemento(getUltimoDispositivoDaParteInicial(ref)!));
   } else if (isArtigo(atual) && posicaoDoNovoAgrupador === 'depois') {
     eventos.setReferencia(createElemento(getUltimoFilho(ref)));
   } else if (isArtigo(ref) && posicaoDoNovoAgrupador === 'antes') {

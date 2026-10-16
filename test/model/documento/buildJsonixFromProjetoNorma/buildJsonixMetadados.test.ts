@@ -14,7 +14,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei' } as any,
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
           articulacao: createArticulacao(),
         };
         resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -47,7 +47,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei' } as any,
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
           articulacao: createArticulacao(),
         };
         resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -71,7 +71,7 @@ describe('buildJsonixMetadados', () => {
         classificacao: ClassificacaoDocumento.NORMA,
         epigrafe: { texto: 'LEI Nº 12.345' },
         ementa: { texto: 'Ementa da lei' } as any,
-        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+        preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
         articulacao: createArticulacao(),
       };
 
@@ -110,7 +110,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei' } as any,
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
           articulacao: createArticulacao(),
         };
         resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -149,7 +149,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei' } as any,
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
           articulacao: createArticulacao(),
         };
         resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -170,7 +170,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         };
         const resultado = buildJsonixFromProjetoNorma(norma, URN_TESTE);
@@ -184,7 +184,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.PROJETO,
           epigrafe: { texto: 'PROJETO DE LEI' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         };
         const resultado = buildJsonixFromProjetoNorma(projeto, URN_TESTE);
@@ -203,7 +203,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei' } as any,
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
           articulacao: createArticulacao(),
         };
         resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -239,7 +239,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei' } as any,
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
           articulacao: createArticulacao(),
         };
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -272,7 +272,7 @@ describe('buildJsonixMetadados', () => {
           tipo: { urn: 'medida.provisoria' },
           epigrafe: { texto: 'MEDIDA PROVISÓRIA Nº 905' },
           ementa: { texto: 'Ementa da MPV' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(mpv, URN_TESTE);
@@ -288,7 +288,7 @@ describe('buildJsonixMetadados', () => {
           tipo: { urn: 'lei' },
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(lei, URN_TESTE);
@@ -303,7 +303,7 @@ describe('buildJsonixMetadados', () => {
           tipo: { urn: 'projeto.lei' },
           epigrafe: { texto: 'PROJETO DE LEI Nº 1234' },
           ementa: { texto: 'Ementa do PL' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(pl, URN_TESTE);
@@ -325,7 +325,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei' } as any,
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
           articulacao: createArticulacao(),
         };
         resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -342,7 +342,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -355,7 +355,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -368,7 +368,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -382,7 +382,7 @@ describe('buildJsonixMetadados', () => {
         const projetoNorma = {
           classificacao: ClassificacaoDocumento.NORMA,
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -397,7 +397,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: null,
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -413,7 +413,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei' },
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -426,7 +426,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei' },
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -439,7 +439,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa da lei de teste' },
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -453,7 +453,7 @@ describe('buildJsonixMetadados', () => {
         const projetoNorma = {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -468,7 +468,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: null,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -484,7 +484,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' },
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -497,7 +497,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' },
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -510,7 +510,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' },
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -524,7 +524,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' },
-          preambulo: { texto: 'O CONGRESSO NACIONAL decreta e promulga:' },
+          preambulo: { texto: 'O CONGRESSO NACIONAL decreta e promulga:' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -571,7 +571,7 @@ describe('buildJsonixMetadados', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' },
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         } as any;
         const resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);

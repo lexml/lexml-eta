@@ -22,7 +22,7 @@ describe('buildJsonixArvore', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: createArticulacao(),
         };
         resultado = buildJsonixFromProjetoNorma(projetoNorma, URN_TESTE);
@@ -48,7 +48,7 @@ describe('buildJsonixArvore', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: articulacao,
         };
 
@@ -69,7 +69,7 @@ describe('buildJsonixArvore', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: articulacao,
         };
 
@@ -95,7 +95,7 @@ describe('buildJsonixArvore', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: articulacao,
         };
 
@@ -114,7 +114,7 @@ describe('buildJsonixArvore', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: articulacao,
         };
 
@@ -136,7 +136,7 @@ describe('buildJsonixArvore', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: articulacao,
         };
 
@@ -162,7 +162,7 @@ describe('buildJsonixArvore', () => {
           classificacao: ClassificacaoDocumento.NORMA,
           epigrafe: { texto: 'LEI Nº 12.345' },
           ementa: { texto: 'Ementa' } as any,
-          preambulo: { texto: 'Preambulo' },
+          preambulo: { texto: 'Preambulo' } as any,
           articulacao: articulacao,
         };
 
