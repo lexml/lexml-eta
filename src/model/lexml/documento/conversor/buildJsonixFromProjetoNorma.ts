@@ -812,7 +812,7 @@ const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remisso
   // Injeta links de remissão externa que ainda não estão no texto
   if (campo === 'texto' && remissoesExternas && dispositivo.uuid !== undefined) {
     const uuid = dispositivo.uuid;
-    const entriesExt = Object.values(remissoesExternas).filter(e => e.sourceUuid === uuid);
+    const entriesExt = Object.values(remissoesExternas).filter(e => e.sourceUuid === uuid || (dispositivo.tipo === 'Caput' && e.sourceUuid === dispositivo.pai?.uuid));
     if (entriesExt.length) {
       raw = injetarLinksRemissaoExternaNoTexto(raw, entriesExt);
     }
