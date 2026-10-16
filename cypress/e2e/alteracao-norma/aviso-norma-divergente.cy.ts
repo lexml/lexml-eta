@@ -11,8 +11,9 @@ const URN_LEI_8666 = 'urn:lex:br:federal:lei:1993-06-21;8666';
 const quillDe = (win: any): any => (win.document.querySelector('lexml-eta-proposicao-editor') as any).quill;
 const pDoArtigo = (win: any): HTMLElement => win.document.querySelectorAll('div.container__elemento.elemento-tipo-artigo')[0].querySelector('p.texto__dispositivo') as HTMLElement;
 const aviso = (): Cypress.Chainable<JQuery<HTMLElement>> => cy.get('div.container__elemento.elemento-tipo-artigo').first().find('.mensagem--warning');
-const baseDoArtigo = (): Cypress.Chainable<string | undefined> =>
-  cy.window().then(win => (win as any).__rootStore.getState().elementoReducer.articulacao.filhos[0].alteracoes?.base);
+// should() repete até estabilizar; then() devolveria a janela quando o valor é undefined.
+const esperarBase = (esperado: string | undefined): Cypress.Chainable<any> =>
+  cy.window().should(win => expect((win as any).__rootStore.getState().elementoReducer.articulacao.filhos[0].alteracoes?.base).to.equal(esperado));
 
 const irParaArtigo = (): void => {
   cy.window().then(win => {
@@ -55,7 +56,7 @@ describe('Aviso de norma alterada divergente', () => {
   });
 
   it('a norma citada preenche o base e não há aviso', () => {
-    baseDoArtigo().should('equal', URN_LEI_14133);
+    esperarBase(URN_LEI_14133);
     aviso().should('not.exist');
   });
 
@@ -65,7 +66,7 @@ describe('Aviso de norma alterada divergente', () => {
     irParaProximaLinha();
 
     aviso().should('have.length', 1).and('contain.text', '14.133').and('contain.text', '8.666');
-    baseDoArtigo().should('equal', URN_LEI_14133);
+    esperarBase(URN_LEI_14133);
 
     irParaArtigo();
     aviso().should('have.length', 1);
@@ -83,10 +84,12 @@ describe('Aviso de norma alterada divergente', () => {
     aviso().find('.mensagem__fix').click();
     cy.wait(500);
     aviso().should('not.exist');
-    baseDoArtigo().should('equal', URN_LEI_8666);
+    esperarBase(URN_LEI_8666);
 
     cy.window().then(win => (win as any).__rootStore.dispatch({ type: 'UNDO' }));
     cy.wait(500);
-    baseDoArtigo().should('equal', URN_LEI_14133);
+    esperarBase(URN_LEI_14133);
   });
 });
+
+export {};
