@@ -22,12 +22,12 @@
 
 ## 4. Interface do editor
 
-- [ ] 4.1 Tratar `Preambulo` como a ementa em `eta-container-table.ts` (classe CSS), `eta-container-td-esquerdo.ts` (sem recuo), no CSS do editor e nos desvios `'Ementa'` de `editor.component.ts`; verificar visualmente na demonstração (`npm start`) a linha bloqueada entre a ementa e o primeiro artigo
-- [ ] 4.2 Verificar manualmente na demonstração: tentar digitar, apagar, colar e formatar no preâmbulo; abrir o menu de ações; adicionar artigo e agrupador a partir da ementa; paginar um documento grande; confirmar que o cursor inicial continua na ementa
+- [x] 4.1 Tratar `Preambulo` como a ementa em `eta-container-table.ts` (classe CSS), `eta-container-td-esquerdo.ts` (sem recuo), no CSS do editor e nos desvios `'Ementa'` de `editor.component.ts`; verificar visualmente na demonstração (`npm start`) a linha bloqueada entre a ementa e o primeiro artigo
+- [x] 4.2 Verificar manualmente na demonstração: tentar digitar, apagar, colar e formatar no preâmbulo; abrir o menu de ações; paginar um documento grande; confirmar que o cursor inicial continua na ementa (adicionar artigo e agrupador a partir da ementa pela interface fica na tarefa 5.1, porque o menu com `sl-dropdown` exige os cuidados do guia do Cypress)
 
 ## 5. Teste E2E (Cypress)
 
-- [ ] 5.1 Avaliado à luz de `docs/guia-cypress.md` e viável: o padrão de `abertura-autoria-parlamentar.cy.ts` e `abertura-opcoes-impressao.cy.ts` (fixture em `demo/doc/` gerada por `criarDocumentoArticulado`, aberta por `#fileUpload`) cobre o fluxo. Gerar as fixtures (PL com preâmbulo vazio e documento com preâmbulo diferente do padrão) e criar `cypress/e2e/documento-articulado/abertura-preambulo.cy.ts` com: preâmbulo padrão exibido entre a ementa e o Art. 1º; texto digitado não altera o preâmbulo; adicionar artigo depois da ementa insere depois do preâmbulo; preâmbulo preenchido prevalece. Verificar com `npm run cy:run:local`
+- [ ] 5.1 Avaliado à luz de `docs/guia-cypress.md` e viável: o padrão de `abertura-autoria-parlamentar.cy.ts` e `abertura-opcoes-impressao.cy.ts` (fixture em `demo/doc/` gerada por `criarDocumentoArticulado`, aberta por `#fileUpload`) cobre o fluxo. Gerar as fixtures (PL com preâmbulo vazio e documento com preâmbulo diferente do padrão) e criar `cypress/e2e/documento-articulado/abertura-preambulo.cy.ts` com: preâmbulo padrão exibido entre a ementa e o Art. 1º; texto digitado não altera o preâmbulo; adicionar artigo depois da ementa insere depois do preâmbulo; adicionar agrupador depois da ementa insere depois do preâmbulo; preâmbulo preenchido prevalece. Verificar com `npm run cy:run:local`
 
 ## 6. Fechamento
 

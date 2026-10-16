@@ -27,7 +27,7 @@ export class EtaContainerTdEsquerdo extends EtaContainer {
 
     const fator = Number(getComputedStyle(document.documentElement).getPropertyValue('--elemento-padding-factor'));
     if (fator) {
-      const padding: number = (elemento.agrupador || elemento.tipo === 'Ementa' ? 0 : elemento.nivel) * fator + 5;
+      const padding: number = (elemento.agrupador || elemento.tipo === 'Ementa' || elemento.tipo === 'Preambulo' ? 0 : elemento.nivel) * fator + 5;
       node.setAttribute('style', `padding-left: ${padding}px;`);
     }
     if (elemento.tipoOmissis) {
