@@ -54,6 +54,18 @@ O sistema SHALL exibir um aviso (WARNING) no artigo com bloco de alteração cuj
 - **WHEN** o artigo tem o aviso de divergência e o usuário salva o documento
 - **THEN** o documento é salvo normalmente
 
+#### Scenario: Aviso aparece ao citar outra norma durante a edição
+- **WHEN** o artigo tem norma alterada "Lei nº 14.133/2021", o usuário apaga a citação dessa lei, escreve a citação da "Lei nº 8.666/1993" e sai da linha
+- **THEN** o artigo exibe o aviso de divergência com as duas normas, sem depender de salvar ou reabrir o documento
+
+#### Scenario: Remissão apagada não conta para o aviso
+- **WHEN** o usuário apaga a única citação do artigo e não há mais nenhuma remissão externa no texto
+- **THEN** nenhum aviso de divergência é exibido
+
+#### Scenario: Aviso permanece ao navegar entre as linhas
+- **WHEN** o artigo exibe o aviso de divergência e o usuário seleciona outra linha e volta ao artigo
+- **THEN** o aviso continua exibido no artigo enquanto a divergência existir
+
 #### Scenario: Aviso permanece até a divergência acabar
 - **WHEN** o usuário ignora o aviso e continua editando outros dispositivos
 - **THEN** o aviso continua exibido no artigo até que a norma alterada e a norma citada passem a coincidir, ou o artigo passe a ter outro número de remissões externas

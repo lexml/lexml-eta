@@ -16,13 +16,18 @@
 
 ## 4. Aviso de divergência
 
-- [ ] 4.1 Adicionar a mensagem de aviso em `AutoFix` e a validação no `conteudoValidator`: `base` definido, exatamente um `data-urn` no caput e URN diferente do `base` gera WARNING com as duas normas; nenhum aviso com 0 ou 2+ remissões, sem `base` ou normas iguais. Verificar com testes unitários de cada combinação
-- [ ] 4.2 Adicionar o `case` em `autoFixElemento` que define o `base` pela norma da remissão, registra o histórico e revalida o artigo. Verificar com teste de reducer (efeito, desfazer, aviso some)
-- [ ] 4.3 Confirmar que o aviso não bloqueia salvar (teste do fluxo de `getProjetoAtualizado`/serialização com o aviso ativo)
+Reaberto após a validação em tela: o aviso baseado no texto do estado não aparecia ao vivo (ver design D2). O que foi feito antes e permanece: a entrada `AutoFix.NORMA_ALTERADA_DIVERGENTE` e o helper `getUrnsRemissoesExternas`.
+
+- [x] 4.1 Criar a regra pura `avaliarNormaAlteradaDivergente(base, urnsCitadas)` no modelo (WARNING com as duas normas e `fix`, `detalhe` com `autoFix` e a URN alvo) e remover a validação por texto de `conteudoValidator`. Verificar com testes unitários de cada combinação: base diferente, iguais, 0 ou 2+ remissões, sem base
+- [x] 4.2 Reunir as URNs citadas no editor (links `a.lexml-remissao-externa[data-urn]` da linha + entradas do registro sem link no DOM com `textoRef` no texto; órfãs não contam) e aplicar o aviso numa cópia do elemento nos dois pontos que desenham mensagens (`atualizarQuill` e `atualizarMensagemQuill`). Extrair a reunião das entradas para função pura e testá-la (órfã, manual sem `textoRef`, remissão ainda não desenhada)
+- [x] 4.3 Revalidar o artigo quando o registro muda: `ADICIONAR_REMISSAO_EXTERNA` e `REMOVER_REMISSAO_EXTERNA` emitem `ElementoValidado` do artigo com bloco e `base`; o editor dispara a validação após desenhar o link. Verificar com testes de reducer (evento emitido; ausente quando o artigo não tem bloco) e com o E2E da seção 6
+- [x] 4.4 `case` em `autoFixElemento` tratado antes da guarda `hasFix`: confere a URN de `detalhe` no registro do artigo, define o `base`, registra o histórico e revalida. Verificar com teste de reducer (efeito, desfazer, URN ausente do registro não faz nada)
+- [x] 4.5 Alinhar a regra de entradas órfãs do preenchimento do `base` (grupo 3) à do projeto (`textoRef` ou `data-ref-id` no texto). Verificar com teste: remissão criada antes de um desfazer do `base` e ainda sem link no texto é contada
+- [x] 4.6 Confirmar que o aviso não bloqueia salvar (teste de `atualizaMensagemCritical`, já escrito) e que não aparece em `dispositivo.mensagens`
 
 ## 5. Abertura do documento
 
-- [ ] 5.1 Verificar que ao carregar (`load`/`getElementos`) os artigos de alteração são validados com o novo aviso e que o `base` nunca é alterado; se a abertura não revalidar o artigo, incluir a mensagem no mesmo ponto das mensagens extras do carregamento
+- [ ] 5.1 Aplicar o aviso na abertura no mesmo ponto em que `ativarRemissoesInternas` trata a remissão inválida (o DOM só existe depois do carregamento) e verificar que o `base` nunca é alterado
 - [ ] 5.2 Teste unitário de abertura: documento divergente mostra o aviso e preserva o `base`; documento sem `base` e com uma remissão mantém o alerta de norma não informada; documentos coerentes (fixtures de `test/assets` com alterações) abrem sem nenhum aviso de divergência
 
 ## 6. Testes E2E (Cypress)
