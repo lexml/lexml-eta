@@ -1181,6 +1181,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         const novoTexto = elemento.conteudo?.texto ?? '';
         if (linha.blotConteudo.html !== novoTexto) {
           linha.blotConteudo.html = elemento.tipo === 'Omissis' ? EtaQuillUtil.montarSpanOmissisAsString() : novoTexto;
+          this.redesenharRemissoesExternasDaLinha(elemento.uuid);
         }
 
         linha.setEstilo(elemento);
@@ -1205,6 +1206,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
       }
     });
+  }
+
+  // O texto do estado não tem os links externos criados ao vivo: ao substituí-lo, o Quill os perde.
+  private redesenharRemissoesExternasDaLinha(uuid?: number): void {
+    const doArtigo = Object.values<RemissaoExternaValue>(rootStore.getState().elementoReducer.remissoesExternas ?? {}).filter(r => uuid !== undefined && r.sourceUuid === uuid);
+    if (doArtigo.length === 0) return;
+    this.quill.getModule('remissaoInterna')?.renderizarRemissoesExternasDoState(Object.fromEntries(doArtigo.map(r => [r.refId, r])));
   }
 
   private elementoRemovidoEmRevisao(elemento: Elemento): boolean {

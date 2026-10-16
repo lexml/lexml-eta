@@ -86,6 +86,22 @@ describe('atualizaReferenciaElemento ("Corrigir agora" do alerta de norma não i
     });
   });
 
+  describe('remissões criadas ao vivo (texto do estado sem o link)', () => {
+    it('só define a norma e deixa o texto intacto', () => {
+      const texto = 'A Lei nº 14.133 e a Lei nº 8.666 passam a vigorar com as seguintes alterações:';
+      criaEstado(texto, []);
+      state.remissoesExternas = {
+        r1: { refId: 'r1', targetUrn: URN_LEI_14133, targetNomeNorma: '', textoRef: 'Lei nº 14.133', sourceUuid: artigo.uuid },
+        r2: { refId: 'r2', targetUrn: URN_LEI_8666, targetNomeNorma: '', textoRef: 'Lei nº 8.666', sourceUuid: artigo.uuid },
+      } as any;
+
+      informaNorma(URN_LEI_14133);
+
+      expect(artigo.alteracoes!.base).to.equal(URN_LEI_14133);
+      expect(artigo.texto).to.equal(texto);
+    });
+  });
+
   describe('comportamentos que não mudam', () => {
     it('gera a frase de alteração quando o artigo está sem texto', () => {
       criaEstado('', []);

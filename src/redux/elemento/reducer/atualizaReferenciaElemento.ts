@@ -6,6 +6,8 @@ import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
 import { escapeRegex } from '../../../util/string-util';
+import { Artigo } from '../../../model/dispositivo/dispositivo';
+import { remissoesDoArtigo } from './remissoesDoArtigo';
 
 const REGEX_REMISSAO_EXTERNA = /<a\b[^>]*\bdata-urn="/i;
 
@@ -26,7 +28,8 @@ export const atualizaReferenciaElemento = (state: any, action: any): State => {
   const normaLink = buildHtmlLink(urnNova);
   const textoDispositivo = dispositivo.texto;
 
-  if (REGEX_REMISSAO_EXTERNA.test(textoDispositivo)) {
+  // Ao vivo o texto do estado não tem o link da remissão externa (só o Quill), por isso o registro também conta.
+  if (REGEX_REMISSAO_EXTERNA.test(textoDispositivo) || remissoesDoArtigo(state.remissoesExternas, dispositivo as Artigo).length > 0) {
     // Texto já cita a norma como remissão externa: só o base muda, o link é preservado.
   } else if (regex && dispositivo.texto.match(regex)) {
     dispositivo.texto = textoDispositivo.replace(regex, normaLink);
