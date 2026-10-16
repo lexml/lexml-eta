@@ -1,6 +1,6 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
-import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
@@ -11,9 +11,11 @@ import {
   hasFilhos,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
+import { RemissaoExternaValue } from '../../../model/remissao';
 import { AutoFix } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
+import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
 import { solicitaNorma } from './solicitaNorma';
 
@@ -21,8 +23,38 @@ const hasFix = (dispositivo: Dispositivo): boolean => {
   return (dispositivo.mensagens?.filter(m => m.fix) ?? []).length > 0;
 };
 
+// A mensagem existe só na tela (não está em dispositivo.mensagens), por isso não passa pela guarda hasFix; a URN alvo precisa constar no registro do artigo.
+const corrigeNormaAlteradaDivergente = (state: any, atual: Dispositivo | undefined, urn: string | undefined): State => {
+  const urnNoRegistro = Object.values<RemissaoExternaValue>(state.remissoesExternas ?? {}).some(r => r.sourceUuid === atual?.uuid && r.targetUrn === urn);
+
+  if (!atual?.alteracoes || !urn || !urnNoRegistro) {
+    state.ui.events = [];
+    return state;
+  }
+
+  const original = createElemento(atual);
+  atual.alteracoes.base = urn;
+
+  const eventos = new Eventos();
+  eventos.add(StateType.ElementoValidado, [createElementoValidado(atual, true)]);
+
+  return {
+    articulacao: state.articulacao,
+    modo: state.modo,
+    past: buildPast(state, buildUpdateEvent(atual, original)),
+    present: buildEventoAtualizacaoElemento(atual).build(),
+    future: state.future,
+    ui: { events: eventos.build(), alertas: state.ui?.alertas },
+  };
+};
+
 export const autoFixElemento = (state: any, action: any): State => {
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
+
+  if (action.mensagem?.detalhe?.autoFix === AutoFix.NORMA_ALTERADA_DIVERGENTE) {
+    const { uuid, urn } = action.mensagem.detalhe;
+    return corrigeNormaAlteradaDivergente(state, uuid === undefined ? atual : getDispositivoFromElemento(state.articulacao, { uuid }, true), urn);
+  }
 
   if (atual === undefined || !hasFix(atual)) {
     state.ui.events = [];
