@@ -1,4 +1,4 @@
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { createElemento, createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -17,6 +17,7 @@ import { State, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
+import { remissoesDoArtigo } from './remissoesDoArtigo';
 import { solicitaNorma } from './solicitaNorma';
 
 const hasFix = (dispositivo: Dispositivo): boolean => {
@@ -65,7 +66,9 @@ export const autoFixElemento = (state: any, action: any): State => {
 
   switch (action.mensagem?.descricao) {
     case AutoFix.INFORMAR_NORMA: {
-      return solicitaNorma(state, action);
+      // Com uma única remissão externa a norma é conhecida: preenche sem abrir o diálogo.
+      const unica = isArtigo(atual) && !atual.alteracoes?.base ? remissoesDoArtigo(state.remissoesExternas, atual as Artigo) : [];
+      return unica.length === 1 ? corrigeNormaAlteradaDivergente(state, atual, unica[0].targetUrn) : solicitaNorma(state, action);
     }
     case AutoFix.OMISSIS_ANTES: {
       const anterior = getDispositivoAnterior(atual);

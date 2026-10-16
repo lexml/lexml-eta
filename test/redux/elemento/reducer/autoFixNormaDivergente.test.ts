@@ -11,7 +11,8 @@ import { validaDispositivo } from '../../../../src/model/lexml/dispositivo/dispo
 import { TipoDispositivo } from '../../../../src/model/lexml/tipo/tipoDispositivo';
 import { atualizaMensagemCritical } from '../../../../src/redux/elemento/reducer/atualizaMensagemCritical';
 import { elementoReducer } from '../../../../src/redux/elemento/reducer/elementoReducer';
-import { State } from '../../../../src/redux/state';
+import { State, StateType } from '../../../../src/redux/state';
+import { AutoFix } from '../../../../src/model/lexml/util/mensagem';
 
 const URN_LEI_14133 = 'urn:lex:br:federal:lei:2021-04-01;14133';
 const URN_LEI_8666 = 'urn:lex:br:federal:lei:1993-06-21;8666';
@@ -151,5 +152,63 @@ describe('aviso de norma alterada divergente e o salvamento', () => {
 
     expect(comAviso).to.deep.equal(semAviso);
     expect(validaDispositivo(artigo).some(m => m.detalhe?.autoFix)).to.equal(false);
+  });
+});
+
+describe('autofix "informar a norma" com remissão externa no artigo', () => {
+  const corrigirInformarNorma = (): void => {
+    artigo.mensagens = validaDispositivo(artigo);
+    const msg = artigo.mensagens.find(m => m.descricao === AutoFix.INFORMAR_NORMA) as any;
+    state = elementoReducer(state, autofixAction.execute(createElemento(artigo, true), msg));
+  };
+
+  const entrada = (refId: string, urn: string, textoRef: string): any => ({ refId, targetUrn: urn, targetNomeNorma: '', textoRef, sourceUuid: artigo.uuid });
+
+  it('com uma remissão preenche o base sem abrir o diálogo', () => {
+    criaEstado('A Lei nº 14.133, passa a vigorar:');
+    state.remissoesExternas = { r1: entrada('r1', URN_LEI_14133, 'Lei nº 14.133') };
+
+    corrigirInformarNorma();
+
+    expect(artigo.alteracoes!.base).to.equal(URN_LEI_14133);
+    expect(state.ui!.events.some(e => e.stateType === StateType.InformarNorma)).to.equal(false);
+  });
+
+  it('pode ser desfeito', () => {
+    criaEstado('A Lei nº 14.133, passa a vigorar:');
+    state.remissoesExternas = { r1: entrada('r1', URN_LEI_14133, 'Lei nº 14.133') };
+
+    corrigirInformarNorma();
+    state = elementoReducer(state, UndoAction());
+
+    expect(artigo.alteracoes!.base ?? '').to.equal('');
+  });
+
+  it('sem remissão abre o diálogo e não altera o base', () => {
+    criaEstado('A Lei, passa a vigorar:');
+
+    corrigirInformarNorma();
+
+    expect(state.ui!.events.some(e => e.stateType === StateType.InformarNorma)).to.equal(true);
+    expect(artigo.alteracoes!.base ?? '').to.equal('');
+  });
+
+  it('com duas remissões abre o diálogo e não altera o base', () => {
+    criaEstado('A Lei nº 14.133 e a Lei nº 8.666, passam a vigorar:');
+    state.remissoesExternas = { r1: entrada('r1', URN_LEI_14133, 'Lei nº 14.133'), r2: entrada('r2', URN_LEI_8666, 'Lei nº 8.666') };
+
+    corrigirInformarNorma();
+
+    expect(state.ui!.events.some(e => e.stateType === StateType.InformarNorma)).to.equal(true);
+    expect(artigo.alteracoes!.base ?? '').to.equal('');
+  });
+
+  it('ignora remissão órfã (sem link nem textoRef no texto)', () => {
+    criaEstado('A Lei, passa a vigorar:');
+    state.remissoesExternas = { velha: entrada('velha', URN_LEI_8666, 'Lei nº 8.666') };
+
+    corrigirInformarNorma();
+
+    expect(state.ui!.events.some(e => e.stateType === StateType.InformarNorma)).to.equal(true);
   });
 });

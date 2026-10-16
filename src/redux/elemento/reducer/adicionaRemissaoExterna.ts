@@ -4,13 +4,12 @@ import { findDispositivoByUuid } from '../../../model/lexml/hierarquia/hierarqui
 import { RemissaoExternaValue } from '../../../model/remissao';
 import { buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
+import { remissoesDoArtigo } from './remissoesDoArtigo';
 import { eventosRevalidacaoDoArtigo } from './revalidaArtigoDaRemissao';
 
-// Conta as remissões do artigo cujo link já está no texto ou cujo textoRef aparece nele (as demais do registro são órfãs), mais as do lote atual, que podem ainda não estar no texto.
+// Soma as remissões do lote atual, que podem ainda não estar no texto.
 const contaRemissoesDoArtigo = (remissoes: Record<string, RemissaoExternaValue>, artigo: Artigo, novaRefId: string, totalNoLote: number): number =>
-  Object.values(remissoes).filter(
-    r => r.sourceUuid === artigo.uuid && r.refId !== novaRefId && (artigo.texto.includes(`data-ref-id="${r.refId}"`) || (!!r.textoRef && artigo.texto.includes(r.textoRef)))
-  ).length + totalNoLote;
+  remissoesDoArtigo(remissoes, artigo, novaRefId).length + totalNoLote;
 
 const preencheBasePelaRemissao = (state: any, remissoes: Record<string, RemissaoExternaValue>, value: RemissaoExternaValue, totalNoLote: number): any => {
   const artigo = state.articulacao && value.sourceUuid !== undefined ? (findDispositivoByUuid(state.articulacao, value.sourceUuid) as Artigo | null) : null;
