@@ -31,7 +31,7 @@
 
 ## 6. Fechamento
 
-- [ ] 6.1 Registrar no `CLAUDE.md` os invariantes novos (preâmbulo como dispositivo bloqueado, função da última linha da parte inicial, texto padrão por tipo da URN com autoridade opcional) e as pendências (concordância da MPV, tipos sem texto padrão), e verificar que o texto está coerente com o código entregue
+- [x] 6.1 Registrar no `CLAUDE.md` os invariantes novos (preâmbulo como dispositivo bloqueado, função da última linha da parte inicial, texto padrão por tipo da URN com autoridade opcional) e as pendências (concordância da MPV, tipos sem texto padrão), e verificar que o texto está coerente com o código entregue
 
 ## Workflow follow-up
 
