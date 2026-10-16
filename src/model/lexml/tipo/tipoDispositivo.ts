@@ -222,4 +222,17 @@ export const TipoDispositivo: Record<string, Tipo> = {
     INDICADOR_FIM_SEQUENCIA: ['NA'],
     INDICADOR_DESDOBRAMENTO: ['NA'],
   },
+  preambulo: {
+    tipo: 'Preambulo',
+    name: 'Preambulo',
+    tagId: 'pre',
+    descricao: 'Preâmbulo',
+    descricaoPlural: 'Preâmbulos',
+    tiposPermitidosPai: ['Articulacao'],
+    tiposPermitidosFilhos: [],
+    tipoProvavelFilho: undefined,
+    INDICADOR_SEQUENCIA: ['NA'],
+    INDICADOR_FIM_SEQUENCIA: ['NA'],
+    INDICADOR_DESDOBRAMENTO: ['NA'],
+  },
 };

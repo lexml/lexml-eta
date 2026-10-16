@@ -40,6 +40,7 @@ import { RegrasInciso } from '../regras/regrasInciso';
 import { RegrasItem } from '../regras/regrasItem';
 import { RegrasOmissis } from '../regras/regrasOmissis';
 import { RegrasParagrafo } from '../regras/regrasParagrafo';
+import { RegrasPreambulo } from '../regras/regrasPreambulo';
 import { AcoesDispositivo } from '../acao/acoesDispositivo';
 import { TipoArticulacao } from '../tipo/tipoArticulacao';
 import { TipoArtigo } from '../tipo/tipoArtigo';
@@ -96,6 +97,8 @@ const OmissisLexml = AcoesDispositivo(RegrasOmissis(GeneroFeminino(BlocoAlteraca
 
 const EmentaLexml = AcoesDispositivo(RegrasEmenta(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))));
 
+const PreambuloLexml = AcoesDispositivo(RegrasPreambulo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoIndisponivel(HierarquiaDispositivo(TipoLexml)))))));
+
 // Preserva o UUID na conversão de tipo para evitar que remissões apontando para o dispositivo original fiquem órfãs.
 export const criaDispositivo = (parent: Dispositivo, tipo: string, referencia?: Dispositivo, posicao?: number, uuidPreservado?: number): Dispositivo => {
   const dispositivo = create(tipo, parent, uuidPreservado);
@@ -150,6 +153,9 @@ const create = (name: string, parent: Dispositivo, uuidPreservado?: number): Dis
       break;
     case 'ementa':
       dispositivo = new EmentaLexml(name.toLowerCase());
+      break;
+    case 'preambulo':
+      dispositivo = new PreambuloLexml(name.toLowerCase());
       break;
     default: {
       dispositivo = parent && isAgrupador(parent) ? new DispositivoAgrupadorGenericoLexml('agrupadorGenerico') : new DispositivoGenericoLexml('generico');
