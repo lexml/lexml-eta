@@ -55,6 +55,9 @@ O número com hífen (ex.: `2158-35`) tem a parte inicial formatada com separado
 **D8. Revalidação do artigo quando o registro muda.**
 O desenho do link e a remoção do registro não geram evento de validação. Para o aviso acompanhar: (a) `ADICIONAR_REMISSAO_EXTERNA` e `REMOVER_REMISSAO_EXTERNA` emitem `ElementoValidado` do artigo de origem quando ele tem bloco de alteração com `base`; (b) após `renderizarRemissoesExternasDoState` o editor dispara a validação do artigo; (c) na abertura, o editor aplica o aviso quando o DOM existe, no mesmo ponto em que `ativarRemissoesInternas` já faz isso para a remissão inválida.
 
+**D9. Viabilidade dos E2E (task 6.1).**
+Viáveis: os specs de `cypress/e2e/remissao-externa/` já exercitam o linker real (Worker) via Quill, e o mesmo padrão serve aqui — selecionar a linha pelo `quill.setSelection`, inserir o texto com `insertText` (`user`), sair da linha e aguardar a detecção assíncrona. O `base` é lido do store (`window.__rootStore`) com `should`, não `then`. A fixture de abertura (6.5) é gerada pela UI (`getDocumentoArticulado()`), serializada, alterada na norma e reaberta por `#fileUpload`. Os E2E acharam três defeitos que testes unitários não pegavam (registro ao vivo no "Corrigir agora", links apagados do Quill após o ElementoModificado, diálogo com `urnInicial="undefined"`) e um do salvamento (só a primeira remissão do caput era gravada), todos corrigidos.
+
 ## Risks / Trade-offs
 
 - [Registro com entradas órfãs faz D1 contar errado] → o bug de D6 era a principal fonte de órfãs e é corrigido junto; teste de unidade cobre registro com órfã.

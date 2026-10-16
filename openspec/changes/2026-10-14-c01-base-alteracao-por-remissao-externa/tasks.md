@@ -33,11 +33,11 @@ Reaberto após a validação em tela: o aviso baseado no texto do estado não ap
 
 ## 6. Testes E2E (Cypress)
 
-- [ ] 6.1 Avaliar a viabilidade à luz de `docs/guia-cypress.md` (§3 race conditions, §6 setup, §7 edição de texto, §9 âncoras) e dos specs existentes em `cypress/e2e/remissao-externa/` e `cypress/e2e/alteracao-norma/`, que já exercitam o linker real. Registrar a decisão em `design.md`; se algum cenário não for viável, propor teste de integração equivalente
-- [ ] 6.2 Spec E2E em `cypress/e2e/alteracao-norma/`: digitar a frase de alteração, criar o bloco, sair da linha; verificar que o `base` é preenchido e o alerta de norma não informada some
-- [ ] 6.3 Spec E2E: artigo com norma alterada diferente da norma citada mostra o aviso; "Corrigir agora" alinha a norma e o aviso some
-- [ ] 6.4 Spec E2E: informar a norma por "Corrigir agora" com a remissão existente mantém o popup de ações da remissão externa ao posicionar o cursor sobre ela
-- [ ] 6.5 Abrir pela UI um documento com divergência e verificar o aviso sem alteração do `base` (fixture gerada via `criarDocumentoArticulado`, não escrita à mão)
+- [x] 6.1 Avaliar a viabilidade à luz de `docs/guia-cypress.md` (§3 race conditions, §6 setup, §7 edição de texto, §9 âncoras) e dos specs existentes em `cypress/e2e/remissao-externa/` e `cypress/e2e/alteracao-norma/`, que já exercitam o linker real. Registrar a decisão em `design.md`; se algum cenário não for viável, propor teste de integração equivalente
+- [x] 6.2 Spec E2E em `cypress/e2e/alteracao-norma/`: digitar a frase de alteração, criar o bloco, sair da linha; verificar que o `base` é preenchido e o alerta de norma não informada some
+- [x] 6.3 Spec E2E: artigo com norma alterada diferente da norma citada mostra o aviso; "Corrigir agora" alinha a norma e o aviso some
+- [x] 6.4 Spec E2E: informar a norma por "Corrigir agora" com a remissão existente mantém o popup de ações da remissão externa ao posicionar o cursor sobre ela
+- [x] 6.5 Abrir pela UI um documento com divergência e verificar o aviso sem alteração do `base` (fixture gerada via `criarDocumentoArticulado`, não escrita à mão)
 
 ## 7. Fechamento
 
