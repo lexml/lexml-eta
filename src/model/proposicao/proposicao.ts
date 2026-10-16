@@ -69,8 +69,6 @@ export class Epigrafe {
 export class Autoria {
   tipo = TipoAutoria.PARLAMENTAR;
   imprimirPartidoUF = true;
-  quantidadeAssinaturasAdicionaisSenadores = 0;
-  quantidadeAssinaturasAdicionaisDeputados = 0;
   // TODO - Tornar opcional quando formos implementar outro tipo de autoria.
   parlamentares: Array<Parlamentar> = [];
   colegiado?: ColegiadoAutor;

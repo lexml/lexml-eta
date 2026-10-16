@@ -258,12 +258,6 @@ describe('Autoria de parlamentares — abrir (especificação 04)', () => {
     expect(autoriaLida(gravada([semCargo]))!.parlamentares[0].cargo).to.equal('');
   });
 
-  it('assinaturas adicionais ficam em 0', () => {
-    const autoria = autoriaLida(gravada([davi()], { quantidadeAssinaturasAdicionaisSenadores: 3 }))!;
-    expect(autoria.quantidadeAssinaturasAdicionaisSenadores).to.equal(0);
-    expect(autoria.quantidadeAssinaturasAdicionaisDeputados).to.equal(0);
-  });
-
   const semAutoria: Array<[string, any]> = [
     ['nenhum parlamentar válido', gravada([{ ...davi(), identificacao: '' }])],
     ['lista vazia', gravada([])],
