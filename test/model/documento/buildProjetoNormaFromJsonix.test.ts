@@ -27,8 +27,8 @@ describe('Parser de norma default', () => {
   it('Deveria apresentar ementa vazia', () => {
     expect(documento?.ementa?.texto).equals('');
   });
-  it('Deveria apresentar preâmbulo', () => {
-    expect(documento?.preambulo).equals('');
+  it('Deveria não apresentar preâmbulo', () => {
+    expect(documento?.preambulo).to.be.undefined;
   });
 });
 
@@ -48,8 +48,8 @@ describe('Parser de projeto default', () => {
   it('Deveria apresentar ementa vazia', () => {
     expect(documento?.ementa?.texto).equals('');
   });
-  it('Deveria apresentar preâmbulo', () => {
-    expect(documento?.preambulo).equals('');
+  it('Deveria não apresentar preâmbulo', () => {
+    expect(documento?.preambulo).to.be.undefined;
   });
 });
 
@@ -61,24 +61,24 @@ describe('Parser de norma com preâmbulo contendo HTML', () => {
   });
 
   it('Deveria preservar tag <b> no preâmbulo', () => {
-    expect(documentoHtml?.preambulo).to.include('<b>');
-    expect(documentoHtml?.preambulo).to.include('</b>');
+    expect(documentoHtml?.preambulo?.texto).to.include('<b>');
+    expect(documentoHtml?.preambulo?.texto).to.include('</b>');
   });
 
   it('Deveria preservar tag <i> no preâmbulo', () => {
-    expect(documentoHtml?.preambulo).to.include('<i>');
-    expect(documentoHtml?.preambulo).to.include('</i>');
+    expect(documentoHtml?.preambulo?.texto).to.include('<i>');
+    expect(documentoHtml?.preambulo?.texto).to.include('</i>');
   });
 
   it('Deveria conter o texto formatado corretamente no preâmbulo', () => {
-    expect(documentoHtml?.preambulo).to.include('<b>no uso da atribuição</b>');
-    expect(documentoHtml?.preambulo).to.include('<i>adopta a seguinte Medida Provisória</i>');
+    expect(documentoHtml?.preambulo?.texto).to.include('<b>no uso da atribuição</b>');
+    expect(documentoHtml?.preambulo?.texto).to.include('<i>adopta a seguinte Medida Provisória</i>');
   });
 
   it('Deveria conter todo o conteúdo do preâmbulo', () => {
-    expect(documentoHtml?.preambulo).to.include('O PRESIDENTE DA REPÚBLICA,');
-    expect(documentoHtml?.preambulo).to.include('que lhe confere o art. 62 da Constituição,');
-    expect(documentoHtml?.preambulo).to.include(', com força de lei:');
+    expect(documentoHtml?.preambulo?.texto).to.include('O PRESIDENTE DA REPÚBLICA,');
+    expect(documentoHtml?.preambulo?.texto).to.include('que lhe confere o art. 62 da Constituição,');
+    expect(documentoHtml?.preambulo?.texto).to.include(', com força de lei:');
   });
 });
 

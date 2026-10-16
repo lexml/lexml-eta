@@ -373,7 +373,7 @@ describe('Tags HTML Inline - Testes Recomendados', () => {
       classificacao: ClassificacaoDocumento.NORMA,
       epigrafe: { texto: 'TESTE' },
       ementa: { texto: 'Ementa teste' } as any,
-      preambulo: { texto: 'Preambulo' },
+      preambulo: { texto: 'Preambulo' } as any,
       articulacao,
     };
   };
@@ -913,7 +913,7 @@ describe('Injeção de remissões a partir do registry', () => {
     classificacao: ClassificacaoDocumento.NORMA,
     epigrafe: { texto: 'TESTE' },
     ementa: { texto: 'Ementa' } as any,
-    preambulo: { texto: '' },
+    preambulo: { texto: '' } as any,
     articulacao: (() => {
       const art = createArticulacao();
       const artigo = criaDispositivo(art, TipoDispositivo.artigo.tipo);
@@ -939,7 +939,7 @@ describe('Injeção de remissões a partir do registry', () => {
         classificacao: ClassificacaoDocumento.NORMA,
         epigrafe: { texto: 'TESTE' },
         ementa: { texto: 'Ementa' } as any,
-        preambulo: { texto: '' },
+        preambulo: { texto: '' } as any,
         articulacao,
       };
 
@@ -981,7 +981,7 @@ describe('Injeção de remissões a partir do registry', () => {
         classificacao: ClassificacaoDocumento.NORMA,
         epigrafe: { texto: 'TESTE' },
         ementa: { texto: 'Ementa' } as any,
-        preambulo: { texto: '' },
+        preambulo: { texto: '' } as any,
         articulacao,
       };
 
@@ -1011,7 +1011,7 @@ describe('Injeção de remissões a partir do registry', () => {
         classificacao: ClassificacaoDocumento.NORMA,
         epigrafe: { texto: 'TESTE' },
         ementa: { texto: 'Ementa' } as any,
-        preambulo: { texto: '' },
+        preambulo: { texto: '' } as any,
         articulacao,
       };
 
@@ -1041,7 +1041,7 @@ describe('Injeção de remissões a partir do registry', () => {
         classificacao: ClassificacaoDocumento.NORMA,
         epigrafe: { texto: 'TESTE' },
         ementa: { texto: 'Ementa' } as any,
-        preambulo: { texto: '' },
+        preambulo: { texto: '' } as any,
         articulacao,
       };
 
@@ -1071,7 +1071,7 @@ describe('Injeção de remissões a partir do registry', () => {
         classificacao: ClassificacaoDocumento.NORMA,
         epigrafe: { texto: 'TESTE' },
         ementa: { texto: 'Ementa' } as any,
-        preambulo: { texto: '' },
+        preambulo: { texto: '' } as any,
         articulacao,
       };
 
@@ -1101,7 +1101,7 @@ describe('Injeção de remissões a partir do registry', () => {
         classificacao: ClassificacaoDocumento.NORMA,
         epigrafe: { texto: 'TESTE' },
         ementa: { texto: 'Ementa' } as any,
-        preambulo: { texto: '' },
+        preambulo: { texto: '' } as any,
         articulacao,
       };
 
@@ -1162,7 +1162,7 @@ describe('Injeção de remissões a partir do registry', () => {
         classificacao: ClassificacaoDocumento.NORMA,
         epigrafe: { texto: 'TESTE' },
         ementa: { texto: 'Ementa' } as any,
-        preambulo: { texto: '' },
+        preambulo: { texto: '' } as any,
         articulacao,
       };
 
@@ -1189,7 +1189,7 @@ describe('Injeção de remissões a partir do registry', () => {
         classificacao: ClassificacaoDocumento.NORMA,
         epigrafe: { texto: 'TESTE' },
         ementa: { texto: 'Ementa' } as any,
-        preambulo: { texto: '' },
+        preambulo: { texto: '' } as any,
         articulacao,
       };
 
@@ -1335,7 +1335,7 @@ describe('MetadadoProprietario — remissões internas inválidas', () => {
     classificacao: ClassificacaoDocumento.NORMA,
     epigrafe: { texto: 'TESTE' },
     ementa: { texto: 'Ementa' } as any,
-    preambulo: { texto: '' },
+    preambulo: { texto: '' } as any,
     articulacao,
   });
 

@@ -15,5 +15,5 @@ export interface TextoArticulado {
 export interface ParteInicial {
   epigrafe?: Conteudo | string;
   ementa?: Dispositivo; // Conteudo;
-  preambulo?: Conteudo | string;
+  preambulo?: Dispositivo;
 }

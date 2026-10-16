@@ -14,7 +14,7 @@ describe('buildJsonixFromProjetoNorma', () => {
       classificacao: ClassificacaoDocumento.NORMA,
       epigrafe: { texto: 'LEI Nº 12.345' },
       ementa: { texto: 'Ementa da lei' } as any,
-      preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+      preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
       articulacao: createArticulacao(),
     };
   });
@@ -108,7 +108,7 @@ describe('buildJsonixFromProjetoNorma', () => {
         classificacao: ClassificacaoDocumento.PROJETO,
         epigrafe: { texto: 'PROJETO DE LEI' },
         ementa: { texto: 'Ementa' } as any,
-        preambulo: { texto: 'Preambulo' },
+        preambulo: { texto: 'Preambulo' } as any,
         articulacao: createArticulacao(),
       };
       const resultadoProjeto = buildJsonixFromProjetoNorma(projeto, URN_TESTE);
@@ -201,7 +201,7 @@ describe('buildJsonixFromProjetoNorma', () => {
       const semEpigrafe: ProjetoNorma = {
         classificacao: ClassificacaoDocumento.NORMA,
         ementa: { texto: 'Ementa' } as any,
-        preambulo: { texto: 'Preambulo' },
+        preambulo: { texto: 'Preambulo' } as any,
         articulacao: createArticulacao(),
       };
       resultado = buildJsonixFromProjetoNorma(semEpigrafe, URN_TESTE);
@@ -212,7 +212,7 @@ describe('buildJsonixFromProjetoNorma', () => {
       const semEmenta: ProjetoNorma = {
         classificacao: ClassificacaoDocumento.NORMA,
         epigrafe: { texto: 'EPÍGRAFE' },
-        preambulo: { texto: 'Preambulo' },
+        preambulo: { texto: 'Preambulo' } as any,
         articulacao: createArticulacao(),
       };
       resultado = buildJsonixFromProjetoNorma(semEmenta, URN_TESTE);

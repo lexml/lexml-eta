@@ -40,7 +40,7 @@ describe('Round-trip save→load de remissão externa auto-detectada', () => {
       classificacao: 'projeto',
       epigrafe: { texto: '' },
       ementa: { texto: '' },
-      preambulo: { texto: '' },
+      preambulo: { texto: '' } as any,
       articulacao,
     };
 

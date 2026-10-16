@@ -8,10 +8,10 @@
 
 ## 2. Carga e serialização
 
-- [ ] 2.1 Alterar `ParteInicial.preambulo` para `Dispositivo` e criar `buildDispositivoPreambulo` (bloqueado, id `preambulo`, rótulo vazio, `pai` na articulação), no mesmo molde de `buildDispositivoEmenta`, mantendo o HTML com `<p>` de preâmbulo com vários parágrafos
-- [ ] 2.2 Aplicar o texto padrão em `buildProjetoNormaFromJsonix` quando o preâmbulo estiver vazio e o tipo tiver padrão; não criar o dispositivo quando continuar vazio; incluir o preâmbulo em `ajustarTextosParaQuill`; verificar com testes unitários: padrão por tipo, preâmbulo preenchido prevalece, vazio sem padrão, norma com e sem preâmbulo
-- [ ] 2.3 Verificar a ida e volta em `buildJsonixFromProjetoNorma`: texto padrão gravado, preâmbulo com dois parágrafos preservado, preâmbulo ausente gravado vazio; ajustar apenas se o teste falhar
-- [ ] 2.4 Executar os testes de `test/model/documento` e verificar que passam, inclusive `fluxoAbertura.test.ts`
+- [x] 2.1 Alterar `ParteInicial.preambulo` para `Dispositivo` e criar `buildDispositivoPreambulo` (bloqueado, id `preambulo`, rótulo vazio, `pai` na articulação), no mesmo molde de `buildDispositivoEmenta`, mantendo o HTML com `<p>` de preâmbulo com vários parágrafos
+- [x] 2.2 Aplicar o texto padrão em `buildProjetoNormaFromJsonix` quando o preâmbulo estiver vazio e o tipo tiver padrão; não criar o dispositivo quando continuar vazio; incluir o preâmbulo em `ajustarTextosParaQuill`; verificar com testes unitários: padrão por tipo, preâmbulo preenchido prevalece, vazio sem padrão, norma com e sem preâmbulo
+- [x] 2.3 Verificar a ida e volta em `buildJsonixFromProjetoNorma`: texto padrão gravado, preâmbulo com dois parágrafos preservado, preâmbulo ausente gravado vazio; ajustar apenas se o teste falhar
+- [x] 2.4 Executar os testes de `test/model/documento` e verificar que passam, inclusive `fluxoAbertura.test.ts`
 
 ## 3. Estado e reducers
 

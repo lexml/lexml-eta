@@ -7,7 +7,7 @@ import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispo
 import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil';
 import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
-import { ANO_PROVISORIO, getAno, getTipo, getTipoDocumentoUrn } from '../urnUtil';
+import { ANO_PROVISORIO, getAno, getPreambuloPadrao, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 import { Autoria, OpcoesImpressao, Parlamentar } from '../../../proposicao/proposicao';
 import { DadosLexEdit, RevisaoArticulacaoLida } from '../documentoArticulado';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
@@ -39,6 +39,10 @@ const ajustarTextosParaQuill = (projetoNorma: ProjetoNorma): void => {
     projetoNorma.ementa.texto = fnAjustaFormatoQuill(projetoNorma.ementa.texto, tempContainer, tempQuill);
   }
 
+  if (projetoNorma.preambulo) {
+    projetoNorma.preambulo.texto = fnAjustaFormatoQuill(projetoNorma.preambulo.texto, tempContainer, tempQuill);
+  }
+
   if (projetoNorma.articulacao) {
     getDispositivoAndFilhosAsLista(projetoNorma.articulacao).forEach(d => {
       d.texto = fnAjustaFormatoQuill(d.texto, tempContainer, tempQuill);
@@ -65,6 +69,9 @@ export const buildProjetoNormaFromJsonix = (documentoLexml: any, preservarTexto 
     projetoNorma.articulacao.projetoNorma = projetoNorma;
     if (projetoNorma.ementa) {
       projetoNorma.ementa.pai = projetoNorma.articulacao;
+    }
+    if (projetoNorma.preambulo) {
+      projetoNorma.preambulo.pai = projetoNorma.articulacao;
     }
   }
 
@@ -283,10 +290,12 @@ const getParteInicial = (documento: any, preservarTexto: boolean): ParteInicial 
   const paragrafos = parteInicial?.preambulo?.p ?? [];
   const preambulo = paragrafos.length > 1 ? paragrafos.map(p => `<p>${buildContent(p.content)}</p>`).join('') : buildContent(paragrafos[0]?.content);
 
+  const textoPreambulo = retiraCaracteresDesnecessarios(preambulo) || getPreambuloPadrao(getUrn(documento));
+
   return {
     epigrafe: retiraCaracteresDesnecessarios(epigrafe),
     ementa: buildDispositivoEmenta(retiraCaracteresDesnecessarios(ementa), epigrafe, preservarTexto),
-    preambulo: retiraCaracteresDesnecessarios(preambulo),
+    preambulo: textoPreambulo ? buildDispositivoPreambulo(textoPreambulo, preservarTexto) : undefined,
   };
 };
 
@@ -302,6 +311,17 @@ const buildDispositivoEmenta = (texto: string, textoArticulacao: string, preserv
   dispositivo.texto = preservarTexto ? texto : substituiAspasRetasPorCurvas(texto);
   dispositivo.rotulo = '';
   dispositivo.id = 'ementa';
+
+  return dispositivo;
+};
+
+const buildDispositivoPreambulo = (texto: string, preservarTexto: boolean): Dispositivo => {
+  const dispositivo = criaDispositivo(createArticulacao(), 'Preambulo');
+  dispositivo.pai = undefined;
+  dispositivo.texto = preservarTexto ? texto : substituiAspasRetasPorCurvas(texto);
+  dispositivo.rotulo = '';
+  dispositivo.id = 'preambulo';
+  dispositivo.bloqueado = true;
 
   return dispositivo;
 };

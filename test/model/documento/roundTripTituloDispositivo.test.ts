@@ -27,7 +27,7 @@ describe('Round-trip save→load do título de dispositivo', () => {
       (artigo as any).tituloDispositivo = '<i>Plano</i> <u>Especial</u> H<sub>2</sub>O m<sup>2</sup>';
       (artigo.caput as any).texto = 'Texto do artigo.';
 
-      const projetoNorma = { classificacao: 'projeto', epigrafe: { texto: '' }, ementa: { texto: '' }, preambulo: { texto: '' }, articulacao };
+      const projetoNorma = { classificacao: 'projeto', epigrafe: { texto: '' }, ementa: { texto: '' }, preambulo: { texto: '' } as any, articulacao };
       const titulos: Record<string, string> = {};
       let pai: Dispositivo = artigo.caput!;
       tipos.forEach(tipo => {
@@ -61,7 +61,7 @@ describe('Round-trip save→load do título de dispositivo', () => {
       (art1 as any).tituloDispositivo = '';
       (art2 as any).tituloDispositivo = '<i> </i>&nbsp;';
 
-      const projetoNorma = { classificacao: 'projeto', epigrafe: { texto: '' }, ementa: { texto: '' }, preambulo: { texto: '' }, articulacao };
+      const projetoNorma = { classificacao: 'projeto', epigrafe: { texto: '' }, ementa: { texto: '' }, preambulo: { texto: '' } as any, articulacao };
       const jsonix = buildJsonixFromProjetoNorma(projetoNorma as any, URN);
       const artigos = JSON.stringify(jsonix);
 

@@ -205,7 +205,7 @@ describe('Remissão para o caput em ações que recriam o artigo', () => {
       classificacao: ClassificacaoDocumento.NORMA,
       epigrafe: { texto: 'TESTE' },
       ementa: { texto: 'Ementa' } as any,
-      preambulo: { texto: '' },
+      preambulo: { texto: '' } as any,
       articulacao: result.articulacao!,
     };
     const jsonix = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste', registroCompleto);

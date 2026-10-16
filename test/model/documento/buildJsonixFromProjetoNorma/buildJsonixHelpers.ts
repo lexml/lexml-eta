@@ -97,7 +97,7 @@ export function createProjetoNormaBasico(): any {
     classificacao: 'norma',
     epigrafe: { texto: 'LEI Nº 12.345' },
     ementa: { texto: 'Ementa da lei' },
-    preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' },
+    preambulo: { texto: 'O CONGRESSO NACIONAL decreta:' } as any,
     articulacao: createArticulacao(),
   };
 }
