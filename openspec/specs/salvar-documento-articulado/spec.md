@@ -154,7 +154,7 @@ Ao salvar, o sistema SHALL registrar nos metadados do LexEdit o local do fecho e
 - **THEN** o arquivo salvo registra o local "Sala da comissão"
 
 #### Scenario: Local derivado após mudança de destino
-- **WHEN** o usuário abre um documento cujo local registrado é "Sala da comissão", altera o destino exibido após a abertura (ex.: para "Plenário via Comissão") e salva
+- **WHEN** o usuário abre um documento cujo local registrado é "Sala da comissão", altera o destino exibido após a abertura (ex.: para "Plenário") e salva
 - **THEN** o arquivo salvo registra o local "Sala das sessões"
 
 ### Requirement: Representação textual do local e da data do fecho
