@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture derivada de docs/extensao-formato-lexml/13-outros-metadados-do-lexedit.md (situação na norma vigente) -->
+<lexedit:Metadado xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
+  <lexedit:SituacaoNaNormaVigente
+      refIdsDispositivosExistentes='art1_cpt_alt1_art5 art1_cpt_alt1_art5_par1'
+      refIdsDispositivosNovos='art1_cpt_alt1_art5-1'/>
+</lexedit:Metadado>
