@@ -38,6 +38,8 @@ export interface DadosLexEdit {
   opcoesImpressao?: OpcoesImpressao;
   // Calculadas pelo editor ao salvar; nunca preenchidas pela leitura, pois são recalculadas ao abrir.
   pendencias?: string[];
+  // HTML do editor; vai para ProjetoNorma/Justificacao (LexML), não para `lexedit`, e não é lido por lerMetadadoLexEdit.
+  justificacao?: string;
 }
 
 export interface ElementoMetadadoLexEdit {

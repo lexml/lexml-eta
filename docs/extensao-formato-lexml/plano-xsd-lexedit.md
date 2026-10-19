@@ -41,7 +41,7 @@ Levantamento feito lendo os 13 arquivos de especificação. Coluna "Status" indi
 | `03` | `lexedit:Metadado/@local`, `@data` | **Implementado** (+ `ParteFinal/LocalDataFecho` no LexML) |
 | `04` | `lexedit:Autoria` > `lexedit:Parlamentares`/`lexedit:Parlamentar` ou `lexedit:ColegiadoAutor` | Não implementado |
 | `05` | `lexedit:Anexos` > `lexedit:Anexo` | Não implementado |
-| `06` | `Justificacao`/`PartePrincipal` (namespace LexML, fora do escopo do XSD lexedit) | Parcial (verificar) |
+| `06` | `Justificacao`/`PartePrincipal` (namespace LexML, fora do escopo do XSD lexedit) | **Implementado** (#991; sem notas de rodapé e revisões, e largura de tabela/coluna não volta ao editor) |
 | `07` | `NotaDeRodape` (namespace LexML, fora do escopo do XSD lexedit) | Não implementado |
 | `08` | `lexedit:Comentarios` > `lexedit:SequenciaComentario` > `lexedit:Comentario` | Não implementado |
 | `09` | `lexedit:RevisoesTextuais` > `lexedit:RevisaoTextual` (+ `ins`/`del` do LexML) | Não implementado |

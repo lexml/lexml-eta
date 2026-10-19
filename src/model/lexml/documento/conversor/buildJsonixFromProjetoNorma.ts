@@ -21,6 +21,7 @@ import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
 import { OpcoesImpressao } from '../../../proposicao/proposicao';
 import { formatarLocalDataFecho } from '../urnUtil';
+import { montaJustificacao } from './justificacao';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 
@@ -140,6 +141,8 @@ const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesEx
     articulacao: montaArticulacao(projetoNorma, remissoes, remissoesExternas),
     ...(parteFinal && { parteFinal }),
   };
+  const justificacao = montaJustificacao(dados?.justificacao);
+  if (justificacao) p['justificacao'] = [justificacao];
 
   return p;
 };

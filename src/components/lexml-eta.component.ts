@@ -27,6 +27,7 @@ import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativa
 import { StateEvent, StateType } from '../redux/state';
 import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 import { buildContent, getUrn, lerMetadadoLexEdit } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { lerJustificacao } from '../model/lexml/documento/conversor/justificacao';
 import { Comissao } from './destino/comissao';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
@@ -223,7 +224,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     // Anexo de parecer não tem fecho, como em removerDadosNaoAplicaveisAoAnexoParecer.
     const fecho = this.anexoParecer ? {} : { local: this.getLocalFecho(), data: normalizarDataFecho(this._lexmlData.data) };
     const pendencias = this.isJustificacaoNaoInformada(this._lexmlJustificativa.texto) ? [MENSAGEM_JUSTIFICACAO_NAO_INFORMADA] : [];
-    return this._lexmlEta!.getDocumentoArticulado({ ...fecho, opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao, pendencias });
+    const justificacao = this.anexoParecer ? undefined : this._lexmlJustificativa.texto;
+    return this._lexmlEta!.getDocumentoArticulado({ ...fecho, opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao, pendencias, justificacao });
   }
 
   /** Aceita o objeto Jsonix ou seu texto JSON e valida antes de alterar o editor. */
@@ -238,6 +240,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this._lexmlData.data = this.anexoParecer ? '' : dados.data ?? '';
     this.localDoArquivo = dados.local;
     this.destinoAoAbrir = { ...this._lexmlDestino!.colegiadoApreciador };
+    if (!this.anexoParecer) {
+      this._lexmlJustificativa.setContent(lerJustificacao(documento));
+      // setContent é silencioso: o alerta avaliado em inicializarEdicao refletiria o texto anterior.
+      this.buildAlertaJustificativa();
+    }
   }
 
   getProposicao(): Proposicao {

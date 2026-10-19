@@ -334,18 +334,120 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
     });
 
-    // Exceção temporária: a justificação ainda não é gravada no arquivo. Inverter na #991.
-    it('com a justificação preenchida, o documento reaberto difere só por ganhar a pendência', async () => {
+    it('com a justificação preenchida, salvar o documento reaberto gera o mesmo documento, sem a pendência', async () => {
       (component as any)._lexmlJustificativa.setContent('<p>Justificação.</p>');
       const salvo = component.getDocumentoArticulado();
       expect(lexeditSalvo(salvo)).to.not.have.property('pendencias');
 
       await component.abrirDocumentoArticulado(salvo);
-      const resalvo = component.getDocumentoArticulado();
 
-      expect(lexeditSalvo(resalvo).pendencias.pendencia).to.deep.equal([JUSTIFICACAO]);
-      Reflect.deleteProperty(lexeditSalvo(resalvo), 'pendencias');
-      expect(resalvo).to.deep.equal(salvo);
+      expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+    });
+  });
+
+  describe('justificação', () => {
+    const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    // Formato de `texto` (`align-*`), o que setContent espera. Sem largura de tabela e coluna, que não voltam ao abrir.
+    const COMPLETO =
+      '<p class="align-justify">Texto <strong>negrito</strong>, <em>itálico</em> e <a href="https://www.congressonacional.leg.br" rel="noopener noreferrer" target="_blank">site</a>.</p>' +
+      '<ul><li>um</li><li>dois</li></ul>' +
+      '<table table_id="t1" border="1"><tr row_id="r1">' +
+      '<td class="td-q" table_id="t1" row_id="r1" cell_id="c1"><p class="align-center">1</p><p>2</p></td>' +
+      '<td class="td-q" table_id="t1" row_id="r1" cell_id="c2" colspan="2" rowspan="1"><p>3 4</p></td>' +
+      '<td cell_id="c3" row_id="r1" table_id="t1" merge_id="c2"><p><br></p></td></tr></table>' +
+      `<img src="${PNG}" width="50%"><p>fim</p>`;
+
+    const editor = (): any => (component as any)._lexmlJustificativa;
+    // setContent não relê o Quill; updateApenasTexto devolve o HTML como o Quill o normalizou, como numa edição.
+    const carregar = (html: string): void => {
+      editor().setContent(html);
+      editor().updateApenasTexto();
+    };
+    const justificacaoSalva = (): any => component.getDocumentoArticulado().value.projetoNorma.justificacao;
+    const alertaExibido = (): boolean => rootStore.getState().elementoReducer.ui.alertas.some((a: any) => a.id === 'alerta-global-justificativa');
+
+    it('grava a justificação preenchida', () => {
+      carregar('<p>Justificação.</p>');
+      expect(justificacaoSalva()[0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento[0].value.content).to.deep.equal(['Justificação.']);
+    });
+
+    it('o documento já obtido não muda quando a justificação é alterada depois', () => {
+      carregar('<p>Antes.</p>');
+      const salvo = component.getDocumentoArticulado();
+      carregar('<p>Depois.</p>');
+      expect(salvo.value.projetoNorma.justificacao![0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento[0].value.content).to.deep.equal(['Antes.']);
+    });
+
+    it('não grava nem carrega a justificação no modo anexo de parecer', async () => {
+      carregar('<p>Justificação.</p>');
+      const comJustificacao = component.getDocumentoArticulado();
+      (component as any).anexoParecer = true;
+      expect(justificacaoSalva()).to.be.undefined;
+
+      const config = new LexmlEtaConfig();
+      config.anexoParecer = true;
+      component.lexmlEtaConfig = config;
+      carregar('');
+      await component.abrirDocumentoArticulado(comJustificacao);
+      expect(editor().texto).to.equal('');
+    });
+
+    it('abrir um documento com justificação carrega o texto e não exibe o alerta', async () => {
+      carregar('<p>Justificação.</p>');
+      const salvo = component.getDocumentoArticulado();
+      carregar('');
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(editor().texto).to.equal('<p>Justificação.</p>');
+      expect(editor().quill.getText().trim()).to.equal('Justificação.');
+      expect(alertaExibido()).to.be.false;
+    });
+
+    it('abrir um documento sem justificação esvazia o editor e exibe o alerta', async () => {
+      carregar('<p>Texto anterior.</p>');
+
+      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+      expect(editor().texto).to.equal('');
+      expect(alertaExibido()).to.be.true;
+    });
+
+    it('ida e volta com o Quill real: salvar o documento reaberto gera o mesmo documento', async () => {
+      carregar(COMPLETO);
+      const salvo = component.getDocumentoArticulado();
+      const blocos = salvo.value.projetoNorma.justificacao![0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento;
+      expect(blocos.map((b: any) => b.name.localPart)).to.deep.equal(['p', 'ul', 'table', 'p', 'p']);
+
+      expect(JSON.stringify(blocos[0])).to.include('"clazz":"align-justify"');
+      expect(JSON.stringify(blocos[2])).to.include('"clazz":"p align-center"');
+      expect(JSON.stringify(blocos[3])).to.include('"style":"width: 50%"');
+
+      await component.abrirDocumentoArticulado(salvo);
+      editor().updateApenasTexto();
+
+      expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+    });
+
+    // Exceção da spec: o plugin de tabelas não guarda largura, e o setContent a descarta.
+    it('a largura de tabela e coluna é gravada, mas não volta ao abrir', async () => {
+      carregar('<table table_id="t1" border="1" style="width:80%"><tr row_id="r1"><td class="td-q" table_id="t1" row_id="r1" cell_id="c1" width="40%"><p>1</p></td></tr></table>');
+      // carregar perde a largura; aplicada no DOM como faz o plugin ao mudar a largura.
+      const tabela = editor().quill.root.querySelector('table');
+      tabela.setAttribute('style', 'width:80%');
+      tabela.querySelector('td').setAttribute('width', '40%');
+      editor().updateApenasTexto();
+      const salvo = component.getDocumentoArticulado();
+      const gravada = salvo.value.projetoNorma.justificacao![0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento[0].value;
+      expect(gravada.style).to.equal('width: 80%');
+      expect(gravada.tr[0].tableCellElement[0].value.style).to.equal('width: 40%');
+
+      await component.abrirDocumentoArticulado(salvo);
+      editor().updateApenasTexto();
+
+      const reaberta = component.getDocumentoArticulado().value.projetoNorma.justificacao![0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento[0].value;
+      expect(reaberta.style).to.be.undefined;
+      expect(reaberta.tr[0].tableCellElement[0].value.style).to.be.undefined;
     });
   });
 });
