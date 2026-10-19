@@ -6,7 +6,7 @@ import { rootStore } from '../../redux/store';
 import { adicionarAlerta } from '../../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { TipoMensagem } from '../../model/lexml/util/mensagem';
-import { ColegiadoApreciador, RefProposicaoReduzida } from '../../model/proposicao/proposicao';
+import { ColegiadoApreciador, RefProposicaoReduzida, TIPOS_COLEGIADO } from '../../model/proposicao/proposicao';
 
 @customElement('lexml-eta-destino')
 export class DestinoComponent extends LitElement {
@@ -78,6 +78,8 @@ export class DestinoComponent extends LitElement {
   @property({ type: Object, state: true })
   set colegiadoApreciador(value: ColegiadoApreciador | undefined) {
     this._colegiadoApreciador = value ? value : new ColegiadoApreciador();
+    // Valor que o host ainda envie e o editor não reconhece (ex.: um tipo extinto) assume o padrão.
+    if (!(TIPOS_COLEGIADO as readonly string[]).includes(this._colegiadoApreciador.tipoColegiado)) this._colegiadoApreciador.tipoColegiado = 'Plenário';
     this.tipoColegiadoPlenario = this._colegiadoApreciador.tipoColegiado === 'Plenário';
     if (this.tipoColegiadoPlenario) {
       this.ajustarTipoColegiadoPlenario();
@@ -160,15 +162,6 @@ export class DestinoComponent extends LitElement {
               value="Comissão"
               ?disabled=${this.isMPV || this.isPlenario}
               >Comissão</sl-radio
-            >
-            <sl-radio
-              name="tipoColegiado"
-              @click=${(): void => this.updateTipoColegiado('Plenário via Comissão')}
-              @sl-change=${(evt: any): void => evt.target?.checked && this.updateTipoColegiado('Plenário via Comissão')}
-              ?checked=${this._colegiadoApreciador?.tipoColegiado === 'Plenário via Comissão'}
-              value="Plenário via Comissão"
-              ?disabled=${this.isMPV || this.isPlenario}
-              >Plenário via Comissão</sl-radio
             >
           </sl-radio-group>
         </div>

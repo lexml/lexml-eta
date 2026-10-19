@@ -8,7 +8,7 @@ import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil'
 import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getPreambuloPadrao, getTipo, getTipoDocumentoUrn } from '../urnUtil';
-import { Autoria, OpcoesImpressao, Parlamentar } from '../../../proposicao/proposicao';
+import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO } from '../../../proposicao/proposicao';
 import { DadosLexEdit, RevisaoArticulacaoLida } from '../documentoArticulado';
 import { SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
@@ -185,13 +185,30 @@ export const lerAutoria = (lido: any): Autoria | undefined => {
   return autoria;
 };
 
+// Atributo ausente ou fora da enumeração assume o padrão da classe, sem invalidar os demais (especificação 14).
+export const lerColegiadoApreciador = (lido: any): ColegiadoApreciador | undefined => {
+  if (!isObjeto(lido)) return undefined;
+  const colegiado = new ColegiadoApreciador();
+  if ((SIGLAS_CASA_COLEGIADO as readonly string[]).includes(lido.siglaCasaLegislativa)) colegiado.siglaCasaLegislativa = lido.siglaCasaLegislativa;
+  if ((TIPOS_COLEGIADO as readonly string[]).includes(lido.tipoColegiado)) colegiado.tipoColegiado = lido.tipoColegiado;
+  if (textoNaoVazio(lido.siglaComissao)) colegiado.siglaComissao = lido.siglaComissao;
+  return colegiado;
+};
+
 /** Lê os grupos de formulário de `MetadadoProprietario/lexedit:Metadado`, ignorando grupos desconhecidos. */
 export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const lexedit = lerConteudoLexEdit(documento);
   const opcoesImpressao = lerOpcoesImpressao(lexedit?.opcoesImpressao);
   const autoria = lerAutoria(lexedit?.autoria);
+  const colegiadoApreciador = lerColegiadoApreciador(lexedit?.colegiadoApreciador);
   const revisoesLidas = lerRevisoesArticulacao(lexedit);
-  return { ...lerFecho(lexedit), ...(opcoesImpressao && { opcoesImpressao }), ...(autoria && { autoria }), ...(revisoesLidas.length > 0 && { revisoesLidas }) };
+  return {
+    ...lerFecho(lexedit),
+    ...(opcoesImpressao && { opcoesImpressao }),
+    ...(autoria && { autoria }),
+    ...(colegiadoApreciador && { colegiadoApreciador }),
+    ...(revisoesLidas.length > 0 && { revisoesLidas }),
+  };
 };
 
 const OPERACOES_CONHECIDAS = ['adicionado', 'excluido', 'alterado', 'movido', 'transformado', 'alteracaoRotulo'];

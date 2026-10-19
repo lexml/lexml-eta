@@ -19,7 +19,7 @@ import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
-import { Autoria, OpcoesImpressao, tratamentoParlamentar } from '../../../proposicao/proposicao';
+import { Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
 import { formatarLocalDataFecho } from '../urnUtil';
 import { coletarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
@@ -69,6 +69,19 @@ const montaOpcoesImpressao = (opcoes: OpcoesImpressao): MetadadoLexEdit['opcoesI
   tamanhoFonte: opcoes.tamanhoFonte,
 });
 
+// Valor fora das enumerações do XSD assume o padrão da classe; a comissão só consta quando informada.
+const montaColegiadoApreciador = (colegiado?: ColegiadoApreciador): MetadadoLexEdit['colegiadoApreciador'] => {
+  if (!colegiado) return undefined;
+  const padrao = new ColegiadoApreciador();
+  const siglaComissao = colegiado.siglaComissao?.trim();
+  return {
+    TYPE_NAME: 'br_gov_lexml_lexedit__1.ColegiadoApreciador',
+    siglaCasaLegislativa: (SIGLAS_CASA_COLEGIADO as readonly string[]).includes(colegiado.siglaCasaLegislativa!) ? colegiado.siglaCasaLegislativa! : padrao.siglaCasaLegislativa!,
+    tipoColegiado: (TIPOS_COLEGIADO as readonly string[]).includes(colegiado.tipoColegiado) ? colegiado.tipoColegiado : padrao.tipoColegiado,
+    ...(siglaComissao && { siglaComissao }),
+  };
+};
+
 // Só os sete atributos do XSD: objetos vindos do host podem trazer campos extras.
 // Sem parlamentar identificado não há autoria, pois o XSD exige ao menos um Parlamentar.
 const montaAutoria = (autoria?: Autoria): MetadadoLexEdit['autoria'] => {
@@ -116,6 +129,8 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
   if (dados?.opcoesImpressao) lexedit.opcoesImpressao = montaOpcoesImpressao(dados.opcoesImpressao);
   const autoria = montaAutoria(dados?.autoria);
   if (autoria) lexedit.autoria = autoria;
+  const colegiadoApreciador = montaColegiadoApreciador(dados?.colegiadoApreciador);
+  if (colegiadoApreciador) lexedit.colegiadoApreciador = colegiadoApreciador;
   if (idsRemissoesInvalidas.length > 0) {
     lexedit.remissoesInternasInvalidas = { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idsRemissoesInvalidas.join(' ') };
     pendencias.push('Corrigir remissões internas inválidas.');
