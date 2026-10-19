@@ -55,7 +55,7 @@ O sistema SHALL gravar o destino da proposição em `lexedit:ColegiadoApreciador
 - **THEN** o `lexedit:ColegiadoApreciador` contém `tipoColegiado="Comissão"` e a `siglaComissao` escolhida
 
 ### Requirement: Novos grupos na ida e volta pelo conversor
-O conversor `jsonix-lexml` 2.0.0 SHALL converter para XML e de volta para JSON um documento com `lexedit:SituacaoNaNormaVigente` e `lexedit:ColegiadoApreciador` sem descartá-los, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`.
+O conversor `jsonix-lexml` 2.1.0 SHALL converter para XML e de volta para JSON um documento com `lexedit:SituacaoNaNormaVigente` e `lexedit:ColegiadoApreciador` sem descartá-los, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`.
 
 #### Scenario: Ida e volta preserva situação e destino
 - **WHEN** um documento com bloco de alteração (dispositivos existentes e novos) e destino Comissão é salvo, convertido em XML, convertido de volta em JSON e aberto

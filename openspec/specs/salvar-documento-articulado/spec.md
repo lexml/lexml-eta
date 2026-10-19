@@ -226,7 +226,7 @@ Ao salvar, o sistema SHALL gerar em `ParteFinal`, depois de `LocalDataFecho`, um
 - **THEN** `ParteFinal` contém primeiro `LocalDataFecho` e depois os dois `AssinaturaTexto`, na ordem dos parlamentares
 
 #### Scenario: Validação pelo esquema LexML
-- **WHEN** o documento salvo com autoria de parlamentares é convertido em XML pelo conversor `jsonix-lexml` 2.0.0
+- **WHEN** o documento salvo com autoria de parlamentares é convertido em XML pelo conversor `jsonix-lexml` 2.1.0
 - **THEN** o XML é válido perante o esquema LexML e o esquema do LexEdit, e a conversão de volta para JSON reproduz a mesma autoria e a mesma `ParteFinal`
 
 ### Requirement: Autoria no modo anexo de parecer

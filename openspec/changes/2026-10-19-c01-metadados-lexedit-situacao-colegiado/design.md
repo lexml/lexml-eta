@@ -13,7 +13,7 @@ Estado observado:
 ## Goals / Non-Goals
 
 **Goals:**
-- Salvar e abrir `SituacaoNaNormaVigente` e `ColegiadoApreciador` com ida e volta idêntica pelo conversor `jsonix-lexml` 2.0.0.
+- Salvar e abrir `SituacaoNaNormaVigente` e `ColegiadoApreciador` com ida e volta idêntica pelo conversor `jsonix-lexml` 2.1.0.
 - Retirar `substitutivo` do formato e prever `urnDocumentoReferenciado` só no esquema.
 
 **Non-Goals:**
