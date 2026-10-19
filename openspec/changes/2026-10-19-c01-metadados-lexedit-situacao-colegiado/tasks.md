@@ -22,10 +22,10 @@
 
 ## 4. Integração e E2E
 
-- [ ] 4.1 Estender a suíte de integração `documentoArticulado.integration.ts` com os novos grupos (ida e volta pelo CLI real, validação com `lexedit.xsd`); verificar com `npm run test:documento-articulado:xml`
-- [ ] 4.2 Criar fixture `demo/doc/` via `criarDocumentoArticulado` (com bloco de alteração, dispositivos existentes e novos, destino Comissão) e o spec Cypress `cypress/e2e/documento-articulado/abertura-situacao-e-destino.cy.ts` abrindo pela UI (consultar `docs/guia-cypress.md`: shadow DOM, `sl-select`/rádios do destino, marcação "Existente/Novo"); verificar com `npm run cy:run:local -- --spec ...`. Se o diálogo de comissão se mostrar inviável no Cypress, registrar a decisão e cobrir o destino por teste de componente
-- [ ] 4.3 Rodar a suíte completa (`npm test`) e `npm run lint`; verificar que nada regride
+- [x] 4.1 Estender a suíte de integração `documentoArticulado.integration.ts` com os novos grupos (ida e volta pelo CLI real, validação com `lexedit.xsd`); verificar com `npm run test:documento-articulado:xml`
+- [x] 4.2 Criar fixture `demo/doc/` via `criarDocumentoArticulado` (com bloco de alteração, dispositivos existentes e novos, destino Comissão) e o spec Cypress `cypress/e2e/documento-articulado/abertura-situacao-e-destino.cy.ts` abrindo pela UI (consultar `docs/guia-cypress.md`: shadow DOM, `sl-select`/rádios do destino, marcação "Existente/Novo"); verificar com `npm run cy:run:local -- --spec ...`. Se o diálogo de comissão se mostrar inviável no Cypress, registrar a decisão e cobrir o destino por teste de componente
+- [x] 4.3 Rodar a suíte completa (`npm test`) e `npm run lint`; verificar que nada regride
 
 ## 5. Documentação do projeto
 
-- [ ] 5.1 Registrar no `CLAUDE.md` (item 13) os dois grupos novos, a retirada de `substitutivo`, o `urnDocumentoReferenciado` previsto e a revisão do invariante (x); atualizar `docs/sessao/TODO.md`
+- [x] 5.1 Registrar no `CLAUDE.md` (item 13) os dois grupos novos, a retirada de `substitutivo`, o `urnDocumentoReferenciado` previsto e a revisão do invariante (x); atualizar `docs/sessao/TODO.md`
