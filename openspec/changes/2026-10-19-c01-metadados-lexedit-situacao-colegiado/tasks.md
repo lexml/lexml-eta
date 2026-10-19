@@ -8,10 +8,10 @@
 
 ## 2. Situação na norma vigente (salvar e abrir)
 
-- [ ] 2.1 Adicionar o tipo e o campo em `MetadadoLexEdit`/`DadosLexEdit` e o montador `montaSituacaoNaNormaVigente` (só dispositivos de alteração com situação definida; omite elemento e atributos vazios); teste unitário em `test/model/lexml/documento/` cobrindo existentes, novos, mistos, vazio e dispositivo fora de bloco de alteração
-- [ ] 2.2 Coletar os ids por varredura da articulação em `lexml-eta-proposicao.component.ts#getDocumentoArticulado`; teste unitário com articulação contendo bloco de alteração
-- [ ] 2.3 Implementar `lerSituacaoNaNormaVigente` (tolerante) e propagar as listas até `loadArticulacao.ts`, reaplicando `existeNaNormaAlterada` por id; testes unitários do leitor (lista vazia, id duplicado, id inexistente, tipo inesperado) e do carregamento (valor restaurado, sem elemento = comportamento atual)
-- [ ] 2.4 Ida e volta: teste de reducer/abertura que salva, reabre e salva de novo, comparando os arquivos por igualdade
+- [x] 2.1 Adicionar o tipo em `MetadadoLexEdit` e o montador `montaSituacaoNaNormaVigente` (só dispositivos de alteração com situação definida; omite elemento e atributos vazios); teste unitário em `test/model/lexml/documento/` cobrindo existentes, novos, mistos, vazio e dispositivo fora de bloco de alteração
+- [x] 2.2 Coletar os ids por varredura da articulação (`coletarSituacaoNaNormaVigente`, chamada pelo próprio montador, ver design D3); teste unitário com articulação contendo bloco de alteração
+- [x] 2.3 Implementar `lerSituacaoNaNormaVigente` (tolerante) e reaplicar `existeNaNormaAlterada` por id em `loadProjetoNorma`, antes do `openArticulacaoAction` (ver design D4); testes unitários do leitor (lista vazia, id duplicado, id inexistente, tipo inesperado) e do carregamento (valor restaurado, sem elemento = comportamento atual)
+- [x] 2.4 Ida e volta: teste de modelo que salva, reabre (leitura + aplicação) e salva de novo, comparando os arquivos por igualdade; a exibição do rótulo "Existente/Novo" na UI fica coberta pelo E2E da task 4.2
 
 ## 3. Colegiado apreciador (salvar e abrir)
 
