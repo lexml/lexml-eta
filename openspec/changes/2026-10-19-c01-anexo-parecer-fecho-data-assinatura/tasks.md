@@ -16,8 +16,8 @@
 
 ## 3. Teste E2E (Cypress)
 
-- [ ] 3.1 Avaliada a viabilidade à luz de `docs/guia-cypress.md`: é viável, porque o app de demonstração tem o checkbox "Anexo de parecer" (aplicado a `lexmlEtaConfig.anexoParecer` antes de abrir) e o `#fileUpload` abre arquivos pela UI. Criar o spec `cypress/e2e/documento-articulado/anexo-parecer-data-fecho.cy.ts`, com as fixtures de `demo/doc` geradas por `criarDocumentoArticulado`, cobrindo: (a) campo "Data" com "Não informar" por padrão e antes da opção de data; (b) no modo anexo, abrir arquivo com data e ver a data no campo; (c) no modo anexo, abas "Justificação" e "Notas" ausentes e bloco de data e autoria visível. Verificar com `npm run cy:run:local` passando no spec novo.
-- [ ] 3.2 Registrar no próprio spec que o salvar via download real do navegador não é coberto em E2E (sem precedente de infraestrutura de download no projeto) e que esse lado fica coberto pelos testes de componente da tarefa 2.2.
+- [x] 3.1 Avaliada a viabilidade à luz de `docs/guia-cypress.md`: é viável, porque o app de demonstração tem o checkbox "Anexo de parecer" (aplicado a `lexmlEtaConfig.anexoParecer` antes de abrir) e o `#fileUpload` abre arquivos pela UI. Criar o spec `cypress/e2e/documento-articulado/anexo-parecer-data-fecho.cy.ts`, com as fixtures de `demo/doc` geradas por `criarDocumentoArticulado`, cobrindo: (a) campo "Data" com "Não informar" por padrão e antes da opção de data; (b) no modo anexo, abrir arquivo com data e ver a data no campo; (c) no modo anexo, abas "Justificação" e "Notas" ausentes e bloco de data e autoria visível. Verificar com `npm run cy:run:local` passando no spec novo.
+- [x] 3.2 Registrar no próprio spec que o salvar via download real do navegador não é coberto em E2E (sem precedente de infraestrutura de download no projeto) e que esse lado fica coberto pelos testes de componente da tarefa 2.2.
 
 ## 4. Documentação
 
