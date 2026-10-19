@@ -29,6 +29,9 @@ Alternativa (b): não emitir `fix` no alerta quando a renumeração não é perm
 O validador passa a decidir `fix` com o mesmo critério de `podeRenumerar` (função compartilhada, sem duplicar a condição). Assim a invariante "alerta com correção ⇒ ação disponível" vale por construção, também para dispositivos filhos de alteração com `existeNaNormaAlterada = true` e rótulo pendente, que sofrem do mesmo conflito.
 O validador é puro e não recebe o `Elemento`; o critério será expresso sobre o `Dispositivo` (rótulo pendente, tipo, `existeNaNormaAlterada`), e `podeRenumerar` passa a chamá-lo.
 
+**D3. Viabilidade dos E2E (task 3.1).**
+Viáveis, com o mesmo padrão dos specs de `cypress/e2e/alteracao-norma/`: o cursor é posicionado na cabeça por `quill.setSelection` (o clique em "Corrigir agora" e o menu agem na linha do cursor), o diálogo é preenchido pelo valor do `sl-input` e confirmado pelo `onclick` do botão primário. O spec cobre o fluxo completo (alerta, diálogo, rótulo, ausência de erro) e a recusa da renumeração da cabeça já numerada pelo menu; falha sem a correção. O cenário "alerta sem Corrigir agora" não tem caminho na tela (o alerta só existe com rótulo pendente, que agora é sempre numerável), então fica coberto por teste unitário de validação.
+
 ## Risks / Trade-offs
 
 - [Liberar numeração de dispositivo existente na norma pode permitir rótulo incoerente] → só vale com rótulo pendente; a validação de rótulo inválido (zero à esquerda, formato) continua no reducer.

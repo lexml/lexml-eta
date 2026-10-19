@@ -11,9 +11,9 @@
 
 ## 3. Testes E2E (Cypress)
 
-- [ ] 3.1 Avaliar a viabilidade à luz de `docs/guia-cypress.md` (§3 race conditions, §4 menu dinâmico, §7 edição, §9 âncoras) e dos specs de `cypress/e2e/alteracao-norma/`; registrar a decisão em `design.md`. Se for inviável, propor teste de integração equivalente
-- [ ] 3.2 Spec E2E em `cypress/e2e/alteracao-norma/`: criar o artigo de alteração, acionar "Corrigir agora" no alerta de numeração da cabeça, informar o número e verificar o rótulo e a ausência do aviso de erro
-- [ ] 3.3 Spec E2E: dispositivo de alteração que não pode ser renumerado não exibe "Corrigir agora" no alerta
+- [x] 3.1 Avaliar a viabilidade à luz de `docs/guia-cypress.md` (§3 race conditions, §4 menu dinâmico, §7 edição, §9 âncoras) e dos specs de `cypress/e2e/alteracao-norma/`; registrar a decisão em `design.md`. Se for inviável, propor teste de integração equivalente
+- [x] 3.2 Spec E2E em `cypress/e2e/alteracao-norma/`: criar o artigo de alteração, acionar "Corrigir agora" no alerta de numeração da cabeça, informar o número e verificar o rótulo e a ausência do aviso de erro
+- [x] 3.3 Spec E2E: dispositivo de alteração que não pode ser renumerado não exibe "Corrigir agora" no alerta
 
 ## 4. Fechamento
 
