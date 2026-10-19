@@ -37,14 +37,30 @@ describe('Campo "Data" do documento', () => {
     });
   });
 
-  it('a proposição de documento novo não traz data (modo normal)', async () => {
-    const component = await novoComponente(false);
+  [false, true].forEach(anexoParecer => {
+    it(`a proposição de documento novo não traz data (anexoParecer=${anexoParecer})`, async () => {
+      const component = await novoComponente(anexoParecer);
+      const params = new LexmlEtaParametrosEdicao();
+      params.sigla = 'PL';
+
+      await component.inicializarEdicao(params);
+
+      expect(component.getProposicao().dataUltimaModificacao).to.equal(undefined);
+    });
+  });
+
+  it('no modo anexo de parecer a proposição traz a data escolhida e mantém local e autoria', async () => {
+    const component = await novoComponente(true);
     const params = new LexmlEtaParametrosEdicao();
     params.sigla = 'PL';
-
     await component.inicializarEdicao(params);
 
-    expect(component.getProposicao().dataUltimaModificacao).to.equal(undefined);
+    campoData(component).data = '2026-04-24';
+    const proposicao = component.getProposicao();
+
+    expect(proposicao.dataUltimaModificacao).to.equal('2026-04-24');
+    expect(proposicao.local).to.equal('Sala das sessões');
+    expect(!!proposicao.autoria).to.equal(true);
   });
 
   it('mantém a data de uma proposição recebida da aplicação consumidora', async () => {
