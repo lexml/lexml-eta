@@ -35,7 +35,7 @@ Este projeto utiliza três arquivos principais para gestão de contexto e contin
 
 ## docs/sessao/ — continuidade entre sessões
 
-`docs/` existe no projeto, mas é de uso pessoal do usuário — não é uma convenção que eu preciso seguir ou organizar, exceto pela pasta `docs/sessao/`, que segue os 3 arquivos de continuidade descritos acima (`TODO.md`, `HANDOFF_SUMMARY.md`, `NEXT_SESSION_HANDOFF_PROMPT.md`). `docs/` não é versionado no repositório principal — não por regra de `.gitignore` (não há nenhuma), mas por convenção de nunca dar `git add docs/`.
+`docs/` guarda a documentação do projeto (referência arquitetural, especificação do formato LexML-LexEdit em `docs/extensao-formato-lexml/`, guias). A pasta `docs/sessao/` segue os 3 arquivos de continuidade descritos acima (`TODO.md`, `HANDOFF_SUMMARY.md`, `NEXT_SESSION_HANDOFF_PROMPT.md`).
 
 A skill global `backup-docs` (`~/.claude/skills/backup-docs/SKILL.md`) sincroniza `docs/sessao/` (e o restante de `docs/`) para um repositório git dedicado e irmão deste projeto (`../bkp-ia/lexml-eta`), acionada dizendo algo como "backup dos docs". A skill `session-handoff` (também global) usa `docs/sessao/` para os arquivos de continuidade. Nenhuma das duas tem override local neste projeto.
 
