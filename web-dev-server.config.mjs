@@ -9,6 +9,9 @@ import path from 'path';
 
 const fileParlamentaresMock = path.resolve(process.cwd(), 'parlamentares.json');
 const fileComissoesMock = path.resolve(process.cwd(), 'comissoes.json');
+// Mock de GET /api/autocomplete-norma?query=: lê normas.json (poucas normas, filtra por nomePreferido, ementa e urn).
+// Mesmo formato do endpoint real, para copiar normas novas: https://legis.senado.gov.br/lexeditweb/resources/shared/autocomplete-norma?query=<texto>
+// O componente só consulta com 5 ou mais caracteres digitados (autocomplete-async).
 const fileNormasMock = path.resolve(process.cwd(), 'normas.json');
 
 async function mockApiMiddleware(context, next) {

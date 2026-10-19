@@ -22,10 +22,10 @@ O alerta "Numere o dispositivo" SHALL oferecer a ação "Corrigir agora" somente
 - **WHEN** um dispositivo exibe o alerta "Numere o dispositivo" com a ação "Corrigir agora" e o usuário aciona essa ação
 - **THEN** o diálogo de numeração é exibido
 
-#### Scenario: Dispositivo que não pode ser renumerado não oferece correção
-- **WHEN** um dispositivo de alteração marcado como existente na norma alterada, com rótulo informado, não pode ser renumerado
-- **THEN** o alerta de numeração, se exibido, não oferece "Corrigir agora"
+#### Scenario: Dispositivo existente na norma alterada pode ser renumerado
+- **WHEN** o usuário aciona "Numerar dispositivo" num dispositivo de alteração marcado como existente na norma alterada, com rótulo já informado
+- **THEN** o diálogo de numeração é exibido e o número informado passa a compor o rótulo
 
-#### Scenario: Renumeração indisponível por outro caminho
-- **WHEN** a ação de renumerar chega a um dispositivo que não pode ser renumerado sem passar pelo alerta (atalho de teclado ou menu)
+#### Scenario: Omissis não pode ser renumerado
+- **WHEN** a ação de renumerar chega a um omissis
 - **THEN** o sistema informa "Nessa situação, não é possível renumerar o dispositivo" e o rótulo permanece inalterado
