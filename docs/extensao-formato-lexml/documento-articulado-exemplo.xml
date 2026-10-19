@@ -11,9 +11,14 @@
           dataUltimaModificacao='2026-05-12T10:15:00-03:00'
           aplicacao='LexEdit'
           versaoAplicacao='1.0.0'
-          substitutivo='false'
+          urnDocumentoReferenciado='urn:lex:br:senado.federal:projeto.lei:888888;2020'
           local='Sala das Sessões'
           data='2026-04-24'>
+
+        <!-- Colegiado apreciador -->
+        <lexedit:ColegiadoApreciador
+            siglaCasaLegislativa='SF'
+            tipoColegiado='Plenário'/>
 
         <!-- Opções de impressão -->
         <lexedit:OpcoesImpressao

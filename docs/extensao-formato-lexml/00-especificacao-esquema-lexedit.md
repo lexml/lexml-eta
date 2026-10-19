@@ -78,6 +78,7 @@ Datas e horas devem ser serializadas em ISO 8601, utilizando os tipos xsd:date o
 | Revisão da hierarquia | [11-revisao-da-hierarquia.md](11-revisao-da-hierarquia.md) |
 | Registro de usuários | [12-registro-usuarios.md](12-registro-usuarios.md) |
 | Outros metadados do LexEdit | [13-outros-metadados-do-lexedit.md](13-outros-metadados-do-lexedit.md) |
+| Colegiado apreciador | [14-colegiado-apreciador.md](14-colegiado-apreciador.md) |
 | Exemplo completo | [99-exemplo-completo.md](99-exemplo-completo.md) |
 
 Cada arquivo descreve a necessidade informacional, a representação adotada e as decisões ainda necessárias para aquele grupo. As convenções deste documento aplicam-se a todos eles.
