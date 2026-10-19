@@ -1,5 +1,6 @@
 import { expect, fixture } from '@open-wc/testing';
-import { LexmlEtaComponent } from '../../../src';
+import '../../../src';
+import type { LexmlEtaComponent } from '../../../src';
 import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
 
 const tiposDasLinhas = (component: LexmlEtaComponent): (string | undefined)[] =>
