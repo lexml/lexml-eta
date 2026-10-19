@@ -5,9 +5,9 @@
 
 ## 2. Regra única de renumeração
 
-- [ ] 2.1 Extrair o critério de renumeração para uma função sobre o `Dispositivo` e usá-la em `podeRenumerar`, admitindo dispositivo de alteração com rótulo pendente; verificar com testes unitários: cabeça pendente (numerável), cabeça já numerada com `existeNaNormaAlterada` (não numerável), omissis (não numerável), dispositivo fora de alteração (inalterado)
-- [ ] 2.2 Usar o mesmo critério em `validaNumeracaoDispositivoAlteracao` para decidir `fix`; verificar com testes de validação: alerta com correção quando numerável, alerta sem `fix` quando não numerável
-- [ ] 2.3 Verificar que `renumeraElemento` aceita a cabeça pendente (rótulo atualizado, `id` e `id` do caput recalculados) e continua recusando número iniciado em zero em alteração; testes de reducer
+- [x] 2.1 Extrair o critério de renumeração para uma função sobre o `Dispositivo` e usá-la em `podeRenumerar`, admitindo dispositivo de alteração com rótulo pendente; verificar com testes unitários: cabeça pendente (numerável), cabeça já numerada com `existeNaNormaAlterada` (não numerável), omissis (não numerável), dispositivo fora de alteração (inalterado)
+- [x] 2.2 Usar o mesmo critério em `validaNumeracaoDispositivoAlteracao` para decidir `fix`; verificar com testes de validação: alerta com correção quando numerável, alerta sem `fix` quando não numerável
+- [x] 2.3 Verificar que `renumeraElemento` aceita a cabeça pendente (rótulo atualizado, `id` e `id` do caput recalculados) e continua recusando número iniciado em zero em alteração; testes de reducer
 
 ## 3. Testes E2E (Cypress)
 
