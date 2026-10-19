@@ -1,3 +1,7 @@
+## Purpose
+
+Definir o comportamento do editor no modo anexo de parecer: sem as abas de justificação e de notas de rodapé, mas com destino, data, autoria, impressão, fecho e assinaturas como no modo normal.
+
 ## ADDED Requirements
 
 ### Requirement: Justificação oculta e opcional no modo anexo de parecer
