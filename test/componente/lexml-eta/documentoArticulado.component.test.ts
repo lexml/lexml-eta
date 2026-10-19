@@ -217,6 +217,8 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       await component.abrirDocumentoArticulado(salvo);
       expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+      // Remover o componente antes de o sl-tab-group renderizar lança no ResizeObserver do Shoelace.
+      await (component.querySelector('sl-tab-group') as any).updateComplete;
     });
 
     it('sem data no arquivo seleciona "Não informar"', async () => {
