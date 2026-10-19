@@ -55,6 +55,19 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(lerIdsRemissoesInvalidas(retorno.jsonix)).to.deep.equal([idPersistido]);
   });
 
+  it('pendência de justificação e de remissão vão e voltam pelo CLI, na ordem', async () => {
+    const { salvo } = documentoComRemissaoInvalida({ pendencias: ['Não foi informado um texto de justificação.'] });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include(
+      '<lexedit:Pendencias><lexedit:Pendencia>Não foi informado um texto de justificação.</lexedit:Pendencia><lexedit:Pendencia>Corrigir remissões internas inválidas.</lexedit:Pendencia></lexedit:Pendencias>'
+    );
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(lerMetadadoLexEdit(retorno.jsonix)).to.not.have.property('pendencias');
+  });
+
   it('valida e reabre um documento com opções de impressão', async () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const opcoesImpressao = { imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 16 };

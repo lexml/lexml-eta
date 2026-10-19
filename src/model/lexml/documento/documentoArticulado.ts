@@ -36,6 +36,8 @@ export interface DadosLexEdit {
   // 'AAAA-MM-DD'; ausente ou vazia significa data não informada.
   data?: string;
   opcoesImpressao?: OpcoesImpressao;
+  // Calculadas pelo editor ao salvar; nunca preenchidas pela leitura, pois são recalculadas ao abrir.
+  pendencias?: string[];
 }
 
 export interface ElementoMetadadoLexEdit {

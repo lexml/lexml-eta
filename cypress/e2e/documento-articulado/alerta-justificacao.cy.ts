@@ -4,6 +4,9 @@
  * Cobre, pela UI real, a change 2026-10-08-c01-alerta-justificacao-inexistente (issue #1011).
  */
 
+// Módulo, não script: evita colisão de constantes entre specs.
+export {};
+
 const MENSAGEM_JUSTIFICACAO = 'Não foi informado um texto de justificação.';
 
 // Lê o shadow root inteiro: sem alertas não há nenhum sl-alert para o find.

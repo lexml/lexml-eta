@@ -70,7 +70,8 @@ const montaOpcoesImpressao = (opcoes: OpcoesImpressao): MetadadoLexEdit['opcoesI
 // Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
 const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[]): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
-  const pendencias: string[] = [];
+  // As do editor vêm antes da de remissões, como na especificação 13.
+  const pendencias: string[] = [...(dados?.pendencias ?? [])];
   // Sem local não há fecho; data não informada é omitida, pois xsd:date não aceita texto vazio.
   if (dados?.local) {
     lexedit.local = dados.local;

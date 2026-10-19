@@ -48,7 +48,7 @@ Levantamento feito lendo os 13 arquivos de especificação. Coluna "Status" indi
 | `10` | `lexedit:RemissoesInternasInvalidas` (+ `Remissao` do LexML) | **Implementado** |
 | `11` | `lexedit:RevisoesArticulacao` > `lexedit:RevisaoArticulacao` | Não implementado |
 | `12` | `lexedit:Usuarios` > `lexedit:Usuario` | Não implementado |
-| `13` | `lexedit:Metadado/@dataUltimaModificacao`, `@aplicacao`, `@versaoAplicacao`, `@substitutivo`, `@anexoParecer`; `lexedit:Pendencias` > `lexedit:Pendencia` | Parcial (`Pendencias` implementado) |
+| `13` | `lexedit:Metadado/@dataUltimaModificacao`, `@aplicacao`, `@versaoAplicacao`, `@substitutivo`, `@anexoParecer`; `lexedit:Pendencias` > `lexedit:Pendencia` | Parcial (`Pendencias` implementado, com as pendências de justificação não informada e de remissões internas inválidas) |
 
 O XSD cobre todos os grupos acima, incluindo os ainda não implementados em código — os elementos/atributos do namespace LexML citados como dependência (`Justificacao`, `NotaDeRodape`, `ins`/`del`, `Remissao`, dispositivos da articulação) já pertencem ao esquema LexML oficial e não são redefinidos aqui.
 

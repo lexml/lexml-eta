@@ -81,6 +81,9 @@ export class LexmlEtaParametrosEdicao {
   casaLegislativa?: TipoCasaLegislativa;
 }
 
+// Mesmo texto no alerta, na pendência de preenchimento e na pendência gravada ao salvar.
+const MENSAGEM_JUSTIFICACAO_NAO_INFORMADA = 'Não foi informado um texto de justificação.';
+
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Number }) totalAlertas = 0;
@@ -219,7 +222,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     if (!this.urn) throw new Error('Inicialize um documento antes de salvar.');
     // Anexo de parecer não tem fecho, como em removerDadosNaoAplicaveisAoAnexoParecer.
     const fecho = this.anexoParecer ? {} : { local: this.getLocalFecho(), data: normalizarDataFecho(this._lexmlData.data) };
-    return this._lexmlEta!.getDocumentoArticulado({ ...fecho, opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao });
+    const pendencias = this.isJustificacaoNaoInformada(this._lexmlJustificativa.texto) ? [MENSAGEM_JUSTIFICACAO_NAO_INFORMADA] : [];
+    return this._lexmlEta!.getDocumentoArticulado({ ...fecho, opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao, pendencias });
   }
 
   /** Aceita o objeto Jsonix ou seu texto JSON e valida antes de alterar o editor. */
@@ -296,7 +300,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     // Verifica preenchimento da justificação
     if (this.isJustificacaoNaoInformada(proposicao.justificativa)) {
-      pendenciasPreenchimento.push('Não foi informado um texto de justificação.');
+      pendenciasPreenchimento.push(MENSAGEM_JUSTIFICACAO_NAO_INFORMADA);
     }
 
     const messagesCritical = rootStore.getState().elementoReducer.mensagensCritical;
@@ -696,7 +700,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const alerta = {
       id: 'alerta-global-justificativa',
       tipo: TipoMensagem.CRITICAL,
-      mensagem: 'Não foi informado um texto de justificação.',
+      mensagem: MENSAGEM_JUSTIFICACAO_NAO_INFORMADA,
       podeFechar: false,
     };
     rootStore.dispatch(adicionarAlerta(alerta));

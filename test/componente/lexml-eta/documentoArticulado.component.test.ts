@@ -1,5 +1,5 @@
 import { expect, fixture } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaParametrosEdicao } from '../../../src';
+import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
 import { DOCUMENTO_PADRAO } from '../../../src/model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../../../src/redux/store';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
@@ -13,6 +13,8 @@ import {
   TEXTO_LITERAL,
   TYPE_NAME_OPCOES_IMPRESSAO,
 } from '../../doc/documentoArticulado';
+
+const JUSTIFICACAO = 'Não foi informado um texto de justificação.';
 
 describe('ETA — salvar e abrir documento articulado', () => {
   let component: LexmlEtaComponent;
@@ -283,8 +285,67 @@ describe('ETA — salvar e abrir documento articulado', () => {
         data: '2026-04-24',
         opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...OPCOES },
         remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idRemissao },
-        pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: ['Corrigir remissões internas inválidas.'] },
+        pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: [JUSTIFICACAO, 'Corrigir remissões internas inválidas.'] },
       });
+    });
+  });
+
+  describe('pendência de justificação não informada — salvar', () => {
+    const pendenciasSalvas = (): string[] => lexeditSalvo(component.getDocumentoArticulado()).pendencias?.pendencia ?? [];
+
+    it('grava a pendência quando a justificação está vazia', () => {
+      expect(pendenciasSalvas()).to.deep.equal([JUSTIFICACAO]);
+    });
+
+    it('não grava a pendência quando a justificação tem texto', () => {
+      (component as any)._lexmlJustificativa.setContent('<p>Justificação.</p>');
+      expect(pendenciasSalvas()).to.not.include(JUSTIFICACAO);
+    });
+
+    it('não grava a pendência no modo anexo de parecer', () => {
+      (component as any).anexoParecer = true;
+      expect(pendenciasSalvas()).to.not.include(JUSTIFICACAO);
+    });
+
+    it('não grava a pendência com a obrigatoriedade desligada na configuração', () => {
+      const config = new LexmlEtaConfig();
+      config.justificacaoObrigatoria = false;
+      component.lexmlEtaConfig = config;
+      expect(pendenciasSalvas()).to.not.include(JUSTIFICACAO);
+    });
+
+    it('recalcula a pendência ao salvar, sem usar a gravada no arquivo', async () => {
+      const salvo = component.getDocumentoArticulado();
+      expect(lexeditSalvo(salvo).pendencias.pendencia).to.deep.equal([JUSTIFICACAO]);
+
+      await component.abrirDocumentoArticulado(salvo);
+      (component as any)._lexmlJustificativa.setContent('<p>Justificação.</p>');
+
+      expect(lexeditSalvo(component.getDocumentoArticulado())).to.not.have.property('pendencias');
+    });
+  });
+
+  describe('pendência de justificação não informada — ida e volta', () => {
+    it('com a justificação vazia, salvar o documento reaberto gera os mesmos metadados', async () => {
+      const salvo = component.getDocumentoArticulado();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+    });
+
+    // Exceção temporária: a justificação ainda não é gravada no arquivo. Inverter na #991.
+    it('com a justificação preenchida, o documento reaberto difere só por ganhar a pendência', async () => {
+      (component as any)._lexmlJustificativa.setContent('<p>Justificação.</p>');
+      const salvo = component.getDocumentoArticulado();
+      expect(lexeditSalvo(salvo)).to.not.have.property('pendencias');
+
+      await component.abrirDocumentoArticulado(salvo);
+      const resalvo = component.getDocumentoArticulado();
+
+      expect(lexeditSalvo(resalvo).pendencias.pendencia).to.deep.equal([JUSTIFICACAO]);
+      Reflect.deleteProperty(lexeditSalvo(resalvo), 'pendencias');
+      expect(resalvo).to.deep.equal(salvo);
     });
   });
 });
