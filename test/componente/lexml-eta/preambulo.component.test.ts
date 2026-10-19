@@ -1,5 +1,7 @@
 import { expect, fixture } from '@open-wc/testing';
-import { LexmlEtaComponent } from '../../../src';
+// Import de efeito colateral: sem ele o TypeScript remove o import (só de tipo) e <lexml-eta> e seus filhos não são registrados.
+import '../../../src';
+import type { LexmlEtaComponent } from '../../../src';
 import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
 
 const tiposDasLinhas = (component: LexmlEtaComponent): (string | undefined)[] =>
