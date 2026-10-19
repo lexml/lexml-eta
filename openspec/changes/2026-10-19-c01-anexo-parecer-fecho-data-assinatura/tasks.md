@@ -21,8 +21,8 @@
 
 ## 4. Documentação
 
-- [ ] 4.1 Atualizar `docs/api-componente-lexml-eta.md`: a descrição de `anexoParecer` (seção 5), os campos removidos de `getProposicao()` no anexo (seção 4.2) e o padrão do campo "Data"; verificar relendo as seções contra o código final.
-- [ ] 4.2 Rodar `openspec validate 2026-10-19-c01-anexo-parecer-fecho-data-assinatura` e confirmar que passa.
+- [x] 4.1 Atualizar `docs/api-componente-lexml-eta.md`: a descrição de `anexoParecer` (seção 5), os campos removidos de `getProposicao()` no anexo (seção 4.2) e o padrão do campo "Data"; verificar relendo as seções contra o código final.
+- [x] 4.2 Rodar `openspec validate 2026-10-19-c01-anexo-parecer-fecho-data-assinatura` e confirmar que passa.
 
 ## Workflow follow-up
 
