@@ -24,6 +24,11 @@ Ao abrir um documento, o sistema SHALL preencher o formulário de destino com o 
 - **WHEN** o usuário abre um arquivo com `ColegiadoApreciador` de `tipoColegiado="Comissão"` e uma `siglaComissao`
 - **THEN** o formulário de destino exibe Comissão e a comissão informada
 
+#### Scenario: Arquivo sem ColegiadoApreciador
+- **WHEN** o usuário abre um arquivo que não contém `lexedit:ColegiadoApreciador` (inclusive um salvo antes desta versão)
+- **THEN** o documento abre sem erro e o formulário de destino exibe Plenário
+- **AND** ao salvar, o arquivo registra `tipoColegiado="Plenário"`
+
 #### Scenario: Local preservado com destino igual
 - **WHEN** o usuário abre um arquivo com destino Plenário e local "Sala das Sessões", sem alterar o destino, e salva
 - **THEN** o local gravado continua "Sala das Sessões"

@@ -15,10 +15,10 @@
 
 ## 3. Colegiado apreciador (salvar e abrir)
 
-- [ ] 3.0 Remover "Plenário via Comissão": tipo em `proposicao.ts`, rádio e ramos relacionados em `destino.component.ts`, `docs/api-componente-lexml-eta.md` e o teste em `documentoArticulado.component.test.ts`; verificar com `grep -rn "via Comissão" src test docs/api-componente-lexml-eta.md` sem resultados, `npm run build` e teste de componente do destino (valor desconhecido cai em `Plenário`)
-- [ ] 3.1 Adicionar o campo em `DadosLexEdit`, o montador `montaColegiadoApreciador` e o leitor `lerColegiadoApreciador` (padrão da classe para atributo ausente ou inválido); testes unitários de montador e leitor, inclusive `siglaComissao` ausente e `tipoColegiado` inválido
-- [ ] 3.2 Coletar o destino em `lexml-eta.component.ts#getDocumentoArticulado` (omitido no anexo de parecer) e aplicá-lo ao abrir depois de `inicializarEdicao`, mantendo a casa do host; atualizar `destinoAoAbrir` depois da aplicação; teste de componente cobrindo destino Plenário, Comissão e o invariante do local do fecho (igual preserva, alterado deriva)
-- [ ] 3.3 Compor ambos os grupos em `montaMetadadoLexEdit`/`lerMetadadoLexEdit` e confirmar que a ausência dos grupos mantém a saída atual; teste unitário de composição
+- [x] 3.0 Remover "Plenário via Comissão": tipo em `proposicao.ts`, rádio e ramos relacionados em `destino.component.ts`, `docs/api-componente-lexml-eta.md` e o teste em `documentoArticulado.component.test.ts`; verificar com `grep -rn "via Comissão" src test docs/api-componente-lexml-eta.md` sem resultados, `npm run build` e teste de componente do destino (valor desconhecido cai em `Plenário`)
+- [x] 3.1 Adicionar o campo em `DadosLexEdit`, o montador `montaColegiadoApreciador` e o leitor `lerColegiadoApreciador` (padrão da classe para atributo ausente ou inválido); testes unitários de montador e leitor, inclusive `siglaComissao` ausente e `tipoColegiado` inválido
+- [x] 3.2 Coletar o destino em `lexml-eta.component.ts#getDocumentoArticulado` (omitido no anexo de parecer) e aplicá-lo ao abrir depois de `inicializarEdicao`, mantendo a casa do host; atualizar `destinoAoAbrir` depois da aplicação; teste de componente cobrindo destino Plenário, Comissão e o invariante do local do fecho (igual preserva, alterado deriva)
+- [x] 3.3 Compor ambos os grupos em `montaMetadadoLexEdit`/`lerMetadadoLexEdit` e confirmar que a ausência dos grupos mantém a saída atual; teste unitário de composição
 
 ## 4. Integração e E2E
 
