@@ -50,7 +50,8 @@ export function NumeracaoParagrafo<TBase extends Constructor>(Base: TBase): any 
       } else if (!isNumeracaoValida(this.numero)) {
         this.rotulo = this.getNumeroAndSufixoNumeracao(dispositivo);
       } else if (dispositivo.isDispositivoAlteracao) {
-        if (isDispositivoNovoNaNormaAlterada(dispositivo)) {
+        // Só os filhos de dispositivo novo têm numeração automática; o primeiro nível segue o número informado
+        if (dispositivo.pai && isDispositivoNovoNaNormaAlterada(dispositivo.pai)) {
           this.informouParagrafoUnico = isParagrafoUnico(dispositivo);
           this.informouParagrafoUnico
             ? (this.rotulo = this.PARAGRAFO_UNICO)

@@ -51,6 +51,22 @@ const adicionarTituloT = (numeroArtigo: number, texto: string): void => {
   confirmarDialogoT();
 };
 
+const SEL_POPUP_DIFERENCAS_T = '#slDialogExibirDiferencas';
+const SEL_CARDS_DIFERENCAS_T = `${SEL_POPUP_DIFERENCAS_T} sl-tab-panel[name="modificadoRevisao"] sl-card`;
+
+const abrirPopupDiferencasT = (numeroArtigo: number): void => {
+  cy.getContainerArtigoByNumero(numeroArtigo).find('[id^="buttonExibirDiferencas"]').click({ force: true });
+  cy.get(SEL_CARDS_DIFERENCAS_T).should('have.length', 3);
+};
+
+// Índice do card: 0 = antes da revisão, 1 = diferença, 2 = atual.
+const cardDoPopupT = (indice: number): Cypress.Chainable<JQuery<HTMLElement>> => cy.get(SEL_CARDS_DIFERENCAS_T).eq(indice);
+
+const fecharPopupDiferencasT = (): void => {
+  cy.get(`${SEL_POPUP_DIFERENCAS_T} sl-button`).click({ force: true });
+  cy.get(SEL_POPUP_DIFERENCAS_T).should('not.exist');
+};
+
 describe('Título de dispositivo', () => {
   beforeEach(() => {
     cy.visit('/');
@@ -239,6 +255,154 @@ describe('Título de dispositivo - revisão', () => {
 
     tituloDoArtigoT(1).should('have.text', 'Do objeto');
     cy.get('@contadorRevisaoTitulo').contains('0');
+  });
+
+  // Aceitar a adição deixa o título já "original" para os testes de edição e remoção.
+  const adicionarEAceitarTituloT = (texto: string): void => {
+    adicionarTituloT(1, texto);
+    cy.get('@contadorRevisaoTitulo').contains('1');
+    cy.get('[id^="buttonRevisaoAceitar"]').first().click({ force: true });
+    cy.get('@contadorRevisaoTitulo').contains('0');
+    tituloDoArtigoT(1).should('have.text', texto);
+  };
+
+  it('editar o título gera revisão e a rejeição restaura o título anterior', () => {
+    adicionarEAceitarTituloT('Do objeto');
+
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Editar título');
+    digitarNoDialogoT('Da finalidade');
+    confirmarDialogoT();
+    tituloDoArtigoT(1).should('have.text', 'Da finalidade');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    cy.get('[id^="buttonRevisaoRecusar"]').first().click({ force: true });
+
+    tituloDoArtigoT(1).should('have.text', 'Do objeto');
+    cy.get('@contadorRevisaoTitulo').contains('0');
+  });
+
+  it('remover o título gera revisão e a rejeição devolve o título', () => {
+    adicionarEAceitarTituloT('Do objeto');
+
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Remover título');
+    cy.getContainerArtigoByNumero(1).find(SEL_TITULO_T).should('not.exist');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    cy.get('[id^="buttonRevisaoRecusar"]').first().click({ force: true });
+
+    tituloDoArtigoT(1).should('have.text', 'Do objeto');
+    cy.get('@contadorRevisaoTitulo').contains('0');
+  });
+
+  it('desfazer a rejeição devolve o título alterado e a revisão', () => {
+    adicionarTituloT(1, 'Do objeto');
+    cy.get('[id^="buttonRevisaoRecusar"]').first().click({ force: true });
+    cy.getContainerArtigoByNumero(1).find(SEL_TITULO_T).should('not.exist');
+    cy.get('@contadorRevisaoTitulo').contains('0');
+
+    cy.get('.lx-eta-btn-desfazer').click();
+
+    tituloDoArtigoT(1).should('have.text', 'Do objeto');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+  });
+
+  it('adicionar, editar e remover o título mantém uma só revisão até voltar ao original', () => {
+    adicionarTituloT(1, 'Do objeto');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Editar título');
+    digitarNoDialogoT('Da finalidade');
+    confirmarDialogoT();
+    tituloDoArtigoT(1).should('have.text', 'Da finalidade');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Remover título');
+    cy.getContainerArtigoByNumero(1).find(SEL_TITULO_T).should('not.exist');
+    cy.get('@contadorRevisaoTitulo').contains('0');
+  });
+
+  it('o popup de diferenças mostra o título anterior, o atual e a comparação quando o título é alterado', () => {
+    adicionarEAceitarTituloT('Do objeto');
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Editar título');
+    digitarNoDialogoT('Da finalidade');
+    confirmarDialogoT();
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    abrirPopupDiferencasT(1);
+
+    cardDoPopupT(0).find('.titulo-diff').should('have.text', 'Do objeto');
+    cardDoPopupT(2).find('.titulo-diff').should('have.text', 'Da finalidade');
+    cardDoPopupT(1).find('.titulo-diff del').should('exist');
+    cardDoPopupT(1).find('.titulo-diff ins').should('exist');
+    fecharPopupDiferencasT();
+  });
+
+  it('o popup de diferenças mostra "Sem título" no card anterior quando o título é adicionado', () => {
+    adicionarTituloT(1, 'Do objeto');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    abrirPopupDiferencasT(1);
+
+    cardDoPopupT(0).find('.titulo-diff--ausente').should('have.text', 'Sem título');
+    cardDoPopupT(2).find('.titulo-diff').should('have.text', 'Do objeto');
+    cardDoPopupT(1).find('.titulo-diff ins').should('have.text', 'Do objeto');
+    fecharPopupDiferencasT();
+  });
+
+  it('o popup de diferenças mostra "Sem título" no card atual quando o título é removido', () => {
+    adicionarEAceitarTituloT('Do objeto');
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Remover título');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    abrirPopupDiferencasT(1);
+
+    cardDoPopupT(0).find('.titulo-diff').should('have.text', 'Do objeto');
+    cardDoPopupT(2).find('.titulo-diff--ausente').should('have.text', 'Sem título');
+    cardDoPopupT(1).find('.titulo-diff del').should('have.text', 'Do objeto');
+    fecharPopupDiferencasT();
+  });
+
+  it('salvar e reabrir preserva a revisão e rejeitar restaura o título anterior', () => {
+    // O download é um blob: captura o conteúdo em vez de depender do diretório de downloads do navegador.
+    const arquivosSalvos: Promise<string>[] = [];
+    cy.window().then(win => {
+      const criarOriginal = win.URL.createObjectURL.bind(win.URL);
+      cy.stub(win.URL, 'createObjectURL').callsFake((obj: Blob) => {
+        arquivosSalvos.push(obj.text());
+        return criarOriginal(obj);
+      });
+    });
+
+    adicionarEAceitarTituloT('Do objeto');
+    cy.getContainerArtigoByNumero(1).selecionarOpcaoDeMenuDoDispositivo('Editar título');
+    digitarNoDialogoT('Da finalidade');
+    confirmarDialogoT();
+    tituloDoArtigoT(1).should('have.text', 'Da finalidade');
+    cy.get('@contadorRevisaoTitulo').contains('1');
+
+    cy.get('input[type="button"][value="Salvar"]').click();
+    cy.wrap(null).should(() => expect(arquivosSalvos, 'o arquivo deve ter sido gerado').to.have.length(1));
+
+    cy.wrap(null)
+      .then(() => cy.wrap(arquivosSalvos[0]))
+      .then(conteudo => {
+        cy.visit('/');
+        cy.window().then(win => win.localStorage.setItem('naoMostrarNovamenteDisclaimerMarcaAlteracao', 'true'));
+        cy.get('#fileUpload').selectFile({ contents: Cypress.Buffer.from(conteudo as string), fileName: 'titulo-em-revisao.json' }, { force: true });
+      });
+
+    tituloDoArtigoT(1).should('have.text', 'Da finalidade');
+    cy.getSwitchRevisaoDispositivo().getContadorRevisao().should('contain.text', '1');
+
+    abrirPopupDiferencasT(1);
+    cardDoPopupT(0).find('.titulo-diff').should('have.text', 'Do objeto');
+    cardDoPopupT(2).find('.titulo-diff').should('have.text', 'Da finalidade');
+    fecharPopupDiferencasT();
+
+    cy.get('[id^="buttonRevisaoRecusar"]').first().click({ force: true });
+
+    tituloDoArtigoT(1).should('have.text', 'Do objeto');
+    cy.getSwitchRevisaoDispositivo().getContadorRevisao().should('contain.text', '0');
   });
 });
 

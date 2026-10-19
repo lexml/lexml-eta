@@ -19,10 +19,12 @@ import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
-import { Autoria, OpcoesImpressao, tratamentoParlamentar } from '../../../proposicao/proposicao';
+import { Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
 import { formatarLocalDataFecho } from '../urnUtil';
+import { coletarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
+export const PENDENCIA_REVISAO_ARTICULACAO = 'Resolver marcas de revisão na articulação.';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
@@ -43,7 +45,7 @@ const garantirIdsRemissoesInvalidas = (remissoes?: Remissoes): string[] => {
 
 export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
   const idsRemissoesInvalidas = garantirIdsRemissoesInvalidas(remissoes);
-  const resultado = montaCabecalho(urn, montaMetadadoLexEdit(dados, idsRemissoesInvalidas));
+  const resultado = montaCabecalho(urn, montaMetadadoLexEdit(dados, idsRemissoesInvalidas, coletarSituacaoNaNormaVigente(projetoNorma.articulacao)));
   resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas, dados);
   return resultado;
 };
@@ -66,6 +68,19 @@ const montaOpcoesImpressao = (opcoes: OpcoesImpressao): MetadadoLexEdit['opcoesI
   reduzirEspacoEntreLinhas: opcoes.reduzirEspacoEntreLinhas,
   tamanhoFonte: opcoes.tamanhoFonte,
 });
+
+// Valor fora das enumerações do XSD assume o padrão da classe; a comissão só consta quando informada.
+const montaColegiadoApreciador = (colegiado?: ColegiadoApreciador): MetadadoLexEdit['colegiadoApreciador'] => {
+  if (!colegiado) return undefined;
+  const padrao = new ColegiadoApreciador();
+  const siglaComissao = colegiado.siglaComissao?.trim();
+  return {
+    TYPE_NAME: 'br_gov_lexml_lexedit__1.ColegiadoApreciador',
+    siglaCasaLegislativa: (SIGLAS_CASA_COLEGIADO as readonly string[]).includes(colegiado.siglaCasaLegislativa!) ? colegiado.siglaCasaLegislativa! : padrao.siglaCasaLegislativa!,
+    tipoColegiado: (TIPOS_COLEGIADO as readonly string[]).includes(colegiado.tipoColegiado) ? colegiado.tipoColegiado : padrao.tipoColegiado,
+    ...(siglaComissao && { siglaComissao }),
+  };
+};
 
 // Só os sete atributos do XSD: objetos vindos do host podem trazer campos extras.
 // Sem parlamentar identificado não há autoria, pois o XSD exige ao menos um Parlamentar.
@@ -92,8 +107,18 @@ const montaAutoria = (autoria?: Autoria): MetadadoLexEdit['autoria'] => {
   };
 };
 
+// Elemento omitido sem nenhum id; atributo com lista vazia também (especificação 13).
+const montaSituacaoNaNormaVigente = (situacao: SituacaoNaNormaVigente): MetadadoLexEdit['situacaoNaNormaVigente'] => {
+  if (!situacao.existentes.length && !situacao.novos.length) return undefined;
+  return {
+    TYPE_NAME: 'br_gov_lexml_lexedit__1.SituacaoNaNormaVigente',
+    ...(situacao.existentes.length > 0 && { refIdsDispositivosExistentes: situacao.existentes.join(' ') }),
+    ...(situacao.novos.length > 0 && { refIdsDispositivosNovos: situacao.novos.join(' ') }),
+  };
+};
+
 // Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
-const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[]): MetadadoLexEdit | undefined => {
+const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[], situacao: SituacaoNaNormaVigente): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
   const pendencias: string[] = [];
   // Sem local não há fecho; data não informada é omitida, pois xsd:date não aceita texto vazio.
@@ -104,10 +129,19 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
   if (dados?.opcoesImpressao) lexedit.opcoesImpressao = montaOpcoesImpressao(dados.opcoesImpressao);
   const autoria = montaAutoria(dados?.autoria);
   if (autoria) lexedit.autoria = autoria;
+  const colegiadoApreciador = montaColegiadoApreciador(dados?.colegiadoApreciador);
+  if (colegiadoApreciador) lexedit.colegiadoApreciador = colegiadoApreciador;
   if (idsRemissoesInvalidas.length > 0) {
     lexedit.remissoesInternasInvalidas = { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idsRemissoesInvalidas.join(' ') };
     pendencias.push('Corrigir remissões internas inválidas.');
   }
+  if (dados?.revisoes?.revisoesArticulacao.revisaoArticulacao.length) {
+    lexedit.revisoesArticulacao = dados.revisoes.revisoesArticulacao;
+    lexedit.usuarios = dados.revisoes.usuarios;
+    pendencias.push(PENDENCIA_REVISAO_ARTICULACAO);
+  }
+  const situacaoNaNormaVigente = montaSituacaoNaNormaVigente(situacao);
+  if (situacaoNaNormaVigente) lexedit.situacaoNaNormaVigente = situacaoNaNormaVigente;
   if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
   // > 1 porque TYPE_NAME está sempre presente.
   return Object.keys(lexedit).length > 1 ? lexedit : undefined;
@@ -402,7 +436,7 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remi
     }
   }
 
-  if (isValidText(getTextoSemHtml((dispositivo.tituloDispositivo ?? '').replace(/&nbsp;/g, ' ')))) {
+  if (tituloTemTexto(dispositivo.tituloDispositivo)) {
     value.tituloDispositivo = {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       content: buildStructuredContent(dispositivo, 'tituloDispositivo', remissoes, remissoesExternas),
@@ -846,6 +880,45 @@ const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remisso
   // Sem tags HTML, retorna o conteúdo como está
   const fim = conteudo.indexOf('” (NR)');
   return [conteudo.substring(0, fim === -1 ? undefined : fim)];
+};
+
+/** Nó jsonix (`{ name, value }`) de um dispositivo solto, com seus filhos; usado para o conteúdo das revisões de exclusão. */
+export const buildJsonixDispositivo = (dispositivo: Dispositivo): any => {
+  const node = buildNode(dispositivo);
+  buildTree(dispositivo, node.value);
+  return node;
+};
+
+/** Conteúdo inline jsonix de um trecho de HTML do editor (ex.: o texto anterior de uma revisão). */
+export const buildJsonixContentFromHtml = (html: string): any[] => buildStructuredContent({ texto: html } as unknown as Dispositivo, 'texto');
+
+// Título vazio ou só com marcação não é gravado.
+const tituloTemTexto = (titulo?: string): boolean => isValidText(getTextoSemHtml((titulo ?? '').replace(/&nbsp;/g, ' ')));
+
+/** Valor jsonix, sem id nem rótulo, do estado anterior (texto e título) de um dispositivo de tipo `tipo` numa revisão `alterado`. */
+export const buildJsonixEstadoAnterior = (tipo: string, texto: string, titulo?: string): any => {
+  const dispositivo = { tipo } as unknown as Dispositivo;
+  const value: any = { TYPE_NAME: buildTypeName(dispositivo) };
+  if (tituloTemTexto(titulo)) {
+    value.tituloDispositivo = { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildJsonixContentFromHtml(titulo!) };
+  }
+  const inline = { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildJsonixContentFromHtml(texto) };
+  if (isAgrupador(dispositivo)) {
+    value.nomeAgrupador = inline;
+  } else if (isArtigo(dispositivo)) {
+    const caput = 'Caput';
+    const nome = {
+      namespaceURI: 'http://www.lexml.gov.br/1.0',
+      localPart: caput,
+      prefix: '',
+      key: `{http://www.lexml.gov.br/1.0}${caput}`,
+      string: `{http://www.lexml.gov.br/1.0}${caput}`,
+    };
+    value.lXcontainersOmissis = [{ name: nome, value: { TYPE_NAME: 'br_gov_lexml__1.DispositivoType', p: [inline] } }];
+  } else {
+    value.p = [inline];
+  }
+  return value;
 };
 
 const buildSpan = (m: string): any => {

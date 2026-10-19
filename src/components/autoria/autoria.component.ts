@@ -130,8 +130,6 @@ export class AutoriaComponent extends LitElement {
           Incluir ${this._autoria?.parlamentares.length ? 'outro' : ''} parlamentar
         </sl-button>
 
-        ${this._getAssinaturasAdicionaisTemplate()}
-
         <div class="assinaturas-adicionais">
           <label>
             <input type="checkbox" id="chk-exibir-partido-uf" ?checked=${this._autoria?.imprimirPartidoUF} @input=${(ev: Event): void => this._atualizarExibirPartidoUF(ev)} />
@@ -244,33 +242,6 @@ export class AutoriaComponent extends LitElement {
     `;
   }
 
-  private _getAssinaturasAdicionaisTemplate(): TemplateResult {
-    return html`
-      <div class="assinaturas-adicionais">
-        <sl-input
-          label="Quantidade de assinaturas adicionais de Senadores"
-          type="number"
-          id="num-assinaturas-adicionais-senadores"
-          class="autoria-input"
-          aria-label="Assinaturas Adicionais Senadores"
-          size="small"
-          .value=${this._autoria?.quantidadeAssinaturasAdicionaisSenadores.toString() ?? '0'}
-          @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisSenadores(ev)}
-        ></sl-input>
-        <sl-input
-          label="Quantidade de assinaturas adicionais de Deputados Federais"
-          type="number"
-          id="num-assinaturas-adicionais-deputados"
-          class="autoria-input"
-          aria-label="Assinaturas Adicionais deputados"
-          size="small"
-          .value=${this._autoria?.quantidadeAssinaturasAdicionaisDeputados.toString() ?? '0'}
-          @input=${(ev: Event): void => this._atualizarQtdAssinaturasAdicionaisDeputados(ev)}
-        ></sl-input>
-      </div>
-    `;
-  }
-
   updated(): void {
     this._isProcessandoMovimentacao = false;
   }
@@ -379,14 +350,6 @@ export class AutoriaComponent extends LitElement {
     if (cargoAtual !== newValue) {
       this.agendarEmissaoEventoOnChange('atualizarAutor');
     }
-  }
-
-  private _atualizarQtdAssinaturasAdicionaisSenadores(ev: Event): void {
-    this._autoria.quantidadeAssinaturasAdicionaisSenadores = Number((ev.target as HTMLInputElement).value);
-  }
-
-  private _atualizarQtdAssinaturasAdicionaisDeputados(ev: Event): void {
-    this._autoria.quantidadeAssinaturasAdicionaisDeputados = Number((ev.target as HTMLInputElement).value);
   }
 
   private _atualizarExibirPartidoUF(ev: Event): void {

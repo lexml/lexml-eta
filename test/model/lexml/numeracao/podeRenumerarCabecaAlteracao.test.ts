@@ -27,16 +27,16 @@ describe('numeração da cabeça de alteração: alerta e renumeração usam a m
     expect(pode(articulacao, cabeca)).to.equal(true);
   });
 
-  it('cabeça já numerada e existente na norma não é renumerável e não exibe o alerta', () => {
+  it('cabeça já numerada e existente na norma não exibe o alerta e pode ser renumerada', () => {
     const { articulacao, cabeca } = criaCabeca();
     cabeca.createNumeroFromRotulo('5');
     cabeca.createRotulo(cabeca);
 
     expect(alertaNumeracao(cabeca)).to.equal(undefined);
-    expect(pode(articulacao, cabeca)).to.equal(false);
+    expect(pode(articulacao, cabeca)).to.equal(true);
   });
 
-  it('filho numerado e existente na norma não é renumerável', () => {
+  it('filho numerado e existente na norma pode ser renumerado', () => {
     const { articulacao, cabeca } = criaCabeca();
     cabeca.createNumeroFromRotulo('5');
     cabeca.createRotulo(cabeca);
@@ -46,7 +46,7 @@ describe('numeração da cabeça de alteração: alerta e renumeração usam a m
     inciso.createNumeroFromRotulo('I');
     inciso.createRotulo(inciso);
 
-    expect(pode(articulacao, inciso)).to.equal(false);
+    expect(pode(articulacao, inciso)).to.equal(true);
   });
 
   it('omissis não é renumerável', () => {

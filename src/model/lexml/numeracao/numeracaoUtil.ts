@@ -3,7 +3,7 @@ import { isArtigo, isDispositivoGenerico, isOmissis } from '../../dispositivo/ti
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Elemento } from '../../elemento';
 import { getDispositivoFromElemento } from '../../elemento/elementoUtil';
-import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipo, getProximoArtigoAnterior, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
+import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipo, getProximoArtigoAnterior } from '../hierarquia/hierarquiaUtil';
 
 const I = 1,
   V = 5,
@@ -238,8 +238,7 @@ export const hasRotuloPendente = (dispositivo: Dispositivo): boolean =>
   !!(dispositivo.rotulo?.endsWith(dispositivo.tipo) || dispositivo.rotulo?.toLowerCase() === TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toLowerCase());
 
 // Regra única de renumeração, compartilhada pela ação e pelo alerta "Numere o dispositivo".
-export const podeRenumerarDispositivo = (dispositivo: Dispositivo): boolean =>
-  !isOmissis(dispositivo) && !(isDispositivoAlteracao(dispositivo) && dispositivo.existeNaNormaAlterada && !hasRotuloPendente(dispositivo));
+export const podeRenumerarDispositivo = (dispositivo: Dispositivo): boolean => !isOmissis(dispositivo);
 
 export const podeRenumerar = (articulacao: Articulacao, elemento: Elemento): boolean => {
   const dispositivo = getDispositivoFromElemento(articulacao, elemento);

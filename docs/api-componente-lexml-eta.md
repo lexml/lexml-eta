@@ -274,15 +274,13 @@ class Proposicao {
 
 class ColegiadoApreciador {
   siglaCasaLegislativa?: 'CN' | 'SF' | 'CD'; // padrão 'CN'
-  tipoColegiado: 'Plenário' | 'Comissão' | 'Plenário via Comissão'; // padrão 'Plenário'
+  tipoColegiado: 'Plenário' | 'Comissão'; // padrão 'Plenário'; outro valor assume o padrão
   siglaComissao?: string;
 }
 
 class Autoria {
   tipo: 'Parlamentar' | 'Comissão' | 'Casa Legislativa' | 'Não identificado';
   imprimirPartidoUF: boolean;                      // padrão true
-  quantidadeAssinaturasAdicionaisSenadores: number;
-  quantidadeAssinaturasAdicionaisDeputados: number;
   parlamentares: Parlamentar[];
   colegiado?: { identificacao: string; nome: string; sigla: string };
 }
@@ -355,7 +353,6 @@ Remissões internas e externas são detectadas quando o usuário **sai** do disp
 - Chamar `inicializarEdicao()` antes de o elemento estar no DOM e renderizado falha (os filhos internos ainda não existem). Aguarde `await editor.updateComplete` se acabou de criá-lo.
 - `autoriaPadrao` e `opcoesImpressaoPadrao` são ignorados quando `proposicao` é informada.
 - Um parlamentar vindo de um arquivo aberto e que não esteja mais na lista do host pode ser removido da autoria se o usuário entrar e sair do campo do nome.
-- As quantidades de assinaturas adicionais de autoria não fazem parte do formato do arquivo: voltam a 0 ao abrir um documento articulado.
 - O estado do store Redux é global ao pacote: reutilize a mesma instância ao trocar de documento, chamando `inicializarEdicao` novamente, em vez de criar outra.
 
 ## 11. Referências

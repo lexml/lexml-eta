@@ -14,8 +14,6 @@ export const ALTERA_NORMA_TRAVA_EDITOR = {
   autoria: {
     tipo: 'Parlamentar',
     imprimirPartidoUF: true,
-    quantidadeAssinaturasAdicionaisSenadores: 0,
-    quantidadeAssinaturasAdicionaisDeputados: 0,
     parlamentares: [],
   },
   opcoesImpressao: {

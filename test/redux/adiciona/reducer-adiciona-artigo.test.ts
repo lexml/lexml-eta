@@ -41,9 +41,9 @@ describe('Testando inclusão de artigo no início da articulação', () => {
         expect(ev.elementos!.length).to.equal(1);
       });
 
-      it('Referência do evento ElementoIncluido deveria apontar para ementa', () => {
+      it('Referência do evento ElementoIncluido deveria apontar para o preâmbulo', () => {
         const ev = getEvento(state.ui.events, StateType.ElementoIncluido);
-        expect(ev.referencia?.tipo).to.equal('Ementa');
+        expect(ev.referencia?.tipo).to.equal('Preambulo');
       });
 
       it('Elemento incluído deveria possuir lexmlId = art1', () => {
@@ -51,9 +51,9 @@ describe('Testando inclusão de artigo no início da articulação', () => {
         expect(e.lexmlId).to.equal('art1');
       });
 
-      it('ElementoAnteriorNaSequenciaDeLeitura do elemento incluído deveria apontar para ementa', () => {
+      it('ElementoAnteriorNaSequenciaDeLeitura do elemento incluído deveria apontar para o preâmbulo', () => {
         const e = getEvento(state.ui.events, StateType.ElementoIncluido).elementos![0];
-        expect(e.elementoAnteriorNaSequenciaDeLeitura?.tipo).to.equal('Ementa');
+        expect(e.elementoAnteriorNaSequenciaDeLeitura?.tipo).to.equal('Preambulo');
       });
     });
   });
@@ -75,9 +75,9 @@ describe('Testando inclusão de artigo no início da articulação', () => {
         expect(ev.elementos!.length).to.equal(1);
       });
 
-      it('Referência do evento ElementoIncluido deveria apontar para ementa', () => {
+      it('Referência do evento ElementoIncluido deveria apontar para o preâmbulo', () => {
         const ev = getEvento(state.ui.events, StateType.ElementoIncluido);
-        expect(ev.referencia?.tipo).to.equal('Ementa');
+        expect(ev.referencia?.tipo).to.equal('Preambulo');
       });
 
       it('Elemento incluído deveria possuir lexmlId = art1', () => {
@@ -85,9 +85,9 @@ describe('Testando inclusão de artigo no início da articulação', () => {
         expect(e.lexmlId).to.equal('art1');
       });
 
-      it('ElementoAnteriorNaSequenciaDeLeitura do elemento incluído deveria apontar para ementa', () => {
+      it('ElementoAnteriorNaSequenciaDeLeitura do elemento incluído deveria apontar para o preâmbulo', () => {
         const e = getEvento(state.ui.events, StateType.ElementoIncluido).elementos![0];
-        expect(e.elementoAnteriorNaSequenciaDeLeitura?.tipo).to.equal('Ementa');
+        expect(e.elementoAnteriorNaSequenciaDeLeitura?.tipo).to.equal('Preambulo');
       });
     });
   });

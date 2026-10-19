@@ -31,7 +31,7 @@ function buildListaDispositivos(articulacao: Articulacao): DispositivoRemissao[]
   const dispositivos: DispositivoRemissao[] = [];
   const elementos = getElementos(articulacao);
   elementos
-    .filter(el => el.tipo !== 'Articulacao' && el.tipo !== 'Ementa')
+    .filter(el => el.tipo !== 'Articulacao' && el.tipo !== 'Ementa' && el.tipo !== 'Preambulo')
     .forEach(el => {
       dispositivos.push({
         uuid: el.uuid!,

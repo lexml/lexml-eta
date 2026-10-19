@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isArticulacao } from '../../dispositivo/tipo';
+import { isArticulacao, isPreambulo } from '../../dispositivo/tipo';
 import { validaTexto } from '../conteudo/conteudoValidator';
 import { getTextoSemHtml } from '../../../util/string-util';
 import { validaUrn } from '../documento/urnUtil';
@@ -50,7 +50,7 @@ export const validaTitulo = (dispositivo: Dispositivo): Mensagem[] => {
 };
 
 export const validaDispositivo = (dispositivo: Dispositivo): Mensagem[] => {
-  if (isArticulacao(dispositivo) && dispositivo.pai === undefined) {
+  if ((isArticulacao(dispositivo) && dispositivo.pai === undefined) || isPreambulo(dispositivo)) {
     return [];
   }
   return validaHierarquia(dispositivo).concat(validaTexto(dispositivo), validaNumeracao(dispositivo), validaReferencia(dispositivo), validaTitulo(dispositivo));

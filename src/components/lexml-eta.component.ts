@@ -215,7 +215,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     // Anexo de parecer não tem fecho nem autoria, como em removerDadosNaoAplicaveisAoAnexoParecer.
     const fechoEAutoria = this.anexoParecer
       ? {}
-      : { local: this.getLocalFecho(), data: normalizarDataFecho(this._lexmlData.data), autoria: this._lexmlAutoria.getAutoriaAtualizada() };
+      : {
+          local: this.getLocalFecho(),
+          data: normalizarDataFecho(this._lexmlData.data),
+          autoria: this._lexmlAutoria.getAutoriaAtualizada(),
+          colegiadoApreciador: this._lexmlDestino!.colegiadoApreciador,
+        };
     return this._lexmlEta!.getDocumentoArticulado({ ...fechoEAutoria, opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao });
   }
 
@@ -226,11 +231,18 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const params = new LexmlEtaParametrosEdicao();
     params.projetoNorma = documento as any;
     await this.inicializarEdicao(params, true);
+    // Sem o atraso de setRevisoes (1 s): o documento aberto já sai com as marcas e em modo de revisão.
+    if (dados.revisoesLidas?.length) await this._lexmlEta!.aplicarRevisoesDoArquivo(dados.revisoesLidas);
     // Depois de inicializarEdicao: resetaProposicao sobrescreve o formulário com os valores padrão.
     if (dados.opcoesImpressao) this._lexmlOpcoesImpressao.opcoesImpressao = dados.opcoesImpressao;
     // Dados do arquivo como gravados, sem consultar a lista de parlamentares do host.
     if (dados.autoria) this._lexmlAutoria.autoria = dados.autoria;
     this._lexmlData.data = this.anexoParecer ? '' : dados.data ?? '';
+    // A casa continua a do host: ela define a lista de comissões carregada.
+    if (dados.colegiadoApreciador && !this.anexoParecer) {
+      const { tipoColegiado, siglaComissao } = dados.colegiadoApreciador;
+      this._lexmlDestino!.colegiadoApreciador = { ...this._lexmlDestino!.colegiadoApreciador, tipoColegiado, siglaComissao };
+    }
     this.localDoArquivo = dados.local;
     this.destinoAoAbrir = { ...this._lexmlDestino!.colegiadoApreciador };
   }

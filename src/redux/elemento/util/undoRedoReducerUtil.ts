@@ -19,7 +19,13 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
-import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteracao, hasEmenta } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getDispositivoCabecaAlteracao,
+  isDispositivoAlteracao,
+  isUltimaAlteracao,
+  hasEmenta,
+  getUltimoDispositivoDaParteInicial,
+} from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import {
   associarRevisoesAosElementos,
   existeRevisaoCriadaPorExclusao,
@@ -34,7 +40,7 @@ import { removeElemento } from '../reducer/removeElemento';
 import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 import { buscarDispositivoPorUuid } from '../../../model/remissao/sincronizarRemissoes';
 
-const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
+export const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
     const artigo = isArticulacaoAlteracao(articulacao)
       ? articulacao.pai!
@@ -72,7 +78,7 @@ const restauraIdentidadeCaput = (articulacao: Articulacao, artigo: Artigo, eleme
   artigo.caput.uuid2 = uuid2;
 };
 
-const redodDispositivoExcluido = (articulacao: Articulacao, elemento: Elemento, pai: Dispositivo): Dispositivo => {
+export const redodDispositivoExcluido = (articulacao: Articulacao, elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = criaDispositivo(
     isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.name || isOmissisCaput(elemento)) ? (pai as Artigo).caput! : pai,
     elemento.tipo!,
@@ -154,7 +160,7 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
       let referencia = posicao === 0 ? (isArticulacao(pai!) && isArticulacaoAlteracao(pai as Articulacao) ? pai!.pai! : pai) : getUltimoFilho(getDispositivoAnterior(novos[0])!);
 
       if (referencia) {
-        referencia = isArticulacao(referencia) && hasEmenta(referencia) ? (referencia as Articulacao).projetoNorma!.ementa! : referencia;
+        referencia = isArticulacao(referencia) && hasEmenta(referencia) ? getUltimoDispositivoDaParteInicial(referencia)! : referencia;
         const dispositivo = getDispositivoFromElemento(state.articulacao!, referencia);
         dispositivo ? (novosEvento.referencia = createElemento(dispositivo!)) : retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Erro inesperado' });
       }
@@ -197,6 +203,13 @@ export const processarModificados = (state: State, evento: StateEvent, operacao:
         if (permiteAtualizar) {
           dispositivo.texto = e.conteudo?.texto ?? '';
           dispositivo.tituloDispositivo = e.tituloDispositivo;
+
+          // Renumeração manual: o snapshot guarda o número, o rótulo e, por consequência, os ids anteriores.
+          if (e.numero !== undefined && e.numero !== dispositivo.numero) {
+            dispositivo.numero = e.numero;
+            dispositivo.rotulo = e.rotulo;
+            updateIdDispositivoAndFilhos(dispositivo);
+          }
 
           if (dispositivo.alteracoes) {
             dispositivo.alteracoes.base = e.norma;

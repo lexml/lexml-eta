@@ -108,6 +108,10 @@ export const isEmenta = (dispositivo: Dispositivo): boolean => {
   return dispositivo.tipo === TipoDispositivo.ementa.tipo;
 };
 
+export const isPreambulo = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.tipo === TipoDispositivo.preambulo.tipo;
+};
+
 export const isTextoMaiusculo = (dispositivo?: Dispositivo): boolean => {
   if (dispositivo === undefined) {
     return false;

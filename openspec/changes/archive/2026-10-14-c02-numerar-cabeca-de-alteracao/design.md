@@ -37,3 +37,7 @@ Viáveis, com o mesmo padrão dos specs de `cypress/e2e/alteracao-norma/`: o cur
 - [Liberar numeração de dispositivo existente na norma pode permitir rótulo incoerente] → só vale com rótulo pendente; a validação de rótulo inválido (zero à esquerda, formato) continua no reducer.
 - [Mudar o critério pode afetar outros fluxos que usam `existeNaNormaAlterada`] → o campo não é alterado; só a decisão de renumerar muda. Cobrir com testes de reducer e de validação para cabeça, filhos e dispositivos já numerados.
 - [Condição de corrida do menu de contexto no editor (`docs/analises/ANALISE_CORRIDA_CLIQUE_MENU_CONTEXTO.md`) pode tornar o E2E instável] → ancorar sincronização conforme `docs/guia-cypress.md`.
+
+## Ajuste após o merge com a develop (19/10/2026)
+
+A develop (`2b77fcd5`) passou a permitir renumerar qualquer dispositivo de alteração existente na norma alterada. Adotou-se essa política: `podeRenumerarDispositivo` nega apenas omissis, e a invariante "alerta ⇒ ação" segue valendo pela função compartilhada. Os cenários de recusa para dispositivo numerado e existente foram substituídos pelo de omissis.

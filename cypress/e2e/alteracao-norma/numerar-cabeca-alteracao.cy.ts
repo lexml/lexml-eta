@@ -2,7 +2,7 @@
  * Numeração da cabeça do bloco de alteração (change 2026-10-14-c02, #266385)
  *
  * A cabeça nasce sem número e com o alerta "Numere o dispositivo": o "Corrigir agora" precisa abrir o
- * diálogo e numerar. Depois de numerada (e existente na norma alterada), a renumeração é recusada.
+ * diálogo e numerar. Depois de numerada (e existente na norma alterada), a renumeração continua permitida.
  */
 
 const quillDe = (win: any): any => (win.document.querySelector('lexml-eta-proposicao-editor') as any).quill;
@@ -44,7 +44,7 @@ describe('Numeração da cabeça do bloco de alteração', () => {
     cy.contains('Nessa situação, não é possível renumerar').should('not.exist');
   });
 
-  it('cabeça já numerada não pode ser renumerada pelo menu', () => {
+  it('cabeça já numerada pode ser renumerada pelo menu', () => {
     irParaCabeca();
     cabeca().find('.mensagem__fix').last().click();
     cy.get('sl-dialog[label="Informar numeração"] sl-input').then($i => (($i[0] as any).value = '5'));
@@ -54,9 +54,12 @@ describe('Numeração da cabeça do bloco de alteração', () => {
 
     irParaCabeca();
     cabeca().selecionarOpcaoDeMenuDoDispositivo('Numerar dispositivo');
+    cy.get('sl-dialog[label="Informar numeração"] sl-input').then($i => (($i[0] as any).value = '7'));
+    cy.get('sl-dialog[label="Informar numeração"] sl-button[variant="primary"]').then($b => ($b[0] as any).onclick());
+    cy.wait(500);
 
-    cy.contains('Nessa situação, não é possível renumerar o dispositivo').should('exist');
-    rotuloDaCabeca().should('contain', '5');
+    rotuloDaCabeca().should('contain', '7');
+    cy.contains('Nessa situação, não é possível renumerar').should('not.exist');
   });
 });
 

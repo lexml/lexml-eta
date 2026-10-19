@@ -25,7 +25,7 @@ O atributo `refIdDispositivo` referencia, pelo `id`, o dispositivo da articulaç
 
 `refIdUsuario` aponta para o registro definido em [Registro de usuários](12-registro-usuarios.md), e `data` usa ISO 8601 com fuso horário.
 
-Quando a revisão precisa preservar conteúdo anterior à alteração — o texto original de um dispositivo alterado, ou o próprio dispositivo excluído —, esse conteúdo fica dentro do elemento `lexedit:RevisaoArticulacao`, e não mais junto ao dispositivo na articulação.
+Quando a revisão precisa preservar conteúdo anterior à alteração — o texto e o título originais de um dispositivo alterado, ou o próprio dispositivo excluído —, esse conteúdo fica dentro do elemento `lexedit:RevisaoArticulacao`, e não mais junto ao dispositivo na articulação.
 
 ### Gramática do atributo `revisao`
 
@@ -110,9 +110,9 @@ Art    (excluído, id _art2-exc2)
 Art 2  (id art2)
 ```
 
-### Alteração de texto de dispositivo
+### Alteração de texto e de título de dispositivo
 
-O dispositivo alterado aparece na articulação já com o texto revisado. A revisão é registrada em `RevisaoArticulacao`, que referencia o dispositivo por `refIdDispositivo` e preserva o conteúdo anterior como filho.
+O dispositivo alterado aparece na articulação já com o texto e o título revisados. A revisão é registrada em `RevisaoArticulacao`, que referencia o dispositivo por `refIdDispositivo` e preserva o estado anterior como filho: um dispositivo do mesmo tipo do dispositivo alterado, sem `id`, com o texto anterior (em `p`, ou no `Caput`, quando é um artigo) e com o `TituloDispositivo` anterior, quando o dispositivo tinha título. A ausência de `TituloDispositivo` nesse filho significa que o dispositivo não tinha título. Essa mesma forma vale sempre que a operação `alterado` aparece, isolada ou combinada com outras operações.
 
 ```xml
 <!-- Na articulação -->
@@ -129,9 +129,81 @@ O dispositivo alterado aparece na articulação já com o texto revisado. A revi
     revisao="alterado"
     refIdUsuario="sf:fulano"
     data="2026-05-11T15:51:00-03:00">
-  <p>Texto original do dispositivo</p>
+  <Inciso>
+    <p>Texto original do dispositivo</p>
+  </Inciso>
 </lexedit:RevisaoArticulacao>
 ```
+
+Quando o dispositivo tem título e só o texto é alterado, o título anterior (igual ao atual) acompanha o texto:
+
+```xml
+<!-- Na articulação -->
+<Inciso id="art4_cpt_inc2">
+  <TituloDispositivo>Do objeto</TituloDispositivo>
+  <Rotulo>II -</Rotulo>
+  <p>Texto revisado</p>
+</Inciso>
+```
+
+```xml
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    refIdDispositivo="art4_cpt_inc2"
+    revisao="alterado"
+    refIdUsuario="sf:fulano"
+    data="2026-05-11T15:51:00-03:00">
+  <Inciso>
+    <TituloDispositivo>Do objeto</TituloDispositivo>
+    <p>Texto original do dispositivo</p>
+  </Inciso>
+</lexedit:RevisaoArticulacao>
+```
+
+Na alteração do título, o estado anterior traz o título original; se o título foi adicionado, o filho não tem `TituloDispositivo`; se foi removido, o filho traz o título removido. No exemplo, o título "Do objeto" passou a "Da finalidade":
+
+```xml
+<!-- Na articulação -->
+<Inciso id="art4_cpt_inc2">
+  <TituloDispositivo>Da finalidade</TituloDispositivo>
+  <Rotulo>II -</Rotulo>
+  <p>Texto do dispositivo</p>
+</Inciso>
+```
+
+```xml
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    refIdDispositivo="art4_cpt_inc2"
+    revisao="alterado"
+    refIdUsuario="sf:fulano"
+    data="2026-05-11T15:51:00-03:00">
+  <Inciso>
+    <TituloDispositivo>Do objeto</TituloDispositivo>
+    <p>Texto do dispositivo</p>
+  </Inciso>
+</lexedit:RevisaoArticulacao>
+```
+
+Para um artigo, o texto anterior fica no `Caput`:
+
+```xml
+<!-- Nos metadados do LexEdit -->
+<lexedit:RevisaoArticulacao
+    refIdDispositivo="art7"
+    revisao="alterado"
+    refIdUsuario="sf:fulano"
+    data="2026-05-11T15:51:00-03:00">
+  <Artigo>
+    <TituloDispositivo>Da vigência</TituloDispositivo>
+    <Caput>
+      <p>Texto original do caput</p>
+    </Caput>
+  </Artigo>
+</lexedit:RevisaoArticulacao>
+```
+
+Por tolerância, quem lê o arquivo aceita um `p` solto como filho da revisão (forma abreviada, sem informação sobre o título) e o interpreta como "o título anterior é igual ao atual"; quem grava usa sempre o dispositivo.
 
 ### Movimentação de dispositivo
 
@@ -162,7 +234,7 @@ Uma movimentação pode coexistir com exclusão ou alteração textual. Como `<p
 
 Por exemplo, ainda no exemplo acima, caso o inciso III original fosse excluído, isso não alteraria a marca `movido;3` do dispositivo transferido; apenas os rótulos e ids dos dispositivos subsequentes seriam recalculados.
 
-O inciso movido poderia ainda ter seu texto alterado, acrescentando a operação `alterado` à revisão — nesse caso, o conteúdo original também é preservado como filho de `RevisaoArticulacao`:
+O inciso movido poderia ainda ter seu texto alterado, acrescentando a operação `alterado` à revisão — nesse caso, o conteúdo original também é preservado como um dispositivo filho de `RevisaoArticulacao`:
 
 ```xml
 <!-- Na articulação: inciso III movido para depois do inciso V; texto alterado -->
@@ -179,7 +251,9 @@ O inciso movido poderia ainda ter seu texto alterado, acrescentando a operação
     revisao="movido;3,alterado"
     refIdUsuario="sf:fulano"
     data="2026-05-11T15:51:00-03:00">
-  <p>Conteúdo do inciso III original.</p>
+  <Inciso>
+    <p>Conteúdo do inciso III original.</p>
+  </Inciso>
 </lexedit:RevisaoArticulacao>
 ```
 

@@ -53,9 +53,12 @@ export class RefProposicaoReduzida {
 }
 
 // Colegiado apreciador da proposição ----------------------------
+export const TIPOS_COLEGIADO = ['Plenário', 'Comissão'] as const;
+export const SIGLAS_CASA_COLEGIADO = ['CN', 'SF', 'CD'] as const;
+
 export class ColegiadoApreciador {
-  siglaCasaLegislativa?: 'CN' | 'SF' | 'CD' = 'CN';
-  tipoColegiado: 'Plenário' | 'Comissão' | 'Plenário via Comissão' = 'Plenário';
+  siglaCasaLegislativa?: (typeof SIGLAS_CASA_COLEGIADO)[number] = 'CN';
+  tipoColegiado: (typeof TIPOS_COLEGIADO)[number] = 'Plenário';
   siglaComissao?: string;
 }
 
@@ -69,8 +72,6 @@ export class Epigrafe {
 export class Autoria {
   tipo = TipoAutoria.PARLAMENTAR;
   imprimirPartidoUF = true;
-  quantidadeAssinaturasAdicionaisSenadores = 0;
-  quantidadeAssinaturasAdicionaisDeputados = 0;
   // TODO - Tornar opcional quando formos implementar outro tipo de autoria.
   parlamentares: Array<Parlamentar> = [];
   colegiado?: ColegiadoAutor;
