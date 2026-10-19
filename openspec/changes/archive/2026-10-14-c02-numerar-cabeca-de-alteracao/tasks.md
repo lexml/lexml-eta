@@ -17,5 +17,5 @@
 
 ## 4. Fechamento
 
-- [ ] 4.1 Executar a suíte completa (`npm test`), `npm run lint` e os specs E2E novos; registrar o resultado
+- [x] 4.1 Executar a suíte completa (`npm test`), `npm run lint` e os specs E2E novos; registrar o resultado
 - [ ] 4.2 Arquivar a change para mesclar a spec principal e conferir `openspec validate --strict`
