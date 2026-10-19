@@ -46,7 +46,7 @@ describe('Texto padrão do preâmbulo por tipo da URN', () => {
   });
 
   it('MPV', () => {
-    expect(getPreambuloPadrao(urn('senado.federal', 'medida.provisoria;mpv'))).to.equal(
+    expect(getPreambuloPadrao(urn('federal', 'medida.provisoria;mpv'))).to.equal(
       'O PRESIDENTE DA REPÚBLICA, no uso da atribuição que lhe confere o art. 62 da Constituição, adota a seguinte Medida Provisória, com força de lei:'
     );
   });
