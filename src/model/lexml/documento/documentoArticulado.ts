@@ -27,6 +27,8 @@ export interface MetadadoLexEdit {
   // Ids separados por espaço: xsd:string em lexedit.xsd; o conversor rejeita array.
   remissoesInternasInvalidas?: { TYPE_NAME: string; refIdsRemissoesInternas: string };
   pendencias?: { TYPE_NAME: string; pendencia: string[] };
+  // Ids separados por espaço; cada atributo é omitido quando vazio (especificação 13).
+  situacaoNaNormaVigente?: { TYPE_NAME: string; refIdsDispositivosExistentes?: string; refIdsDispositivosNovos?: string };
   revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
   usuarios?: RevisoesLexEdit['usuarios'];
 }

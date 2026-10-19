@@ -10,6 +10,7 @@ import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getPreambuloPadrao, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 import { Autoria, OpcoesImpressao, Parlamentar } from '../../../proposicao/proposicao';
 import { DadosLexEdit, RevisaoArticulacaoLida } from '../documentoArticulado';
+import { SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
 import { Usuario } from '../../../revisao/usuario';
 import { getOperacoesRevisao } from '../../../../redux/elemento/util/revisaoUtil';
@@ -129,6 +130,13 @@ export const lerIdsRemissoesInvalidas = (documento: any): string[] => {
   // Texto separado por espaço no formato novo; array no provisório.
   const ids = typeof refIds === 'string' ? refIds.split(/\s+/) : Array.isArray(refIds) ? refIds : [];
   return Array.from(new Set<string>(ids.filter((id: unknown) => typeof id === 'string' && id)));
+};
+
+/** Lê `lexedit:SituacaoNaNormaVigente` (especificação 13); atributo ausente ou com tipo inesperado equivale a lista vazia. */
+export const lerSituacaoNaNormaVigente = (documento: any): SituacaoNaNormaVigente => {
+  const lido = lerConteudoLexEdit(documento)?.situacaoNaNormaVigente;
+  const ids = (valor: unknown): string[] => (typeof valor === 'string' ? Array.from(new Set(valor.split(/\s+/).filter(id => id))) : []);
+  return { existentes: ids(lido?.refIdsDispositivosExistentes), novos: ids(lido?.refIdsDispositivosNovos) };
 };
 
 // Atributo ausente ou com tipo inesperado assume o padrão da classe, sem invalidar os demais (design.md, Decisão 3).

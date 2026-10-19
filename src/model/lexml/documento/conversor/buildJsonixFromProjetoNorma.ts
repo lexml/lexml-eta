@@ -21,6 +21,7 @@ import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
 import { Autoria, OpcoesImpressao, tratamentoParlamentar } from '../../../proposicao/proposicao';
 import { formatarLocalDataFecho } from '../urnUtil';
+import { coletarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 export const PENDENCIA_REVISAO_ARTICULACAO = 'Resolver marcas de revisão na articulação.';
@@ -44,7 +45,7 @@ const garantirIdsRemissoesInvalidas = (remissoes?: Remissoes): string[] => {
 
 export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
   const idsRemissoesInvalidas = garantirIdsRemissoesInvalidas(remissoes);
-  const resultado = montaCabecalho(urn, montaMetadadoLexEdit(dados, idsRemissoesInvalidas));
+  const resultado = montaCabecalho(urn, montaMetadadoLexEdit(dados, idsRemissoesInvalidas, coletarSituacaoNaNormaVigente(projetoNorma.articulacao)));
   resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas, dados);
   return resultado;
 };
@@ -93,8 +94,18 @@ const montaAutoria = (autoria?: Autoria): MetadadoLexEdit['autoria'] => {
   };
 };
 
+// Elemento omitido sem nenhum id; atributo com lista vazia também (especificação 13).
+const montaSituacaoNaNormaVigente = (situacao: SituacaoNaNormaVigente): MetadadoLexEdit['situacaoNaNormaVigente'] => {
+  if (!situacao.existentes.length && !situacao.novos.length) return undefined;
+  return {
+    TYPE_NAME: 'br_gov_lexml_lexedit__1.SituacaoNaNormaVigente',
+    ...(situacao.existentes.length > 0 && { refIdsDispositivosExistentes: situacao.existentes.join(' ') }),
+    ...(situacao.novos.length > 0 && { refIdsDispositivosNovos: situacao.novos.join(' ') }),
+  };
+};
+
 // Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
-const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[]): MetadadoLexEdit | undefined => {
+const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[], situacao: SituacaoNaNormaVigente): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
   const pendencias: string[] = [];
   // Sem local não há fecho; data não informada é omitida, pois xsd:date não aceita texto vazio.
@@ -114,6 +125,8 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
     lexedit.usuarios = dados.revisoes.usuarios;
     pendencias.push(PENDENCIA_REVISAO_ARTICULACAO);
   }
+  const situacaoNaNormaVigente = montaSituacaoNaNormaVigente(situacao);
+  if (situacaoNaNormaVigente) lexedit.situacaoNaNormaVigente = situacaoNaNormaVigente;
   if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
   // > 1 porque TYPE_NAME está sempre presente.
   return Object.keys(lexedit).length > 1 ? lexedit : undefined;
