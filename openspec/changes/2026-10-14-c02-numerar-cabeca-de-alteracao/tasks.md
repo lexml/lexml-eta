@@ -1,7 +1,7 @@
 ## 1. Confirmação e reprodução
 
-- [ ] 1.1 Confirmar com o produto que a cabeça de alteração com rótulo pendente deve ser numerável (opção a do `design.md`, D1) e registrar a resposta no `design.md`; sem essa confirmação, não seguir para a seção 2
-- [ ] 1.2 Escrever teste unitário que reproduz o conflito: cabeça criada por `adicionaElemento` em artigo com bloco de alteração exibe o alerta de numeração com `fix` e `podeRenumerar` devolve `false` (o teste deve falhar após a correção ser aplicada, confirmando a causa)
+- [x] 1.1 Confirmar com o produto que a cabeça de alteração com rótulo pendente deve ser numerável (opção a do `design.md`, D1) e registrar a resposta no `design.md`; sem essa confirmação, não seguir para a seção 2
+- [x] 1.2 Escrever teste unitário que reproduz o conflito: cabeça criada por `adicionaElemento` em artigo com bloco de alteração exibe o alerta de numeração com `fix` e `podeRenumerar` devolve `false` (o teste deve falhar após a correção ser aplicada, confirmando a causa)
 
 ## 2. Regra única de renumeração
 

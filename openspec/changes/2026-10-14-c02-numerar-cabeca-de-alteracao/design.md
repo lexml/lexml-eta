@@ -22,7 +22,7 @@ Ver `proposal.md` (Why). Causa identificada por leitura do código (confirmar co
 
 **D1. A cabeça com rótulo pendente é numerável (opção a).**
 O usuário precisa informar qual artigo da norma está sendo alterado ("Art. 5º"); sem isso a cabeça não tem identidade. A regra de `podeRenumerar` passa a admitir a renumeração de dispositivo de alteração com rótulo pendente mesmo com `existeNaNormaAlterada = true`; com rótulo já informado e `existeNaNormaAlterada = true`, continua negando.
-**Decisão ainda a confirmar com produto** (a pessoa responsável pela change vai verificar se hoje há outro caminho para numerar a cabeça, por exemplo pelo assistente de alteração). Task 1.1 é um portão: sem a confirmação, não aplicar.
+**Decisão confirmada em 19/10/2026** pelo responsável pela change, após exploração do código: segue-se a opção (a). O assistente de alteração já cria a cabeça numerada, mas o menu "Adicionar alteração de norma" a cria sem número, e esse fluxo precisa de um caminho para numerá-la.
 Alternativa (b): não emitir `fix` no alerta quando a renumeração não é permitida. Elimina a contradição, mas deixa a cabeça sem caminho para ser numerada. Só se aplicaria se a confirmação indicar que a cabeça nunca deve ser numerada à mão.
 
 **D2. Uma única regra para alerta e ação.**
