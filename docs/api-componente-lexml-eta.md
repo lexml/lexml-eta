@@ -274,7 +274,7 @@ class Proposicao {
 
 class ColegiadoApreciador {
   siglaCasaLegislativa?: 'CN' | 'SF' | 'CD'; // padrão 'CN'
-  tipoColegiado: 'Plenário' | 'Comissão' | 'Plenário via Comissão'; // padrão 'Plenário'
+  tipoColegiado: 'Plenário' | 'Comissão'; // padrão 'Plenário'; outro valor assume o padrão
   siglaComissao?: string;
 }
 

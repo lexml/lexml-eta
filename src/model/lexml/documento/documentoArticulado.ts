@@ -4,7 +4,7 @@ import { buildJsonixFromProjetoNorma } from './conversor/buildJsonixFromProjetoN
 import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJsonix';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
 import { getAno, getNumero, getSigla } from './urnUtil';
-import { Autoria, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
+import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
 import { Usuario } from '../../revisao/usuario';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
@@ -27,6 +27,10 @@ export interface MetadadoLexEdit {
   // Ids separados por espaço: xsd:string em lexedit.xsd; o conversor rejeita array.
   remissoesInternasInvalidas?: { TYPE_NAME: string; refIdsRemissoesInternas: string };
   pendencias?: { TYPE_NAME: string; pendencia: string[] };
+  // Destino da proposição; `siglaComissao` só quando informada (especificação 14).
+  colegiadoApreciador?: { TYPE_NAME: string; siglaCasaLegislativa: string; tipoColegiado: string; siglaComissao?: string };
+  // Ids separados por espaço; cada atributo é omitido quando vazio (especificação 13).
+  situacaoNaNormaVigente?: { TYPE_NAME: string; refIdsDispositivosExistentes?: string; refIdsDispositivosNovos?: string };
   revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
   usuarios?: RevisoesLexEdit['usuarios'];
 }
@@ -63,6 +67,7 @@ export interface DadosLexEdit {
   data?: string;
   opcoesImpressao?: OpcoesImpressao;
   autoria?: Autoria;
+  colegiadoApreciador?: ColegiadoApreciador;
   revisoes?: RevisoesLexEdit;
   // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
   revisoesLidas?: RevisaoArticulacaoLida[];

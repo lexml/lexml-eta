@@ -1,11 +1,19 @@
 import { expect } from '@open-wc/testing';
 import { executeServerCommand } from '@web/test-runner-commands';
 import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado, lerDocumentoArticulado } from '../../src/model/lexml/documento/documentoArticulado';
-import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas, lerMetadadoLexEdit } from '../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import {
+  buildProjetoNormaFromJsonix,
+  lerIdsRemissoesInvalidas,
+  lerMetadadoLexEdit,
+  lerSituacaoNaNormaVigente,
+} from '../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { aplicarSituacaoNaNormaVigente } from '../../src/model/lexml/documento/conversor/situacaoNaNormaVigente';
+import { createAlteracao, criaDispositivo } from '../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { novoDocumentoArticulado, novoDocumentoComTextoLiteral } from '../doc/documentoArticulado';
 import { MPV_885_2019 } from '../assets/mpv_885_2019';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
-import { Autoria } from '../../src/model/proposicao/proposicao';
+import { Autoria, ColegiadoApreciador } from '../../src/model/proposicao/proposicao';
 import { MPV_905_2019 } from '../doc/mpv_905_2019';
 import { MPV_1234_2024 } from '../doc/mpv_1234_2024';
 import { RENUMERAR_ELEMENTO } from '../../src/model/lexml/acao/renumerarElementoAction';
@@ -155,6 +163,47 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
       expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
     });
   }
+
+  // Artigo com bloco de alteração de dois artigos (art5 existente, art6 novo); sem o parágrafo único, que a leitura descarta.
+  const modeloComBlocoDeAlteracao = (): any => {
+    const documento = novoDocumentoArticulado();
+    documento.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis.pop();
+    const modelo: any = buildProjetoNormaFromJsonix(lerDocumentoArticulado(documento), true);
+    const artigo = modelo.articulacao.filhos[0] as Artigo;
+    createAlteracao(artigo);
+    const novoArtigoNoBloco = (numero: number, existe: boolean): void => {
+      const a = criaDispositivo(artigo.alteracoes!, TipoDispositivo.artigo.tipo) as Artigo;
+      a.isDispositivoAlteracao = true;
+      a.id = `art1_cpt_alt1_art${numero}`;
+      a.rotulo = `Art. ${numero}º`;
+      a.createNumeroFromRotulo(a.rotulo);
+      a.caput!.texto = 'Texto do artigo.';
+      a.existeNaNormaAlterada = existe;
+    };
+    novoArtigoNoBloco(5, true);
+    novoArtigoNoBloco(6, false);
+    return modelo;
+  };
+
+  it('valida e reabre um documento com situação na norma vigente e colegiado apreciador', async () => {
+    const modelo = modeloComBlocoDeAlteracao();
+    const colegiadoApreciador = { siglaCasaLegislativa: 'SF', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' } as ColegiadoApreciador;
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { colegiadoApreciador });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('<lexedit:SituacaoNaNormaVigente refIdsDispositivosExistentes="art1_cpt_alt1_art5" refIdsDispositivosNovos="art1_cpt_alt1_art6"/>');
+    expect(retorno.xml).to.include('<lexedit:ColegiadoApreciador siglaCasaLegislativa="SF" tipoColegiado="Comissão" siglaComissao="CCJ"/>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(lerSituacaoNaNormaVigente(retorno.jsonix)).to.deep.equal({ existentes: ['art1_cpt_alt1_art5'], novos: ['art1_cpt_alt1_art6'] });
+    const dados = lerMetadadoLexEdit(retorno.jsonix);
+    expect(dados.colegiadoApreciador).to.deep.equal(colegiadoApreciador);
+
+    const reaberto: any = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    aplicarSituacaoNaNormaVigente(reaberto.articulacao, lerSituacaoNaNormaVigente(retorno.jsonix));
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+  });
 
   // Com lexml-simples.xsd sozinho este valor passaria: o conteúdo do xsd:any lax não seria checado.
   it('o XSD detecta valor inválido dentro de lexedit:Metadado', async () => {

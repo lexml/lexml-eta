@@ -215,7 +215,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     // Anexo de parecer não tem fecho nem autoria, como em removerDadosNaoAplicaveisAoAnexoParecer.
     const fechoEAutoria = this.anexoParecer
       ? {}
-      : { local: this.getLocalFecho(), data: normalizarDataFecho(this._lexmlData.data), autoria: this._lexmlAutoria.getAutoriaAtualizada() };
+      : {
+          local: this.getLocalFecho(),
+          data: normalizarDataFecho(this._lexmlData.data),
+          autoria: this._lexmlAutoria.getAutoriaAtualizada(),
+          colegiadoApreciador: this._lexmlDestino!.colegiadoApreciador,
+        };
     return this._lexmlEta!.getDocumentoArticulado({ ...fechoEAutoria, opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao });
   }
 
@@ -233,6 +238,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     // Dados do arquivo como gravados, sem consultar a lista de parlamentares do host.
     if (dados.autoria) this._lexmlAutoria.autoria = dados.autoria;
     this._lexmlData.data = this.anexoParecer ? '' : dados.data ?? '';
+    // A casa continua a do host: ela define a lista de comissões carregada.
+    if (dados.colegiadoApreciador && !this.anexoParecer) {
+      const { tipoColegiado, siglaComissao } = dados.colegiadoApreciador;
+      this._lexmlDestino!.colegiadoApreciador = { ...this._lexmlDestino!.colegiadoApreciador, tipoColegiado, siglaComissao };
+    }
     this.localDoArquivo = dados.local;
     this.destinoAoAbrir = { ...this._lexmlDestino!.colegiadoApreciador };
   }

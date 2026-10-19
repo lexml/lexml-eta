@@ -32,9 +32,14 @@
                                 "dataUltimaModificacao": "2026-05-12T10:15:00-03:00",
                                 "aplicacao": "LexEdit",
                                 "versaoAplicacao": "1.0.0",
-                                "substitutivo": false,
+                                "urnDocumentoReferenciado": "urn:lex:br:senado.federal:projeto.lei:888888;2020",
                                 "local": "Sala das Sessões",
                                 "data": "2026-04-24",
+                                "colegiadoApreciador": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.ColegiadoApreciador",
+                                    "siglaCasaLegislativa": "SF",
+                                    "tipoColegiado": "Plenário"
+                                },
                                 "opcoesImpressao": {
                                     "TYPE_NAME": "br_gov_lexml_lexedit__1.OpcoesImpressao",
                                     "imprimirBrasao": true,
