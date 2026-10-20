@@ -1,5 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isArticulacao, isArtigo, isParagrafo } from '../../../model/dispositivo/tipo';
+import { isArticulacao, isArtigo, isParagrafo, isPena } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -203,6 +203,9 @@ export const processarModificados = (state: State, evento: StateEvent, operacao:
         if (permiteAtualizar) {
           dispositivo.texto = e.conteudo?.texto ?? '';
           dispositivo.tituloDispositivo = e.tituloDispositivo;
+          if (isPena(dispositivo)) {
+            dispositivo.rotulo = e.rotulo;
+          }
 
           // Renumeração manual: o snapshot guarda o número, o rótulo e, por consequência, os ids anteriores.
           if (e.numero !== undefined && e.numero !== dispositivo.numero) {

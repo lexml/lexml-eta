@@ -1,5 +1,7 @@
-import { Dispositivo } from '../../dispositivo/dispositivo';
+import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
+import { isArtigo, isPena } from '../../dispositivo/tipo';
 import { ElementoAction } from '../acao';
+import { adicionarPenaAction } from '../acao/penaAction';
 import { adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction } from '../acao/atualizarTituloDispositivoAction';
 import { considerarElementoExistenteNaNorma, considerarElementoNovoNaNorma } from '../acao/informarExistenciaDoElementoNaNormaAction';
 import { getDispositivoAnterior, getDispositivoPosterior, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
@@ -28,6 +30,15 @@ export const adicionaAcoesDeTitulo = (dispositivo: Dispositivo, acoes: ElementoA
   } else {
     acoes.push(editarTituloDispositivoAction, removerTituloDispositivoAction);
   }
+};
+
+// A pena do artigo pertence ao caput. Em bloco de alteração a ação só é liberada na task 5.1.
+export const adicionaAcaoDePena = (dispositivo: Dispositivo, acoes: ElementoAction[]): void => {
+  const dono = isArtigo(dispositivo) ? (dispositivo as Artigo).caput! : dispositivo;
+  if (isBloqueado(dispositivo) || isDispositivoAlteracao(dispositivo) || dispositivo.hasAlteracao() || dono.filhos.some(isPena)) {
+    return;
+  }
+  acoes.push(adicionarPenaAction);
 };
 
 export const podeConverterEmOmissis = (dispositivo: Dispositivo): boolean => {

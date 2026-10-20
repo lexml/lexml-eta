@@ -1,4 +1,4 @@
-import { isArtigo, isCaput, isEmenta } from './../../../model/dispositivo/tipo';
+import { isArtigo, isCaput, isEmenta, isPena } from './../../../model/dispositivo/tipo';
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isAgrupador, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
@@ -42,6 +42,12 @@ export const adicionaElemento = (state: any, action: any): State => {
   const refUltimoFilho = atual && action.posicao === 'filho' ? (hasFilhos(atual) ? atual.filhos[atual.filhos.length - 1] : undefined) : undefined;
 
   if (atual === undefined) {
+    state.ui.events = [];
+    return state;
+  }
+
+  // Enter na pena só é tratado na task 4.4; até lá não pode criar uma segunda pena no dono.
+  if (isPena(atual)) {
     state.ui.events = [];
     return state;
   }

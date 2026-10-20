@@ -37,6 +37,9 @@ import { aplicaRevisoes } from './aplicaRevisoes';
 import { atualizaElemento } from './atualizaElemento';
 import { atualizaNotaAlteracao } from './atualizaNotaAlteracao';
 import { atualizaTituloDispositivo } from './atualizaTituloDispositivo';
+import { adicionaPena } from './adicionaPena';
+import { alteraRotuloPena } from './alteraRotuloPena';
+import { ADICIONAR_PENA, ALTERAR_ROTULO_PENA } from '../../../model/lexml/acao/penaAction';
 import { ATUALIZAR_TITULO_DISPOSITIVO } from '../../../model/lexml/acao/atualizarTituloDispositivoAction';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
@@ -129,6 +132,12 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case ATUALIZAR_TITULO_DISPOSITIVO:
       tempState = atualizaTituloDispositivo(state, action);
+      break;
+    case ADICIONAR_PENA:
+      tempState = adicionaPena(state, action);
+      break;
+    case ALTERAR_ROTULO_PENA:
+      tempState = alteraRotuloPena(state, action);
       break;
     case APLICAR_REVISOES:
       tempState = aplicaRevisoes(state, action);
