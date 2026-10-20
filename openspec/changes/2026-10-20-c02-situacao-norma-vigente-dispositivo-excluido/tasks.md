@@ -16,4 +16,4 @@
 
 ## 4. Fechamento
 
-- [ ] 4.1 Rodar a suíte unitária e o lint; atualizar o `CLAUDE.md` (item sobre metadados do LexEdit)
+- [x] 4.1 Rodar a suíte unitária e o lint; atualizar o `CLAUDE.md` (item sobre metadados do LexEdit)
