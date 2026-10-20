@@ -88,5 +88,19 @@
     "nomePreferido": "Lei nº 10.257, de 2001",
     "nomePorExtenso": "Lei nº 10.257, de 10 de julho de 2001",
     "ementa": "Regulamenta os arts. 182 e 183 da Constituição Federal, estabelece diretrizes gerais da política urbana (Estatuto da Cidade)."
+  },
+  {
+    "urn": "urn:lex:br:federal:medida.provisoria:2001-08-24;2158-35",
+    "nomePreferido": "Medida Provisória nº 2.158-35 de 24/08/2001",
+    "nomesAlternativos": [
+      "MPV-2158-35-2001-08-24"
+    ],
+    "nomes": [
+      "Medida Provisória nº 2.158-35 de 24/08/2001",
+      "Medida Provisória nº 2.158-35, de 24 de agosto de 2001",
+      "MPV-2158-35-2001-08-24"
+    ],
+    "ementa": "Altera a legislação das Contribuições para a Seguridade Social - COFINS, para os Programas de Integração Social e de Formação do Patrimônio do Servidor Público - PIS/PASEP e do Imposto sobre a Renda, e dá outras providências.",
+    "nomePorExtenso": "Medida Provisória nº 2.158-35, de 24 de agosto de 2001"
   }
 ]

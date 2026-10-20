@@ -6,6 +6,13 @@ import { encodeHtml } from '../../../src/util/string-util';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { criarDocumentoArticulado, lerDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { Autoria, Parlamentar } from '../../../src/model/proposicao/proposicao';
+import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
+import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualizarTextoElementoAction';
+import { RENUMERAR_ELEMENTO } from '../../../src/model/lexml/acao/renumerarElementoAction';
+import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
+import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import {
   lexeditSalvo,
   metadadoProprietarioLexEdit,
@@ -161,16 +168,26 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(lexeditSalvo(salvo).local).to.equal('Sala da comissão');
     });
 
-    it('no modo anexo de parecer não exporta fecho', () => {
+    it('no modo anexo de parecer exporta local, data e o fecho', () => {
       (component as any)._lexmlData.data = '2026-04-24';
       (component as any).anexoParecer = true;
 
       const salvo = component.getDocumentoArticulado();
 
       const lexedit = lexeditSalvo(salvo);
-      expect(lexedit).to.not.have.property('local');
-      expect(lexedit).to.not.have.property('data');
-      expect(salvo.value.projetoNorma.norma).to.not.have.property('parteFinal');
+      expect(lexedit.local).to.equal('Sala das sessões');
+      expect(lexedit.data).to.equal('2026-04-24');
+      expect(textoFecho(salvo)).to.equal('Sala das sessões, 24 de abril de 2026.');
+    });
+
+    it('no modo anexo de parecer sem data exporta só o local', () => {
+      (component as any)._lexmlData.data = '';
+      (component as any).anexoParecer = true;
+
+      const salvo = component.getDocumentoArticulado();
+
+      expect(lexeditSalvo(salvo)).to.not.have.property('data');
+      expect(textoFecho(salvo)).to.equal('Sala das sessões,');
     });
   });
 
@@ -191,6 +208,22 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(campoData().shadowRoot.querySelector('#no-date').checked).to.equal(false);
     });
 
+    it('no modo anexo de parecer aplica a data lida e preserva local e data ao salvar e reabrir', async () => {
+      component.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), { anexoParecer: true });
+      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da comissão', data: '2026-04-24' }));
+      await campoData().updateComplete;
+
+      expect(campoData().data).to.equal('2026-04-24');
+      const salvo = component.getDocumentoArticulado();
+      expect(lexeditSalvo(salvo).local).to.equal('Sala da comissão');
+      expect(lexeditSalvo(salvo).data).to.equal('2026-04-24');
+
+      await component.abrirDocumentoArticulado(salvo);
+      expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+      // Remover o componente antes de o sl-tab-group renderizar lança no ResizeObserver do Shoelace.
+      await (component.querySelector('sl-tab-group') as any).updateComplete;
+    });
+
     it('sem data no arquivo seleciona "Não informar"', async () => {
       await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala das sessões' }));
       await campoData().updateComplete;
@@ -206,14 +239,14 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('volta a derivar o local quando o destino muda', async () => {
-      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da comissão', data: '2026-04-24' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala das sessões', data: '2026-04-24' }));
       (component.querySelector('lexml-eta-destino') as any).colegiadoApreciador = {
         siglaCasaLegislativa: 'SF',
-        tipoColegiado: 'Plenário via Comissão',
+        tipoColegiado: 'Comissão',
         siglaComissao: 'CCJ',
       };
 
-      expect(localSalvo()).to.equal('Sala das sessões');
+      expect(localSalvo()).to.equal('Sala da comissão');
     });
 
     it('abrir outro documento não herda o local nem a data do anterior', async () => {
@@ -232,6 +265,179 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
       expect((salvo.value.projetoNorma.norma as any).parteFinal.localDataFecho.p[0].content[0]).to.equal('Sala da comissão, 1º de maio de 2026.');
+    });
+  });
+
+  describe('colegiado apreciador', () => {
+    const destino = (): any => component.querySelector('lexml-eta-destino');
+    const entradaComColegiado = (colegiado: Record<string, unknown>, extra: Record<string, unknown> = {}): any => {
+      const entrada = novoDocumentoArticulado();
+      entrada.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit({ colegiadoApreciador: colegiado, ...extra })];
+      return entrada;
+    };
+
+    it('salva o destino Plenário atual', () => {
+      const colegiado = lexeditSalvo(component.getDocumentoArticulado()).colegiadoApreciador;
+
+      expect(colegiado.tipoColegiado).to.equal('Plenário');
+      expect(colegiado).not.to.have.property('siglaComissao');
+    });
+
+    it('salva o destino Comissão com a sigla escolhida', () => {
+      destino().colegiadoApreciador = { siglaCasaLegislativa: 'SF', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' };
+
+      const colegiado = lexeditSalvo(component.getDocumentoArticulado()).colegiadoApreciador;
+
+      expect(colegiado).to.include({ siglaCasaLegislativa: 'SF', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
+    });
+
+    it('no modo anexo de parecer não salva o colegiado', () => {
+      (component as any).anexoParecer = true;
+
+      expect(lexeditSalvo(component.getDocumentoArticulado())).not.to.have.property('colegiadoApreciador');
+    });
+
+    it('abre o destino Comissão do arquivo', async () => {
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }));
+
+      expect(destino().colegiadoApreciador).to.include({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
+    });
+
+    it('mantém a casa do host em vez da casa do arquivo', async () => {
+      const casaDoHost = destino().colegiadoApreciador.siglaCasaLegislativa;
+      const casaDoArquivo = casaDoHost === 'SF' ? 'CD' : 'SF';
+
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: casaDoArquivo, tipoColegiado: 'Plenário' }));
+
+      expect(destino().colegiadoApreciador.siglaCasaLegislativa).to.equal(casaDoHost);
+    });
+
+    it('arquivo sem o grupo mantém o destino padrão, sem herdar o do documento anterior', async () => {
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }));
+      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+      expect(destino().colegiadoApreciador.tipoColegiado).to.equal('Plenário');
+    });
+
+    it('tipo desconhecido no arquivo assume Plenário', async () => {
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Plenário via Comissão' }));
+
+      expect(destino().colegiadoApreciador.tipoColegiado).to.equal('Plenário');
+    });
+
+    it('tipo desconhecido enviado pelo host assume Plenário', () => {
+      destino().colegiadoApreciador = { siglaCasaLegislativa: 'SF', tipoColegiado: 'Plenário via Comissão' };
+
+      expect(destino().colegiadoApreciador.tipoColegiado).to.equal('Plenário');
+    });
+
+    it('mantém o local do arquivo enquanto o destino aplicado não muda', async () => {
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }, { local: 'Sala da comissão' }));
+
+      expect(lexeditSalvo(component.getDocumentoArticulado()).local).to.equal('Sala da comissão');
+    });
+
+    it('salvar e reabrir preserva o destino', async () => {
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }));
+      const salvo = component.getDocumentoArticulado();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(lexeditSalvo(component.getDocumentoArticulado()).colegiadoApreciador).to.deep.equal(lexeditSalvo(salvo).colegiadoApreciador);
+    });
+  });
+
+  describe('autoria de parlamentares — salvar', () => {
+    const davi = { identificacao: '1111', nome: 'Davi Alcolumbre', sexo: 'M', siglaPartido: 'UNIÃO', siglaUF: 'AP', siglaCasaLegislativa: 'SF', cargo: '' };
+    const soraya = { identificacao: '2222', nome: 'Soraya Thronicke', sexo: 'F', siglaPartido: 'PSB', siglaUF: 'MS', siglaCasaLegislativa: 'SF', cargo: '' };
+    const campoAutoria = (): any => component.querySelector('lexml-eta-autoria');
+    const identificacoesSalvas = (documento: any): string[] => lexeditSalvo(documento).autoria.parlamentares.parlamentar.map((p: any) => p.identificacao);
+
+    it('exporta os parlamentares da aba de autoria e as assinaturas', () => {
+      campoAutoria().autoria = { ...new Autoria(), parlamentares: [davi, soraya] };
+
+      const salvo = component.getDocumentoArticulado();
+
+      expect(identificacoesSalvas(salvo)).to.deep.equal(['1111', '2222']);
+      expect((salvo.value.projetoNorma.norma as any).parteFinal.assinaturaTexto).to.have.length(2);
+    });
+
+    it('descarta a linha de parlamentar em branco', () => {
+      campoAutoria().autoria = { ...new Autoria(), parlamentares: [davi, { ...new Parlamentar() }] };
+
+      expect(identificacoesSalvas(component.getDocumentoArticulado())).to.deep.equal(['1111']);
+    });
+
+    it('no modo anexo de parecer exporta a autoria e as assinaturas', () => {
+      campoAutoria().autoria = { ...new Autoria(), parlamentares: [davi] };
+      (component as any).anexoParecer = true;
+
+      const salvo = component.getDocumentoArticulado();
+
+      expect(identificacoesSalvas(salvo)).to.deep.equal(['1111']);
+      expect((salvo.value.projetoNorma.norma as any).parteFinal.assinaturaTexto).to.have.length(1);
+    });
+  });
+
+  describe('autoria de parlamentares — abrir', () => {
+    const davi = {
+      identificacao: '1111',
+      nome: 'Davi Alcolumbre',
+      sexo: 'M',
+      siglaPartido: 'UNIÃO',
+      siglaUF: 'AP',
+      siglaCasaLegislativa: 'SF',
+      cargo: 'Presidente do Senado Federal',
+    };
+    const soraya = { identificacao: '2222', nome: 'Soraya Thronicke', sexo: 'F', siglaPartido: 'PSB', siglaUF: 'MS', siglaCasaLegislativa: 'SF', cargo: '' };
+    const campoAutoria = (): any => component.querySelector('lexml-eta-autoria');
+    const entradaComAutoria = (parlamentares: any[], imprimirPartidoUF = true): any => {
+      const entrada = novoDocumentoArticulado();
+      entrada.value.metadado.metadadoProprietario = [
+        metadadoProprietarioLexEdit({
+          autoria: {
+            TYPE_NAME: 'br_gov_lexml_lexedit__1.Autoria',
+            tipo: 'Parlamentar',
+            imprimirPartidoUF,
+            parlamentares: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Parlamentares', parlamentar: parlamentares },
+          },
+        }),
+      ];
+      return entrada;
+    };
+
+    it('exibe os parlamentares do arquivo, na ordem, e a opção de partido e UF', async () => {
+      await component.abrirDocumentoArticulado(entradaComAutoria([davi, soraya], false));
+      await campoAutoria().updateComplete;
+
+      expect(campoAutoria().getAutoriaAtualizada().parlamentares).to.deep.equal([davi, soraya]);
+      expect(campoAutoria().shadowRoot.querySelector('#chk-exibir-partido-uf').checked).to.be.false;
+    });
+
+    it('mantém o partido do arquivo mesmo quando a lista do host tem outro', async () => {
+      (component as any).getParlamentares = async (): Promise<any[]> => [{ ...davi, siglaPartido: 'PSD' }];
+
+      await component.abrirDocumentoArticulado(entradaComAutoria([davi]));
+
+      expect(campoAutoria().getAutoriaAtualizada().parlamentares[0].siglaPartido).to.equal('UNIÃO');
+    });
+
+    it('sem autoria no arquivo mantém a autoria padrão do editor, sem herdar a do documento anterior', async () => {
+      await component.abrirDocumentoArticulado(entradaComAutoria([davi]));
+      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+      expect(campoAutoria().getAutoriaAtualizada().parlamentares).to.deep.equal([]);
+      expect(lexeditSalvo(component.getDocumentoArticulado())).to.not.have.property('autoria');
+    });
+
+    it('salvar e reabrir preserva a autoria e as assinaturas', async () => {
+      await component.abrirDocumentoArticulado(entradaComAutoria([davi, soraya]));
+      const salvo = component.getDocumentoArticulado();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+      expect((salvo.value.projetoNorma.norma as any).parteFinal.assinaturaTexto).to.have.length(2);
     });
   });
 
@@ -285,6 +491,8 @@ describe('ETA — salvar e abrir documento articulado', () => {
         local: 'Sala da comissão',
         data: '2026-04-24',
         opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...OPCOES },
+        // O arquivo provisório não tem destino: vale o padrão do editor.
+        colegiadoApreciador: { TYPE_NAME: 'br_gov_lexml_lexedit__1.ColegiadoApreciador', siglaCasaLegislativa: 'CN', tipoColegiado: 'Plenário' },
         remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idRemissao },
         pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: [JUSTIFICACAO, 'Corrigir remissões internas inválidas.'] },
       });
@@ -305,13 +513,6 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
     it('não grava a pendência no modo anexo de parecer', () => {
       (component as any).anexoParecer = true;
-      expect(pendenciasSalvas()).to.not.include(JUSTIFICACAO);
-    });
-
-    it('não grava a pendência com a obrigatoriedade desligada na configuração', () => {
-      const config = new LexmlEtaConfig();
-      config.justificacaoObrigatoria = false;
-      component.lexmlEtaConfig = config;
       expect(pendenciasSalvas()).to.not.include(JUSTIFICACAO);
     });
 
@@ -513,6 +714,137 @@ describe('ETA — salvar e abrir documento articulado', () => {
       const reaberta = component.getDocumentoArticulado().value.projetoNorma.justificacao![0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento[0].value;
       expect(reaberta.style).to.be.undefined;
       expect(reaberta.tr[0].tableCellElement[0].value.style).to.be.undefined;
+    });
+  });
+
+  describe('revisões da hierarquia — salvar', () => {
+    const emRevisao = (): boolean => !!rootStore.getState().elementoReducer.emRevisao;
+
+    const alteraPrimeiroArtigoEmRevisao = (): void => {
+      rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+      const elemento = createElemento(rootStore.getState().elementoReducer.articulacao.filhos[0]);
+      elemento.conteudo!.texto = 'Texto revisado.';
+      rootStore.dispatch({ type: ATUALIZAR_TEXTO_ELEMENTO, atual: elemento });
+    };
+
+    afterEach(() => {
+      if (emRevisao()) rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+    });
+
+    it('exporta as revisões, os usuários e a pendência', () => {
+      alteraPrimeiroArtigoEmRevisao();
+
+      const lexedit = lexeditSalvo(component.getDocumentoArticulado());
+
+      expect(lexedit.revisoesArticulacao.revisaoArticulacao).to.have.length(1);
+      expect(lexedit.revisoesArticulacao.revisaoArticulacao[0]).to.include({ revisao: 'alterado', refIdDispositivo: 'art1' });
+      expect(lexedit.usuarios.usuario).to.have.length(1);
+      expect(lexedit.pendencias.pendencia).to.include('Resolver marcas de revisão na articulação.');
+    });
+
+    it('sem revisão não exporta o grupo, os usuários nem a pendência', () => {
+      // Com a justificação vazia, a pendência dela seria gravada.
+      (component as any)._lexmlJustificativa.setContent('<p>Justificação.</p>');
+      const lexedit = lexeditSalvo(component.getDocumentoArticulado());
+
+      expect(lexedit).to.not.have.property('revisoesArticulacao');
+      expect(lexedit).to.not.have.property('usuarios');
+      expect(lexedit).to.not.have.property('pendencias');
+    });
+  });
+
+  describe('revisões da hierarquia — abrir', () => {
+    const estado = (): any => rootStore.getState().elementoReducer;
+    const principais = (): any[] => (estado().revisoes ?? []).filter((r: any) => !r.idRevisaoElementoPrincipal);
+
+    afterEach(() => {
+      if (estado().emRevisao) rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+    });
+
+    const salvaComRevisao = (): any => {
+      rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+      const elemento = createElemento(estado().articulacao.filhos[0]);
+      elemento.conteudo!.texto = 'Texto revisado.';
+      rootStore.dispatch({ type: ATUALIZAR_TEXTO_ELEMENTO, atual: elemento });
+      return component.getDocumentoArticulado();
+    };
+
+    it('reaplica as revisões do arquivo e entra em modo de revisão', async () => {
+      const salvo = salvaComRevisao();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(estado().emRevisao).to.equal(true);
+      expect(principais()).to.have.length(1);
+      expect(principais()[0]).to.include({ revisao: 'alterado' });
+    });
+
+    it('desenha na tela a marca da revisão reaplicada, sem depender de novo evento do dispositivo', async () => {
+      const salvo = salvaComRevisao();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(component.querySelectorAll('.container__revisao')).to.have.length(1);
+    });
+
+    it('salvar e reabrir preserva as revisões, os usuários e a pendência', async () => {
+      const salvo = salvaComRevisao();
+      const grupo = lexeditSalvo(salvo);
+
+      await component.abrirDocumentoArticulado(salvo);
+      const novo = lexeditSalvo(component.getDocumentoArticulado());
+
+      expect(novo.revisoesArticulacao).to.deep.equal(grupo.revisoesArticulacao);
+      expect(novo.usuarios).to.deep.equal(grupo.usuarios);
+      expect(novo.pendencias).to.deep.equal(grupo.pendencias);
+    });
+
+    it('abrir outro documento sem revisões não herda as marcas nem o modo de revisão', async () => {
+      await component.abrirDocumentoArticulado(salvaComRevisao());
+
+      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+      expect(principais()).to.have.length(0);
+      expect(estado().emRevisao).to.equal(false);
+    });
+
+    it('arquivo sem revisões abre sem modo de revisão', () => {
+      expect(estado().emRevisao).to.equal(false);
+      expect(principais()).to.have.length(0);
+    });
+
+    describe('renumeração em alteração de norma (alteracaoRotulo)', () => {
+      const PAR = 'art1_cpt_alt1_art4_par4';
+
+      const salvaComRenumeracao = async (): Promise<any> => {
+        await component.abrirDocumentoArticulado(JSON.parse(JSON.stringify(MPV_1234_2024)));
+        rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+        rootStore.dispatch({ type: RENUMERAR_ELEMENTO, atual: createElemento(buscaDispositivoById(estado().articulacao, PAR)!), novo: { numero: '9' } });
+        return component.getDocumentoArticulado();
+      };
+
+      it('salva a operação com o id original e a reabre com a marca na tela', async () => {
+        const salvo = await salvaComRenumeracao();
+        expect(lexeditSalvo(salvo).revisoesArticulacao.revisaoArticulacao[0]).to.include({ revisao: `alteracaoRotulo;${PAR}`, refIdDispositivo: 'art1_cpt_alt1_art4_par9' });
+
+        await component.abrirDocumentoArticulado(salvo);
+
+        expect(principais()).to.have.length(1);
+        expect(principais()[0]).to.include({ revisao: `alteracaoRotulo;${PAR}` });
+        expect(component.querySelectorAll('.container__revisao')).to.have.length(1);
+      });
+
+      it('criar, serializar, ler, reaplicar e serializar de novo mantém revisões, usuários e pendências', async () => {
+        const salvo = await salvaComRenumeracao();
+        const grupo = lexeditSalvo(salvo);
+
+        await component.abrirDocumentoArticulado(salvo);
+        const novo = lexeditSalvo(component.getDocumentoArticulado());
+
+        expect(novo.revisoesArticulacao).to.deep.equal(grupo.revisoesArticulacao);
+        expect(novo.usuarios).to.deep.equal(grupo.usuarios);
+        expect(novo.pendencias).to.deep.equal(grupo.pendencias);
+      });
     });
   });
 });

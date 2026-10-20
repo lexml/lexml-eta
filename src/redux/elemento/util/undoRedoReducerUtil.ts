@@ -1,5 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isArticulacao, isArtigo } from '../../../model/dispositivo/tipo';
+import { isArticulacao, isArtigo, isParagrafo } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
@@ -12,13 +12,20 @@ import {
   getTiposAgrupadorArtigoOrdenados,
   getUltimoFilho,
   isArticulacaoAlteracao,
+  isParagrafoUnico,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { getEvento } from '../evento/eventosUtil';
-import { getDispositivoCabecaAlteracao, isDispositivoAlteracao, isUltimaAlteracao, hasEmenta } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getDispositivoCabecaAlteracao,
+  isDispositivoAlteracao,
+  isUltimaAlteracao,
+  hasEmenta,
+  getUltimoDispositivoDaParteInicial,
+} from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import {
   associarRevisoesAosElementos,
   existeRevisaoCriadaPorExclusao,
@@ -31,8 +38,9 @@ import {
 import { retornaEstadoAtualComMensagem } from './stateReducerUtil';
 import { removeElemento } from '../reducer/removeElemento';
 import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
+import { buscarDispositivoPorUuid } from '../../../model/remissao/sincronizarRemissoes';
 
-const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
+export const getDispositivoPaiFromElemento = (articulacao: Articulacao, elemento: Partial<Elemento>): Dispositivo | null => {
   if (isElementoDispositivoAlteracao(elemento)) {
     const artigo = isArticulacaoAlteracao(articulacao)
       ? articulacao.pai!
@@ -60,7 +68,17 @@ const isOmissisCaput = (elemento: Elemento): boolean => {
   return elemento.tipo === TipoDispositivo.omissis.tipo && elemento.tipoOmissis === 'inciso-caput';
 };
 
-const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Dispositivo => {
+// A guarda evita uuid duplicado quando o caput original ainda está na árvore (ex.: colar substituindo inclui antes de remover).
+const restauraIdentidadeCaput = (articulacao: Articulacao, artigo: Artigo, elemento: Elemento): void => {
+  const { uuid, uuid2 } = elemento.caput ?? {};
+  if (!artigo.caput || uuid === undefined || buscarDispositivoPorUuid(articulacao, uuid)) {
+    return;
+  }
+  artigo.caput.uuid = uuid;
+  artigo.caput.uuid2 = uuid2;
+};
+
+export const redodDispositivoExcluido = (articulacao: Articulacao, elemento: Elemento, pai: Dispositivo): Dispositivo => {
   const novo = criaDispositivo(
     isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.name || isOmissisCaput(elemento)) ? (pai as Artigo).caput! : pai,
     elemento.tipo!,
@@ -76,6 +94,7 @@ const redodDispositivoExcluido = (elemento: Elemento, pai: Dispositivo): Disposi
   novo.mensagens = elemento?.mensagens;
   novo.existeNaNormaAlterada = elemento.existeNaNormaAlterada;
   if (isArtigo(novo)) {
+    restauraIdentidadeCaput(articulacao, novo as Artigo, elemento);
     if (elemento.norma) {
       createAlteracao(novo);
       (novo as Artigo).alteracoes!.base = elemento.norma;
@@ -89,7 +108,7 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dis
   const primeiroElemento = elementos.shift();
 
   const pai = getDispositivoPaiFromElemento(articulacao, primeiroElemento!) || buscaDispositivoById(articulacao, primeiroElemento!.hierarquia!.pai!.lexmlId!);
-  const primeiro = redodDispositivoExcluido(primeiroElemento!, pai!);
+  const primeiro = redodDispositivoExcluido(articulacao, primeiroElemento!, pai!);
   const idPrimeiroDispositivo = primeiro.id!;
 
   const novos: Dispositivo[] = [primeiro];
@@ -99,11 +118,24 @@ const redoDispositivosExcluidos = (articulacao: any, elementos: Elemento[]): Dis
         ? primeiro.pai!
         : getDispositivoPaiFromElemento(articulacao, filho) || buscaDispositivoById(articulacao, idPrimeiroDispositivo);
 
-    const novo = redodDispositivoExcluido(filho, parent!);
+    const novo = redodDispositivoExcluido(articulacao, filho, parent!);
     novos.push(novo);
   });
 
   return novos;
+};
+
+// A recontagem de renumeraFilhos sobrescreve (ou nunca chega a) a forma "único"/numerada registrada no elemento
+const restauraFormaParagrafoUnico = (novos: Dispositivo[], registrados: Elemento[]): void => {
+  novos.filter(isParagrafo).forEach(novo => {
+    if (!isParagrafoUnico(novo)) return;
+    const registrado = registrados.find(e => e.uuid === novo.uuid);
+    if (!registrado) return;
+    const informouUnico = /[uú]nico/i.test(registrado.rotulo ?? '');
+    (novo as any).informouParagrafoUnico = informouUnico;
+    if (informouUnico) novo.rotulo = 'Parágrafo único.';
+    else if (/[uú]nico/i.test(novo.rotulo ?? '')) novo.rotulo = `§ ${novo.numero}º`;
+  });
 };
 
 export const incluir = (state: State, evento: StateEvent, novosEvento: StateEvent): Elemento[] => {
@@ -113,8 +145,10 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
 
     const pai = getDispositivoPaiFromElemento(state.articulacao!, elemento!);
 
+    const registrados = [...evento.elementos];
     const novos = redoDispositivosExcluidos(state.articulacao, evento.elementos);
     pai?.renumeraFilhos();
+    restauraFormaParagrafoUnico(novos, registrados);
     // renumeraFilhos só atualiza .numero/.rotulo — sem isto, .id (buildId) fica obsoleto para os
     // dispositivos deslocados pela reinclusão, quebrando qualquer recálculo que dependa do id atual
     // (ex.: sincronizarRemissoesPosAcao, ver docs/PLANO_SIMPLIFICACAO_ATUALIZACAO_REMISSAO.md).
@@ -126,7 +160,7 @@ export const incluir = (state: State, evento: StateEvent, novosEvento: StateEven
       let referencia = posicao === 0 ? (isArticulacao(pai!) && isArticulacaoAlteracao(pai as Articulacao) ? pai!.pai! : pai) : getUltimoFilho(getDispositivoAnterior(novos[0])!);
 
       if (referencia) {
-        referencia = isArticulacao(referencia) && hasEmenta(referencia) ? (referencia as Articulacao).projetoNorma!.ementa! : referencia;
+        referencia = isArticulacao(referencia) && hasEmenta(referencia) ? getUltimoDispositivoDaParteInicial(referencia)! : referencia;
         const dispositivo = getDispositivoFromElemento(state.articulacao!, referencia);
         dispositivo ? (novosEvento.referencia = createElemento(dispositivo!)) : retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Erro inesperado' });
       }
@@ -168,6 +202,14 @@ export const processarModificados = (state: State, evento: StateEvent, operacao:
         const permiteAtualizar = anterior !== dispositivo.uuid || (operacao === 'REDO' && anterior === dispositivo.uuid);
         if (permiteAtualizar) {
           dispositivo.texto = e.conteudo?.texto ?? '';
+          dispositivo.tituloDispositivo = e.tituloDispositivo;
+
+          // Renumeração manual: o snapshot guarda o número, o rótulo e, por consequência, os ids anteriores.
+          if (e.numero !== undefined && e.numero !== dispositivo.numero) {
+            dispositivo.numero = e.numero;
+            dispositivo.rotulo = e.rotulo;
+            updateIdDispositivoAndFilhos(dispositivo);
+          }
 
           if (dispositivo.alteracoes) {
             dispositivo.alteracoes.base = e.norma;

@@ -3,6 +3,7 @@ import { createElemento } from './../../../model/elemento/elementoUtil';
 import { Elemento } from '../../../model/elemento';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
+import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { formatDateTime } from '../../../util/date-util';
 import { State, StateEvent, StateType } from '../../state';
@@ -13,7 +14,7 @@ import {
   isRevisaoDeTransformacao,
   identificarRevisaoElementoPai,
   existeRevisaoParaElementos,
-  buildDescricaoRevisaoFromStateType,
+  buildDescricaoRevisaoDeModificacao,
   removeAtributosDoElemento,
   atualizaReferenciaElementoAnteriorSeNecessario,
   isRevisaoPrincipal,
@@ -22,6 +23,24 @@ import {
   findRevisoesByElementoLexmlId,
   isRevisaoDeModificacao,
   associarRevisoesAosElementosDosEventos,
+  anexarOperacaoRevisao,
+  formatarOperacoesRevisao,
+  getOperacaoDeMovimentacaoOuTransformacao,
+  getOperacoesDaRevisao,
+  getOperacoesRevisao,
+  getPosicaoOriginalParaMovimentacao,
+  getPosicaoDeOrigem,
+  getReferenciaDeOrigem,
+  getRevisoesElementoAssociadas,
+  isMesmoTextoETitulo,
+  reconciliarOperacoesRevisao,
+  OPERACAO_ADICIONADO,
+  OPERACAO_ALTERACAO_ROTULO,
+  OPERACAO_ALTERADO,
+  OPERACAO_EXCLUIDO,
+  OPERACAO_MOVIDO,
+  buildDescricaoRevisaoElemento,
+  OperacaoRevisao,
 } from '../util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
@@ -78,11 +97,26 @@ export const atualizaRevisao = (state: State, actionType: any): State => {
 
   state.revisoes!.push(...revisoes);
 
+  if ([RENUMERAR_ELEMENTO, UNDO, REDO].includes(actionType)) {
+    atualizarLexmlIdAposRenumeracao(state);
+  }
+
+  atualizarDescricoesDasRevisoes(state);
+
   associarRevisoesAosElementosDosEventos(state);
 
   adicionarOpcoesAoMenu(state);
 
   return state;
+};
+
+// A descrição decorre das operações da revisão; recalculá-la aqui evita que fique desatualizada.
+const atualizarDescricoesDasRevisoes = (state: State): void => {
+  getRevisoesElemento(state.revisoes).forEach(r => {
+    if (r.revisao) {
+      r.descricao = buildDescricaoRevisaoElemento(r);
+    }
+  });
 };
 
 const isUndoDeRevisaoAceitaOuRejeitada = (state: State): boolean => {
@@ -104,13 +138,27 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
         revisoesParaRemover.push(revisao);
       }
       revisao.elementoAposRevisao = JSON.parse(JSON.stringify(e));
+      isRevisaoDeModificacao(revisao) && (revisao.descricao = buildDescricaoRevisaoDeModificacao(revisao));
       state.usuario && (revisao.usuario = state.usuario);
       revisao.dataHora = formatDateTime(new Date());
+      if (revisao.elementoAntesRevisao && revisao.stateType !== StateType.ElementoRemovido) {
+        let operacoes = anexarOperacaoRevisao(getOperacoesDaRevisao(state, revisao), OPERACAO_ALTERADO);
+        const alteracaoRotulo = getOperacaoDeAlteracaoRotulo(state, actionType, e);
+        alteracaoRotulo && (operacoes = anexarOperacaoRevisao(operacoes, alteracaoRotulo.nome, alteracaoRotulo.argumento));
+        revisao.revisao = operacoes;
+        reconciliarOperacoesRevisao(state, revisao);
+        // Sem operações restantes nada sobrou da revisão: ela e as associadas deixam de existir.
+        if (revisao.revisao === '') {
+          revisoesParaRemover.push(...getRevisoesElementoAssociadas(state.revisoes, revisao));
+        }
+      }
     } else {
       const eAux = getElementoAntesModificacao(state, e);
       // result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
       if (!isAjusteTextoOmitido(eAux, e)) {
-        result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
+        const nova = new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e)));
+        nova.revisao = getOperacoesDeNovaModificacao(state, actionType, e, eAux);
+        result.push(nova);
       }
     }
   });
@@ -118,6 +166,24 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
   state.revisoes = state.revisoes?.filter(r => !revisoesParaRemover.includes(r));
 
   return result;
+};
+
+// UNDO não entra: o `past` já não guarda o evento desfeito, e a reconciliação por id descarta a operação revertida.
+const getOperacaoDeAlteracaoRotulo = (state: State, actionType: any, elemento: Elemento): OperacaoRevisao | undefined => {
+  if (![RENUMERAR_ELEMENTO, REDO].includes(actionType)) {
+    return undefined;
+  }
+  const anterior = getElementoAntesModificacao(state, elemento);
+  return anterior && anterior.tipo === elemento.tipo && anterior.rotulo !== elemento.rotulo ? { nome: OPERACAO_ALTERACAO_ROTULO, argumento: anterior.lexmlId } : undefined;
+};
+
+const getOperacoesDeNovaModificacao = (state: State, actionType: any, elemento: Elemento, anterior: Elemento | undefined): string => {
+  const alteracaoRotulo = getOperacaoDeAlteracaoRotulo(state, actionType, elemento);
+  if (!alteracaoRotulo) {
+    return OPERACAO_ALTERADO;
+  }
+  const operacoes = anexarOperacaoRevisao('', alteracaoRotulo.nome, alteracaoRotulo.argumento);
+  return !isMesmoTextoETitulo(anterior, elemento) ? anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO) : operacoes;
 };
 
 const isAjusteTextoOmitido = (eAntesRevisao: Elemento | undefined, eAposRevisao: Elemento): boolean => {
@@ -148,7 +214,8 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
       JSON.parse(JSON.stringify(eAposRevisao))
     );
 
-    revInclusao.descricao = buildDescricaoRevisaoFromStateType(revInclusao, eAposRevisao);
+    revInclusao.revisao = formatarOperacoesRevisao([getOperacaoDeMovimentacaoOuTransformacao(state, eAntesRevisao, eAposRevisao)]);
+    revInclusao.origemAntesDeUuid2 = getReferenciaDeOrigem(state.articulacao!, eAntesRevisao, eAposRevisao);
     // revExclusao.idRevisaoAssociada = revInclusao.id;
     // revInclusao.idRevisaoAssociada = revExclusao.id;
     // result.push(revExclusao);
@@ -171,13 +238,25 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
 
         // result.push(montarNovaRevisao(revisao.elementoAntesRevisao! as Elemento, incluidos[index]));
 
+        // Revisão de dispositivo adicionado (sem antes) já cobre a movimentação; as demais acumulam a operação desta ação.
+        const operacao = revisao.elementoAntesRevisao ? getOperacaoDeMovimentacaoOuTransformacao(state, e, incluidos[index]) : undefined;
+
         revisao.stateType = StateType.ElementoIncluido;
         revisao.actionType = actionType;
         revisao.dataHora = formatDateTime(new Date());
         revisao.elementoAposRevisao = JSON.parse(JSON.stringify(incluidos[index]));
         removeAtributosDoElemento(revisao.elementoAposRevisao);
         revisao.usuario = state.usuario!;
-        revisao.descricao = buildDescricaoRevisaoFromStateType(revisao, incluidos[index]);
+
+        if (operacao) {
+          revisao.origemAntesDeUuid2 = revisao.origemAntesDeUuid2 ?? getReferenciaDeOrigem(state.articulacao!, e, incluidos[index]);
+          revisao.revisao = anexarOperacaoRevisao(getOperacoesDaRevisao(state, revisao), operacao.nome, operacao.argumento);
+          reconciliarOperacoesRevisao(state, revisao);
+          if (revisao.revisao === '') {
+            revisoesParaRemover.push(...getRevisoesElementoAssociadas(state.revisoes, revisao));
+            return;
+          }
+        }
 
         revisao.idRevisaoElementoPai = revisoesParaRemover.find(r => r.id === revisao.idRevisaoElementoPai) ? undefined : revisao.idRevisaoElementoPai;
         revisao.idRevisaoElementoPrincipal = revisoesParaRemover.find(r => r.id === revisao.idRevisaoElementoPrincipal) ? undefined : revisao.idRevisaoElementoPrincipal;
@@ -193,6 +272,15 @@ const processaEventosDeMoverOuTransformar = (state: State, actionType: any): Rev
 
   return result;
 };
+
+const comOperacao = (revisao: RevisaoElemento, operacao: string): RevisaoElemento => {
+  revisao.revisao = operacao;
+  return revisao;
+};
+
+const adicionado = (revisao: RevisaoElemento): RevisaoElemento => comOperacao(revisao, OPERACAO_ADICIONADO);
+
+const excluido = (revisao: RevisaoElemento): RevisaoElemento => comOperacao(revisao, OPERACAO_EXCLUIDO);
 
 const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => {
   const eventos = getEventos(state, StateType.ElementoIncluido);
@@ -210,7 +298,9 @@ const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => 
       if (!uuidsElementosIncluidos.includes(e.hierarquia?.pai?.uuid)) {
         atualizaReferenciaElementoAnteriorSeNecessario(state.articulacao!, state.revisoes, e, 'inclusao');
       }
-      result.push(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, JSON.parse(JSON.stringify(e))));
+      result.push(
+        adicionado(new RevisaoElemento(actionType, StateType.ElementoIncluido, '', state.usuario!, formatDateTime(new Date()), undefined, JSON.parse(JSON.stringify(e))))
+      );
     }
   });
 
@@ -236,7 +326,7 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
         atualizaReferenciaElementoAnteriorSeNecessario(state.articulacao!, state.revisoes, e, 'exclusao');
       }
       const eAux = JSON.parse(JSON.stringify(e)) as Elemento;
-      result.push(new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), eAux, { ...eAux, acoesPossiveis: [] }));
+      result.push(excluido(new RevisaoElemento(actionType, StateType.ElementoRemovido, '', state.usuario!, formatDateTime(new Date()), eAux, { ...eAux, acoesPossiveis: [] })));
     }
   });
 
@@ -274,6 +364,7 @@ const revisaoDeElementoComMesmoUuid2RotuloEConteudo = (r: RevisaoElemento, e: El
     r.elementoAntesRevisao?.uuid2 === e.uuid2 &&
     r.elementoAntesRevisao?.rotulo === e.rotulo &&
     r.elementoAntesRevisao?.conteudo?.texto === e.conteudo?.texto &&
+    r.elementoAntesRevisao?.tituloDispositivo === e.tituloDispositivo &&
     r.elementoAntesRevisao?.hierarquia?.pai?.lexmlId === e.hierarquia?.pai?.lexmlId // Checa se elementos estão na mesma hierarquia
   );
 };
@@ -309,6 +400,19 @@ const existeEventoDeInclusaoOuExclusao = (state: State): boolean => {
   return eventos.some(se => se.stateType === StateType.ElementoIncluido || se.stateType === StateType.ElementoRemovido);
 };
 
+// Só o `apos`: o `antes` preserva o id de origem da revisão.
+const atualizarLexmlIdAposRenumeracao = (state: State): void => {
+  getRevisoesElemento(state.revisoes || [])
+    .filter(r => !isRevisaoDeExclusao(r))
+    .forEach(r => {
+      const d = getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao);
+      if (d?.pai) {
+        r.elementoAposRevisao.lexmlId = d.id;
+        r.elementoAposRevisao.hierarquia!.pai!.lexmlId = d.pai.id;
+      }
+    });
+};
+
 const atualizarLexmlIdEmElementosDeRevisoes = (state: State): void => {
   let revisoes = getRevisoesElemento(state.revisoes || []).filter(r => !isRevisaoDeExclusao(r));
 
@@ -339,23 +443,94 @@ const atualizarLexmlIdEmElementosDeRevisoes = (state: State): void => {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const atualizarPosicaoDeElementosEmRevisoes = (state: State): void => {
-  const revisoes = getRevisoesElemento(state.revisoes || []).filter(r => isRevisaoPrincipal(r) && isRevisaoDeExclusao(r));
-  atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoIncluido));
-  atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoRemovido));
+  const exclusoes = getRevisoesElemento(state.revisoes || []).filter(isRevisaoDeExclusao);
+  const revisoes = exclusoes.filter(isRevisaoPrincipal);
+  const isRejeicao = !!state.ui?.events.some(ev => ev.stateType === StateType.RevisaoRejeitada);
+  atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoIncluido), isRejeicao, exclusoes);
+  atualizarPosicaoDeElementosEmRevisoesByEvento(revisoes, getEvento(state.ui!.events, StateType.ElementoRemovido), isRejeicao, exclusoes);
+  atualizarPosicaoOriginalDasMovimentacoes(state);
 };
 
-const atualizarPosicaoDeElementosEmRevisoesByEvento = (revisoes: RevisaoElemento[] = [], evento: StateEvent | undefined): void => {
+// O lugar de origem (`antes`) decorre da referência guardada na criação; recalculá-lo aqui o mantém certo após qualquer inclusão, remoção, undo ou redo.
+const atualizarPosicaoOriginalDasMovimentacoes = (state: State): void => {
+  getRevisoesElemento(state.revisoes || [])
+    .filter(r => isRevisaoPrincipal(r) && !isRevisaoDeExclusao(r) && r.elementoAntesRevisao?.hierarquia && r.origemAntesDeUuid2 !== undefined)
+    .forEach(r => {
+      const origem = r.elementoAntesRevisao!.hierarquia!;
+      const posicao = getPosicaoDeOrigem(state.articulacao!, r.elementoAntesRevisao!, r.elementoAposRevisao, r.origemAntesDeUuid2);
+      if (posicao !== undefined && posicao !== origem.posicao) {
+        origem.posicao = posicao;
+        atualizarPosicaoOriginalNaOperacaoMovido(state, r);
+      }
+    });
+};
+
+const atualizarPosicaoOriginalNaOperacaoMovido = (state: State, revisao: RevisaoElemento): void => {
+  const operacoes = getOperacoesRevisao(revisao.revisao);
+  if (operacoes.some(o => o.nome === OPERACAO_MOVIDO)) {
+    const posicao = String(getPosicaoOriginalParaMovimentacao(state, revisao.elementoAntesRevisao!, revisao.elementoAposRevisao));
+    revisao.revisao = formatarOperacoesRevisao(operacoes.map(o => (o.nome === OPERACAO_MOVIDO ? { ...o, argumento: posicao } : o)));
+  }
+};
+
+const atualizarPosicaoDeElementosEmRevisoesByEvento = (
+  revisoes: RevisaoElemento[] = [],
+  evento: StateEvent | undefined,
+  isRejeicao = false,
+  exclusoes: RevisaoElemento[] = []
+): void => {
   if (!evento) {
     return;
   }
   const fator = evento.stateType === StateType.ElementoIncluido ? 1 : -1;
-  const fnCondicaoInclusao = (e: Elemento, posicaoAtual: number): boolean => e.hierarquia!.posicao! <= posicaoAtual;
+  const uuidsDoEvento = new Set((evento.elementos ?? []).map(e => e.uuid));
+  // Na reinclusão por rejeição, o empate de posição se desfaz pela cadeia de "elemento anterior": só desloca o excluído que vinha depois.
+  const fnCondicaoInclusao = (e: Elemento, posicaoAtual: number, r: RevisaoElemento): boolean =>
+    e.hierarquia!.posicao! < posicaoAtual || (e.hierarquia!.posicao! === posicaoAtual && (!isRejeicao || vemDepoisDosElementos(r, uuidsDoEvento, revisoes, exclusoes)));
   const fnCondicaoExclusao = (e: Elemento, posicaoAtual: number): boolean => e.hierarquia!.posicao! < posicaoAtual;
   const fnCondicao2 = evento.stateType === StateType.ElementoIncluido ? fnCondicaoInclusao : fnCondicaoExclusao;
   revisoes.forEach(r => {
     const lexmlIdPai = r.elementoAposRevisao.hierarquia!.pai!.lexmlId;
     const posicaoAtual = r.elementoAposRevisao.hierarquia!.posicao!;
-    const deslocamento = evento.elementos!.filter(e => e.hierarquia?.pai?.lexmlId === lexmlIdPai && fnCondicao2(e, posicaoAtual)).length * fator;
+    const deslocamento = evento.elementos!.filter(e => e.hierarquia?.pai?.lexmlId === lexmlIdPai && fnCondicao2(e, posicaoAtual, r)).length * fator;
     r.elementoAposRevisao.hierarquia!.posicao! += deslocamento;
+    // Na sessão `antes` e `apos` compartilham o objeto `hierarquia`; em revisão reconstruída ao abrir o arquivo, não.
+    const hierarquiaAntes = r.elementoAntesRevisao?.hierarquia;
+    if (hierarquiaAntes && hierarquiaAntes !== r.elementoAposRevisao.hierarquia) {
+      hierarquiaAntes.posicao! += deslocamento;
+    }
   });
+};
+
+// Segue a cadeia de "elemento anterior na leitura" entre excluídos vizinhos até achar (ou não) um dos elementos informados.
+const vemDepoisDosElementos = (revisao: RevisaoElemento, uuids: Set<number | undefined>, principais: RevisaoElemento[], exclusoes: RevisaoElemento[]): boolean => {
+  const visitadas = new Set<RevisaoElemento>();
+  let atual: RevisaoElemento | undefined = revisao;
+  while (atual && !visitadas.has(atual)) {
+    visitadas.add(atual);
+    const anterior = atual.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura;
+    if (!anterior) {
+      return false;
+    }
+    if (anterior.uuid !== undefined && uuids.has(anterior.uuid)) {
+      return true;
+    }
+    atual = anterior.uuid2 === '_encadeado' ? excluidoImediatamenteAntes(atual, principais) : principalDoExcluido(anterior.uuid, exclusoes, atual);
+  }
+  return false;
+};
+
+// O anterior pode ser um descendente do excluído (o último filho): a revisão que importa é a da principal do grupo.
+const principalDoExcluido = (uuid: number | undefined, exclusoes: RevisaoElemento[], atual: RevisaoElemento): RevisaoElemento | undefined => {
+  const encontrada = uuid === undefined ? undefined : exclusoes.find(r => r !== atual && r.elementoAposRevisao.uuid === uuid);
+  return encontrada?.idRevisaoElementoPrincipal ? exclusoes.find(r => r.id === encontrada.idRevisaoElementoPrincipal) : encontrada;
+};
+
+// Em documento reaberto o encadeamento não tem uuid: o anterior é o excluído que o precede no mesmo lugar.
+const excluidoImediatamenteAntes = (revisao: RevisaoElemento, principais: RevisaoElemento[]): RevisaoElemento | undefined => {
+  const h = revisao.elementoAposRevisao.hierarquia;
+  return principais
+    .slice(0, principais.indexOf(revisao))
+    .reverse()
+    .find(p => p.elementoAposRevisao.hierarquia?.posicao === h?.posicao && p.elementoAposRevisao.hierarquia?.pai?.lexmlId === h?.pai?.lexmlId);
 };

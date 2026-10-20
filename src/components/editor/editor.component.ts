@@ -3,7 +3,7 @@ import {
   getQuantidadeRevisoes,
   isRevisaoDeTransformacao,
   isRevisaoDeExclusao,
-  isRevisaoDeModificacao,
+  isRevisaoComTextoAlterado,
   setCheckedElement,
 } from '../../redux/elemento/util/revisaoUtil';
 import { uploadAnexoDialog } from '../editor-texto-rico/uploadAnexoDialog';
@@ -46,6 +46,7 @@ import { tabAction } from '../../model/lexml/acao/tabAction';
 import { UndoAction } from '../../model/lexml/acao/undoAction';
 import { validarArticulacaAction } from '../../model/lexml/acao/validarArticulacaoAction';
 import { validarElementoAction } from '../../model/lexml/acao/validarElementoAction';
+import { avaliarNormaAlteradaDivergente, reunirUrnsCitadas } from '../../model/lexml/conteudo/normaAlteradaDivergente';
 import { normalizaSeForOmissis } from '../../model/lexml/conteudo/conteudoUtil';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 import { getNomeExtenso } from '../../model/lexml/documento/urnUtil';
@@ -70,6 +71,9 @@ import { AtalhosModalComponent } from '../ajuda/atalhos.modal.component';
 import { atualizarNotaAlteracaoAction } from '../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
+import { editarTituloDispositivoDialog } from './editarTituloDispositivoDialog';
+import { nomeDispositivoComArtigo } from '../../model/lexml/dispositivo/dispositivoValidator';
+import { AtualizarTituloDispositivo, removerTituloDispositivoAction } from '../../model/lexml/acao/atualizarTituloDispositivoAction';
 import { informarNormaDialog } from './informarNormaDialog';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { transformarAction } from '../../model/lexml/acao/transformarAction';
@@ -84,7 +88,7 @@ import { findDispositivoByUuid } from '../../model/lexml/hierarquia/hierarquiaUt
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
-import { createElementoValidadoComExtras, createElemento } from '../../model/elemento/elementoUtil';
+import { createElementoValidadoComExtras, createElemento, getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
 import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
@@ -107,6 +111,9 @@ import { gerarRefId } from '../../model/remissao/refId';
 import { lexmlLinkerClient } from '../../util/lexml-linker/lexmlLinkerClient';
 import PrivateQuill from '../../internal/quill/private-quill';
 import { QuillOptions, QuillRange, QuillSelectionChangeHandler, QuillSource } from '../../internal/quill/quill-types';
+
+// A busca da linha dessas partes não parte da linha anterior (não pertencem à articulação).
+const ehParteInicial = (elemento: Elemento): boolean => elemento.tipo === 'Ementa' || elemento.tipo === 'Preambulo';
 
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -542,6 +549,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editarNotaAlteracaoDialog(elemento, this.quill, rootStore);
   }
 
+  private editarTituloDispositivo(elemento: Elemento, itemMenu?: AtualizarTituloDispositivo): void {
+    if (itemMenu === removerTituloDispositivoAction) {
+      rootStore.dispatch(removerTituloDispositivoAction.execute(elemento));
+      return;
+    }
+    const dispositivo = getDispositivoFromElemento(rootStore.getState().elementoReducer.articulacao, elemento, true);
+    if (dispositivo) {
+      editarTituloDispositivoDialog(elemento, nomeDispositivoComArtigo(dispositivo), this.quill, rootStore);
+    }
+  }
+
   private async renumerarElemento(): Promise<any> {
     const linha: EtaContainerTable = this.quill.linhaAtual;
     const elemento: Elemento = this.criarElemento(
@@ -895,13 +913,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           setTimeout(() => this.marcarLinha(event), 0);
           break;
 
-        case StateType.SituacaoElementoModificada:
-          this.atualizarQuill(event);
-          this.atualizarSituacao(event);
-          this.atualizarAtributos(event);
-          this.atualizarMensagemQuill(event);
-          this.atualizarOmissis(event);
+        case StateType.SituacaoElementoModificada: {
+          const eventoSemLinhasARecriar = this.semLinhasARecriar(event, uuidsIncluidosNoLote);
+          this.atualizarQuill(eventoSemLinhasARecriar);
+          this.atualizarSituacao(eventoSemLinhasARecriar);
+          this.atualizarAtributos(eventoSemLinhasARecriar);
+          this.atualizarMensagemQuill(eventoSemLinhasARecriar);
+          this.atualizarOmissis(eventoSemLinhasARecriar);
           break;
+        }
 
         case StateType.RevisaoAtivada:
           this.checkedSwitchMarcaAlteracao();
@@ -927,6 +947,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
 
     this.processarPosLoopEventos(events);
+  }
+
+  // Atualizar antes da inclusão uma linha de outro tipo que será recriada a retipa, e a inclusão passa a só atualizá-la sem reposicioná-la.
+  private semLinhasARecriar(event: StateEvent, uuidsIncluidosNoLote: Set<number | undefined>): StateEvent {
+    const elementos = event.elementos?.filter(e => !(uuidsIncluidosNoLote.has(e.uuid) && this.quill.getLinha(e.uuid ?? 0) && this.quill.getLinha(e.uuid ?? 0)!.tipo !== e.tipo));
+    return { ...event, elementos };
   }
 
   private handleRemissaoEvent(event: StateEvent): void {
@@ -1010,6 +1036,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.renumerarElemento();
     } else if (itemMenu === atualizarNotaAlteracaoAction) {
       this.editarNotaAlteracao(this.quill.linhaAtual.elemento);
+    } else if (itemMenu instanceof AtualizarTituloDispositivo) {
+      this.editarTituloDispositivo(this.quill.linhaAtual.elemento, itemMenu);
     } else if (itemMenu instanceof AdicionarAgrupadorArtigo) {
       this.adicionarAgrupadorArtigo(this.quill.linhaAtual.elemento);
     } else if (itemMenu === removerElementoAction) {
@@ -1088,7 +1116,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, ehParteInicial(elemento) ? undefined : linha);
       if (linha) {
         linha.setEstilo(elemento);
         linha.atualizarElemento(elemento);
@@ -1101,7 +1129,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.forEach((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, ehParteInicial(elemento) ? undefined : linha);
       if (linha) {
         linha.atualizarElemento(elemento);
       }
@@ -1133,7 +1161,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     let linha: EtaContainerTable | undefined;
 
     elementos.map((elemento: Elemento) => {
-      linha = this.quill.getLinha(elemento.uuid ?? 0, elemento.tipo === 'Ementa' ? undefined : linha);
+      linha = this.quill.getLinha(elemento.uuid ?? 0, ehParteInicial(elemento) ? undefined : linha);
       if (linha) {
         let nivelAlerado = false;
 
@@ -1164,6 +1192,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         const novoTexto = elemento.conteudo?.texto ?? '';
         if (linha.blotConteudo.html !== novoTexto) {
           linha.blotConteudo.html = elemento.tipo === 'Omissis' ? EtaQuillUtil.montarSpanOmissisAsString() : novoTexto;
+          this.redesenharRemissoesExternasDaLinha(elemento.uuid);
         }
 
         linha.setEstilo(elemento);
@@ -1174,19 +1203,27 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.children.tail.remove();
         }
 
-        if (elemento.mensagens && elemento.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
+        const elementoComAvisos = this.comAvisoNormaAlterada(elemento);
+        if (elementoComAvisos.mensagens && elementoComAvisos.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
           const avisoJaExiste = document.getElementById('onmodalsufixos');
 
-          if (this.isMensagemSufixos(elemento)) {
+          if (this.isMensagemSufixos(elementoComAvisos)) {
             if (avisoJaExiste === null) {
-              EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+              EtaQuillUtil.criarContainerMensagens(elementoComAvisos).insertInto(linha);
             }
           } else {
-            EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+            EtaQuillUtil.criarContainerMensagens(elementoComAvisos).insertInto(linha);
           }
         }
       }
     });
+  }
+
+  // O texto do estado não tem os links externos criados ao vivo: ao substituí-lo, o Quill os perde.
+  private redesenharRemissoesExternasDaLinha(uuid?: number): void {
+    const doArtigo = Object.values<RemissaoExternaValue>(rootStore.getState().elementoReducer.remissoesExternas ?? {}).filter(r => uuid !== undefined && r.sourceUuid === uuid);
+    if (doArtigo.length === 0) return;
+    this.quill.getModule('remissaoInterna')?.renderizarRemissoesExternasDoState(Object.fromEntries(doArtigo.map(r => [r.refId, r])));
   }
 
   private elementoRemovidoEmRevisao(elemento: Elemento): boolean {
@@ -1256,19 +1293,35 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           linha.children.tail.remove();
         }
 
-        if (elemento.mensagens && elemento.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
+        const elementoComAvisos = this.comAvisoNormaAlterada(elemento);
+        if (elementoComAvisos.mensagens && elementoComAvisos.mensagens.length > 0 && !this.elementoRemovidoEmRevisao(elemento)) {
           const avisoJaExiste = document.getElementById('onmodalsufixos');
 
-          if (this.isMensagemSufixos(elemento)) {
+          if (this.isMensagemSufixos(elementoComAvisos)) {
             if (avisoJaExiste === null) {
-              EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+              EtaQuillUtil.criarContainerMensagens(elementoComAvisos).insertInto(linha);
             }
           } else {
-            EtaQuillUtil.criarContainerMensagens(elemento).insertInto(linha);
+            EtaQuillUtil.criarContainerMensagens(elementoComAvisos).insertInto(linha);
           }
         }
       }
     });
+  }
+
+  // Aviso só da tela (ver design D2): trabalha sobre cópia, pois o elemento do evento faz parte do estado e do histórico.
+  private comAvisoNormaAlterada(elemento: Elemento): Elemento {
+    if (!elemento.norma || elemento.uuid === undefined) return elemento;
+
+    const dom = this.quill.getLinha(elemento.uuid)?.blotConteudo?.domNode as HTMLElement | undefined;
+    if (!dom) return elemento;
+
+    const links = Array.from(dom.querySelectorAll<HTMLElement>('a.lexml-remissao-externa[data-urn]')).map(a => ({ refId: a.dataset.refId, urn: a.dataset.urn! }));
+    const registro = Object.values<RemissaoExternaValue>(rootStore.getState().elementoReducer.remissoesExternas ?? {}).filter(r => r.sourceUuid === elemento.uuid);
+    const aviso = avaliarNormaAlteradaDivergente(elemento.norma, reunirUrnsCitadas(links, registro, dom.textContent ?? ''));
+
+    // O uuid evita depender da linha onde está o cursor quando o usuário clica em "Corrigir agora".
+    return aviso ? ({ ...elemento, mensagens: [...(elemento.mensagens ?? []), { ...aviso, detalhe: { ...aviso.detalhe, uuid: elemento.uuid } }] } as Elemento) : elemento;
   }
 
   private isMensagemSufixos(elemento: Elemento): boolean | undefined {
@@ -1353,6 +1406,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.renumerarElemento();
     });
 
+    editorHtml.addEventListener('titulo-dispositivo', (event: any) => {
+      event.stopImmediatePropagation();
+      this.editarTituloDispositivo(event.detail.elemento);
+    });
+
     editorHtml.addEventListener('nota-alteracao', (event: any) => {
       event.stopImmediatePropagation();
       this.editarNotaAlteracao(event.detail.elemento);
@@ -1426,12 +1484,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   exibirDiferencas(elemento: Elemento): void {
     const diff: TextoDiff = new TextoDiff();
     diff.textoAtual = elemento.conteudo!.texto!;
+    diff.tituloAtual = elemento.tituloDispositivo;
     diff.quill = this.quill;
 
     const revisao = elemento.revisao as RevisaoElemento;
 
     if (revisao) {
+      diff.comRevisao = true;
       diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
+      diff.tituloAntesRevisao = revisao.elementoAntesRevisao!.tituloDispositivo;
       diff.textoOriginal = diff.textoAntesRevisao;
       // Em proposição todo dispositivo nasce novo: não há texto de norma vigente para a aba "Texto original".
       diff.adicionado = true;
@@ -1569,16 +1630,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     for (const match of matches) {
       rootStore.dispatch(
-        adicionarRemissaoExternaAction({
-          refId: gerarRefId(),
-          targetUrn: match.targetUrn,
-          targetNomeNorma: '',
-          targetFragmento: match.targetFragmento,
-          textoRef: match.textoRef,
-          sourceUuid,
-          inicio: match.inicio,
-          fim: match.fim,
-        })
+        adicionarRemissaoExternaAction(
+          {
+            refId: gerarRefId(),
+            targetUrn: match.targetUrn,
+            targetNomeNorma: '',
+            targetFragmento: match.targetFragmento,
+            textoRef: match.textoRef,
+            sourceUuid,
+            inicio: match.inicio,
+            fim: match.fim,
+          },
+          matches.length
+        )
       );
     }
 
@@ -1601,6 +1665,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const remissoesExternas = rootStore.getState().elementoReducer.remissoesExternas ?? {};
     remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
+
+    // O desenho do link não gera evento; revalida para o aviso de norma divergente usar o link já no DOM.
+    const artigo = findDispositivoByUuid(rootStore.getState().elementoReducer.articulacao, sourceUuid, true);
+    artigo?.alteracoes?.base && rootStore.dispatch(validarElementoAction.execute(createElemento(artigo, true)));
   }
 
   // Rede de segurança determinística (docs/PLANO_DETECCAO_BLUR.md §2.4/§4.4), chamada por getProjetoAtualizado() para garantir sincronismo mesmo sem sair da linha antes de salvar.
@@ -1652,27 +1720,40 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.timerOnChange = null;
   }
 
+  private carregamentoDasLinhas: Promise<void> = Promise.resolve();
+
+  /** Resolve quando as linhas da articulação carregada mais recentemente já existem no Quill. */
+  aguardarCarregamentoDasLinhas(): Promise<void> {
+    return this.carregamentoDasLinhas;
+  }
+
   private carregarArticulacao(elementos: Elemento[], isMudancaDePagina: boolean, paginacao?: Paginacao): void {
     let primeiraLinhaDaPagina: EtaContainerTable | undefined;
+    let concluirCarregamento!: () => void;
+    this.carregamentoDasLinhas = new Promise<void>(resolve => (concluirCarregamento = resolve));
     setTimeout(() => {
-      if (!this.quill) return;
-      this.quill.getLine(0)[0].remove();
-      // Set em vez do array de ids: a busca acontece uma vez por elemento do documento inteiro.
-      const idsDaPagina = new Set(paginacao?.paginaSelecionada?.ids);
-      const carregarTodos = !paginacao?.paginaSelecionada || paginacao.paginasArticulacao?.length === 1;
-      elementos.forEach((elemento: Elemento) => {
-        if ((elemento.tipo === 'Articulacao' && !elemento.lexmlId) || carregarTodos || idsDaPagina.has(elemento.lexmlId!)) {
-          const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
-          etaContainerTable.insertInto(this.quill.scroll);
-          etaContainerTable.setEstilo(elemento);
+      if (!this.quill) return concluirCarregamento();
+      try {
+        this.quill.getLine(0)[0].remove();
+        // Set em vez do array de ids: a busca acontece uma vez por elemento do documento inteiro.
+        const idsDaPagina = new Set(paginacao?.paginaSelecionada?.ids);
+        const carregarTodos = !paginacao?.paginaSelecionada || paginacao.paginasArticulacao?.length === 1;
+        elementos.forEach((elemento: Elemento) => {
+          if ((elemento.tipo === 'Articulacao' && !elemento.lexmlId) || carregarTodos || idsDaPagina.has(elemento.lexmlId!)) {
+            const etaContainerTable = EtaQuillUtil.criarContainerLinha(elemento);
+            etaContainerTable.insertInto(this.quill.scroll);
+            etaContainerTable.setEstilo(elemento);
 
-          elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
+            elemento.tipo === TipoDispositivo.generico.tipo && rootStore.dispatch(validarElementoAction.execute(elemento));
 
-          if (!primeiraLinhaDaPagina && elemento.lexmlId) {
-            primeiraLinhaDaPagina = etaContainerTable;
+            if (!primeiraLinhaDaPagina && elemento.lexmlId) {
+              primeiraLinhaDaPagina = etaContainerTable;
+            }
           }
-        }
-      });
+        });
+      } finally {
+        concluirCarregamento();
+      }
       !isMudancaDePagina && this.quill.limparHistory();
       if (elementos.length > 1) {
         setTimeout(() => {
@@ -1822,6 +1903,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.editarNotaAlteracao(event.detail.elemento);
   };
 
+  private listenerTituloDispositivo = (event: any): void => {
+    event.stopImmediatePropagation();
+    this.editarTituloDispositivo(event.detail.elemento);
+  };
+
   private listenerToggleExistencia = (event: any): void => {
     event.stopImmediatePropagation();
     this.toggleExistenciaElemento(event.detail.elemento);
@@ -1879,6 +1965,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
     editorHtml.addEventListener('rotulo', this.listenerRotulo);
     editorHtml.addEventListener('nota-alteracao', this.listenerNotaAlteracao);
+    editorHtml.addEventListener('titulo-dispositivo', this.listenerTituloDispositivo);
     editorHtml.addEventListener('toggle-existencia', this.listenerToggleExistencia);
     editorHtml.addEventListener('mensagem', this.listenerMensagem);
     editorHtml.addEventListener('aceitar-revisao', this.listenerAceitarRevisao);
@@ -1890,6 +1977,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const editorHtml: HTMLElement = this.getHtmlElement('lx-eta-editor');
     editorHtml.removeEventListener('rotulo', this.listenerRotulo);
     editorHtml.removeEventListener('nota-alteracao', this.listenerNotaAlteracao);
+    editorHtml.removeEventListener('titulo-dispositivo', this.listenerTituloDispositivo);
     editorHtml.removeEventListener('toggle-existencia', this.listenerToggleExistencia);
     editorHtml.removeEventListener('mensagem', this.listenerMensagem);
     editorHtml.removeEventListener('aceitar-revisao', this.listenerAceitarRevisao);
@@ -1936,7 +2024,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       .forEach(e => mapElementos.set(e.uuid!, e));
 
     const elementos: Elemento[] = [...mapElementos.values()];
-    const uuidsElementosComModificacao = elementos.filter(e => e.revisao && isRevisaoDeModificacao(e.revisao)).map(e => e.uuid!);
+    const uuidsElementosComModificacao = elementos.filter(e => e.revisao && isRevisaoComTextoAlterado(e.revisao)).map(e => e.uuid!);
     const uuidsElementosSemModificacao = elementos.filter(e => !uuidsElementosComModificacao.includes(e.uuid!)).map(e => e.uuid!);
 
     uuidsElementosSemModificacao.forEach(uuid => {
@@ -2083,6 +2171,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (!remissoesExternas || Object.keys(remissoesExternas).length === 0) return;
     const remissaoModule = this.quill?.getModule('remissaoInterna');
     remissaoModule?.renderizarRemissoesExternasDoState(remissoesExternas);
+    this.avisarNormaAlteradaAoAbrir(remissoesExternas);
+  }
+
+  // Só mostra o aviso (os eventos de load() chegam antes do DOM); nunca altera o base nem o estado.
+  private avisarNormaAlteradaAoAbrir(remissoesExternas: Record<string, RemissaoExternaValue>): void {
+    const articulacao = rootStore.getState().elementoReducer.articulacao;
+    const uuids = new Set(Object.values(remissoesExternas).map(r => r.sourceUuid));
+    uuids.forEach(uuid => {
+      if (uuid === undefined) return;
+      const artigo = findDispositivoByUuid(articulacao, uuid, true);
+      if (!artigo?.alteracoes?.base) return;
+      this.atualizarMensagemQuill({ stateType: StateType.ElementoValidado, elementos: [createElementoValidadoComExtras(artigo, [])] });
+    });
   }
 
   private ativarRemissoesInternas(): void {

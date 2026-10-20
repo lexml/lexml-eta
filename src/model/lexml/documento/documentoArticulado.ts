@@ -4,7 +4,8 @@ import { buildJsonixFromProjetoNorma } from './conversor/buildJsonixFromProjetoN
 import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJsonix';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
 import { getAno, getNumero, getSigla } from './urnUtil';
-import { OpcoesImpressao } from '../../proposicao/proposicao';
+import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
+import { Usuario } from '../../revisao/usuario';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -16,9 +17,38 @@ export interface MetadadoLexEdit {
   data?: string;
   // Atributos opcionais no arquivo: a ausência significa o padrão da aplicação (especificação 02).
   opcoesImpressao?: Partial<OpcoesImpressao> & { TYPE_NAME?: string };
+  // Só autoria de parlamentares por enquanto (especificação 04).
+  autoria?: {
+    TYPE_NAME: string;
+    tipo: string;
+    imprimirPartidoUF: boolean;
+    parlamentares: { TYPE_NAME: string; parlamentar: Array<Parlamentar & { TYPE_NAME: string }> };
+  };
   // Ids separados por espaço: xsd:string em lexedit.xsd; o conversor rejeita array.
   remissoesInternasInvalidas?: { TYPE_NAME: string; refIdsRemissoesInternas: string };
   pendencias?: { TYPE_NAME: string; pendencia: string[] };
+  // Destino da proposição; `siglaComissao` só quando informada (especificação 14).
+  colegiadoApreciador?: { TYPE_NAME: string; siglaCasaLegislativa: string; tipoColegiado: string; siglaComissao?: string };
+  // Ids separados por espaço; cada atributo é omitido quando vazio (especificação 13).
+  situacaoNaNormaVigente?: { TYPE_NAME: string; refIdsDispositivosExistentes?: string; refIdsDispositivosNovos?: string };
+  revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
+  usuarios?: RevisoesLexEdit['usuarios'];
+}
+
+/** `lexedit:RevisaoArticulacao`: o conteúdo filho é uma única propriedade do choice do XSD (o dispositivo anterior ou excluído, ex.: `artigo`; ou `p`, só na leitura). */
+export interface RevisaoArticulacaoLexEdit {
+  TYPE_NAME: string;
+  refIdDispositivo?: string;
+  revisao: string;
+  refIdUsuario: string;
+  data: string;
+  [conteudo: string]: unknown;
+}
+
+/** Grupos `RevisoesArticulacao` e `Usuarios` já no formato do conversor (especificações 11 e 12). */
+export interface RevisoesLexEdit {
+  revisoesArticulacao: { TYPE_NAME: string; revisaoArticulacao: RevisaoArticulacaoLexEdit[] };
+  usuarios: { TYPE_NAME: string; usuario: Array<{ TYPE_NAME: string; idUsuario: string; nome: string; sigla?: string }> };
 }
 
 /** Formato provisório gravado antes do conversor 2.0.0 (chave `lexedit`); só lido, nunca gravado. */
@@ -40,6 +70,26 @@ export interface DadosLexEdit {
   pendencias?: string[];
   // HTML do editor; vai para ProjetoNorma/Justificacao (LexML), não para `lexedit`, e não é lido por lerMetadadoLexEdit.
   justificacao?: string;
+  autoria?: Autoria;
+  colegiadoApreciador?: ColegiadoApreciador;
+  revisoes?: RevisoesLexEdit;
+  // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
+  revisoesLidas?: RevisaoArticulacaoLida[];
+}
+
+/** `lexedit:RevisaoArticulacao` lida do arquivo, já sem as operações desconhecidas. */
+export interface RevisaoArticulacaoLida {
+  refIdDispositivo?: string;
+  operacoes: Array<{ nome: string; argumento?: string }>;
+  usuario: Usuario;
+  // Formato interno (`AAAA-MM-DD HH:mm:ss`, horário local).
+  dataHora: string;
+  // HTML do texto anterior, quando a revisão traz o conteúdo anterior.
+  textoAnterior?: string;
+  // Título anterior: ausente = o arquivo não informa (`p` solto); null = o dispositivo não tinha título.
+  tituloAnterior?: string | null;
+  // Dispositivo excluído (nó jsonix `{ name, value }`), quando a revisão é de exclusão.
+  excluido?: { name: { namespaceURI: string; localPart: string }; value: any };
 }
 
 export interface ElementoMetadadoLexEdit {

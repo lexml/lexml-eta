@@ -19,7 +19,7 @@ import { AlinhamentoMenu } from './eta-blot-menu';
 import { EtaBlotRevisao } from './eta-blot-revisao';
 import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
 import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
-import { isRevisaoDeModificacao, isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
+import { isRevisaoComTextoAlterado, isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
 import { EtaContainerOpcoes } from './eta-container-opcoes';
 import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
@@ -34,7 +34,7 @@ export class EtaQuillUtil {
     const etaTdTexto: EtaContainerTdEsquerdo = new EtaContainerTdEsquerdo(elemento);
     const etaTdEspaco: EtaContainerTdDireito = new EtaContainerTdDireito(this.alinhamentoMenu);
 
-    if (elemento.tituloDispositivo) {
+    if (elemento.tituloDispositivo !== undefined) {
       new EtaBlotTituloDispositivo(elemento).insertInto(etaTdTexto);
     }
 
@@ -68,7 +68,7 @@ export class EtaQuillUtil {
 
     new EtaBlotEspaco().insertInto(etaTdEspaco);
 
-    if (elemento.revisao && isRevisaoDeModificacao(elemento.revisao)) {
+    if (elemento.revisao && isRevisaoComTextoAlterado(elemento.revisao)) {
       EtaQuillUtil.criarContainerOpcoes(elemento).insertInto(etaTrContainer);
     }
 

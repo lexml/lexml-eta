@@ -1,17 +1,28 @@
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isCaput } from '../../../model/dispositivo/tipo';
+import { isArtigo, isCaput } from '../../../model/dispositivo/tipo';
 import { Elemento, Referencia } from '../../../model/elemento';
-import { getDispositivoFromElemento, createElemento } from '../../../model/elemento/elementoUtil';
+import { getDispositivoFromElemento, createElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { ADICIONAR_ELEMENTO } from '../../../model/lexml/acao/adicionarElementoAction';
 import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../model/lexml/acao/AdicionarElementosFromClipboardAction';
 import { ativarDesativarRevisaoAction } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../model/lexml/acao/atualizarTextoElementoAction';
+import { ATUALIZAR_TITULO_DISPOSITIVO } from '../../../model/lexml/acao/atualizarTituloDispositivoAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { REMOVER_ELEMENTO } from '../../../model/lexml/acao/removerElementoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
-import { getDispositivoAndFilhosAsLista, getUltimoFilho, isArticulacaoAlteracao, isDispositivoAlteracao } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  findDispositivoByUuid,
+  findDispositivoByUuid2,
+  getArticulacao,
+  getDispositivoAndFilhosAsLista,
+  getUltimoFilho,
+  isArticulacaoAlteracao,
+  isDispositivoAlteracao,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { converteNumeroArabicoParaLetra, converteNumeroArabicoParaRomano, formatarMilhares } from '../../../model/lexml/numeracao/numeracaoUtil';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { State, StateEvent, StateType } from '../../state';
 import { unificarEvento } from '../evento/eventosUtil';
@@ -95,10 +106,23 @@ export const buildDescricaoRevisao = (revisao: Revisao): string => {
   return isRevisaoElemento(revisao) ? buildDescricaoRevisaoElemento(revisao as RevisaoElemento) : buildDescricaoRevisaoTexto(revisao);
 };
 
+// A descrição acompanha o que de fato mudou entre o elemento antes e depois da revisão.
+export const buildDescricaoRevisaoDeModificacao = (revisao: RevisaoElemento): string => {
+  const { elementoAntesRevisao: antes, elementoAposRevisao: apos } = revisao;
+  const tituloMudou = !!antes && antes.tituloDispositivo !== apos.tituloDispositivo;
+  const textoMudou = !antes || antes.conteudo?.texto !== apos.conteudo?.texto;
+
+  if (tituloMudou) {
+    return textoMudou ? 'Texto e título do dispositivo foram alterados' : 'Título do dispositivo foi alterado';
+  }
+  return 'Texto do dispositivo foi alterado';
+};
+
 const mapperActionTypeToDescricao = {
   [ADICIONAR_ELEMENTO]: (): string => 'Dispositivo adicionado',
   [REMOVER_ELEMENTO]: (): string => 'Dispositivo removido',
-  [ATUALIZAR_TEXTO_ELEMENTO]: (): string => 'Texto do dispositivo foi alterado',
+  [ATUALIZAR_TEXTO_ELEMENTO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoDeModificacao(revisao),
+  [ATUALIZAR_TITULO_DISPOSITIVO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoDeModificacao(revisao),
   [MOVER_ELEMENTO_ABAIXO]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromMovimentacaoElemento(revisao),
   [MOVER_ELEMENTO_ACIMA]: (): string => 'Dispositivo movido',
   [ADICIONAR_ELEMENTOS_FROM_CLIPBOARD]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoFromStateType(revisao),
@@ -109,17 +133,99 @@ const mapperActionTypeToDescricao = {
 const mapperStateTypeToDescricao = {
   [StateType.ElementoIncluido]: (): string => 'Dispositivo adicionado',
   [StateType.ElementoRemovido]: (): string => 'Dispositivo removido',
-  [StateType.ElementoModificado]: (): string => 'Texto do dispositivo foi alterado',
+  [StateType.ElementoModificado]: (revisao: RevisaoElemento): string => buildDescricaoRevisaoDeModificacao(revisao),
   // [StateType.ElementoMovido]: (): string => 'Dispositivo movido',
 };
 
+// A numeração (arábica) é a mesma em qualquer tipo; só o formato do rótulo muda.
+export const rotuloDoTipoPorNumero = (tipo: string | undefined, numero: string | undefined): string | undefined => {
+  if (!numero || !/^\d+$/.test(numero)) {
+    return undefined;
+  }
+  const ordinal = parseInt(numero, 10) < 10;
+  switch (tipo) {
+    case 'Artigo':
+      return ordinal ? `Art. ${numero}º` : `Art. ${formatarMilhares(numero)}.`;
+    case 'Paragrafo':
+      return ordinal ? `§ ${numero}º` : `§ ${numero}.`;
+    case 'Inciso':
+      return converteNumeroArabicoParaRomano(numero) + ' –';
+    case 'Alinea':
+      return converteNumeroArabicoParaLetra(numero) + ')';
+    case 'Item':
+      return numero + '.';
+    default:
+      return undefined;
+  }
+};
+
+const nomeDoTipoNaRevisao = (nome: string): string =>
+  Object.values(TipoDispositivo)
+    .find(t => t.tipo.toLowerCase() === nome)
+    ?.descricao?.toLowerCase() ?? nome;
+
+// Só usa o que o arquivo guarda; em alteração de norma o rótulo anterior não se deduz da posição (Novo/Existente não é gravado).
+const trechoDeMovimentacao = (revisao: RevisaoElemento, posicaoOriginal?: string): string => {
+  const apos = revisao.elementoAposRevisao;
+  const rotulo = isElementoDispositivoAlteracao(apos) ? undefined : rotuloDoTipoPorNumero(apos.tipo, posicaoOriginal);
+  return rotulo ? `movido (antes era "${apos.tipo} ${rotulo}")` : `movido (posição original ${posicaoOriginal})`;
+};
+
+const trechoDaOperacao = (revisao: RevisaoElemento, operacao: OperacaoRevisao): string | undefined => {
+  switch (operacao.nome) {
+    case OPERACAO_MOVIDO:
+      return trechoDeMovimentacao(revisao, operacao.argumento);
+    case OPERACAO_TRANSFORMADO:
+      return `transformado (antes era "${nomeDoTipoNaRevisao(operacao.argumento ?? '')}")`;
+    case OPERACAO_ALTERADO:
+      return 'texto alterado';
+    case OPERACAO_ALTERACAO_ROTULO: {
+      const anterior = revisao.elementoAntesRevisao?.rotulo;
+      return `rótulo alterado${anterior ? ` (rótulo antes era "${anterior}")` : ''}`;
+    }
+    default:
+      return undefined;
+  }
+};
+
+// Devolve undefined quando as operações não bastam (sem atributo, ou só alteração de rótulo): vale a descrição de sempre.
+export const buildDescricaoPorOperacoes = (revisao: RevisaoElemento): string | undefined => {
+  const operacoes = getOperacoesRevisao(revisao.revisao);
+  const tem = (...nomes: string[]): boolean => operacoes.some(o => nomes.includes(o.nome));
+  if (tem(OPERACAO_EXCLUIDO)) {
+    return 'Dispositivo removido';
+  }
+  if (tem(OPERACAO_ADICIONADO)) {
+    return 'Dispositivo adicionado';
+  }
+  if (!tem(OPERACAO_MOVIDO, OPERACAO_TRANSFORMADO)) {
+    return tem(OPERACAO_ALTERADO) && !tem(OPERACAO_ALTERACAO_ROTULO) ? buildDescricaoRevisaoDeModificacao(revisao) : undefined;
+  }
+  const principais = operacoes.filter(o => o.nome === OPERACAO_MOVIDO || o.nome === OPERACAO_TRANSFORMADO);
+  const trechos = [...principais, ...operacoes.filter(o => !principais.includes(o))].map(o => trechoDaOperacao(revisao, o)).filter((t): t is string => !!t);
+  return `Dispositivo ${trechos.length > 1 ? `${trechos.slice(0, -1).join(', ')} e ${trechos[trechos.length - 1]}` : trechos[0]}`;
+};
+
 export const buildDescricaoRevisaoElemento = (revisao: RevisaoElemento): string => {
+  const porOperacoes = buildDescricaoPorOperacoes(revisao);
+  if (porOperacoes) {
+    return porOperacoes;
+  }
+  if (revisao.stateType === StateType.ElementoModificado && getOperacoesRevisao(revisao.revisao).some(o => o.nome === OPERACAO_ALTERACAO_ROTULO)) {
+    return buildDescricaoRevisaoDeRotulo(revisao);
+  }
   const fn = mapperActionTypeToDescricao[revisao.actionType];
   return fn ? mapperActionTypeToDescricao[revisao.actionType](revisao) : buildDescricaoRevisaoFromStateType(revisao);
 };
 
 export const buildDescricaoRevisaoTexto = (revisao: Revisao): string => {
   return revisao.descricao ?? '';
+};
+
+const buildDescricaoRevisaoDeRotulo = (revisao: RevisaoElemento): string => {
+  const rotuloAnterior = revisao.elementoAntesRevisao?.rotulo;
+  const combinada = getOperacoesRevisao(revisao.revisao).some(o => o.nome === OPERACAO_ALTERADO);
+  return `${combinada ? 'Rótulo e texto do dispositivo foram alterados' : 'Rótulo do dispositivo foi alterado'}${rotuloAnterior ? ` (rótulo antes era "${rotuloAnterior}")` : ''}`;
 };
 
 export const buildDescricaoRevisaoFromMovimentacaoElemento = (revisao: RevisaoElemento): string => {
@@ -129,7 +235,7 @@ export const buildDescricaoRevisaoFromMovimentacaoElemento = (revisao: RevisaoEl
 
 export const buildDescricaoRevisaoFromStateType = (revisao: RevisaoElemento, elementoAposRevisao?: Elemento): string => {
   const isUndoRedoDeMovimentacao = revisao.elementoAntesRevisao && elementoAposRevisao && revisao.elementoAntesRevisao.numero !== elementoAposRevisao.numero;
-  return isUndoRedoDeMovimentacao ? buildDescricaoRevisaoFromMovimentacaoElemento(revisao) : mapperStateTypeToDescricao[revisao.stateType]();
+  return isUndoRedoDeMovimentacao ? buildDescricaoRevisaoFromMovimentacaoElemento(revisao) : mapperStateTypeToDescricao[revisao.stateType](revisao);
 };
 
 const getUuidPaiElementoRevisado = (state: State, revisao: RevisaoElemento): number => {
@@ -344,8 +450,9 @@ export const atualizaReferenciaElementoAnteriorSeNecessario = (articulacao: Arti
   const rAux = findRevisaoDeExclusaoComElementoAnteriorApontandoPara(revisoes, elemento.elementoAnteriorNaSequenciaDeLeitura!);
   if (rAux) {
     if (tipoProcessamento === 'exclusao') {
-      // Pega a última revisão do grupo da revisão principal (rAux) e utiliza o "elementoAposRevisao" como elemento anterior do atual elemento removido
-      elemento.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(findUltimaRevisaoDoGrupo(revisoes, rAux).elementoAposRevisao));
+      // O excluído entra depois do último da cadeia de excluídos que partem do mesmo anterior, e não depois do primeiro.
+      const ultimaDaCadeia = seguirCadeiaDeExcluidos(revisoes, rAux);
+      elemento.elementoAnteriorNaSequenciaDeLeitura = JSON.parse(JSON.stringify(findUltimaRevisaoDoGrupo(revisoes, ultimaDaCadeia).elementoAposRevisao));
       removeAtributosDoElementoAnteriorNaSequenciaDeLeitura(elemento.elementoAnteriorNaSequenciaDeLeitura!);
     } else {
       // Pega o último filho do elemento incluído e utiliza como elemento anterior da revisão principal (rAux)
@@ -381,6 +488,26 @@ export const findUltimaRevisaoDoGrupo = (revisoes: Revisao[] = [], revisao: Revi
   );
 };
 
+// Excluídos vizinhos formam uma cadeia: cada um tem como anterior o último elemento do excluído que o precede.
+const seguirCadeiaDeExcluidos = (revisoes: Revisao[], inicio: RevisaoElemento): RevisaoElemento => {
+  const principais = revisoes
+    .filter(isRevisaoElemento)
+    .map(r => r as RevisaoElemento)
+    .filter(r => isRevisaoDeExclusao(r) && isRevisaoPrincipal(r));
+  const visitadas = new Set<RevisaoElemento>();
+  let atual = inicio;
+  while (!visitadas.has(atual)) {
+    visitadas.add(atual);
+    const ultimoDoGrupo = findUltimaRevisaoDoGrupo(revisoes, atual).elementoAposRevisao;
+    const seguinte = principais.find(r => !visitadas.has(r) && r.elementoAposRevisao.elementoAnteriorNaSequenciaDeLeitura?.uuid === ultimoDoGrupo.uuid);
+    if (!seguinte) {
+      break;
+    }
+    atual = seguinte;
+  }
+  return atual;
+};
+
 export const isRevisaoDeMovimentacao = (revisao: Revisao): boolean => {
   const r = revisao as RevisaoElemento;
   return !!(
@@ -399,6 +526,15 @@ export const isRevisaoDeTransformacao = (revisao: Revisao): boolean => {
 
 export const isRevisaoDeModificacao = (revisao: Revisao): boolean => {
   return isRevisaoElemento(revisao) && (revisao as RevisaoElemento).stateType === StateType.ElementoModificado;
+};
+
+// Modificação, ou movimentação/transformação que também alterou o texto: nos dois casos há texto anterior para comparar.
+export const isRevisaoComTextoAlterado = (revisao: Revisao): boolean => {
+  if (isRevisaoDeModificacao(revisao)) {
+    return true;
+  }
+  const r = revisao as RevisaoElemento;
+  return isRevisaoElemento(revisao) && !!r.elementoAntesRevisao && getOperacoesRevisao(r.revisao).some(o => o.nome === OPERACAO_ALTERADO);
 };
 
 export const isAtualizarPosicaoDeElementoExcluido = (elementoIncluido: Elemento, elementoExcluido: Partial<Elemento>): boolean => {
@@ -464,4 +600,187 @@ export const mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes = (state: 
 
 export const countRevisoesByType = (revisoes: Revisao[] = [], type: string): number => {
   return revisoes.filter(r => r.type === type).length;
+};
+
+export const OPERACAO_ADICIONADO = 'adicionado';
+export const OPERACAO_EXCLUIDO = 'excluido';
+export const OPERACAO_ALTERADO = 'alterado';
+export const OPERACAO_MOVIDO = 'movido';
+export const OPERACAO_TRANSFORMADO = 'transformado';
+export const OPERACAO_ALTERACAO_ROTULO = 'alteracaoRotulo';
+
+export interface OperacaoRevisao {
+  nome: string;
+  argumento?: string;
+}
+
+export const getOperacoesRevisao = (revisao?: string): OperacaoRevisao[] =>
+  (revisao ?? '')
+    .split(',')
+    .map(o => o.trim())
+    .filter(Boolean)
+    .map(o => {
+      const sep = o.indexOf(';');
+      return sep < 0 ? { nome: o } : { nome: o.substring(0, sep), argumento: o.substring(sep + 1) };
+    });
+
+export const formatarOperacoesRevisao = (operacoes: OperacaoRevisao[]): string => operacoes.map(o => (o.argumento === undefined ? o.nome : `${o.nome};${o.argumento}`)).join(',');
+
+// Operação já presente não se repete: o argumento fica o da primeira ocorrência.
+export const anexarOperacaoRevisao = (revisao: string | undefined, nome: string, argumento?: string): string => {
+  const operacoes = getOperacoesRevisao(revisao);
+  return formatarOperacoesRevisao(operacoes.some(o => o.nome === nome) ? operacoes : [...operacoes, { nome, argumento }]);
+};
+
+export const removerOperacaoRevisao = (revisao: string | undefined, nome: string): string => formatarOperacoesRevisao(getOperacoesRevisao(revisao).filter(o => o.nome !== nome));
+
+const nomeTipoNaRevisao = (tipo?: string): string => (tipo ?? '').toLowerCase();
+
+const isMesmoPai = (a?: Referencia, b?: Referencia): boolean => (a?.uuid2 !== undefined && b?.uuid2 !== undefined ? a.uuid2 === b.uuid2 : a?.uuid === b?.uuid);
+
+// O título também é conteúdo revisável: mudar só o título conta como alteração.
+export const isMesmoTextoETitulo = (a?: Partial<Elemento>, b?: Partial<Elemento>): boolean =>
+  a?.conteudo?.texto === b?.conteudo?.texto && a?.tituloDispositivo === b?.tituloDispositivo;
+
+const isMesmoLugar = (antes: Partial<Elemento>, apos: Partial<Elemento>): boolean =>
+  isMesmoPai(antes.hierarquia?.pai, apos.hierarquia?.pai) && antes.hierarquia?.posicao === apos.hierarquia?.posicao;
+
+const localizaPaiDeOrigem = (raiz: Articulacao, pai?: Referencia): Dispositivo | undefined => {
+  if (!pai) {
+    return undefined;
+  }
+  return pai.tipo === 'Articulacao'
+    ? raiz
+    : (pai.uuid2 && findDispositivoByUuid2(raiz, pai.uuid2)) || (pai.uuid !== undefined && findDispositivoByUuid(raiz, pai.uuid, true)) || undefined;
+};
+
+// Quem seguia o lugar de origem, sem contar o movido: seu uuid2; `null` se o lugar era o fim do pai; `undefined` se o pai não foi achado.
+export const getReferenciaDeOrigem = (raiz: Articulacao, antes: Partial<Elemento>, apos: Partial<Elemento>): string | null | undefined => {
+  const posicao = antes.hierarquia?.posicao;
+  const pai = localizaPaiDeOrigem(raiz, antes.hierarquia?.pai);
+  if (!pai || posicao === undefined) {
+    return undefined;
+  }
+  const movido = getDispositivoFromElemento(raiz, apos);
+  return pai.filhos.filter(f => f !== movido)[posicao]?.uuid2 ?? null;
+};
+
+// Movimentação pura cujo lugar de origem voltou a ser o atual (ex.: o dispositivo que a deslocava teve a inclusão rejeitada).
+export const isMovimentacaoSemEfeito = (raiz: Articulacao, revisao: RevisaoElemento): boolean => {
+  const antes = revisao.elementoAntesRevisao;
+  const operacoes = getOperacoesRevisao(revisao.revisao);
+  if (!antes || !isRevisaoDeMovimentacao(revisao) || operacoes.length !== 1 || operacoes[0].nome !== OPERACAO_MOVIDO) {
+    return false;
+  }
+  const movido = getDispositivoFromElemento(raiz, revisao.elementoAposRevisao);
+  const pai = localizaPaiDeOrigem(raiz, antes.hierarquia?.pai);
+  return !!movido && !!pai && movido.pai === pai && getPosicaoDeOrigem(raiz, antes, revisao.elementoAposRevisao, revisao.origemAntesDeUuid2) === pai.filhos.indexOf(movido);
+};
+
+// Deriva o lugar de origem da referência guardada, para não depender de quantas inclusões e remoções ocorreram desde então (nem do undo/redo).
+export const getPosicaoDeOrigem = (raiz: Articulacao, antes: Partial<Elemento>, apos: Partial<Elemento>, referencia: string | null | undefined): number | undefined => {
+  const pai = localizaPaiDeOrigem(raiz, antes.hierarquia?.pai);
+  if (!pai || referencia === undefined) {
+    return undefined;
+  }
+  const movido = getDispositivoFromElemento(raiz, apos);
+  const irmaos = pai.filhos.filter(f => f !== movido);
+  if (referencia === null) {
+    return irmaos.length;
+  }
+  const indice = irmaos.findIndex(f => f.uuid2 === referencia);
+  return indice < 0 ? undefined : indice;
+};
+
+// Artigo: sequencial entre todos os artigos da articulação; demais: posição entre os filhos do pai (iniciando em 1).
+export const getPosicaoOriginalParaMovimentacao = (state: State, antes: Partial<Elemento>, apos: Partial<Elemento>): number => {
+  const posicaoLocal = (antes.hierarquia?.posicao ?? 0) + 1;
+  if (apos.tipo !== 'Artigo' || !state.articulacao) {
+    return posicaoLocal;
+  }
+
+  const movido = getDispositivoFromElemento(state.articulacao, apos);
+  const paiAntes = antes.hierarquia?.pai;
+  if (!movido || !paiAntes) {
+    return posicaoLocal;
+  }
+
+  const raiz = getArticulacao(movido);
+  const paiAntigo = paiAntes.tipo === 'Articulacao' ? raiz : (paiAntes.uuid2 && findDispositivoByUuid2(raiz, paiAntes.uuid2)) || findDispositivoByUuid(raiz, paiAntes.uuid!, true);
+  if (!paiAntigo) {
+    return posicaoLocal;
+  }
+
+  // O marcador é o irmão que ocupa o lugar de origem quando o movido não está mais entre os filhos.
+  const lista = getDispositivoAndFilhosAsLista(raiz);
+  const marcador = paiAntigo.filhos.filter(f => f !== movido)[antes.hierarquia?.posicao ?? 0];
+  const indice = marcador ? lista.indexOf(marcador) : lista.indexOf(paiAntigo) + getDispositivoAndFilhosAsLista(paiAntigo).length;
+  if (indice < 0) {
+    return posicaoLocal;
+  }
+
+  const emAlteracao = isDispositivoAlteracao(movido);
+  return lista.slice(0, indice).filter(d => isArtigo(d) && d !== movido && isDispositivoAlteracao(d) === emAlteracao).length + 1;
+};
+
+// Mesmo tipo: movimentação; tipo diferente: transformação.
+export const getOperacaoDeMovimentacaoOuTransformacao = (state: State, antes: Partial<Elemento>, apos: Partial<Elemento>): OperacaoRevisao =>
+  antes.tipo !== apos.tipo
+    ? { nome: OPERACAO_TRANSFORMADO, argumento: nomeTipoNaRevisao(antes.tipo) }
+    : { nome: OPERACAO_MOVIDO, argumento: String(getPosicaoOriginalParaMovimentacao(state, antes, apos)) };
+
+// Para revisões que não têm o atributo (ex.: vindas de Proposicao.revisoes).
+export const derivarOperacoesRevisao = (state: State, revisao: RevisaoElemento): string => {
+  const antes = revisao.elementoAntesRevisao;
+  const apos = revisao.elementoAposRevisao;
+  if (revisao.stateType === StateType.ElementoRemovido) {
+    return OPERACAO_EXCLUIDO;
+  }
+  if (revisao.stateType === StateType.ElementoModificado) {
+    let operacoes = '';
+    if (antes && apos && antes.tipo === apos.tipo && antes.rotulo !== apos.rotulo) {
+      operacoes = anexarOperacaoRevisao(operacoes, OPERACAO_ALTERACAO_ROTULO, antes.lexmlId);
+    }
+    if (!isMesmoTextoETitulo(antes, apos)) {
+      operacoes = anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO);
+    }
+    return operacoes || OPERACAO_ALTERADO;
+  }
+  if (!antes) {
+    return OPERACAO_ADICIONADO;
+  }
+  let operacoes = '';
+  if (antes.tipo !== apos.tipo || !isMesmoLugar(antes, apos)) {
+    const operacao = getOperacaoDeMovimentacaoOuTransformacao(state, antes, apos);
+    operacoes = anexarOperacaoRevisao(operacoes, operacao.nome, operacao.argumento);
+  }
+  return !isMesmoTextoETitulo(antes, apos) ? anexarOperacaoRevisao(operacoes, OPERACAO_ALTERADO) : operacoes;
+};
+
+export const getOperacoesDaRevisao = (state: State, revisao: RevisaoElemento): string => revisao.revisao ?? derivarOperacoesRevisao(state, revisao);
+
+// Descarta as operações revertidas, mantendo a ordem das demais.
+// Revisões de descendentes acompanham a principal: o lugar relativo deles não muda quando o grupo se move.
+export const reconciliarOperacoesRevisao = (state: State, revisao: RevisaoElemento): void => {
+  const antes = revisao.elementoAntesRevisao;
+  if (!antes || revisao.revisao === undefined || revisao.idRevisaoElementoPrincipal || revisao.stateType === StateType.ElementoRemovido) {
+    return;
+  }
+  const apos = revisao.elementoAposRevisao;
+  let operacoes = revisao.revisao;
+  if (antes.tipo === apos.tipo) {
+    operacoes = removerOperacaoRevisao(operacoes, OPERACAO_TRANSFORMADO);
+  }
+  if (isMesmoTextoETitulo(antes, apos)) {
+    operacoes = removerOperacaoRevisao(operacoes, OPERACAO_ALTERADO);
+  }
+  if (isMesmoLugar(antes, apos)) {
+    operacoes = removerOperacaoRevisao(operacoes, OPERACAO_MOVIDO);
+  }
+  // Compara pelo id (e não pelo rótulo): em dispositivo movido ou transformado o rótulo difere do original por outra causa.
+  const rotulo = getOperacoesRevisao(operacoes).find(o => o.nome === OPERACAO_ALTERACAO_ROTULO);
+  if (rotulo && rotulo.argumento === apos.lexmlId) {
+    operacoes = removerOperacaoRevisao(operacoes, OPERACAO_ALTERACAO_ROTULO);
+  }
+  revisao.revisao = operacoes;
 };

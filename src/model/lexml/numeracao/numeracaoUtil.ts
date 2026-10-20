@@ -1,8 +1,9 @@
 import { Articulacao, Dispositivo } from '../../dispositivo/dispositivo';
-import { isArtigo, isOmissis } from '../../dispositivo/tipo';
+import { isArtigo, isDispositivoGenerico, isOmissis } from '../../dispositivo/tipo';
+import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Elemento } from '../../elemento';
 import { getDispositivoFromElemento } from '../../elemento/elementoUtil';
-import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipo, getProximoArtigoAnterior, isDispositivoAlteracao } from '../hierarquia/hierarquiaUtil';
+import { getDispositivoAnterior, getDispositivoAnteriorMesmoTipo, getProximoArtigoAnterior } from '../hierarquia/hierarquiaUtil';
 
 const I = 1,
   V = 5,
@@ -231,6 +232,14 @@ export const rotuloParaEdicao = (texto: string): string => {
     .trim();
 };
 
+// Rótulo genérico, ainda sem número (ex.: cabeça recém-criada).
+export const hasRotuloPendente = (dispositivo: Dispositivo): boolean =>
+  !isDispositivoGenerico(dispositivo) &&
+  !!(dispositivo.rotulo?.endsWith(dispositivo.tipo) || dispositivo.rotulo?.toLowerCase() === TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toLowerCase());
+
+// Regra única de renumeração, compartilhada pela ação e pelo alerta "Numere o dispositivo".
+export const podeRenumerarDispositivo = (dispositivo: Dispositivo): boolean => !isOmissis(dispositivo);
+
 export const podeRenumerar = (articulacao: Articulacao, elemento: Elemento): boolean => {
   const dispositivo = getDispositivoFromElemento(articulacao, elemento);
 
@@ -238,21 +247,7 @@ export const podeRenumerar = (articulacao: Articulacao, elemento: Elemento): boo
     return false;
   }
 
-  if (isOmissis(dispositivo)) {
-    return false;
-  }
-  /*
-  return (
-    elemento.hierarquia?.pai?.uuidAlteracao !== undefined &&
-    !(
-      isDispositivoAlteracao(dispositivo) &&
-      dispositivo.situacao.descricaoSituacao === DescricaoSituacao.DISPOSITIVO_ADICIONADO &&
-      getDispositivoPosteriorMesmoTipo(dispositivo)?.numero === '1' &&
-      getDispositivoPosteriorMesmoTipo(dispositivo)?.situacao.descricaoSituacao !== DescricaoSituacao.DISPOSITIVO_ADICIONADO
-    )
-  );
-  */
-  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined && !(isDispositivoAlteracao(dispositivo) && dispositivo.existeNaNormaAlterada);
+  return elemento.hierarquia?.pai?.uuidAlteracao !== undefined && podeRenumerarDispositivo(dispositivo);
 };
 
 export const contaIrmaosNaoOriginaisConsecutivosAte = (d: Dispositivo): number => {

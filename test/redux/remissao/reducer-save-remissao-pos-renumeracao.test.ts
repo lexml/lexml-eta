@@ -79,7 +79,7 @@ describe('Bug: serialização de remissão após renumeração sem digitação',
       classificacao: ClassificacaoDocumento.NORMA,
       epigrafe: { texto: 'TESTE' },
       ementa: { texto: 'Ementa' } as any,
-      preambulo: { texto: '' },
+      preambulo: { texto: '' } as any,
       articulacao: result.articulacao!,
     };
 
@@ -165,7 +165,7 @@ describe('Bug: serialização de remissão após renumeração sem digitação',
       classificacao: ClassificacaoDocumento.NORMA,
       epigrafe: { texto: 'TESTE' },
       ementa: { texto: 'Ementa' } as any,
-      preambulo: { texto: '' },
+      preambulo: { texto: '' } as any,
       articulacao: stateRenumerado.articulacao!,
     };
 
@@ -263,7 +263,7 @@ describe('Preservação simétrica do destino conhecido após exclusão com text
       classificacao: ClassificacaoDocumento.NORMA,
       epigrafe: { texto: 'TESTE' },
       ementa: { texto: 'Ementa' } as any,
-      preambulo: { texto: '' },
+      preambulo: { texto: '' } as any,
       articulacao: stateAposRemocao.articulacao!,
     };
     const resultado = buildJsonixFromProjetoNorma(projetoNorma, 'urn:teste', registroCompleto);

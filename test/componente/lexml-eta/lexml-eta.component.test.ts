@@ -14,13 +14,6 @@ describe('LexmlEtaParametrosEdicao - atributo substitutivo', () => {
   });
 });
 
-describe('LexmlEtaConfig - atributo justificacaoObrigatoria', () => {
-  it('deve ter valor padrão true', () => {
-    const config = new LexmlEtaConfig();
-    expect(config.justificacaoObrigatoria).to.be.true;
-  });
-});
-
 describe('LexmlEtaComponent - atributo substitutivo', () => {
   beforeEach(async () => {
     component = await fixture<LexmlEtaComponent>(html`<lexml-eta></lexml-eta>`);
@@ -121,33 +114,29 @@ describe('LexmlEtaComponent - atributo substitutivo', () => {
     });
   });
 
-  describe('Validação de justificação via LexmlEtaConfig.justificacaoObrigatoria', () => {
-    it('deve incluir pendência de justificação quando obrigatória e vazia', () => {
-      component.lexmlEtaConfig = new LexmlEtaConfig();
-      component.lexmlEtaConfig.justificacaoObrigatoria = true;
-
+  describe('Validação de justificação', () => {
+    it('deve incluir pendência de justificação quando vazia', () => {
       const pendencias = (component as any).getPendenciasPreenchimento({ justificativa: '' });
       expect(pendencias).to.include('Não foi informado um texto de justificação.');
     });
 
-    it('não deve incluir pendência de justificação quando não obrigatória e vazia', () => {
-      component.lexmlEtaConfig = new LexmlEtaConfig();
-      component.lexmlEtaConfig.justificacaoObrigatoria = false;
-
-      const pendencias = (component as any).getPendenciasPreenchimento({ justificativa: '' });
-      expect(pendencias).to.not.include('Não foi informado um texto de justificação.');
-    });
-
-    it('não deve disparar alerta global de justificação quando não obrigatória', () => {
-      component.lexmlEtaConfig = new LexmlEtaConfig();
-      component.lexmlEtaConfig.justificacaoObrigatoria = false;
+    it('deve disparar alerta global de justificação quando o editor está vazio', () => {
       Object.defineProperty(component, '_lexmlJustificativa', { value: { texto: '' } });
 
       (component as any).buildAlertaJustificativa();
 
       const alertas = rootStore.getState().elementoReducer.ui?.alertas || [];
-      const alerta = alertas.find(a => a.id === 'alerta-global-justificativa');
-      expect(alerta).to.be.undefined;
+      expect(alertas.find(a => a.id === 'alerta-global-justificativa')).to.not.be.undefined;
+    });
+
+    it('não deve disparar alerta global de justificação no modo anexo de parecer', () => {
+      (component as any).anexoParecer = true;
+      Object.defineProperty(component, '_lexmlJustificativa', { value: { texto: '' } });
+
+      (component as any).buildAlertaJustificativa();
+
+      const alertas = rootStore.getState().elementoReducer.ui?.alertas || [];
+      expect(alertas.find(a => a.id === 'alerta-global-justificativa')).to.be.undefined;
     });
   });
 });

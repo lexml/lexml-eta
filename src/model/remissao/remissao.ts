@@ -17,11 +17,15 @@ export interface RemissaoInternaValue {
 
   targetUuid?: number;
 
+  targetUuid2?: string; // identidade que sobrevive a mover/undo, que trocam o uuid
+
   targetLexmlId?: string;
 
   targetRotulo?: string;
 
   sourceUuid?: number;
+
+  sourceUuid2?: string;
 
   sourceLexmlId?: string;
 

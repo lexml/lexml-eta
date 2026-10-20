@@ -78,9 +78,9 @@ describe('Testando a exclusão de artigos', () => {
           expect(state.articulacao!.artigos[0].rotulo).to.equal('Art. 1º');
         });
 
-        it('A referência para inclusão do artigo deveria ser a ementa', () => {
+        it('A referência para inclusão do artigo deveria ser o preâmbulo', () => {
           const incluido = getEvento(eventos, StateType.ElementoIncluido);
-          expect(incluido.referencia!.tipo).to.equal('Ementa');
+          expect(incluido.referencia!.tipo).to.equal('Preambulo');
         });
       });
     });

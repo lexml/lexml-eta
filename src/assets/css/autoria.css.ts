@@ -130,15 +130,6 @@ export const autoriaCss = css`
     gap: 10px;
   }
 
-  .assinaturas-adicionais div {
-    padding-top: 5px;
-  }
-
-  .assinaturas-adicionais .autoria-input {
-    display: block;
-    max-width: 400px;
-  }
-
   @media (max-width: 576px) {
     .autoria-grid {
       flex-direction: column;

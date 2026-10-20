@@ -123,6 +123,7 @@ describe('Atualização de Remissões ao Remover Dispositivo', () => {
       const art1 = criaDispositivo(articulacao, 'Artigo');
       const art2 = criaDispositivo(articulacao, 'Artigo');
       const par1Art2 = criaDispositivo(art2, 'Paragrafo');
+      criaDispositivo(art2, 'Paragrafo'); // segundo parágrafo: par1Art2 não vira "único"
       const origem = criaDispositivo(articulacao, 'Artigo'); // dispositivo fonte da remissão
 
       art1.texto = 'Artigo 1.';

@@ -473,6 +473,14 @@ export const editorStyles = html`
       display: none;
     }
 
+    .preambulo {
+      margin-bottom: 30px;
+    }
+
+    .texto__rotulo--preambulo {
+      display: none;
+    }
+
     .mensagem {
       font-family: var(--sl-font-sans);
       font-size: 0.8em;
@@ -551,6 +559,17 @@ export const editorStyles = html`
       display: block;
       color: #000;
       margin-bottom: 5px;
+    }
+
+    .titulo-dispositivo-vazio::before {
+      content: '(título do dispositivo vazio)';
+      color: #888;
+      font-weight: normal;
+      font-style: italic;
+    }
+
+    .titulo-dispositivo-editavel {
+      cursor: pointer;
     }
 
     .nota-alteracao-editavel {

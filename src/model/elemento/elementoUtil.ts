@@ -1,6 +1,17 @@
 import { getDispositivoAnteriorNaSequenciaDeLeitura } from './../lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isCaput, isDispositivoDeArtigo, isDispositivoGenerico, isIncisoCaput, isOmissis, isParagrafo } from '../dispositivo/tipo';
+import {
+  isAgrupador,
+  isArticulacao,
+  isArtigo,
+  isCaput,
+  isDispositivoDeArtigo,
+  isDispositivoGenerico,
+  isIncisoCaput,
+  isOmissis,
+  isParagrafo,
+  isPreambulo,
+} from '../dispositivo/tipo';
 import { validaDispositivo } from '../lexml/dispositivo/dispositivoValidator';
 import {
   buildListaDispositivos,
@@ -19,6 +30,8 @@ import {
   getTiposAgrupadoresQuePodemSerInseridosAntes,
   getTiposAgrupadoresQuePodemSerInseridosDepois,
   hasEmenta,
+  hasPreambulo,
+  getUltimoDispositivoDaParteInicial,
 } from '../lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../lexml/tipo/tipoDispositivo';
 import { buildId } from '../lexml/util/idUtil';
@@ -62,6 +75,10 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
   };
 };
 
+// O Quill não aceita bloco dentro da linha; o texto do dispositivo mantém os <p> para salvar.
+const textoParaExibicao = (dispositivo: Dispositivo): string | undefined =>
+  isPreambulo(dispositivo) && dispositivo.texto ? dispositivo.texto.replace(/<\/p>\s*<p>/gi, ' ').replace(/^\s*<p>|<\/p>\s*$/gi, '') : dispositivo.texto;
+
 export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarElementoAnterior = false): Elemento => {
   const pai = dispositivo.pai!;
   const fechaAspas = dispositivo.tipo !== 'Articulacao' && isDispositivoAlteracao(dispositivo) && isUltimaAlteracao(dispositivo);
@@ -84,7 +101,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
         !isArticulacaoAlteracao(dispositivoAnteriorNaSequenciaDeLeitura) &&
         hasEmenta(dispositivoAnteriorNaSequenciaDeLeitura)
       ) {
-        dispositivoAnteriorNaSequenciaDeLeitura = (dispositivoAnteriorNaSequenciaDeLeitura as Articulacao).projetoNorma!.ementa!;
+        dispositivoAnteriorNaSequenciaDeLeitura = getUltimoDispositivoDaParteInicial(dispositivoAnteriorNaSequenciaDeLeitura)!;
       }
 
       elementoAnteriorNaSequenciaDeLeitura = createElemento(
@@ -113,7 +130,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     numero: dispositivo.numero,
     rotulo: dispositivo.rotulo ?? '',
     conteudo: {
-      texto: dispositivo.texto,
+      texto: textoParaExibicao(dispositivo),
     },
     norma: dispositivo.alteracoes?.base,
     existeNaNormaAlterada: dispositivo.existeNaNormaAlterada,
@@ -134,6 +151,7 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
     ultimoFilhoDireto:
       isAgrupador(dispositivo) && isDispositivoAlteracao(dispositivo) && dispositivo.filhos.length ? createElemento(dispositivo.filhos[dispositivo.filhos.length - 1]) : undefined,
     bloqueado: dispositivo.bloqueado,
+    caput: isArtigo(dispositivo) && (dispositivo as Artigo).caput ? { uuid: (dispositivo as Artigo).caput!.uuid, uuid2: (dispositivo as Artigo).caput!.uuid2 } : undefined,
   };
 };
 
@@ -185,6 +203,10 @@ export const getElementos = (dispositivo: Dispositivo, validados = false, procur
     elementos.push(fnCreateElemento((dispositivo as Articulacao).projetoNorma!.ementa!, true));
   }
 
+  if (isArticulacao(dispositivo) && !isDispositivoAlteracao(dispositivo) && hasPreambulo(dispositivo)) {
+    elementos.push(fnCreateElemento((dispositivo as Articulacao).projetoNorma!.preambulo!, true));
+  }
+
   if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
     if (isArtigo(dispositivo) && (dispositivo as Artigo).hasAlteracao()) {
       (dispositivo as Artigo).alteracoes?.filhos.forEach(f => {
@@ -214,6 +236,10 @@ export const getArticulacaoFromElemento = (articulacao: Articulacao, elemento: E
 export const getDispositivoFromElemento = (art: Articulacao, referencia: Partial<Elemento>, ignorarElementoAlteracao = false): Dispositivo | undefined => {
   if (referencia.tipo === 'Ementa') {
     return art.projetoNorma?.ementa;
+  }
+
+  if (referencia.tipo === 'Preambulo') {
+    return art.projetoNorma?.preambulo;
   }
 
   const articulacao = getArticulacaoFromElemento(art, referencia);

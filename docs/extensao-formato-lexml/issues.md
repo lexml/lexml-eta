@@ -88,7 +88,7 @@ Incluir `lexedit:RevisoesArticulacao`/`lexedit:RevisaoArticulacao` no jsonix sal
 
 ## 11. Salvar e abrir os demais metadados do LexEdit
 
-Incluir no jsonix salvo/aberto os atributos de `lexedit:Metadado` ainda não cobertos pelas issues anteriores: `dataUltimaModificacao` e `substitutivo`. Os atributos `aplicacao` e `versaoAplicacao` ficam vazios por enquanto. Validar o arquivo convertendo de/para XML com o conversor jsonix.
+Incluir no jsonix salvo/aberto os atributos de `lexedit:Metadado` ainda não cobertos pelas issues anteriores: `dataUltimaModificacao`. O atributo `substitutivo`, previsto inicialmente, foi retirado do esquema (issue #1017). Os atributos `aplicacao` e `versaoAplicacao` ficam vazios por enquanto. Validar o arquivo convertendo de/para XML com o conversor jsonix.
 
 **Especificação:** [13-outros-metadados-do-lexedit.md](13-outros-metadados-do-lexedit.md)
 

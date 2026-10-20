@@ -53,8 +53,15 @@ export const undo = (state: any): State => {
     // remove incluídos
     events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoIncluido)));
 
-    retorno.ui!.events = [...events.build(), ...retorno.ui!.events];
-    retorno.present = [...events.build(), ...retorno.present];
+    // Sem isto, desfazer a rejeição de uma revisão cujo dispositivo volta com o mesmo id não devolve a revisão ao estado.
+    const eventosRevisao = [
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAceita),
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoRejeitada),
+      ...processarRevisoesAceitasOuRejeitadas(retorno, eventos, StateType.RevisaoAdicionalRejeitada),
+    ].filter(ev => ev.elementos?.length);
+
+    retorno.ui!.events = [...eventosRevisao, ...events.build(), ...retorno.ui!.events];
+    retorno.present = [...eventosRevisao, ...events.build(), ...retorno.present];
 
     return retorno;
   }
@@ -99,26 +106,27 @@ export const undo = (state: any): State => {
   events.add(StateType.ElementoRemovido, remover(state, getEvento(eventos, StateType.ElementoIncluido)));
   events.add(StateType.ElementoIncluido, incluir(state, getEvento(eventos, StateType.ElementoRemovido), getEvento(events.eventos, StateType.ElementoIncluido)));
 
-  const eventoRemissaoInvalidada = eventos.find((ev: StateEvent) => ev.stateType === StateType.RemissaoInvalidada);
-  if (eventoRemissaoInvalidada?.remissaoInvalidacao) {
-    events.eventos.push({
-      stateType: StateType.RemissaoRestaurada,
-      remissaoInvalidacao: eventoRemissaoInvalidada.remissaoInvalidacao,
-    });
+  // A remoção emite um RemissaoInvalidada por dispositivo removido (raiz, descendentes e caput); todos são restaurados.
+  const invalidacoes = eventos.filter((ev: StateEvent) => ev.stateType === StateType.RemissaoInvalidada && ev.remissaoInvalidacao).map((ev: StateEvent) => ev.remissaoInvalidacao!);
+  if (invalidacoes.length > 0) {
+    invalidacoes.forEach(remissaoInvalidacao => events.eventos.push({ stateType: StateType.RemissaoRestaurada, remissaoInvalidacao }));
+
+    const uuidsRestaurados = new Set(invalidacoes.map(i => i.uuid));
+    const lexmlIdsRestaurados = new Set(invalidacoes.map(i => i.lexmlId));
+    // Pelo targetUuid (estável): uma entrada invalidada por outra ação, com id textual coincidente, continua inválida.
+    const foiRestaurada = (r: any): boolean => r.valida === false && (r.targetUuid !== undefined ? uuidsRestaurados.has(r.targetUuid) : lexmlIdsRestaurados.has(r.targetLexmlId));
 
     // Restaura entradas valida:false → undefined e limpa mensagem de remissão inválida
-    const lexmlIdRestaurado = eventoRemissaoInvalidada.remissaoInvalidacao.lexmlId;
-    if (state.remissoes && lexmlIdRestaurado) {
+    if (state.remissoes) {
       const novoRegistro: Record<number, any[]> = { ...state.remissoes };
       const sourceUuidsAfetados: number[] = [];
 
       for (const uuidStr of Object.keys(novoRegistro)) {
         const uuid = Number(uuidStr);
         const remissoes = novoRegistro[uuid];
-        const tinhaInvalida = remissoes.some((r: any) => r.targetLexmlId === lexmlIdRestaurado && r.valida === false);
-        if (tinhaInvalida) {
+        if (remissoes.some(foiRestaurada)) {
           novoRegistro[uuid] = remissoes.map((r: any) => {
-            if (r.targetLexmlId === lexmlIdRestaurado && r.valida === false) {
+            if (foiRestaurada(r)) {
               const copia = { ...r };
               delete copia.valida;
               return copia;

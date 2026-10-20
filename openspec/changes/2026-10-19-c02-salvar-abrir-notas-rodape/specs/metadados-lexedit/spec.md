@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Ida e volta do documento salvo pelo conversor
-Ao converter em XML um documento salvo pelo editor e convertê-lo de volta em JSON pelo conversor `jsonix-lexml` 2.0.0, o sistema SHALL abrir o resultado com os mesmos valores de todos os grupos do LexEdit que suporta e com a mesma justificação, inclusive as notas de rodapé. Salvar de novo esse documento SHALL gerar um arquivo igual ao original. Exceção temporária, enquanto as revisões de texto não forem gravadas (issue #994): elas não voltam, e o arquivo é igual ao original sem elas. Exceção, enquanto o plugin de tabelas do editor não guardar largura: a largura de tabela e de coluna não volta ao editor, e o arquivo salvo de novo não a tem.
+Ao converter em XML um documento salvo pelo editor e convertê-lo de volta em JSON pelo conversor `jsonix-lexml` 2.1.0, o sistema SHALL abrir o resultado com os mesmos valores de todos os grupos do LexEdit que suporta e com a mesma justificação, inclusive as notas de rodapé. Salvar de novo esse documento SHALL gerar um arquivo igual ao original. Exceção temporária, enquanto as revisões de texto não forem gravadas (issue #994): elas não voltam, e o arquivo é igual ao original sem elas. Exceção, enquanto o plugin de tabelas do editor não guardar largura: a largura de tabela e de coluna não volta ao editor, e o arquivo salvo de novo não a tem.
 
 #### Scenario: Opções de impressão, fecho e remissão inválida voltam do XML
 - **WHEN** um documento com opções de impressão alteradas, local e data do fecho e uma remissão interna inválida é salvo, convertido em XML, convertido de volta em JSON e aberto

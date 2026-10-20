@@ -36,6 +36,8 @@ import { agrupaElemento } from './agrupaElemento';
 import { aplicaRevisoes } from './aplicaRevisoes';
 import { atualizaElemento } from './atualizaElemento';
 import { atualizaNotaAlteracao } from './atualizaNotaAlteracao';
+import { atualizaTituloDispositivo } from './atualizaTituloDispositivo';
+import { ATUALIZAR_TITULO_DISPOSITIVO } from '../../../model/lexml/acao/atualizarTituloDispositivoAction';
 import { atualizaReferenciaElemento } from './atualizaReferenciaElemento';
 import { atualizaTextoElemento } from './atualizaTextoElemento';
 import { autoFixElemento } from './autoFixElemento';
@@ -60,7 +62,7 @@ import { adicionaElementosNaProposicaoFromClipboard } from './adicionaElementosN
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../model/lexml/acao/ativarDesativarRevisaoAction';
 import { ativaDesativaRevisao } from './ativaDesativaRevisao';
 import { atualizaRevisao } from './atualizaRevisao';
-import { sincronizarRemissoesPosAcao } from './sincronizarRemissoesPosAcao';
+import { preencherUuid2DasRemissoes, sincronizarRemissoesPosAcao } from './sincronizarRemissoesPosAcao';
 import { State, StateType } from '../../state';
 import { ATUALIZAR_USUARIO } from '../../../model/lexml/acao/atualizarUsuarioAction';
 import { atualizaUsuario } from './atualizaUsuario';
@@ -107,6 +109,8 @@ export const elementoReducer = (state = {}, action: any): any => {
   const paginacao = (state as State).ui?.paginacao;
   const remissoes = (state as State).remissoes;
 
+  preencherUuid2DasRemissoes(state as State, action.type);
+
   switch (action.type) {
     case NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS:
       tempState = navegaEntreDispositivosAlterados(state, action);
@@ -122,6 +126,9 @@ export const elementoReducer = (state = {}, action: any): any => {
       break;
     case ATUALIZAR_NOTA_ALTERACAO:
       tempState = atualizaNotaAlteracao(state, action);
+      break;
+    case ATUALIZAR_TITULO_DISPOSITIVO:
+      tempState = atualizaTituloDispositivo(state, action);
       break;
     case APLICAR_REVISOES:
       tempState = aplicaRevisoes(state, action);

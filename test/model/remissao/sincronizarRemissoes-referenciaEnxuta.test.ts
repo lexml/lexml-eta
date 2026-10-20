@@ -516,4 +516,71 @@ describe('sincronizarRemissoesComEstadoAtual — D4: referência enxuta não gan
       expect(textoResultante(articulacao, registro, origem.uuid!)).to.equal('inciso II deste artigo');
     });
   });
+
+  // ---------------------------------------------------------------------------------------------
+  // Origem: caput do art. 2 — texto "parágrafo único" (enxuto, forma "única" por CONTAGEM de irmãos,
+  // não por posição ordinal) — alvo: o único parágrafo do art. 1
+  //
+  // Issue #1003: o editor atualizava indevidamente "parágrafo único" para "§ 1º" mesmo sem um segundo
+  // parágrafo ser criado — bastava QUALQUER renumeração alhures (aqui, inserir um artigo novo antes de
+  // tudo) disparar a sincronização, revelando um id sem o sufixo 'u' que já estava latente desde a
+  // criação do parágrafo (buildHref decidia o sufixo consultando informouParagrafoUnico, nunca setado
+  // para um parágrafo criado ao vivo via criaDispositivo — só ao fazer parse de um rótulo textual vindo
+  // de arquivo carregado ou de renumeração manual digitada).
+  // ---------------------------------------------------------------------------------------------
+  describe('Origem "art. 2, caput", texto "parágrafo único" (enxuto, forma "única" por contagem), alvo: único parágrafo do art. 1', () => {
+    const monta = (): { articulacao: any; art1: Artigo; origem: Dispositivo; destino: Dispositivo } => {
+      const articulacao = createArticulacao();
+      const art1 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      const destino = criaDispositivo(art1, 'Paragrafo'); // único parágrafo de art1
+      const art2 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      const origem = art2.caput!;
+      articulacao.renumeraFilhos();
+      art1.renumeraFilhos();
+      updateIdDispositivoAndFilhos(articulacao);
+      return { articulacao, art1, origem, destino };
+    };
+
+    it('Situação 1 — novo artigo inserido antes de tudo: NÃO atualiza (continua único; só o número do artigo muda)', () => {
+      const { articulacao, origem, destino } = monta();
+      const registro = detectaRemissao(origem, destino, 'parágrafo único');
+
+      criaDispositivo(articulacao, 'Artigo', undefined, 0);
+      articulacao.renumeraFilhos();
+      updateIdDispositivoAndFilhos(articulacao);
+
+      expect(textoResultante(articulacao, registro, origem.uuid!)).to.equal('parágrafo único');
+    });
+
+    it('Situação 2 — segundo parágrafo criado DE FATO no art. 1: ATUALIZA (deixa de ser único, vira "§ 1º")', () => {
+      const { articulacao, art1, origem, destino } = monta();
+      const registro = detectaRemissao(origem, destino, 'parágrafo único');
+
+      criaDispositivo(art1, 'Paragrafo'); // segundo parágrafo real de art1
+      art1.renumeraFilhos();
+      updateIdDispositivoAndFilhos(articulacao);
+
+      expect(textoResultante(articulacao, registro, origem.uuid!)).to.equal('§ 1º');
+    });
+
+    it('Situação 3 — segundo parágrafo removido: volta a ser único ("parágrafo único" de novo)', () => {
+      const articulacao = createArticulacao();
+      const art1 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      const destino = criaDispositivo(art1, 'Paragrafo');
+      const par2 = criaDispositivo(art1, 'Paragrafo'); // segundo parágrafo, será removido
+      const art2 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      const origem = art2.caput!;
+      articulacao.renumeraFilhos();
+      art1.renumeraFilhos();
+      updateIdDispositivoAndFilhos(articulacao);
+
+      const registro = detectaRemissao(origem, destino, '§ 1º');
+
+      art1.removeFilho(par2);
+      art1.renumeraFilhos();
+      updateIdDispositivoAndFilhos(articulacao);
+
+      expect(textoResultante(articulacao, registro, origem.uuid!)).to.equal('parágrafo único');
+    });
+  });
 });

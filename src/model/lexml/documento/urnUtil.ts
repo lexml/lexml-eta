@@ -8,6 +8,15 @@ export const getAutoridade = (urn: string): Autoridade | undefined => {
   return VOCABULARIO.autoridades.filter(t => t.urn === partes[0])[0];
 };
 
+// Casa pelo tipo da URN sem o `;sigla`; a entrada com autoridade, quando houver, tem precedência sobre a do tipo sozinho.
+export const getPreambuloPadrao = (urn: string): string | undefined => {
+  const partes = (urn ?? '').replace('urn:lex:br:', '').split(':');
+  const autoridade = partes[0];
+  const tipo = partes[1]?.split(';')[0];
+  const doTipo = VOCABULARIO.preambulosPadrao.filter(p => p.urnTipoDocumento === tipo);
+  return (doTipo.find(p => p.urnAutoridade === autoridade) ?? doTipo.find(p => !p.urnAutoridade))?.texto;
+};
+
 export const getSigla = (urn: string): string => {
   const tipo = getTipo(urn) ?? {};
   const fnProcurarPorUrnTipoDocumento = (item: any): any => item.urnTipoDocumento === tipo.urn;
@@ -28,7 +37,11 @@ export const getNumero = (urn: string): string => {
 };
 
 export const formataNumero = (numero: string): string => {
-  return new Intl.NumberFormat('pt-BR', { style: 'decimal' }).format(+numero);
+  const [principal, ...sufixo] = numero.split('-');
+  if (!/^\d+$/.test(principal)) {
+    return numero;
+  }
+  return [new Intl.NumberFormat('pt-BR', { style: 'decimal' }).format(+principal), ...sufixo].join('-');
 };
 
 export const getData = (urn: string): string => {
@@ -160,7 +173,7 @@ export const getNomeExtensoComDataExtenso = (urn: string): string => {
   const dataString = getData(u);
   const [diaOuApenasAno, mes, ano] = dataString.split('/').map(p => parseInt(p));
   const dataExtenso = dataString.includes('/') ? getDataExtenso(new Date(ano, mes - 1, diaOuApenasAno)) : diaOuApenasAno;
-  return (tipo ? tipo : '') + (numero ? ' nº ' + parseInt(numero).toLocaleString('pt-BR') : '') + ', de ' + dataExtenso;
+  return (tipo ? tipo : '') + (numero ? ' nº ' + formataNumero(numero) : '') + ', de ' + dataExtenso;
 };
 
 export const buildHtmlLink = (urn: string): string => {

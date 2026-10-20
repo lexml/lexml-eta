@@ -16,6 +16,7 @@ import { buildId, buildIdCaputEAlteracao } from '../../../model/lexml/util/idUti
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
+import { MENSAGEM_ARTIGO_ALTERACAO_SEM_FILHOS_PROPRIOS } from '../util/reducerUtil';
 import { ajustaIdsNaArticulacaoColada } from '../util/colarUtil';
 import { Elemento } from '../../../model/elemento/elemento';
 import { TEXTO_OMISSIS } from '../../../model/lexml/conteudo/textoOmissis';
@@ -39,6 +40,10 @@ export const adicionaElementosNaProposicaoFromClipboard = (state: any, action: a
   }
 
   const articulacaoColada = infoTextoColado.articulacaoColada;
+
+  if (isArtigo(atual) && atual.hasAlteracao() && !isArtigo(articulacaoColada.filhos[0])) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: MENSAGEM_ARTIGO_ALTERACAO_SEM_FILHOS_PROPRIOS });
+  }
 
   if (existeDispositivoBloqueadoSendoColado(articulacaoColada, state.articulacao)) {
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: 'Não é possível colagem de texto em dispositivo bloqueado.' });

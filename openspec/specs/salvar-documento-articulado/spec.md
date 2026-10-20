@@ -135,7 +135,7 @@ Quando a justificação do documento em edição for obrigatória e não tiver t
 - **THEN** o arquivo salvo não contém o item "Não foi informado um texto de justificação." na lista de pendências
 
 #### Scenario: Pendência ausente quando a justificação não é obrigatória
-- **WHEN** o usuário salva um documento no modo anexo de parecer, ou com a obrigatoriedade da justificação desligada na configuração do editor, e a justificação está vazia
+- **WHEN** o usuário salva um documento no modo anexo de parecer e a justificação está vazia
 - **THEN** o arquivo salvo não contém o item "Não foi informado um texto de justificação." na lista de pendências
 
 #### Scenario: Pendência gravada não é lida ao abrir
@@ -180,7 +180,7 @@ Ao salvar, o sistema SHALL registrar nos metadados do LexEdit o local do fecho e
 - **THEN** o arquivo salvo registra o local "Sala da comissão"
 
 #### Scenario: Local derivado após mudança de destino
-- **WHEN** o usuário abre um documento cujo local registrado é "Sala da comissão", altera o destino exibido após a abertura (ex.: para "Plenário via Comissão") e salva
+- **WHEN** o usuário abre um documento cujo local registrado é "Sala da comissão", altera o destino exibido após a abertura (ex.: para "Plenário") e salva
 - **THEN** o arquivo salvo registra o local "Sala das sessões"
 
 ### Requirement: Representação textual do local e da data do fecho
@@ -202,12 +202,225 @@ Ao salvar, o sistema SHALL gerar o elemento LexML `ParteFinal/LocalDataFecho` co
 - **WHEN** o documento é salvo com local "Sala das sessões" e sem data
 - **THEN** `LocalDataFecho` contém o parágrafo "Sala das sessões,"
 
-### Requirement: Fecho no modo anexo de parecer
-No modo anexo de parecer, o sistema SHALL salvar o documento sem local, sem data e sem `ParteFinal`.
+### Requirement: Serialização da autoria de parlamentares
+Ao salvar, o sistema SHALL registrar nos metadados do LexEdit a autoria com tipo `Parlamentar`, a opção de imprimir partido e UF e, na ordem da tela, um registro para cada parlamentar incluído com identificação, nome, sexo, sigla do partido, sigla da UF, sigla da casa legislativa e cargo. O cargo SHALL ser registrado mesmo quando vazio. Parlamentares sem identificação (linhas em branco da tela) SHALL ser desconsiderados. Quando não houver nenhum parlamentar identificado, a autoria SHALL ser omitida.
 
-#### Scenario: Documento em modo anexo de parecer
-- **WHEN** o usuário salva um documento no modo anexo de parecer
-- **THEN** o arquivo salvo não contém local nem data nos metadados do LexEdit, nem o elemento `ParteFinal`
+#### Scenario: Dois parlamentares
+- **WHEN** o usuário inclui como autores os senadores Davi Alcolumbre (UNIÃO-AP, cargo "Presidente do Senado Federal") e Soraya Thronicke (PSB-MS, sem cargo), com a impressão de partido e UF marcada, e salva o documento
+- **THEN** o arquivo salvo registra a autoria de tipo `Parlamentar`, com imprimir partido e UF verdadeiro e os dois parlamentares nessa ordem, cada um com seus sete atributos, e o cargo da segunda como texto vazio
+
+#### Scenario: Impressão de partido e UF desmarcada
+- **WHEN** o usuário desmarca "Imprimir partido e UF para os signatários" e salva o documento
+- **THEN** o arquivo salvo registra imprimir partido e UF como falso
+
+#### Scenario: Nenhum parlamentar identificado
+- **WHEN** o usuário salva o documento sem nenhum parlamentar identificado na autoria
+- **THEN** o arquivo salvo não contém a autoria nos metadados do LexEdit
+
+#### Scenario: Linha de parlamentar em branco
+- **WHEN** o usuário inclui um parlamentar identificado e deixa uma segunda linha de parlamentar em branco, e salva
+- **THEN** o arquivo salvo registra apenas o parlamentar identificado
+
+### Requirement: Representação textual das assinaturas de parlamentares
+Ao salvar, o sistema SHALL gerar em `ParteFinal`, depois de `LocalDataFecho`, um elemento LexML `AssinaturaTexto` para cada parlamentar registrado na autoria, na mesma ordem. Cada `AssinaturaTexto` SHALL conter: um parágrafo com o tratamento e o nome em negrito; um parágrafo `(<partido> - <UF>)`, somente quando a impressão de partido e UF estiver marcada; e um parágrafo com o cargo, somente quando o cargo não for vazio. O tratamento SHALL ser "Senador" ou "Senadora" para a casa legislativa `SF`, e "Deputado" ou "Deputada" para `CD`, conforme o sexo `M` ou `F`. Sem parlamentar registrado, nenhum `AssinaturaTexto` SHALL ser gerado.
+
+#### Scenario: Senador com cargo
+- **WHEN** o documento é salvo com o parlamentar Davi Alcolumbre, sexo `M`, casa `SF`, partido UNIÃO, UF AP, cargo "Presidente do Senado Federal", e a impressão de partido e UF marcada
+- **THEN** `ParteFinal` contém um `AssinaturaTexto` com os parágrafos "**Senador Davi Alcolumbre**", "(UNIÃO - AP)" e "Presidente do Senado Federal"
+
+#### Scenario: Senadora sem cargo
+- **WHEN** o documento é salvo com a parlamentar Soraya Thronicke, sexo `F`, casa `SF`, partido PSB, UF MS, sem cargo, e a impressão de partido e UF marcada
+- **THEN** o `AssinaturaTexto` correspondente contém somente os parágrafos "**Senadora Soraya Thronicke**" e "(PSB - MS)"
+
+#### Scenario: Deputada
+- **WHEN** o documento é salvo com uma parlamentar de sexo `F` e casa `CD`
+- **THEN** o primeiro parágrafo do `AssinaturaTexto` correspondente começa com "Deputada", em negrito com o nome
+
+#### Scenario: Impressão de partido e UF desmarcada
+- **WHEN** o documento é salvo com a impressão de partido e UF desmarcada
+- **THEN** nenhum `AssinaturaTexto` contém o parágrafo de partido e UF
+
+#### Scenario: Fecho e assinaturas juntos
+- **WHEN** o documento é salvo com local, data e dois parlamentares
+- **THEN** `ParteFinal` contém primeiro `LocalDataFecho` e depois os dois `AssinaturaTexto`, na ordem dos parlamentares
+
+#### Scenario: Validação pelo esquema LexML
+- **WHEN** o documento salvo com autoria de parlamentares é convertido em XML pelo conversor `jsonix-lexml` 2.1.0
+- **THEN** o XML é válido perante o esquema LexML e o esquema do LexEdit, e a conversão de volta para JSON reproduz a mesma autoria e a mesma `ParteFinal`
+
+### Requirement: Serialização das revisões da hierarquia
+Em modo de revisão, o sistema SHALL manter a articulação do arquivo na versão atual (dispositivos excluídos não aparecem nela) e registrar cada revisão principal em `RevisoesArticulacao` dos metadados do LexEdit, com `revisao`, `refIdUsuario` e `data`. Os atributos `refIdUsuario` e `data` SHALL ser os da última operação registrada. Sem revisão, o grupo SHALL ser omitido.
+
+#### Scenario: Dispositivo adicionado
+- **WHEN** o usuário, em modo de revisão, adiciona o artigo 4 e salva
+- **THEN** a articulação contém o artigo 4 em sua forma final, e `RevisoesArticulacao` contém uma revisão com `refIdDispositivo` igual a `art4` e `revisao` igual a `adicionado`
+
+#### Scenario: Hierarquia adicionada gera uma revisão
+- **WHEN** o usuário, em modo de revisão, adiciona um artigo com parágrafo e incisos e salva
+- **THEN** há uma única revisão `adicionado`, referenciando o artigo, e nenhuma revisão própria para o parágrafo e os incisos
+
+#### Scenario: Documento sem revisão
+- **WHEN** o usuário salva um documento sem nenhuma revisão da hierarquia
+- **THEN** o arquivo salvo não contém `RevisoesArticulacao` nem o registro `Usuarios`
+
+### Requirement: Revisão de alteração de texto
+Quando o texto ou o título de um dispositivo é alterado em revisão, o sistema SHALL gravar na articulação o texto e o título revisados e, na revisão `alterado`, o estado anterior do dispositivo como filho de `RevisaoArticulacao`: um dispositivo do mesmo tipo do dispositivo revisado, sem `id`, com o texto anterior e, quando havia título, com o `TituloDispositivo` anterior. A ausência de `TituloDispositivo` nesse filho SHALL significar que o dispositivo não tinha título. O sistema SHALL NOT gravar um parágrafo solto como filho da revisão.
+
+#### Scenario: Texto de inciso alterado
+- **WHEN** o usuário, em modo de revisão, altera o texto do inciso II do artigo 4 e salva
+- **THEN** a articulação contém o novo texto, e a revisão com `refIdDispositivo` do inciso e `revisao` igual a `alterado` contém como filho um inciso, sem `id`, com o texto original
+
+#### Scenario: Artigo alterado
+- **WHEN** o usuário, em modo de revisão, altera o texto de um artigo e salva
+- **THEN** o filho da revisão é um artigo, sem `id`, com o texto original no `Caput`
+
+#### Scenario: Texto alterado em dispositivo com título
+- **WHEN** o usuário, em modo de revisão, altera apenas o texto de um dispositivo que tem o título "Do objeto" e salva
+- **THEN** o filho da revisão contém o texto original e o `TituloDispositivo` "Do objeto"
+
+#### Scenario: Título adicionado
+- **WHEN** o usuário, em modo de revisão, adiciona um título a um dispositivo que não tinha título e salva
+- **THEN** a articulação contém o dispositivo com o novo título, e o filho da revisão contém o texto do dispositivo, sem `TituloDispositivo`
+
+#### Scenario: Título alterado
+- **WHEN** o usuário, em modo de revisão, altera o título de "Do objeto" para "Da finalidade" e salva
+- **THEN** a articulação contém o título "Da finalidade", e o filho da revisão contém o `TituloDispositivo` "Do objeto" e o texto do dispositivo
+
+#### Scenario: Título removido
+- **WHEN** o usuário, em modo de revisão, remove o título "Do objeto" de um dispositivo e salva
+- **THEN** a articulação contém o dispositivo sem título, e o filho da revisão contém o `TituloDispositivo` "Do objeto"
+
+#### Scenario: Título e texto alterados
+- **WHEN** o usuário, em modo de revisão, altera o título e o texto de um dispositivo e salva
+- **THEN** o filho da revisão contém o título anterior e o texto anterior
+
+#### Scenario: Título com formatação
+- **WHEN** o usuário, em modo de revisão, altera um título cujo valor anterior tinha itálico e subscrito e salva
+- **THEN** o `TituloDispositivo` do filho da revisão preserva o itálico e o subscrito
+
+#### Scenario: Título restaurado ao valor original
+- **WHEN** o usuário, em modo de revisão, altera o título e o restaura ao valor original antes de salvar
+- **THEN** o arquivo salvo não contém revisão para esse dispositivo
+
+### Requirement: Revisão de movimentação
+Quando um dispositivo é movido em revisão, o sistema SHALL registrar `movido;<posicaoOriginal>`, onde a posição original é o sequencial, iniciando em 1, que o dispositivo ocupava antes da movimentação. Para artigos, o sequencial SHALL contar todos os artigos da articulação; para os demais dispositivos, SHALL contar todos os filhos do pai original, de qualquer tipo.
+
+#### Scenario: Inciso movido
+- **WHEN** o usuário, em modo de revisão, move o inciso III do artigo 5 para depois do inciso V e salva
+- **THEN** a revisão do dispositivo movido tem `revisao` igual a `movido;3`
+
+#### Scenario: Artigo movido para outro agrupador
+- **WHEN** o usuário, em modo de revisão, move o terceiro artigo da articulação para dentro de um agrupador diferente e salva
+- **THEN** a revisão tem `revisao` igual a `movido;3`, e o identificador do artigo na articulação não inclui o agrupador
+
+### Requirement: Revisão de transformação de tipo
+Quando o tipo de um dispositivo é transformado em revisão, o sistema SHALL registrar `transformado;<tipoOriginal>`, com o tipo original em minúsculas e sem acentuação.
+
+#### Scenario: Inciso transformado em alínea
+- **WHEN** o usuário, em modo de revisão, transforma um inciso em alínea e salva
+- **THEN** a articulação contém a alínea, e a revisão tem `revisao` igual a `transformado;inciso`
+
+#### Scenario: Alínea transformada em inciso
+- **WHEN** o usuário, em modo de revisão, transforma uma alínea em inciso e salva
+- **THEN** a revisão tem `revisao` igual a `transformado;alinea`
+
+### Requirement: Revisão de alteração de rótulo
+Quando o rótulo de um dispositivo de alteração de norma é alterado em revisão, o sistema SHALL gravar na articulação o dispositivo com o rótulo e o identificador finais e registrar `alteracaoRotulo;<idOriginal>` em `revisao`, onde `<idOriginal>` é o identificador anterior à alteração, do qual se deriva o rótulo anterior. O dispositivo filho com o estado anterior SHALL ser gravado somente quando a revisão também contém `alterado`.
+
+#### Scenario: Parágrafo renumerado
+- **WHEN** o usuário, em modo de revisão, renumera o parágrafo `art2_cpt_alt1_art3_par3-1` (`§ 3º-A`) para `§ 3º-B` e salva
+- **THEN** a articulação contém o parágrafo `§ 3º-B` com o identificador final, e a revisão com `refIdDispositivo` igual ao identificador final tem `revisao` igual a `alteracaoRotulo;art2_cpt_alt1_art3_par3-1`, sem dispositivo filho
+
+#### Scenario: Renumeração combinada com alteração de texto
+- **WHEN** o usuário, em modo de revisão, renumera um parágrafo, altera o seu texto e salva
+- **THEN** a revisão tem `alteracaoRotulo;<idOriginal>,alterado` e contém o texto anterior em um dispositivo filho
+
+#### Scenario: Conversão pelo conversor LexML
+- **WHEN** o arquivo com a revisão `alteracaoRotulo` é convertido em XML pelo conversor e validado com `schemas/lexedit.xsd`
+- **THEN** o XML contém o atributo `revisao` com a operação e o argumento, e a validação não aponta erro
+
+### Requirement: Operações combinadas em ordem
+Quando um mesmo dispositivo sofre mais de uma operação de revisão, o sistema SHALL registrar todas no atributo `revisao`, separadas por vírgula, na ordem em que ocorreram. Uma operação já registrada SHALL NOT ser repetida, e o argumento SHALL ser o da primeira ocorrência.
+
+#### Scenario: Movido e depois alterado
+- **WHEN** o usuário, em modo de revisão, move o inciso III e depois altera o seu texto
+- **THEN** a revisão tem `revisao` igual a `movido;3,alterado`, com o conteúdo original em um dispositivo filho
+
+#### Scenario: Transformado e depois alterado
+- **WHEN** o usuário, em modo de revisão, transforma um inciso em alínea e depois altera o texto
+- **THEN** a revisão tem `revisao` igual a `transformado;inciso,alterado`
+
+#### Scenario: Movido duas vezes
+- **WHEN** o usuário, em modo de revisão, move o mesmo dispositivo duas vezes para posições diferentes da original
+- **THEN** a revisão tem uma única operação `movido`, com a posição de antes da primeira movimentação
+
+#### Scenario: Adicionado e depois alterado
+- **WHEN** o usuário, em modo de revisão, adiciona um dispositivo e depois altera o seu texto
+- **THEN** a revisão tem `revisao` igual a `adicionado`, sem conteúdo anterior
+
+#### Scenario: Revisão sem alterado não grava conteúdo anterior
+- **WHEN** o usuário, em modo de revisão, apenas adiciona, move ou transforma um dispositivo, ou apenas renumera um dispositivo de alteração de norma, e salva
+- **THEN** a revisão tem apenas os atributos `refIdDispositivo`, `revisao`, `refIdUsuario` e `data`, sem dispositivo filho
+
+### Requirement: Revisão de exclusão
+Quando um dispositivo é excluído em revisão, o sistema SHALL removê-lo da articulação e registrá-lo como filho de uma `RevisaoArticulacao` com `revisao` igual a `excluido`, sem `refIdDispositivo`, preservando o dispositivo com toda a sua hierarquia (filhos, rótulos e textos).
+
+#### Scenario: Artigo excluído
+- **WHEN** o usuário, em modo de revisão, exclui o artigo 3 e salva
+- **THEN** a articulação não contém o artigo excluído, e os artigos seguintes já têm rótulo e identificador finais
+- **AND** `RevisoesArticulacao` contém uma revisão `excluido`, sem `refIdDispositivo`, com o artigo e seu caput como filho
+
+#### Scenario: Artigo excluído com filhos
+- **WHEN** o usuário, em modo de revisão, exclui um artigo com parágrafo e incisos e salva
+- **THEN** a revisão `excluido` contém o artigo com o parágrafo e os incisos, na mesma hierarquia e ordem originais
+
+### Requirement: Identificador dos dispositivos excluídos
+O sistema SHALL identificar cada dispositivo excluído, dentro de `RevisaoArticulacao`, com o prefixo `_`, o identificador que o dispositivo ocuparia na posição em que aparece na edição e o sufixo `-exc<sequencial>`, em que o sequencial numera, em ordem de posição, os excluídos com o mesmo identificador-base. O identificador SHALL ser calculado ao salvar, refletindo a posição final.
+
+#### Scenario: Artigo excluído
+- **WHEN** o usuário, em modo de revisão, exclui o artigo 2 de um documento com artigos 1, 2 e 3 e salva
+- **THEN** o artigo excluído tem o identificador `_art2-exc1`, e o antigo artigo 3 aparece na articulação como `art2`
+
+#### Scenario: Dois artigos excluídos em sequência
+- **WHEN** o usuário, em modo de revisão, exclui o artigo 2 e, em seguida, o novo artigo 2 (antigo artigo 3) e salva
+- **THEN** os excluídos têm os identificadores `_art2-exc1` e `_art2-exc2`, nessa ordem
+
+#### Scenario: Exclusão anterior à exclusão já registrada
+- **WHEN** o usuário, em modo de revisão, exclui o artigo 2 e, depois, o artigo 1 de um documento com artigos 1, 2 e 3 e salva
+- **THEN** os excluídos têm os identificadores `_art1-exc1` (antigo artigo 1) e `_art1-exc2` (antigo artigo 2), ambos antes do artigo `art1` (antigo artigo 3)
+
+#### Scenario: Identificador dos filhos do excluído
+- **WHEN** o artigo excluído `_art3-exc1` possui caput
+- **THEN** o caput recebe o identificador `_art3-exc1_cpt`
+
+### Requirement: Data da revisão com fuso horário
+O sistema SHALL gravar a data de cada revisão no formato ISO 8601 com fuso horário (por exemplo, `2026-05-11T15:51:00-03:00`), representando o mesmo instante registrado pelo editor.
+
+#### Scenario: Data gravada com fuso
+- **WHEN** uma revisão feita em 11/05/2026 às 15:51:00 no fuso UTC-03:00 é salva
+- **THEN** o atributo `data` da revisão é `2026-05-11T15:51:00-03:00`
+
+### Requirement: Registro de usuários das revisões
+O sistema SHALL registrar em `Usuarios` dos metadados do LexEdit cada usuário referenciado por alguma revisão, uma única vez, com `idUsuario` igual ao identificador fornecido pelo host, `nome` e, quando houver, `sigla`. Sem identificador, `idUsuario` SHALL ser o nome. `refIdUsuario` de cada revisão SHALL referenciar um `idUsuario` registrado.
+
+#### Scenario: Dois usuários revisando
+- **WHEN** duas revisões feitas pelo usuário `sf:fulano` e uma pelo usuário `sf:ciclana` são salvas
+- **THEN** `Usuarios` contém um registro para cada um, e cada `refIdUsuario` referencia um deles
+
+#### Scenario: Usuário sem identificador
+- **WHEN** uma revisão é feita por um usuário sem identificador, de nome "Anônimo"
+- **THEN** o registro em `Usuarios` e o `refIdUsuario` correspondente usam `Anônimo` como identificador
+
+### Requirement: Pendência de revisões da hierarquia
+Enquanto houver ao menos uma revisão da hierarquia não resolvida, o sistema SHALL incluir na lista de pendências dos metadados do LexEdit o item "Resolver marcas de revisão na articulação.".
+
+#### Scenario: Pendência presente com revisão
+- **WHEN** o usuário salva um documento com ao menos uma revisão da hierarquia
+- **THEN** a lista de pendências contém "Resolver marcas de revisão na articulação."
+
+#### Scenario: Pendência ausente após resolver as revisões
+- **WHEN** o usuário aceita ou rejeita todas as revisões da hierarquia e salva
+- **THEN** a lista de pendências não contém esse item
 
 ### Requirement: Serialização da justificação
 Ao salvar, o sistema SHALL gravar a justificação do documento em edição em `ProjetoNorma/Justificacao/PartePrincipal`, com o conteúdo rico no subconjunto HTML do LexML. O sistema SHALL NOT gravar `Justificacao` quando a justificação não tiver conteúdo nem no modo anexo de parecer. O arquivo salvo SHALL ser válido pelo esquema LexML.

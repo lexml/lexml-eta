@@ -12,8 +12,8 @@ import {
   isArtigoUnico,
   isDispositivoAlteracao,
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
-import { isAgrupador, isArticulacao, isCaput, isEmenta } from '../../../model/dispositivo/tipo';
-import { Dispositivo } from '../../../model/dispositivo/dispositivo';
+import { isAgrupador, isArticulacao, isArtigo, isCaput, isEmenta } from '../../../model/dispositivo/tipo';
+import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { RemoverElemento } from '../../../model/lexml/acao/removerElementoAction';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
@@ -42,7 +42,10 @@ export const removeElemento = (state: any, action: any): State => {
 
   const events = isAgrupador(dispositivo) ? removeAgrupadorAndBuildEvents(state.articulacao, dispositivo) : removeAndBuildEvents(state, dispositivo);
 
-  const { novoRegistroRemissoes, eventosRemissao, novosAlertas } = construirEventosRemissaoParaRemocao(state.remissoes, state.articulacao, dispositivosRemovidosIds);
+  // Rejeitar uma movimentação remove e reinclui o mesmo dispositivo: o destino continua existindo.
+  const { novoRegistroRemissoes, eventosRemissao, novosAlertas } = action.suprimirInvalidacaoRemissao
+    ? { novoRegistroRemissoes: state.remissoes, eventosRemissao: [], novosAlertas: [] }
+    : construirEventosRemissaoParaRemocao(state.remissoes, state.articulacao, dispositivosRemovidosIds);
   events.push(...eventosRemissao);
 
   if (elPrimeiroFilhoDoAgrupador) {
@@ -121,6 +124,11 @@ const capturarRemovidosEDescendentes = (d: Dispositivo): Array<{ lexmlId: string
   const capturar = (dispositivo: Dispositivo): void => {
     if (dispositivo.id && dispositivo.uuid) {
       result.push({ lexmlId: dispositivo.id, uuid: dispositivo.uuid });
+    }
+    // O caput não está em `filhos` (os incisos, sim): sem isto, remissões para ele não são invalidadas.
+    const caput = isArtigo(dispositivo) ? (dispositivo as Artigo).caput : undefined;
+    if (caput?.id && caput.uuid) {
+      result.push({ lexmlId: caput.id, uuid: caput.uuid });
     }
     dispositivo.filhos?.forEach(capturar);
   };

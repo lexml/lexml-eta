@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture derivada de docs/extensao-formato-lexml/14-colegiado-apreciador.md -->
+<lexedit:Metadado xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
+  <lexedit:ColegiadoApreciador
+      siglaCasaLegislativa='SF'
+      tipoColegiado='Comissão'
+      siglaComissao='CCJ'/>
+</lexedit:Metadado>

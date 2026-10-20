@@ -24,6 +24,7 @@ import { EtaBlotMenuBotao } from '../../util/eta-quill/eta-blot-menu-botao';
 import { EtaBlotMenuConteudo } from '../../util/eta-quill/eta-blot-menu-conteudo';
 import { EtaBlotMenuItem } from '../../util/eta-quill/eta-blot-menu-item';
 import { EtaBlotNotaAlteracao } from '../../util/eta-quill/eta-blot-nota-alteracao';
+import { EtaBlotTituloDispositivo } from '../../util/eta-quill/eta-blot-titulo-dispositivo';
 import { EtaBlotOpcoesDiff } from '../../util/eta-quill/eta-blot-opcoes-diff';
 import { EtaBlotRevisao } from '../../util/eta-quill/eta-blot-revisao';
 import { EtaBlotRevisaoAceitar } from '../../util/eta-quill/eta-blot-revisao-aceitar';
@@ -97,6 +98,7 @@ export const configurePrivateQuill = (): void => {
     EtaBlotAbreAspas,
     EtaBlotFechaAspas,
     EtaBlotNotaAlteracao,
+    EtaBlotTituloDispositivo,
     EtaBlotExistencia,
     EtaBlotTipoOmissis,
     EtaBlotConteudo,

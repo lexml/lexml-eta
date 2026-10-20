@@ -1,0 +1,187 @@
+{
+  "name": {
+    "namespaceURI": "http://www.lexml.gov.br/1.0",
+    "localPart": "LexML",
+    "prefix": "",
+    "key": "{http://www.lexml.gov.br/1.0}LexML",
+    "string": "{http://www.lexml.gov.br/1.0}LexML"
+  },
+  "value": {
+    "TYPE_NAME": "br_gov_lexml__1.LexML",
+    "metadado": {
+      "TYPE_NAME": "br_gov_lexml__1.Metadado",
+      "identificacao": {
+        "TYPE_NAME": "br_gov_lexml__1.Identificacao",
+        "urn": "urn:lex:br:senado.federal:projeto.lei;pl:2026;1234"
+      }
+    },
+    "projetoNorma": {
+      "TYPE_NAME": "br_gov_lexml__1.ProjetoNorma",
+      "norma": {
+        "TYPE_NAME": "br_gov_lexml__1.HierarchicalStructure",
+        "parteInicial": {
+          "TYPE_NAME": "br_gov_lexml__1.ParteInicial",
+          "epigrafe": {
+            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+            "id": "epigrafe",
+            "content": [
+              "PROJETO DE LEI Nº 1234, DE 2026"
+            ]
+          },
+          "ementa": {
+            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+            "id": "ementa",
+            "content": [
+              "Documento de teste de remissão para o caput de um artigo."
+            ]
+          },
+          "preambulo": {
+            "TYPE_NAME": "br_gov_lexml__1.TextoType",
+            "id": "preambulo",
+            "p": [
+              {
+                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                "content": [
+                  "O CONGRESSO NACIONAL decreta:"
+                ]
+              }
+            ]
+          }
+        },
+        "articulacao": {
+          "TYPE_NAME": "br_gov_lexml__1.Articulacao",
+          "lXhier": [
+            {
+              "name": {
+                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                "localPart": "Artigo",
+                "prefix": "",
+                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                "id": "art1",
+                "rotulo": "Art. 1º",
+                "lXcontainersOmissis": [
+                  {
+                    "name": {
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "localPart": "Caput",
+                      "prefix": "",
+                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art1_cpt",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "Conforme o ",
+                            {
+                              "name": {
+                                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                "localPart": "Remissao",
+                                "prefix": "",
+                                "key": "{http://www.lexml.gov.br/1.0}Remissao",
+                                "string": "{http://www.lexml.gov.br/1.0}Remissao"
+                              },
+                              "value": {
+                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                "href": "art2_cpt",
+                                "content": [
+                                  "caput do art. 2º"
+                                ]
+                              }
+                            },
+                            ", aplica-se o seguinte."
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                "localPart": "Artigo",
+                "prefix": "",
+                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                "id": "art2",
+                "rotulo": "Art. 2º",
+                "lXcontainersOmissis": [
+                  {
+                    "name": {
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "localPart": "Caput",
+                      "prefix": "",
+                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art2_cpt",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "As disposições aplicam-se à administração direta."
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "name": {
+                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                "localPart": "Artigo",
+                "prefix": "",
+                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                "id": "art3",
+                "rotulo": "Art. 3º",
+                "lXcontainersOmissis": [
+                  {
+                    "name": {
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "localPart": "Caput",
+                      "prefix": "",
+                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art3_cpt",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "Esta lei entra em vigor na data de sua publicação."
+                          ]
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

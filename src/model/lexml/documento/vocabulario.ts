@@ -256,6 +256,24 @@ export const VOCABULARIO = {
       urnTipoDocumento: 'projeto.resolucao;prc',
     },
   ],
+  // Tipo da URN sem o `;sigla`; `urnAutoridade` só distingue textos do mesmo tipo.
+  preambulosPadrao: [
+    { urnTipoDocumento: 'projeto.lei', texto: 'O CONGRESSO NACIONAL decreta:' },
+    { urnTipoDocumento: 'projeto.lei.complementar', texto: 'O CONGRESSO NACIONAL decreta:' },
+    { urnTipoDocumento: 'projeto.lei.conversao', texto: 'O CONGRESSO NACIONAL decreta:' },
+    { urnTipoDocumento: 'projeto.decreto.legislativo', texto: 'O CONGRESSO NACIONAL decreta:' },
+    { urnTipoDocumento: 'projeto.resolucao', urnAutoridade: 'senado.federal', texto: 'O SENADO FEDERAL resolve:' },
+    { urnTipoDocumento: 'projeto.resolucao', urnAutoridade: 'camara.deputados', texto: 'A CÂMARA DOS DEPUTADOS resolve:' },
+    { urnTipoDocumento: 'projeto.resolucao', urnAutoridade: 'congresso.nacional', texto: 'O CONGRESSO NACIONAL resolve:' },
+    {
+      urnTipoDocumento: 'proposta.emenda.constitucional',
+      texto: 'As Mesas da Câmara dos Deputados e do Senado Federal, nos termos do § 3º do art. 60 da Constituição Federal, promulgam a seguinte Emenda ao texto constitucional:',
+    },
+    {
+      urnTipoDocumento: 'medida.provisoria',
+      texto: 'O PRESIDENTE DA REPÚBLICA, no uso da atribuição que lhe confere o art. 62 da Constituição, adota a seguinte Medida Provisória, com força de lei:',
+    },
+  ] as { urnTipoDocumento: string; urnAutoridade?: string; texto: string }[],
   siglas: [
     {
       urnAutoridade: 'federal',

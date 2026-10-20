@@ -119,6 +119,7 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
 
       const par1 = criaDispositivo(art1, 'Paragrafo');
       par1.texto = 'Par 1.';
+      criaDispositivo(art1, 'Paragrafo'); // segundo parágrafo: par1 não vira "único"
 
       inc1EmPar1 = criaDispositivo(par1, 'Inciso');
       inc1EmPar1.texto = 'Inciso I.';
@@ -363,6 +364,7 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
 
       const par1Art3 = criaDispositivo(art3, 'Paragrafo');
       par1Art3.texto = 'Par art3.';
+      criaDispositivo(art3, 'Paragrafo'); // segundo parágrafo: par1Art3 não vira "único"
 
       [par1, par2, inc1EmPar1, par1Art3].forEach(marcaAdicionado);
       art1.renumeraFilhos();
@@ -503,6 +505,7 @@ describe('Detecção de Remissões Contextuais (Etapas 1.2 + 1.3)', () => {
         const inc1EmPar1 = criaDispositivo(par1, 'Inciso');
         const inc2EmPar1 = criaDispositivo(par1, 'Inciso');
         const ali1EmInc1Par1 = criaDispositivo(inc1EmPar1, 'Alinea');
+        criaDispositivo(art1, 'Paragrafo'); // segundo parágrafo: par1 não vira "único"
         [par1, inc1EmPar1, inc2EmPar1, ali1EmInc1Par1].forEach(marcaAdicionado);
         art1.renumeraFilhos();
         par1.renumeraFilhos();

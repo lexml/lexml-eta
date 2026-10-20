@@ -44,7 +44,7 @@ import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
 import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { getProximoAgrupadorAposArtigo } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { adicionaAcoesDeExistenciaNaNorma, MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
+import { adicionaAcoesDeExistenciaNaNorma, adicionaAcoesDeTitulo, MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -73,7 +73,8 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       acoes.push(adicionarArtigoAntes);
       acoes.push(adicionarArtigoDepois);
 
-      if (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo)) {
+      // Artigo de alteração só tem o bloco de alteração, nunca inciso ou parágrafo próprio.
+      if (!dispositivo.hasAlteracao() && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarParagrafoFilho);
         acoes.push(adicionarIncisoFilho);
       }
@@ -106,6 +107,8 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       }
 
       adicionaAcoesDeExistenciaNaNorma(dispositivo, acoes);
+
+      adicionaAcoesDeTitulo(dispositivo, acoes);
 
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);

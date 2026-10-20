@@ -1,5 +1,5 @@
 import { Articulacao, Dispositivo } from '../dispositivo/dispositivo';
-import { findDispositivoByUuid } from '../lexml/hierarquia/hierarquiaUtil';
+import { buscaNaHierarquiaDispositivos } from '../lexml/hierarquia/hierarquiaUtil';
 import { RemissaoInternaValue } from './remissao';
 import {
   compartilhamAncestralDoTipo,
@@ -20,10 +20,21 @@ export const sincronizarRemissoesComEstadoAtual = (articulacao: Articulacao, reg
   const atualizado: Record<number, RemissaoInternaValue[]> = {};
 
   for (const [uuidStr, entries] of Object.entries(registro)) {
-    atualizado[Number(uuidStr)] = entries.map(entry => sincronizarEntrada(articulacao, entry));
+    const sincronizadas = entries.map(entry => sincronizarEntrada(articulacao, entry));
+    const origem = resolverOrigemDaChave(articulacao, Number(uuidStr), sincronizadas);
+    if (!origem?.uuid || origem.uuid === Number(uuidStr)) {
+      atualizado[Number(uuidStr)] = sincronizadas;
+      continue;
+    }
+    // Origem movida: a chave acompanha o uuid atual, inclusive nas entradas inválidas, que não passam pela reancoragem.
+    atualizado[origem.uuid] = sincronizadas.map(e => (e.sourceUuid === origem.uuid ? e : { ...e, sourceUuid: origem.uuid, sourceUuid2: origem.uuid2 }));
   }
 
   return atualizado;
+};
+
+const resolverOrigemDaChave = (articulacao: Articulacao, uuid: number, entries: RemissaoInternaValue[]): Dispositivo | undefined => {
+  return resolverDispositivo(articulacao, uuid, entries.find(e => e.sourceUuid2)?.sourceUuid2);
 };
 
 // Duas representações possíveis de "onde está o texto do link dentro de origem.texto":
@@ -40,6 +51,37 @@ interface LocalizacaoTexto {
 }
 
 const construirRegexLinkPorRefId = (refId: string): RegExp => new RegExp(`(<a\\b[^>]*data-ref-id="${refId}"[^>]*>)([^<]*)(</a>)`, 'i');
+
+// Não usam findDispositivoByUuid2 (hierarquiaUtil), que não desce no caput — docs/sessao/ACHADO_BUSCA_UUID2_C02.md.
+export const buscarDispositivoPorUuid = (articulacao: Articulacao, uuid: number): Dispositivo | undefined =>
+  buscaNaHierarquiaDispositivos(articulacao as unknown as Dispositivo, d => (d.uuid === uuid ? d : undefined));
+
+export const buscarDispositivoPorUuid2 = (articulacao: Articulacao, uuid2: string): Dispositivo | undefined =>
+  buscaNaHierarquiaDispositivos(articulacao as unknown as Dispositivo, d => (d.uuid2 === uuid2 ? d : undefined));
+
+// Mover e undo/redo trocam o uuid da subárvore; o uuid2 é preservado nesses fluxos.
+const resolverDispositivo = (articulacao: Articulacao, uuid: number, uuid2: string | undefined): Dispositivo | undefined =>
+  buscarDispositivoPorUuid(articulacao, uuid) ?? (uuid2 ? buscarDispositivoPorUuid2(articulacao, uuid2) : undefined);
+
+const reancorar = (entry: RemissaoInternaValue, destino: Dispositivo, origem: Dispositivo | undefined): RemissaoInternaValue => {
+  // Completar uuid2 é in-place (mesmo contrato de preencherUuid2DasRemissoes): sem troca de uuid, a entrada mantém a identidade.
+  entry.targetUuid2 ??= destino.uuid2;
+  if (origem) entry.sourceUuid2 ??= origem.uuid2;
+
+  const sourceUuid = origem?.uuid ?? entry.sourceUuid;
+  if (entry.targetUuid === destino.uuid && entry.sourceUuid === sourceUuid) {
+    return entry;
+  }
+  return { ...entry, targetUuid: destino.uuid, targetUuid2: destino.uuid2, sourceUuid, sourceUuid2: origem?.uuid2 ?? entry.sourceUuid2 };
+};
+
+// O save localiza o destino pelo href="#lxEtaId{uuid}" (corrigirLexmlRefsObsoletosNoTexto): uuid obsoleto vira "excluído".
+const atualizarHrefDoLink = (origemTexto: string, refId: string | undefined, targetUuid: number | undefined): string => {
+  if (!refId || targetUuid === undefined) return origemTexto;
+  return origemTexto.replace(construirRegexLinkPorRefId(refId), (_match, abertura, conteudo, fechamento) => {
+    return `${abertura.replace(/href="#lxEtaId\d+"/, `href="#lxEtaId${targetUuid}"`)}${conteudo}${fechamento}`;
+  });
+};
 
 const localizarTextoAtual = (origemTexto: string, entry: RemissaoInternaValue): LocalizacaoTexto | undefined => {
   if (entry.refId) {
@@ -66,19 +108,25 @@ const aplicarTextoNovo = (origemTexto: string, entry: RemissaoInternaValue, text
   return origemTexto.substring(0, inicio) + textoNovo + origemTexto.substring(inicio + tamanhoAtual);
 };
 
-const sincronizarEntrada = (articulacao: Articulacao, entry: RemissaoInternaValue): RemissaoInternaValue => {
-  if (entry.valida === false || entry.targetUuid === undefined || entry.sourceUuid === undefined) {
-    return entry;
+const sincronizarEntrada = (articulacao: Articulacao, entrada: RemissaoInternaValue): RemissaoInternaValue => {
+  if (entrada.valida === false || entrada.targetUuid === undefined || entrada.sourceUuid === undefined) {
+    return entrada;
   }
 
-  const destino = findDispositivoByUuid(articulacao as unknown as Dispositivo, entry.targetUuid, true);
-  if (!destino?.id || destino.id === entry.targetLexmlId) {
-    // Não encontrado (invalidação é responsabilidade do fluxo de remoção) ou nada mudou.
-    return entry;
+  const destino = resolverDispositivo(articulacao, entrada.targetUuid, entrada.targetUuid2);
+  if (!destino) {
+    // Invalidação é responsabilidade do fluxo de remoção.
+    return entrada;
   }
 
-  const origem = findDispositivoByUuid(articulacao as unknown as Dispositivo, entry.sourceUuid, true);
-  if (!origem?.texto) {
+  const origem = resolverDispositivo(articulacao, entrada.sourceUuid, entrada.sourceUuid2);
+  const entry = reancorar(entrada, destino, origem);
+  if (origem?.texto && entry.targetUuid !== entrada.targetUuid) {
+    origem.texto = atualizarHrefDoLink(origem.texto, entry.refId, entry.targetUuid);
+  }
+
+  // Reancorada ou não, com o mesmo id textual não há texto a recalcular (ex.: artigo que troca de agrupador mantendo o número).
+  if (!destino.id || destino.id === entry.targetLexmlId || !origem?.texto) {
     return entry;
   }
 

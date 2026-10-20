@@ -31,7 +31,7 @@ describe('buildJsonixFromProjetoNorma - Integração: Parser de medida provisór
   });
 
   it('Deveria apresentar preâmbulo', () => {
-    expect(documento?.preambulo).equals('PREAMBULO');
+    expect(documento?.preambulo?.texto).equals('PREAMBULO');
   });
 
   describe('Testando a transformação do model em jsonix', () => {

@@ -1,7 +1,6 @@
 ## editors
 /.idea
 /.vscode
-/.claude
 
 ## system files
 .DS_Store
@@ -20,6 +19,9 @@
 /_site/
 /dist/
 /out-tsc/
+/out-collab-test/
+/test-results/
+/cypress/screenshots/
 /.settings/
 /.project
 .scannerwork/

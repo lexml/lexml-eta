@@ -33,6 +33,8 @@ describe('textoCanonicoDoDispositivo — recálculo a partir do objeto', () => {
     const inc = criaDispositivo(par, 'Inciso');
     const ali = criaDispositivo(inc, 'Alinea');
     const ite = criaDispositivo(ali, 'Item');
+    criaDispositivo(art, 'Paragrafo'); // segundo parágrafo: par não vira "único"
+    criaDispositivo(articulacao, 'Artigo'); // segundo artigo: art não vira "único"
 
     articulacao.renumeraFilhos();
     art.renumeraFilhos();
@@ -86,6 +88,7 @@ describe('textoCanonicoDoDispositivo — recálculo a partir do objeto', () => {
   it('caput: gera "caput do art. Nº", não perde a palavra "caput"', () => {
     const articulacao = createArticulacao();
     const art = criaDispositivo(articulacao, 'Artigo') as Artigo;
+    criaDispositivo(articulacao, 'Artigo'); // segundo artigo: art não vira "artigo único"
     articulacao.renumeraFilhos();
     updateIdDispositivoAndFilhos(articulacao);
 
@@ -96,16 +99,19 @@ describe('textoCanonicoDoDispositivo — recálculo a partir do objeto', () => {
     const articulacao = createArticulacao();
     const art1 = criaDispositivo(articulacao, 'Artigo');
     const par = criaDispositivo(art1, 'Paragrafo');
+    criaDispositivo(articulacao, 'Artigo'); // segundo artigo: isola o teste ao eixo "parágrafo único" (art1 não vira "artigo único")
     articulacao.renumeraFilhos();
     art1.renumeraFilhos();
     updateIdDispositivoAndFilhos(articulacao);
-    expect(textoCanonicoDoDispositivo(par)).to.equal('§ 1º do art. 1º');
+    // par é o único parágrafo de art1 — continua "único" (issue #1003), não vira "§ 1º".
+    expect(textoCanonicoDoDispositivo(par)).to.equal('parágrafo único do art. 1º');
 
     // Insere um artigo antes de art1 — art1 vira art2, sem nenhum evento/diff sendo passado.
+    // par continua sendo o único parágrafo: só o número do artigo muda na cadeia.
     criaDispositivo(articulacao, 'Artigo', undefined, 0);
     articulacao.renumeraFilhos();
     updateIdDispositivoAndFilhos(articulacao);
 
-    expect(textoCanonicoDoDispositivo(par)).to.equal('§ 1º do art. 2º');
+    expect(textoCanonicoDoDispositivo(par)).to.equal('parágrafo único do art. 2º');
   });
 });

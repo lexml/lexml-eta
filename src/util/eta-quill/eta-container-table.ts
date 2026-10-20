@@ -11,6 +11,7 @@ import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
 import { EtaBlotMenu } from './eta-blot-menu';
 import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
+import { EtaBlotTituloDispositivo } from './eta-blot-titulo-dispositivo';
 import { EtaContainerTdDireito } from './eta-container-td-direito';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { EtaContainerRevisao } from './eta-container-revisao';
@@ -111,6 +112,12 @@ export class EtaContainerTable extends EtaContainer {
 
   get blotNotaAlteracao(): EtaBlotNotaAlteracao {
     return this.findBlot(EtaBlotNotaAlteracao.blotName) as EtaBlotNotaAlteracao;
+  }
+
+  // O título vem antes do rótulo, fora do alcance de findBlot (que começa em blotRotulo.next).
+  get blotTituloDispositivo(): EtaBlotTituloDispositivo | undefined {
+    const primeiro = this.blotRotulo?.parent?.children?.head;
+    return primeiro?.instanceBlotName === EtaBlotTituloDispositivo.blotName ? (primeiro as EtaBlotTituloDispositivo) : undefined;
   }
 
   get containerRevisao(): EtaContainerRevisao | undefined {
@@ -281,11 +288,30 @@ export class EtaContainerTable extends EtaContainer {
     }
   }
 
+  // Título vazio ('') é estado válido: o blot existe para qualquer valor diferente de undefined.
+  private atualizarTituloDispositivo(elemento: Elemento): void {
+    const blotTitulo = this.blotTituloDispositivo;
+    const deveExibir = elemento.tituloDispositivo !== undefined;
+
+    if (blotTitulo && deveExibir) {
+      blotTitulo.atualizarAtributos(elemento);
+    } else if (blotTitulo) {
+      blotTitulo.remove();
+    } else if (deveExibir) {
+      const tdTexto = this.blotRotulo?.parent;
+      if (tdTexto) {
+        new EtaBlotTituloDispositivo(elemento).insertInto(tdTexto, tdTexto.children.head);
+      }
+    }
+  }
+
   atualizarAtributos(elemento: Elemento): void {
     EtaContainerTable.atualizarAtributoRevisao(elemento, this.domNode);
     EtaContainerTable.atualizarAtributoExistenciaNormaAlterada(elemento, this.domNode);
     EtaContainerTable.atualizarAtributoOmissis(elemento, this.domNode);
     EtaContainerTable.atualizarAtributoBloqueado(elemento, this.domNode);
+
+    this.atualizarTituloDispositivo(elemento);
 
     this.blotAbreAspas?.atualizarAtributos(elemento);
     this.blotRotulo?.atualizarAtributos(elemento);
@@ -387,6 +413,8 @@ export class EtaContainerTable extends EtaContainer {
       classe = `${classe} agrupador`;
     } else if (elemento.tipo === 'Ementa') {
       classe = `${classe} ementa`;
+    } else if (elemento.tipo === 'Preambulo') {
+      classe = `${classe} preambulo`;
     } else {
       classe = `${classe} h-artigo`;
     }

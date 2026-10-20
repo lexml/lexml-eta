@@ -80,14 +80,9 @@ O sistema SHALL reavaliar o alerta de justificação depois de cada alteração 
 
 ### Requirement: Sem alerta quando a justificação não é obrigatória
 
-Quando a justificação não for obrigatória, o sistema SHALL NOT exibir o alerta de justificação em nenhum momento da edição. Isso acontece no modo anexo de parecer e quando a configuração do editor desliga a obrigatoriedade.
+Quando a justificação não for obrigatória, o sistema SHALL NOT exibir o alerta de justificação em nenhum momento da edição. Isso acontece no modo anexo de parecer.
 
 #### Scenario: Anexo de parecer
 
 - **WHEN** a edição é iniciada no modo anexo de parecer
 - **THEN** a aba Avisos não exibe o alerta de justificação, nem ao abrir nem depois de editar a articulação
-
-#### Scenario: Obrigatoriedade desligada na configuração
-
-- **WHEN** a configuração do editor informa que a justificação não é obrigatória e a justificação está vazia
-- **THEN** a aba Avisos não exibe o alerta de justificação

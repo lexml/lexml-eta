@@ -21,11 +21,13 @@
                 <xsd:element ref="RevisoesArticulacao" minOccurs="0" />
                 <xsd:element ref="Usuarios" minOccurs="0" />
                 <xsd:element ref="Pendencias" minOccurs="0" />
+                <xsd:element ref="SituacaoNaNormaVigente" minOccurs="0" />
+                <xsd:element ref="ColegiadoApreciador" minOccurs="0" />
             </xsd:all>
             <xsd:attribute type="xsd:dateTime" name="dataUltimaModificacao" />
             <xsd:attribute type="xsd:string" name="aplicacao" />
             <xsd:attribute type="xsd:string" name="versaoAplicacao" />
-            <xsd:attribute type="xsd:boolean" name="substitutivo" />
+            <xsd:attribute type="xsd:string" name="urnDocumentoReferenciado" />
             <xsd:attribute type="xsd:boolean" name="anexoParecer" />
             <xsd:attribute type="xsd:string" name="local" />
             <xsd:attribute type="xsd:date" name="data" />
@@ -223,6 +225,23 @@
 
     <xsd:element type="xsd:string" name="Pendencia" />
 
+    <!-- Listas de ids de dispositivos de bloco de alteração, fora deste fragmento — xsd:string
+         (separados por espaço), não xsd:IDREFS, pelo mesmo motivo das demais referências. -->
+    <xsd:element name="SituacaoNaNormaVigente">
+        <xsd:complexType>
+            <xsd:attribute type="xsd:string" name="refIdsDispositivosExistentes" />
+            <xsd:attribute type="xsd:string" name="refIdsDispositivosNovos" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <xsd:element name="ColegiadoApreciador">
+        <xsd:complexType>
+            <xsd:attribute type="SiglaCasaLegislativa" name="siglaCasaLegislativa" use="required" />
+            <xsd:attribute type="TipoColegiado" name="tipoColegiado" use="required" />
+            <xsd:attribute type="xsd:string" name="siglaComissao" />
+        </xsd:complexType>
+    </xsd:element>
+
     <xsd:simpleType name="Sexo">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="M" />
@@ -233,6 +252,13 @@
     <xsd:simpleType name="TipoAutoria">
         <xsd:restriction base="xsd:string">
             <xsd:enumeration value="Parlamentar" />
+            <xsd:enumeration value="Comissão" />
+        </xsd:restriction>
+    </xsd:simpleType>
+
+    <xsd:simpleType name="TipoColegiado">
+        <xsd:restriction base="xsd:string">
+            <xsd:enumeration value="Plenário" />
             <xsd:enumeration value="Comissão" />
         </xsd:restriction>
     </xsd:simpleType>

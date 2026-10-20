@@ -20,7 +20,7 @@ import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
-import { isNovoDispositivoDesmembrandoAtual, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
+import { isNovoDispositivoDesmembrandoAtual, MENSAGEM_ARTIGO_ALTERACAO_SEM_FILHOS_PROPRIOS, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { getDispositivoAnteriorNaSequenciaDeLeitura, getArtigo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoArtigo } from '../../../model/lexml/tipo/tipoArtigo';
@@ -44,6 +44,11 @@ export const adicionaElemento = (state: any, action: any): State => {
   if (atual === undefined) {
     state.ui.events = [];
     return state;
+  }
+
+  // Defesa para quando a ação não vem do menu (que já não a oferece para artigo de alteração).
+  if (action.posicao === 'filho' && isArtigo(refAtual!) && refAtual!.hasAlteracao() && [TipoDispositivo.inciso.tipo, TipoDispositivo.paragrafo.tipo].includes(action.novo.tipo)) {
+    return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.INFO, descricao: MENSAGEM_ARTIGO_ALTERACAO_SEM_FILHOS_PROPRIOS });
   }
 
   let ref =
