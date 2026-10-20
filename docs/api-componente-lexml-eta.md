@@ -151,7 +151,9 @@ Devolve o estado completo da edição, para o host persistir como quiser (por ex
 
 Campos preenchidos: `projetoNorma`, `justificativa`, `notasRodape`, `autoria`, `opcoesImpressao`, `ementa`, `epigrafe`, `revisoes`, `justificativaAntesRevisao`, `pendenciasPreenchimento`, `colegiadoApreciador`, `anexos`, `substitutivo`, `local`, `urn`, `sigla`, `numero`, `ano` e `dataUltimaModificacao`.
 
-`pendenciasPreenchimento` lista o que impede considerar o texto pronto: justificação vazia (sempre obrigatória, exceto em `anexoParecer`) e as mensagens de nível crítico da validação. No modo `anexoParecer`, os campos `justificativa`, `justificativaAntesRevisao`, `notasRodape`, `local` e `autoria` são removidos do objeto.
+`pendenciasPreenchimento` lista o que impede considerar o texto pronto: justificação vazia (sempre obrigatória, exceto em `anexoParecer`) e as mensagens de nível crítico da validação. No modo `anexoParecer`, os campos `justificativa`, `justificativaAntesRevisao` e `notasRodape` são removidos do objeto; `local`, `autoria` e `dataUltimaModificacao` continuam sendo entregues.
+
+`dataUltimaModificacao` traz a data escolhida no campo "Data" (`AAAA-MM-DD`) e fica `undefined` quando o usuário mantém "Não informar", que é o padrão de um documento novo.
 
 ### 4.3 `getDocumentoArticulado(): DocumentoArticulado`
 
@@ -194,7 +196,7 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `urlAutocomplete` | `string` | `'api/autocomplete-norma'` | Endpoint (GET `?query=`) de busca de normas, usado nos diálogos de alteração de norma e de remissão externa. |
 | `urlPortalNormas` | `string` | `'https://normas.leg.br'` | Base dos links para abrir uma norma referenciada. |
 | `urlComissoes` | `string?` | — | Endpoint (GET `?siglaCasaLegislativa=`) de comissões. Se ausente, a lista de comissões fica vazia. |
-| `anexoParecer` | `boolean` | `false` | Modo "anexo de parecer": sem justificação, fecho, data nem autoria; só destino e impressão. |
+| `anexoParecer` | `boolean` | `false` | Modo "anexo de parecer": oculta as abas de justificação e de notas de rodapé, e a justificação não é exigida. Destino, data, autoria e impressão seguem disponíveis, e o fecho e as assinaturas são salvos como no modo normal. |
 | `tamanhoMaximoAnexo` | `number` | `5120` | Tamanho máximo de um anexo, em KB (5 MB). |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
 
@@ -255,7 +257,7 @@ if (doc) await editor.abrirDocumentoArticulado(doc);
 
 ```ts
 class Proposicao {
-  dataUltimaModificacao: string;      // ISO 8601; padrão = momento da criação
+  dataUltimaModificacao: string;      // data do campo "Data" (AAAA-MM-DD); vazio = "Não informar"; o padrão da classe é o momento da criação, mas um documento novo nasce sem data
   urn; sigla; numero; ano; ementa: string;
   epigrafe: { texto: string; complemento: string };
   projetoNorma?: ProjetoNorma;
@@ -325,6 +327,8 @@ await editor.inicializarEdicao(p);
 editor.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), { anexoParecer: true });
 await editor.inicializarEdicao(params);
 ```
+
+Nesse modo só as abas de justificação e de notas de rodapé ficam ocultas. O campo "Data" e a autoria continuam disponíveis, e `getDocumentoArticulado()` grava local, data e assinaturas como no modo normal.
 
 ### Texto grande com paginação
 

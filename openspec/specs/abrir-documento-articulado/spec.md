@@ -122,10 +122,14 @@ Ao abrir um documento, o sistema SHALL aplicar ao formulário de opções de imp
 - **THEN** o formulário exibe as mesmas opções de impressão do momento em que o documento foi salvo
 
 ### Requirement: Recuperação do local e da data do fecho ao abrir
-Ao abrir um documento, o sistema SHALL aplicar ao campo "Data" a data do fecho registrada nos metadados do LexEdit. Data ausente, vazia ou fora do formato `AAAA-MM-DD` SHALL corresponder a "Não informar". O local registrado SHALL ser preservado para o próximo salvamento enquanto o destino não for alterado. O texto de `LocalDataFecho` não SHALL ser interpretado: os dados estruturados são a fonte, e o texto é gerado novamente ao salvar.
+Ao abrir um documento, em qualquer modo (inclusive o anexo de parecer), o sistema SHALL aplicar ao campo "Data" a data do fecho registrada nos metadados do LexEdit. Data ausente, vazia ou fora do formato `AAAA-MM-DD` SHALL corresponder a "Não informar". O local registrado SHALL ser preservado para o próximo salvamento enquanto o destino não for alterado. O texto de `LocalDataFecho` não SHALL ser interpretado: os dados estruturados são a fonte, e o texto é gerado novamente ao salvar.
 
 #### Scenario: Documento com data
 - **WHEN** o usuário abre um documento cuja data do fecho é `2026-04-24`
+- **THEN** o campo "Data" exibe 24/04/2026 como data informada
+
+#### Scenario: Documento com data no modo anexo de parecer
+- **WHEN** o usuário abre, no modo anexo de parecer, um documento cuja data do fecho é `2026-04-24`
 - **THEN** o campo "Data" exibe 24/04/2026 como data informada
 
 #### Scenario: Documento sem data ou com data vazia

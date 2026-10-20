@@ -51,7 +51,7 @@ export class DataComponent extends LitElement {
           padding: 2px 5px;
           box-shadow: var(--sl-shadow-small);
         }
-        sl-radio-group > sl-radio:first-child {
+        sl-radio-group > sl-radio.radio-data {
           display: inline-flex;
           padding: 0 20px 0 0;
         }
@@ -73,10 +73,10 @@ export class DataComponent extends LitElement {
       </style>
       <div class="lexml-eta-data">
         <sl-radio-group label="Data" fieldset>
-          <sl-radio name="data" value="2" ?checked=${!!this.data} @click=${this.setDate}>
+          <sl-radio name="data" id="no-date" value="1" ?checked=${!this.data} @click=${this.resetDate}>Não informar</sl-radio>
+          <sl-radio class="radio-data" name="data" value="2" ?checked=${!!this.data} @click=${this.setDate}>
             <sl-input id="input-data" label="Data" type="date" ?disabled=${!this.data} @input=${this.setDate}></sl-input>
           </sl-radio>
-          <sl-radio name="data" id="no-date" value="1" ?checked=${!this.data} @click=${this.resetDate}>Não informar</sl-radio>
         </sl-radio-group>
       </div>
     `;

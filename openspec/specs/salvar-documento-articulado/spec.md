@@ -176,13 +176,6 @@ Ao salvar, o sistema SHALL gerar o elemento LexML `ParteFinal/LocalDataFecho` co
 - **WHEN** o documento é salvo com local "Sala das sessões" e sem data
 - **THEN** `LocalDataFecho` contém o parágrafo "Sala das sessões,"
 
-### Requirement: Fecho no modo anexo de parecer
-No modo anexo de parecer, o sistema SHALL salvar o documento sem local, sem data e sem `ParteFinal`.
-
-#### Scenario: Documento em modo anexo de parecer
-- **WHEN** o usuário salva um documento no modo anexo de parecer
-- **THEN** o arquivo salvo não contém local nem data nos metadados do LexEdit, nem o elemento `ParteFinal`
-
 ### Requirement: Serialização da autoria de parlamentares
 Ao salvar, o sistema SHALL registrar nos metadados do LexEdit a autoria com tipo `Parlamentar`, a opção de imprimir partido e UF e, na ordem da tela, um registro para cada parlamentar incluído com identificação, nome, sexo, sigla do partido, sigla da UF, sigla da casa legislativa e cargo. O cargo SHALL ser registrado mesmo quando vazio. Parlamentares sem identificação (linhas em branco da tela) SHALL ser desconsiderados. Quando não houver nenhum parlamentar identificado, a autoria SHALL ser omitida.
 
@@ -228,13 +221,6 @@ Ao salvar, o sistema SHALL gerar em `ParteFinal`, depois de `LocalDataFecho`, um
 #### Scenario: Validação pelo esquema LexML
 - **WHEN** o documento salvo com autoria de parlamentares é convertido em XML pelo conversor `jsonix-lexml` 2.1.0
 - **THEN** o XML é válido perante o esquema LexML e o esquema do LexEdit, e a conversão de volta para JSON reproduz a mesma autoria e a mesma `ParteFinal`
-
-### Requirement: Autoria no modo anexo de parecer
-No modo anexo de parecer, o sistema SHALL salvar o documento sem autoria nos metadados do LexEdit e sem `AssinaturaTexto`.
-
-#### Scenario: Documento em modo anexo de parecer
-- **WHEN** o usuário salva um documento no modo anexo de parecer
-- **THEN** o arquivo salvo não contém a autoria nos metadados do LexEdit nem o elemento `AssinaturaTexto`
 
 ### Requirement: Serialização das revisões da hierarquia
 Em modo de revisão, o sistema SHALL manter a articulação do arquivo na versão atual (dispositivos excluídos não aparecem nela) e registrar cada revisão principal em `RevisoesArticulacao` dos metadados do LexEdit, com `revisao`, `refIdUsuario` e `data`. Os atributos `refIdUsuario` e `data` SHALL ser os da última operação registrada. Sem revisão, o grupo SHALL ser omitido.
