@@ -76,4 +76,34 @@ describe('Pena: ordem das linhas do editor', () => {
     expect(lista).to.deep.equal(['Artigo', 'Paragrafo', 'Inciso', 'Alinea', 'Pena', 'Paragrafo']);
     expect(par2.rotulo).to.equal('§ 2º');
   });
+
+  it('penas em vários níveis: a de cada dono vem depois da subárvore dele, e a do parágrafo por último', () => {
+    const articulacao = createArticulacao();
+    const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    (art1.caput as any).texto = 'Texto.';
+    const par1 = novo(art1, TipoDispositivo.paragrafo.tipo, 'Se o crime é cometido:');
+    const inc1 = novo(par1, TipoDispositivo.inciso.tipo, 'por motivo fútil:');
+    const ali1 = novo(inc1, TipoDispositivo.alinea.tipo, 'com arma:');
+    novo(ali1, TipoDispositivo.pena.tipo, 'multa (alínea).', 'Pena –');
+    novo(inc1, TipoDispositivo.pena.tipo, 'detenção (inciso I).', 'Pena –');
+    const inc2 = novo(par1, TipoDispositivo.inciso.tipo, 'contra criança:');
+    novo(inc2, TipoDispositivo.pena.tipo, 'reclusão (inciso II).', 'Pena –');
+    novo(par1, TipoDispositivo.pena.tipo, 'prisão (parágrafo).', 'Pena –');
+    const art2 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+    (art2.caput as any).texto = 'Esta Lei entra em vigor.';
+    fecha(articulacao);
+
+    expect(linhas(articulacao).map(l => `${l.split('|')[0]}|${l.split('|')[2]}`)).to.deep.equal([
+      'Artigo|Texto.',
+      'Paragrafo|Se o crime é cometido:',
+      'Inciso|por motivo fútil:',
+      'Alinea|com arma:',
+      'Pena|multa (alínea).',
+      'Pena|detenção (inciso I).',
+      'Inciso|contra criança:',
+      'Pena|reclusão (inciso II).',
+      'Pena|prisão (parágrafo).',
+      'Artigo|Esta Lei entra em vigor.',
+    ]);
+  });
 });

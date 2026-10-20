@@ -2,6 +2,7 @@ import { expect, fixture } from '@open-wc/testing';
 import '../../../src';
 import type { LexmlEtaComponent } from '../../../src';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
+import { adicionarIncisoDepois } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { adicionarPenaAction, alterarRotuloPenaAction } from '../../../src/model/lexml/acao/penaAction';
 import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { redoAction } from '../../../src/model/lexml/acao/redoAction';
@@ -147,5 +148,19 @@ describe('ETA — pena do caput em artigo com incisos e parágrafos', () => {
     rootStore.dispatch(redoAction());
     await aguarda();
     expect(linhasDoArtigo()).to.deep.equal(esperado);
+  });
+
+  it('incluir inciso depois de um inciso que tem pena põe a linha nova depois da pena', async () => {
+    const documento = documentoComIncisosEParagrafos();
+    const caput = documento.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis[0];
+    caput.value.lXcontainersOmissis[0].value.pena = pena('art1_cpt_inc1_pena', 'Pena –', 'multa.');
+    await component.abrirDocumentoArticulado(documento);
+    await editor.aguardarCarregamentoDasLinhas();
+
+    const inciso1 = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao!, 'art1_cpt_inc1')!;
+    rootStore.dispatch(adicionarIncisoDepois.execute(createElemento(inciso1), ''));
+    await aguarda();
+    const tipos = tiposDasLinhas(component);
+    expect(tipos.slice(tipos.indexOf('artigo'), tipos.indexOf('artigo') + 7)).to.deep.equal(['artigo', 'inciso', 'pena', 'inciso', 'inciso', 'paragrafo', 'paragrafo']);
   });
 });
