@@ -23,9 +23,9 @@
 - [x] 4.1 Avaliar viabilidade à luz de `docs/guia-cypress.md` (salvar por captura de `URL.createObjectURL`, como `titulo-dispositivo.cy.ts`; abrir por `#fileUpload`). Decisão: exclusão/movimentação ao vivo pelo menu e download ficam sem E2E (guia §3/§4 e sem infraestrutura de download); o risco é coberto por reducer, montagem e ida e volta
 - [x] 4.2 Spec em `cypress/e2e/revisao/` (`abertura-revisao-bloco-alteracao.cy.ts`): abrir fixture com artigo que altera norma excluído e outra com movido, conferir uma marca, o bloco exibido e a rejeição devolvendo o bloco
 - [x] 4.3 Fixtures `demo/doc/teste_revisao_exclusao_bloco_alteracao.json` e `teste_revisao_movido_bloco_alteracao.json`, geradas por `criarDocumentoArticulado` a partir da MPV 1234/2024
-- [ ] 4.4 Achado fora do escopo: ao rejeitar a exclusão no documento reaberto, o botão da marca (`.blot__revisao`) permanece na linha restaurada, embora o estado fique sem revisões (`indicadorMarcaRevisao` ignora `ElementoIncluido`). Teste E2E `it.skip` registrado; decidir se corrige aqui ou em outra change
+- [x] 4.4 Ao rejeitar a exclusão no documento reaberto, o botão da marca (`.blot__revisao`) permanecia na linha restaurada, embora o estado ficasse sem revisões: `indicadorMarcaRevisao` tratava como "em revisão" o elemento do evento `RevisaoRejeitada`, que carrega uma cópia da revisão já removida do estado. Corrigido para só manter a marca quando a revisão do elemento ainda existe no estado; o teste E2E deixou de ser `it.skip`
 
 ## 5. Fechamento
 
-- [ ] 5.1 Rodar a suíte unitária, lint e o E2E novo; corrigir testes que codificavam duas marcas
-- [ ] 5.2 Atualizar o `CLAUDE.md` com a regra de pai efetivo (invariante)
+- [x] 5.1 Rodar a suíte unitária, lint e o E2E novo; corrigir testes que codificavam duas marcas
+- [x] 5.2 Atualizar o `CLAUDE.md` com a regra de pai efetivo (invariante)
