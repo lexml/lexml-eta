@@ -1,6 +1,6 @@
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo, isEmenta } from '../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo, isPena, isEmenta } from '../../dispositivo/tipo';
 import {
   getDispositivoCabecaAlteracao,
   getDispositivoPosterior,
@@ -93,6 +93,15 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !hasIndicativoContinuacaoSequencia(dispositivo)
   ) {
     addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ponto e vírgula.`);
+  }
+
+  // A pena não segue as regras de pontuação do texto; só a inicial minúscula, ignorando formatação e espaços.
+  if (isPena(dispositivo) && dispositivo.texto && /^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto).trim()) && dispositivo.texto.indexOf('R$') !== 0) {
+    addMensagem(
+      mensagens,
+      TipoMensagem.WARNING,
+      `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio.`
+    );
   }
 
   //
