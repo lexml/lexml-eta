@@ -89,7 +89,9 @@ const criaSubarvoreSolta = (pai: Dispositivo, snapshots: Elemento[]): SubarvoreS
   const raiz = redodDispositivoExcluido(temporaria, copias[0], getDestinoDeCriacao(hospedeiro, copias[0]));
   const criados = new Map<number | undefined, Dispositivo>([[copias[0].uuid, raiz]]);
   copias.slice(1).forEach(copia => {
-    const paiDoFilho = criados.get(copia.hierarquia?.pai?.uuid) ?? raiz;
+    // O pai do primeiro nível do bloco de alteração é a articulação de alteração do artigo raiz.
+    const emBlocoDoRaiz = copia.hierarquia?.pai?.tipo === TipoDispositivo.articulacao.tipo && (raiz as Artigo).alteracoes;
+    const paiDoFilho = emBlocoDoRaiz || (criados.get(copia.hierarquia?.pai?.uuid) ?? raiz);
     criados.set(copia.uuid, redodDispositivoExcluido(temporaria, copia, paiDoFilho));
   });
   updateIdDispositivoAndFilhos(temporaria);

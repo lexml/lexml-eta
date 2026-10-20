@@ -8,9 +8,9 @@
 
 ## 2. Salvar
 
-- [ ] 2.1 Em `criaSubarvoreSolta`, criar filhos de primeiro nível do bloco em `raiz.alteracoes`; garantir ordem pai antes de filho
-- [ ] 2.2 Confirmar que ids do bloco excluído seguem o prefixo `_<base>-exc<n>` (ajustar `reescreveIds`/`updateIdDispositivoAndFilhos` se preciso)
-- [ ] 2.3 Testes de `montaRevisoesArticulacao`: exclusão com bloco (com § e artigo), exclusões em sequência e movido com bloco
+- [x] 2.1 Em `criaSubarvoreSolta`, criar filhos de primeiro nível do bloco em `raiz.alteracoes`; garantir ordem pai antes de filho
+- [x] 2.2 Confirmar que ids do bloco excluído seguem o prefixo `_<base>-exc<n>` (ajustar `reescreveIds`/`updateIdDispositivoAndFilhos` se preciso)
+- [x] 2.3 Testes de `montaRevisoesArticulacao`: exclusão com bloco (com § e artigo), exclusões em sequência e movido com bloco
 
 ## 3. Abrir
 
