@@ -128,6 +128,7 @@ A primeira tarefa da implementação completa esse inventário varrendo as 205 l
 - [Enter na pena do caput cria o § 1º, e um usuário que esperava um artigo novo se surpreende] → Segue o padrão mais comum do corpus (43 contra 17) e o que fica logo abaixo na tela. Fica registrado no cenário da spec.
 - [Pena com vários `p` no arquivo] → O leitor já concatena os `p` de um dispositivo num texto único (`buildContentDispositivo`). Nenhum caso no corpus.
 - [Transformação Parágrafo ↔ Artigo perder a pena ou deixá-la fora do caput] → Cenário explícito na spec e teste de reducer.
+- [A linha da pena no Quill ficar com o `lexmlId` desatualizado quando o dono é renumerado, porque o evento `ElementoRenumerado` só leva os irmãos do mesmo tipo, como já ocorre com alíneas e itens] → Aceito: as ações localizam a pena pelo uuid e o arquivo é gravado a partir do modelo, cujos ids acompanham o dono (testado). Se aparecer efeito visível, reavaliar.
 
 ## Migration Plan
 

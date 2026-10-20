@@ -18,8 +18,8 @@
 
 ## 3. Inciso, Alínea e Item
 
-- [ ] 3.1 Estender as ações e regras de menu a Inciso, Alínea e Item, incluindo penas em donos irmãos (Art. 197 do CP); verificar com testes de regras de menu e de reducer para cada tipo
-- [ ] 3.2 Conferir a exibição e a ordem das linhas com penas em vários níveis (pena de inciso dentro de parágrafo com pena); verificar com teste de `getElementos`
+- [x] 3.1 Estender as ações e regras de menu a Inciso, Alínea e Item, incluindo penas em donos irmãos (Art. 197 do CP); verificar com testes de regras de menu e de reducer para cada tipo
+- [x] 3.2 Conferir a exibição e a ordem das linhas com penas em vários níveis (pena de inciso dentro de parágrafo com pena); verificar com teste de `getElementos`
 
 ## 4. Operações existentes, pontuação e teclado
 
