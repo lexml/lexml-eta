@@ -132,3 +132,63 @@ A primeira tarefa da implementação completa esse inventário varrendo as 205 l
 ## Migration Plan
 
 Não há migração de dados. Arquivos antigos sem pena abrem como hoje. Arquivos com pena, que antes perdiam a pena em silêncio, passam a preservá-la. Os rótulos com hífen são regravados com " –" no próximo salvamento. Não há quebra de API do componente.
+
+## Resultado da task 1.1 (ida e volta de `Pena` pelo CLI real)
+
+Executada em 19/10/2026 com o `jsonix-lexml` **2.1.0** (`jsonix-lexml-win.exe --version`), `schemas/lexedit.xsd` e `scripts/ValidarDocumentoLexml.java`. O arquivo de saída foi conferido em cada conversão (o CLI sai com código 0 em erro).
+
+- **XML montado** a partir do exemplo do formato, com pena no Caput, em Inciso, em Parágrafo (depois dos incisos), rótulo "Infração -" e pena em bloco de alteração depois de caput omissis, com `fechaAspas`/`notaAlteracao`: válido no XSD; `tojson` e `toxml` de volta geram as quatro penas com os mesmos atributos, rótulo e texto, e o XML de volta também é válido. Controle negativo: uma `Pena` antes do `Rotulo`/`p` é rejeitada pelo validador (exit 1), então a validação é real.
+- **Forma no JSON:** `pena` é irmã de `lXcontainersOmissis` (`value.pena`), com `rotulo` em **texto simples** (não objeto), `id`, `href`, `fechaAspas`, `notaAlteracao` e `p: [{ content: [...] }]`. Em Parágrafo, Inciso, Caput e dentro de `alteracao`.
+- **Amostras reais** de `jsonix-lexml/samples` (PLC 110/2017, PLS 312, 324 e 457/2017: 1, 2, 1 e 9 penas, em bloco de alteração): todas as penas voltam idênticas (atributos, rótulo, texto); só muda o espaço em branco entre `Rotulo` e `p`. Três das quatro voltam válidas no XSD; a PLC 110 já é inválida no original (ID duplicado, sem relação com `Pena`).
+- **Limitação:** a prova partiu de XML (`tojson` → `toxml`), não de um JSON escrito à mão; o `toxml` foi exercitado com o JSON que o próprio CLI gerou. A conferência do JSON que o editor produz fica para a task 8.4.
+
+### Onde estão o CLI e as amostras (para as tasks 8.2 e 8.4)
+
+- **CLI `jsonix-lexml` 2.1.0:** `C:\desenv\arquivos\jsonix-lexml-win.exe` (valor de `JSONIX_LEXML_CLI` para `npm run test:documento-articulado:xml`). O do `lexeditweb-editor` é o 0.0.1, anterior ao 2.0.0, e não serve.
+- **Amostras reais de XML LexML:** `C:\desenv\workspace\jsonix-lexml\samples` (1059 arquivos). Têm `Pena` (todas em bloco de alteração): `senado.federal#projeto.lei=plc#2017=110.xml`, `...=pls#2017=312@...`, `...=pls#2017=324@...` e `...=pls#2017=457@...`. Úteis como fixtures de leitura e para a integração com o CLI real.
+
+## Inventário completo de guardas (task 1.2)
+
+Varredura de `.filhos`, `hasFilhos`, `getUltimoFilho`, `isLastFilho`, `getDispositivoAnterior/Posterior`, `isUltimaEnumeracao`, `isUltimoMesmoTipo`, `getIrmao*IndependenteDeTipo` e `tiposPermitidos*` em `src/` (205 leituras de `.filhos` e 36 de `hasFilhos`, mais as da validação). A pena é um filho do tipo `Pena` na lista `filhos` do dono (Caput, Parágrafo, Inciso, Alínea ou Item).
+
+### Precisa de guarda
+
+| # | Ponto | Problema | Guarda |
+|---|---|---|---|
+| G1 | `hierarquiaDispositivo.ts` `addFilho`/`addFilhoOnPosition` | `push` e `splice` com posição além do fim põem o filho depois da pena | Limitar a posição de inserção a antes da pena (ponto único; cobre `criaDispositivo` com e sem referência/posição) |
+| G2 | `hierarquiaArtigo.ts` `addFilho`/`addFilhoOnPosition`/`removeFilho`/`addParagrafo`/`indexOf` | O que não é inciso vai para `paragrafos`; a pena iria para depois dos parágrafos | Encaminhar `Pena` ao Caput (`caput.addFilho`/`removeFilho`) |
+| G3 | `tipoDispositivo.ts` `tiposPermitidosFilhos`, lido em `regrasArtigo:135`, `regrasParagrafo:110`, `regrasInciso:139`, `regrasAlinea:104`, `regrasItem:84` (`getAcaoPossivelTab`: `map(...)[0]`) | Esses `map` procuram uma ação `transformar<Dono>Em<Tipo>`; a `Pena` não gera ação de Tab porque **não existe** nenhuma `transformar<X>EmPena` (para o Item, `['Pena']` é o primeiro e único tipo, e o resultado é `undefined`; nos demais a pena está por último e o `[0]` é outro tipo) | Incluir `Pena` em `tiposPermitidosFilhos` (necessário a `hierarquiaValidator:23,64`, colar e `eventosUtil:175`) **sem** criar ação de transformação em pena; teste na 2.1 afirmando que Tab em Inciso, Alínea e Item não oferece transformação em pena |
+| G4 | `hierarquiaValidator.ts:23,53,64` | Pena como filho inválido; Item hoje tem `tiposPermitidosFilhos: []` | Coberto por G3 e por `tiposPermitidosPai` da pena (os cinco donos) |
+| G5 | `hierarquiaUtil.ts` `getDispositivoPosterior` (:405), `getIrmaoPosteriorIndependenteDeTipo` (:441), `getDispositivoPosteriorMesmoTipoInclusiveOmissis` (:430) | O "posterior" do último inciso ou parágrafo passa a ser a pena | Manter as funções; regras de menu e `moveElementoAbaixo:37` tratam posterior do tipo `Pena` como "não há posterior" (mover para baixo não é oferecido) |
+| G6 | `hierarquiaUtil.ts` `isUltimaEnumeracao` (:597) | `getDispositivoPosterior` devolve a pena, então o último inciso antes da pena deixa de ser "último da enumeração" e cai na regra de ";" | Tratar a pena como ausente aqui e aplicar a regra de ":" da decisão 4 |
+| G7 | `conteudoValidator.ts` :86-95, :129-140, :269-283 | Exigência de ";" e "." no dispositivo anterior à pena; `hasFilhos(dono)` com só a pena já exige ":" (correto) | Decisão 4: exigir ":" e isentar das duas regras, inclusive nos ancestrais (último descendente antes da pena do ancestral) |
+| G8 | `conteudoValidator.ts` :69-84 | Inicial minúscula vale só para `isDispositivoDeArtigo` | Incluir a pena na mesma regra (decisão 5); a pena **não** entra em `isDispositivoDeArtigo` (isso também mantém `buscaDispositivoDeArtigoPosterior:588` ignorando a pena) |
+| G9 | `adicionaElemento.ts:42` | Posição "filho" usa o último de `filhos` como referência | Usar o último filho que não é pena |
+| G10 | `adicionaElemento.ts:33,61` e `dispositivoLexmlFactory.ts` `createFromReferencia*` (:248-296) | "Posição seguinte", `referencia.pai.filhos.length > 0` e `isLastFilho` contam a pena; Enter no fim do dono com ":" deve criar o filho antes da pena | Revisar os três; Enter na pena: decisão 13 |
+| G11 | `eventosUtil.ts:123,154-171,204-209` | `posNoPaiNovo = pai.filhos.length` e referência com `getUltimoFilho` | Posição calculada sobre os filhos que não são pena |
+| G12 | `undoRedoReducerUtil.ts:160,318-321`, `reconstroiRevisoes.ts:97-99,221-227`, `rejeitaRevisao.ts:301`, `revisaoUtil.ts:460,665-716` | Reinclusão por posição ou referência | Cobertos por G1; testar desfazer, refazer e rejeitar com pena |
+| G13 | `adicionaElementosFromClipboard.ts:73,90-91`, `adicionaElementosNaProposicaoFromClipboard.ts:181,308-310`, `colarUtil.ts:352-359,467` | `referencia = getUltimoFilho(atual)` pode ser a pena; usam `tiposPermitidosFilhos` | Cobertos por G1 e G3; a pena colada entra pelo leitor (1.6) |
+| G14 | `transformaTipoElemento.ts` (:40, :99), `moveElementoAcima.ts:101`, `moveElementoAbaixo.ts:69-76` | A pena deve acompanhar o dono e, no Parágrafo ↔ Artigo, ficar no Caput | Teste de reducer; sem código novo se G1/G2 bastarem (4.2) |
+| G15 | `regrasUtil.ts:36-39,63` e `regras*.ts` | `filhos.length === 0` (:36, omissis) e `filhos.some(!bloqueado)` (:63) contam a pena; `isUltimoMesmoTipo`/`isUnicoMesmoTipo` filtram por tipo e não contam | Ajustar :36 e :63; regras próprias da pena (2.1) |
+| G16 | `buildJsonixFromProjetoNorma.ts:295,303` | A pena entraria em `lXcontainersOmissis` | Emitir em `value.pena` (1.5) |
+| G17 | `elementoUtil.ts:152,300-302,345`, `getFilhosArtigoEstiloLexML`/`getParagrafosEOmissis` | `createElementos` segue `filhos` (correto) | Só confirmar a ordem das linhas (1.7) |
+| G18 | `BlocoAlteracaoPermitido.ts:8`, `regrasArtigo.ts:93` | Artigo com bloco de alteração não aceita pena própria | Decisão 10 (5.1) |
+| G19 | `dispositivoLexmlUtil.ts:23-37,114-125` e `isUltimaAlteracao` | A pena pode ser o último dispositivo do bloco (aspas e "(NR)") | Task 5.1 |
+| G20 | `paginacaoUtil.ts:77,128,167` | Usa `getUltimoFilho`, que já devolve a pena | Sem código (decisão 14); só teste de fronteira (7.2). Antes estava na lista "não afetado", sem número, e o G20 sumiu da tabela por engano |
+| G21 | `idUtil.ts` `buildHref` | Sem `numero` devolveria `pena[sn:uuid]` | Tratar `Pena` como o Caput (sem `numero`), sufixo `pena` (1.3) |
+| G22 | `hierarquiaDispositivo.ts:52-60` `renumeraFilhos` e `NumeracaoIndisponivel` | `renumeraFilhos` chama `calculaNumeracao`/`createRotulo` em **todos** os filhos; `NumeracaoIndisponivel` apagaria o rótulo | Numeração própria da pena que preserva o rótulo e `calculaNumeracao` sem efeito para a pena (1.3) |
+| G23 | `hierarquiaValidator.ts:65-68` ("somente poderia possuir Alinea, Pena") e `colarUtil.ts:359` (lista de `tiposPermitidosFilhos` mostrada ao usuário) | A mensagem passaria a citar "Pena" | Tirar a pena dessas listas na task 4.1 |
+
+### Não afetado
+
+- `hierarquiaUtil.ts`: `getUltimoFilho`, `getDispositivoAndFilhosAsLista`/`buildListaDispositivos`, `percorreHierarquiaDispositivos`, `buscaNaHierarquiaDispositivos`, `getDispositivo`/`findDispositivoByUuid` (a pena é filha e é percorrida; no artigo, via `caput`), `getDispositivoAnteriorNaSequenciaDeLeitura`/`PosteriorNaSequenciaDeLeitura` (a pena entra na ordem de leitura, como a decisão 4 quer), `irmaosMesmoTipo` e os `*MesmoTipo*` (filtram por tipo).
+- Agrupadores: `hierarquiaAgrupador.ts`, `agrupaElemento.ts`, `informaExistenciaDoElementoNaNorma.ts:116`, `getAgrupadores*`, `hasAgrupador*`, `colarUtil.ts:343`.
+- `adicionaRemissaoInterna.ts:331-643` (a pena fica fora dos destinos, decisão 11, task 7.1), `aplicaRevisoes.ts:79` (`par1u`), `reducerUtil.ts:34-35` (reset de uuid percorre a árvore), `removeElemento.ts:97,133` (a captura recursiva leva a pena), `removeElementoSemTexto.ts:35`, `paginacaoUtil.ts` (decisão 14).
+- `numeracaoValidator.ts:104,122-152`: compara pelo anterior e por `isLastFilho`; conferir na task 4 que a pena não gera aviso de numeração.
+- `parserReferenciaDispositivo.ts:23`: só vale para referências escritas pelo usuário.
+
+### Riscos novos da varredura
+
+- **G3**: a pena só não gera ação de Tab porque não há `transformar<X>EmPena`; criar uma ação assim quebraria isso.
+- **G22**: sem numeração própria da pena, o rótulo seria apagado ao incluir ou remover um irmão.
+- `buildListaDispositivosParaUltimaAlteracao` (`hierarquiaUtil.ts:511-515`) já visita os incisos do caput duas vezes (`artigo.filhos` os inclui). Com a pena no caput ela também seria visitada duas vezes; sem efeito esperado, mas conferir na task 5.1.
