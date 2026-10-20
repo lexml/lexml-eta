@@ -48,9 +48,7 @@ describe('Abertura de artigo com bloco de alteração excluído em revisão', ()
     cy.get('div.container__elemento.elemento-tipo-artigo label').contains('Art. 1º').should('exist');
   });
 
-  // Achado: o estado fica sem revisões (coberto em reconstroiRevisoes.test.ts), mas o botão "FT" da linha restaurada permanece no DOM.
-  // Critério de aceite de uma correção futura do editor (indicadorMarcaRevisao ignora ElementoIncluido).
-  it.skip('rejeitar a exclusão não deixa marca de revisão na linha restaurada', () => {
+  it('rejeitar a exclusão não deixa marca de revisão na linha restaurada', () => {
     cy.get(SEL_LINHA_EXCLUIDA).first().find('.blot__revisao_recusar').click({ force: true });
 
     cy.get(SEL_MARCA_REVISAO).should('not.exist');
