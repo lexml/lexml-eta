@@ -8,13 +8,12 @@ export const getAutoridade = (urn: string): Autoridade | undefined => {
   return VOCABULARIO.autoridades.filter(t => t.urn === partes[0])[0];
 };
 
-// Casa pelo tipo da URN sem o `;sigla`; a entrada com autoridade, quando houver, tem precedência sobre a do tipo sozinho.
+// Casa pelo tipo da URN sem o `;sigla` e pela autoridade; combinação não declarada não tem texto padrão.
 export const getPreambuloPadrao = (urn: string): string | undefined => {
   const partes = (urn ?? '').replace('urn:lex:br:', '').split(':');
   const autoridade = partes[0];
   const tipo = partes[1]?.split(';')[0];
-  const doTipo = VOCABULARIO.preambulosPadrao.filter(p => p.urnTipoDocumento === tipo);
-  return (doTipo.find(p => p.urnAutoridade === autoridade) ?? doTipo.find(p => !p.urnAutoridade))?.texto;
+  return VOCABULARIO.preambulosPadrao.find(p => p.urnTipoDocumento === tipo && p.urnAutoridade === autoridade)?.texto;
 };
 
 export const getSigla = (urn: string): string => {
