@@ -14,9 +14,9 @@
 
 ## 3. Abrir
 
-- [ ] 3.1 Em `reconstroiRevisoes`, reconstruir `Alteracao` no excluído e associar os dispositivos do bloco à revisão do excluído
-- [ ] 3.2 Tratar o bloco como descendente em `operacaoDoDescendente` (movido/transformado)
-- [ ] 3.3 Testes de reconstrução: excluído com bloco, rejeitar restaura o bloco, ida e volta salvar-abrir-salvar, movido reaberto
+- [x] 3.1 Em `reconstroiRevisoes`, reconstruir `Alteracao` no excluído e associar os dispositivos do bloco à revisão do excluído
+- [x] 3.2 Tratar o bloco como descendente em `operacaoDoDescendente` (movido/transformado)
+- [x] 3.3 Testes de reconstrução: excluído com bloco, rejeitar restaura o bloco, ida e volta salvar-abrir-salvar, movido reaberto
 
 ## 4. E2E (Cypress)
 

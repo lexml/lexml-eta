@@ -4,7 +4,13 @@ import { Elemento, Referencia } from '../../../elemento';
 import { createElemento, getElementos } from '../../../elemento/elementoUtil';
 import { RevisaoElemento } from '../../../revisao/revisao';
 import { StateType } from '../../../../redux/state';
-import { buildDescricaoRevisaoElemento, formatarOperacoesRevisao, getReferenciaDeOrigem, rotuloDoTipoPorNumero } from '../../../../redux/elemento/util/revisaoUtil';
+import {
+  buildDescricaoRevisaoElemento,
+  formatarOperacoesRevisao,
+  getReferenciaDeOrigem,
+  getUuidPaiEfetivoDoElemento,
+  rotuloDoTipoPorNumero,
+} from '../../../../redux/elemento/util/revisaoUtil';
 import { APLICAR_REVISOES } from '../../acao/aplicarRevisoes';
 import { criaDispositivo, createArticulacao } from '../../dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById, getArticulacao, getDispositivoAndFilhosAsLista, getUltimoFilho, isDispositivoAlteracao } from '../../hierarquia/hierarquiaUtil';
@@ -255,7 +261,7 @@ const reconstroiRevisoesDeExclusao = (exclusao: ExclusaoLida, anterior: Referenc
   const revisoes = elementos.map(e => novaRevisao(StateType.ElementoRemovido, lida, clone(e), { ...clone(e), acoesPossiveis: [] }));
   const porUuid = new Map<number | undefined, RevisaoElemento>(elementos.map((e, i) => [e.uuid, revisoes[i]]));
   revisoes.slice(1).forEach((revisao, i) => {
-    const pai = porUuid.get(elementos[i + 1].hierarquia?.pai?.uuid) ?? revisoes[0];
+    const pai = porUuid.get(getUuidPaiEfetivoDoElemento(elementos[i + 1])) ?? revisoes[0];
     revisao.idRevisaoElementoPai = pai.id;
     revisao.idRevisaoElementoPrincipal = revisoes[0].id;
   });

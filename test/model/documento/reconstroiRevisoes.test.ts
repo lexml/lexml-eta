@@ -158,6 +158,29 @@ descreveEquivalencia(
   s => (a = s)
 );
 
+descreveEquivalencia(
+  'reconstroiRevisoes — artigo com bloco de alteração reaberto equivale ao da sessão (MPV 1234/2024)',
+  abre1234,
+  () => [
+    ['artigo com bloco de alteração excluído', () => (a = elementoReducer(a, { type: REMOVER_ELEMENTO, atual: elemento(a, 'art1') }))],
+    ['artigo com bloco de alteração movido', () => (a = elementoReducer(a, { type: MOVER_ELEMENTO_ABAIXO, atual: elemento(a, 'art1') }))],
+  ],
+  s => (a = s)
+);
+
+describe('reconstroiRevisoes — artigo com bloco de alteração excluído (MPV 1234/2024)', () => {
+  it('reabre com uma única revisão principal e com os dispositivos do bloco associados a ela', () => {
+    a = abre1234();
+    a = elementoReducer(a, { type: REMOVER_ELEMENTO, atual: elemento(a, 'art1') });
+
+    const b = abreComRevisoes(a);
+
+    expect(principais(b)).to.have.length(1);
+    expect(b.revisoes).to.have.length(a.revisoes!.length);
+    expect((b.revisoes as RevisaoElemento[]).some(r => r.elementoAntesRevisao?.lexmlId === 'art1_cpt_alt1_art4')).to.be.true;
+  });
+});
+
 describe('reconstroiRevisoes — alteracaoRotulo: valores reconstruídos (MPV 1234/2024)', () => {
   beforeEach(() => {
     a = abre1234();
