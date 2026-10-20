@@ -8,7 +8,8 @@ import {
   findDispositivoByUuid,
 } from '../../hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isCaput, isOmissis } from '../../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isCaput, isOmissis, isPena } from '../../../dispositivo/tipo';
+import { normalizaRotuloPena } from '../../numeracao/rotuloPena';
 import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { buildHref, buildId, buildIdAlteracao } from '../../util/idUtil';
 import { isNorma, ProjetoNorma } from '../projetoNorma';
@@ -300,7 +301,16 @@ const buildTree = (dispositivo: Dispositivo, obj: any, remissoes?: Remissoes, re
 
     buildTree((dispositivo as Artigo).caput!, node.value, remissoes, remissoesExternas);
   } else {
-    buildFilhos(dispositivo.filhos, tree, remissoes, remissoesExternas);
+    const pena = dispositivo.filhos?.find(isPena);
+    buildFilhos(
+      dispositivo.filhos?.filter(f => f !== pena),
+      tree,
+      remissoes,
+      remissoesExternas
+    );
+    if (pena) {
+      obj.pena = buildNode(pena, remissoes, remissoesExternas).value;
+    }
   }
 
   if (obj.lXcontainersOmissis && obj.lXcontainersOmissis.length === 0) delete obj.lXcontainersOmissis;
@@ -367,7 +377,7 @@ const buildTypeName = (dispositivo: Dispositivo): string => {
 const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): void => {
   value['id'] = buildId(dispositivo);
   if (!isCaput(dispositivo) && !isOmissis(dispositivo)) {
-    value.rotulo = dispositivo.rotulo;
+    value.rotulo = isPena(dispositivo) ? normalizaRotuloPena(dispositivo.rotulo) : dispositivo.rotulo;
   }
 
   if (isDispositivoAlteracao(dispositivo) && !isOmissis(dispositivo)) {
@@ -377,7 +387,8 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remi
       dispositivo.tipo === 'Inciso' ||
       dispositivo.tipo === 'Paragrafo' ||
       dispositivo.tipo === 'Alinea' ||
-      dispositivo.tipo === 'Item'
+      dispositivo.tipo === 'Item' ||
+      dispositivo.tipo === 'Pena'
     ) {
       // Para dispositivos em alteracoes, construir href completo incluindo todos os niveis
       let href = buildHref(dispositivo);

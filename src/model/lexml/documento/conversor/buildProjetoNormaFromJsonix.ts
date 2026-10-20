@@ -1,5 +1,6 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
-import { isOmissis } from '../../../dispositivo/tipo';
+import { isOmissis, isPena } from '../../../dispositivo/tipo';
+import { normalizaRotuloPena } from '../../numeracao/rotuloPena';
 import { Metadado, ParteInicial, TextoArticulado } from '../../../documento';
 import { ClassificacaoDocumento } from '../../../documento/classificacao';
 import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
@@ -406,6 +407,7 @@ const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[
       (pai as Artigo).caput!.id = el.value?.id;
       buildAlteracao(pai, el.value?.alteracao, cabecasAlteracao, preservarTexto);
       buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
+      buildPena((pai as Artigo).caput!, el.value, cabecasAlteracao, preservarTexto);
     } else if (el.name?.localPart === 'alteracao') {
       buildAlteracao(pai, el, cabecasAlteracao, preservarTexto);
       buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
@@ -417,6 +419,7 @@ const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[
         if (!pai.alteracoes) {
           dispositivo = buildDispositivo(pai, el, cabecasAlteracao, preservarTexto);
           buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
+          buildPena(dispositivo, el.value, cabecasAlteracao, preservarTexto);
         }
       }
     }
@@ -427,7 +430,16 @@ const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[
 export const buildDispositivoSoltoFromJsonix = (pai: Dispositivo, no: any): Dispositivo => {
   const dispositivo = buildDispositivo(pai, no, [], true);
   buildTree(dispositivo, no.value?.lXhier ?? no.value?.lXcontainersOmissis, [], true);
+  buildPena(dispositivo, no.value, [], true);
   return dispositivo;
+};
+
+// A pena vem em value.pena (irmã de lXcontainersOmissis) e é sempre o último filho.
+const buildPena = (pai: Dispositivo, value: any, cabecasAlteracao: Dispositivo[], preservarTexto: boolean): void => {
+  if (!value?.pena) {
+    return;
+  }
+  buildDispositivo(pai, { name: { localPart: 'Pena' }, value: value.pena }, cabecasAlteracao, preservarTexto);
 };
 
 const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo[], preservarTexto: boolean): void => {
@@ -443,6 +455,7 @@ const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo
         d.isDispositivoAlteracao = true;
         d.rotulo = c.value?.rotulo;
         buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
+        buildPena(d!, c.value, cabecasAlteracao, preservarTexto);
       }
     });
   }
@@ -474,6 +487,10 @@ const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositi
       dispositivo.rotulo = el.value?.rotulo;
     }
     dispositivo.createNumeroFromRotulo(dispositivo.rotulo!);
+  }
+
+  if (isPena(dispositivo)) {
+    dispositivo.rotulo = normalizaRotuloPena(el.value?.rotulo);
   }
 
   dispositivo.href = el.value?.href;
