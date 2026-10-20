@@ -21,6 +21,7 @@ import { TipoDispositivo } from '../../tipo/tipoDispositivo';
 import { buildId, updateIdDispositivoAndFilhos } from '../../util/idUtil';
 import { RevisaoArticulacaoLexEdit, RevisoesLexEdit } from '../documentoArticulado';
 import { buildJsonixDispositivo, buildJsonixEstadoAnterior } from './buildJsonixFromProjetoNorma';
+import { mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente, temSituacaoSalvavel } from './situacaoNaNormaVigente';
 
 const TYPE_REVISAO = 'br_gov_lexml_lexedit__1.RevisaoArticulacao';
 
@@ -70,6 +71,8 @@ export const criaHospedeiro = (temporaria: Articulacao, pai: Dispositivo): Dispo
 
 interface SubarvoreSolta {
   raiz: Dispositivo;
+  // Raiz e descendentes criados, na ordem dos snapshots.
+  dispositivos: Dispositivo[];
   idTemporario: string;
   // Só em bloco de alteração: id do artigo hospedeiro temporário, prefixo de todos os ids da subárvore.
   idHospedeiro?: string;
@@ -96,7 +99,7 @@ const criaSubarvoreSolta = (pai: Dispositivo, snapshots: Elemento[]): SubarvoreS
   });
   updateIdDispositivoAndFilhos(temporaria);
   const hospedeiroAlteracao = isDispositivoAlteracao(raiz) ? getArticulacao(raiz).pai : undefined;
-  return { raiz, idTemporario: buildId(raiz), idHospedeiro: hospedeiroAlteracao && buildId(hospedeiroAlteracao) };
+  return { raiz, dispositivos: Array.from(criados.values()), idTemporario: buildId(raiz), idHospedeiro: hospedeiroAlteracao && buildId(hospedeiroAlteracao) };
 };
 
 const reescreveIds = (valor: any, idTemporario: string, idNovo: string): void => {
@@ -158,7 +161,23 @@ const ordenaPelaCadeia = (state: State, grupo: ExclusaoComSubarvore[]): Exclusao
   return ordenado;
 };
 
-const montaRevisoesDeExclusao = (state: State, exclusoes: Exclusao[]): Array<{ chave: [number, number, number]; revisao: RevisaoArticulacaoLexEdit }> => {
+interface RevisaoDeExclusaoMontada {
+  chave: [number, number, number];
+  revisao: RevisaoArticulacaoLexEdit;
+  situacao: SituacaoNaNormaVigente;
+}
+
+// Mesma regra da articulação viva, com o id já reescrito para o gravado na revisão.
+const coletaSituacaoDoExcluido = (subarvore: SubarvoreSolta, idNovo: string): SituacaoNaNormaVigente => {
+  const situacao: SituacaoNaNormaVigente = { existentes: [], novos: [] };
+  subarvore.dispositivos.filter(temSituacaoSalvavel).forEach(d => {
+    const id = idNovo + d.id!.substring(subarvore.idTemporario.length);
+    (d.existeNaNormaAlterada ? situacao.existentes : situacao.novos).push(id);
+  });
+  return situacao;
+};
+
+const montaRevisoesDeExclusao = (state: State, exclusoes: Exclusao[]): RevisaoDeExclusaoMontada[] => {
   const lista = getDispositivoAndFilhosAsLista(state.articulacao!);
   const grupos = new Map<string, ExclusaoComSubarvore[]>();
   exclusoes.forEach(e => {
@@ -167,7 +186,7 @@ const montaRevisoesDeExclusao = (state: State, exclusoes: Exclusao[]): Array<{ c
     grupos.set(base, [...(grupos.get(base) ?? []), { ...e, subarvore, base }]);
   });
 
-  const resultado: Array<{ chave: [number, number, number]; revisao: RevisaoArticulacaoLexEdit }> = [];
+  const resultado: RevisaoDeExclusaoMontada[] = [];
   grupos.forEach((grupo, base) => {
     // Mesmo pai e posição empatam: a cadeia de leitura desempata.
     const porLugar = new Map<string, ExclusaoComSubarvore[]>();
@@ -176,11 +195,12 @@ const montaRevisoesDeExclusao = (state: State, exclusoes: Exclusao[]): Array<{ c
       .sort((a, b) => lista.indexOf(a[0].pai) - lista.indexOf(b[0].pai) || a[0].posicao - b[0].posicao)
       .flatMap(g => ordenaPelaCadeia(state, g));
     ordenado.forEach((exclusao, i) => {
+      const idNovo = `_${base}-exc${i + 1}`;
       const no = buildJsonixDispositivo(exclusao.subarvore.raiz);
-      reescreveIds(no.value, exclusao.subarvore.idTemporario, `_${base}-exc${i + 1}`);
+      reescreveIds(no.value, exclusao.subarvore.idTemporario, idNovo);
       const revisao = montaRevisaoBase(exclusao.revisao, getOperacoesDaRevisao(state, exclusao.revisao));
       revisao[lowerFirst(no.name.localPart)] = no.value;
-      resultado.push({ chave: [lista.indexOf(exclusao.pai), exclusao.posicao, i], revisao });
+      resultado.push({ chave: [lista.indexOf(exclusao.pai), exclusao.posicao, i], revisao, situacao: coletaSituacaoDoExcluido(exclusao.subarvore, idNovo) });
     });
   });
   return resultado;
@@ -235,9 +255,12 @@ export const montaRevisoesArticulacao = (state: State): RevisoesLexEdit | undefi
         exclusoes.push({ revisao, snapshots, pai, posicao: snapshots[0].hierarquia?.posicao ?? 0 });
       }
     });
-  const excluidas = montaRevisoesDeExclusao(state, exclusoes)
-    .sort((a, b) => a.chave[0] - b.chave[0] || a.chave[1] - b.chave[1] || a.chave[2] - b.chave[2])
-    .map(x => x.revisao);
+  const excluidasMontadas = montaRevisoesDeExclusao(state, exclusoes).sort((a, b) => a.chave[0] - b.chave[0] || a.chave[1] - b.chave[1] || a.chave[2] - b.chave[2]);
+  const excluidas = excluidasMontadas.map(x => x.revisao);
+  const situacaoDosExcluidos = excluidasMontadas.reduce((acumulada, x) => mesclarSituacaoNaNormaVigente(acumulada, x.situacao), {
+    existentes: [],
+    novos: [],
+  } as SituacaoNaNormaVigente);
 
   const revisaoArticulacao = [...naoExcluidas, ...excluidas];
   if (!revisaoArticulacao.length) {
@@ -246,5 +269,6 @@ export const montaRevisoesArticulacao = (state: State): RevisoesLexEdit | undefi
   return {
     revisoesArticulacao: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RevisoesArticulacao', revisaoArticulacao },
     usuarios: montaUsuarios(principais),
+    ...((situacaoDosExcluidos.existentes.length > 0 || situacaoDosExcluidos.novos.length > 0) && { situacaoDosExcluidos }),
   };
 };

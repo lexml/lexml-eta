@@ -1,7 +1,8 @@
 import { expect } from '@open-wc/testing';
 import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
 import { State } from '../../../src/redux/state';
-import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix, lerSituacaoNaNormaVigente } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { criarDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
 import { montaRevisoesArticulacao } from '../../../src/model/lexml/documento/conversor/revisaoArticulacao';
 import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 import { ClassificacaoDocumento } from '../../../src/model/documento/classificacao';
@@ -77,6 +78,67 @@ describe('montaRevisoesArticulacao: dispositivo com bloco de alteração (MPV 12
     const movidas = revisoes().filter(r => String(r.revisao).startsWith('movido'));
     expect(movidas).to.have.length(1);
     expect(revisoes().filter(r => r.revisao === 'excluido')).to.have.length(0);
+  });
+});
+
+describe('situação na norma vigente dos dispositivos de bloco excluídos (MPV 1234/2024)', () => {
+  const ART4 = 'art1_cpt_alt1_art4';
+
+  beforeEach(() => {
+    abre();
+    const marca = (id: string, existe: boolean): void => {
+      buscaDispositivoById(state.articulacao!, id)!.existeNaNormaAlterada = existe;
+    };
+    marca(ART4, true);
+    marca(`${ART4}_par4`, false);
+    marca(`${ART4}_par5`, false);
+  });
+
+  it('inclui nas listas os ids gravados na revisão de exclusão, na ordem do bloco', () => {
+    state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: elementoDe('art1') });
+
+    expect(montaRevisoesArticulacao(state)!.situacaoDosExcluidos).to.deep.equal({
+      existentes: ['_art1-exc1_cpt_alt1_art4'],
+      novos: ['_art1-exc1_cpt_alt1_art4_par4', '_art1-exc1_cpt_alt1_art4_par5'],
+    });
+  });
+
+  it('os ids das listas existem na revisão gravada', () => {
+    state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: elementoDe('art1') });
+
+    const idsGravados = coletaIds(revisoes().find(r => r.revisao === 'excluido').artigo);
+    const { existentes, novos } = montaRevisoesArticulacao(state)!.situacaoDosExcluidos!;
+    [...existentes, ...novos].forEach(id => expect(idsGravados).to.include(id));
+  });
+
+  it('grava as listas no metadado do documento', () => {
+    state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: elementoDe('art1') });
+
+    const documento = criarDocumentoArticulado(
+      state.articulacao!.projetoNorma!,
+      'urn:lex:br:senado.federal:projeto.lei:2026;1',
+      {},
+      {},
+      { revisoes: montaRevisoesArticulacao(state)! }
+    );
+
+    expect(lerSituacaoNaNormaVigente(documento)).to.deep.equal({
+      existentes: ['_art1-exc1_cpt_alt1_art4'],
+      novos: ['_art1-exc1_cpt_alt1_art4_par4', '_art1-exc1_cpt_alt1_art4_par5'],
+    });
+  });
+
+  it('artigo excluído sem bloco de alteração não gera listas', () => {
+    state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: elementoDe('art2') });
+
+    expect(montaRevisoesArticulacao(state)!.situacaoDosExcluidos).to.be.undefined;
+  });
+
+  it('dispositivos do bloco sem situação informada não entram nas listas', () => {
+    buscaDispositivoById(state.articulacao!, `${ART4}_par5`)!.existeNaNormaAlterada = undefined;
+    state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: elementoDe('art1') });
+
+    expect(montaRevisoesArticulacao(state)!.situacaoDosExcluidos!.novos).to.deep.equal(['_art1-exc1_cpt_alt1_art4_par4']);
   });
 });
 

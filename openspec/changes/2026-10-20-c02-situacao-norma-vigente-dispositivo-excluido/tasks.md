@@ -1,8 +1,8 @@
 ## 1. Salvar
 
-- [ ] 1.1 Coletar a situação (Existente/Novo) dos dispositivos de bloco de alteração dos excluídos em `montaRevisoesArticulacao`, com os ids finais `_<base>-exc<n>`
-- [ ] 1.2 Mesclar essa coleta às listas de `lexedit:SituacaoNaNormaVigente` ao compor o metadado
-- [ ] 1.3 Testes: excluído com bloco (existente e novo), excluído sem bloco, exclusões em sequência
+- [x] 1.1 Coletar a situação (Existente/Novo) dos dispositivos de bloco de alteração dos excluídos em `montaRevisoesArticulacao`, com os ids finais `_<base>-exc<n>`
+- [x] 1.2 Mesclar essa coleta às listas de `lexedit:SituacaoNaNormaVigente` ao compor o metadado
+- [x] 1.3 Testes: excluído com bloco (existente e novo), excluído sem bloco, exclusões em sequência
 
 ## 2. Abrir
 
