@@ -20,9 +20,10 @@
 
 ## 4. E2E (Cypress)
 
-- [ ] 4.1 Avaliar viabilidade à luz de `docs/guia-cypress.md` (salvar por captura de `URL.createObjectURL`, como `titulo-dispositivo.cy.ts`; abrir por `#fileUpload`)
-- [ ] 4.2 Spec em `cypress/e2e/revisao/`: criar artigo que altera norma com bloco, ativar revisão, excluir o artigo, salvar, reabrir e conferir uma marca e os dispositivos do bloco; incluir caso de movido
-- [ ] 4.3 Se a criação do bloco pela UI não for viável, usar fixture gerada por `criarDocumentoArticulado` (como `demo/doc/teste_revisao_*.json`) e registrar a decisão
+- [x] 4.1 Avaliar viabilidade à luz de `docs/guia-cypress.md` (salvar por captura de `URL.createObjectURL`, como `titulo-dispositivo.cy.ts`; abrir por `#fileUpload`). Decisão: exclusão/movimentação ao vivo pelo menu e download ficam sem E2E (guia §3/§4 e sem infraestrutura de download); o risco é coberto por reducer, montagem e ida e volta
+- [x] 4.2 Spec em `cypress/e2e/revisao/` (`abertura-revisao-bloco-alteracao.cy.ts`): abrir fixture com artigo que altera norma excluído e outra com movido, conferir uma marca, o bloco exibido e a rejeição devolvendo o bloco
+- [x] 4.3 Fixtures `demo/doc/teste_revisao_exclusao_bloco_alteracao.json` e `teste_revisao_movido_bloco_alteracao.json`, geradas por `criarDocumentoArticulado` a partir da MPV 1234/2024
+- [ ] 4.4 Achado fora do escopo: ao rejeitar a exclusão no documento reaberto, o botão da marca (`.blot__revisao`) permanece na linha restaurada, embora o estado fique sem revisões (`indicadorMarcaRevisao` ignora `ElementoIncluido`). Teste E2E `it.skip` registrado; decidir se corrige aqui ou em outra change
 
 ## 5. Fechamento
 

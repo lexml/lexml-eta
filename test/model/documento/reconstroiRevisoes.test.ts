@@ -179,6 +179,16 @@ describe('reconstroiRevisoes — artigo com bloco de alteração excluído (MPV 
     expect(b.revisoes).to.have.length(a.revisoes!.length);
     expect((b.revisoes as RevisaoElemento[]).some(r => r.elementoAntesRevisao?.lexmlId === 'art1_cpt_alt1_art4')).to.be.true;
   });
+
+  it('rejeitar a exclusão reaberta não deixa nenhuma revisão no estado', () => {
+    a = abre1234();
+    a = elementoReducer(a, { type: REMOVER_ELEMENTO, atual: elemento(a, 'art1') });
+
+    const b = abreComRevisoes(a);
+    const rejeitada = elementoReducer(b, { type: REJEITAR_REVISAO, revisao: principais(b)[0] });
+
+    expect(rejeitada.revisoes).to.have.length(0);
+  });
 });
 
 describe('reconstroiRevisoes — alteracaoRotulo: valores reconstruídos (MPV 1234/2024)', () => {
