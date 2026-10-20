@@ -6,8 +6,8 @@
 
 ## 2. Abrir
 
-- [ ] 2.1 Disponibilizar as listas lidas a `reconstroiRevisoes` e aplicar `existeNaNormaAlterada` por id aos dispositivos reconstruídos
-- [ ] 2.2 Testes: rejeitar a exclusão restaura o selo e o rótulo; ida e volta salvar-abrir-salvar gera listas iguais
+- [x] 2.1 Disponibilizar as listas lidas a `reconstroiRevisoes` e aplicar `existeNaNormaAlterada` por id aos dispositivos reconstruídos
+- [x] 2.2 Testes: rejeitar a exclusão restaura o selo e o rótulo; ida e volta salvar-abrir-salvar gera listas iguais
 
 ## 3. Integração e E2E
 

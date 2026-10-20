@@ -3,7 +3,7 @@ import { State } from '../../../src/redux/state';
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
 import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
 import { RENUMERAR_ELEMENTO } from '../../../src/model/lexml/acao/renumerarElementoAction';
-import { buildProjetoNormaFromJsonix, lerRevisoesArticulacao } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix, lerRevisoesArticulacao, lerSituacaoNaNormaVigente } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { montaRevisoesArticulacao } from '../../../src/model/lexml/documento/conversor/revisaoArticulacao';
 import { reconstroiRevisoes } from '../../../src/model/lexml/documento/conversor/reconstroiRevisoes';
@@ -188,6 +188,61 @@ describe('reconstroiRevisoes — artigo com bloco de alteração excluído (MPV 
     const rejeitada = elementoReducer(b, { type: REJEITAR_REVISAO, revisao: principais(b)[0] });
 
     expect(rejeitada.revisoes).to.have.length(0);
+  });
+});
+
+describe('reconstroiRevisoes — situação na norma vigente do bloco de alteração excluído (MPV 1234/2024)', () => {
+  const ART4 = 'art1_cpt_alt1_art4';
+  const existe = (s: State, id: string): boolean | undefined => buscaDispositivoById(s.articulacao!, id)?.existeNaNormaAlterada;
+
+  // Estado B: abre a articulação salva de A e reaplica as revisões com as listas de situação lidas do arquivo.
+  const abreComSituacao = (origem: State): State => {
+    const gravadas = montaRevisoesArticulacao(origem)!;
+    const documento = criarDocumentoArticulado(origem.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: gravadas });
+    const projetoNorma = buildProjetoNormaFromJsonix(documento, true);
+    const aberto = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
+    const reconstruidas = reconstroiRevisoes(aberto.articulacao!, lerRevisoesArticulacao(gravadas), lerSituacaoNaNormaVigente(documento));
+    return elementoReducer(aberto, aplicarRevisoesAction.execute(reconstruidas));
+  };
+
+  beforeEach(() => {
+    a = abre1234();
+    buscaDispositivoById(a.articulacao!, ART4)!.existeNaNormaAlterada = true;
+    buscaDispositivoById(a.articulacao!, `${ART4}_par4`)!.existeNaNormaAlterada = false;
+    buscaDispositivoById(a.articulacao!, `${ART4}_par5`)!.existeNaNormaAlterada = false;
+    a = elementoReducer(a, { type: REMOVER_ELEMENTO, atual: elemento(a, 'art1') });
+  });
+
+  it('os snapshots reabertos trazem Existente/Novo dos dispositivos do bloco', () => {
+    const b = abreComSituacao(a);
+    const situacao = (id: string): boolean | undefined =>
+      (b.revisoes as RevisaoElemento[]).find(r => r.elementoAntesRevisao?.lexmlId === id)?.elementoAntesRevisao?.existeNaNormaAlterada;
+
+    expect(situacao(ART4)).to.equal(true);
+    expect(situacao(`${ART4}_par4`)).to.equal(false);
+    expect(situacao(`${ART4}_par5`)).to.equal(false);
+  });
+
+  it('rejeitar a exclusão reaberta restaura o selo dos dispositivos do bloco', () => {
+    const b = abreComSituacao(a);
+    const rejeitada = elementoReducer(b, { type: REJEITAR_REVISAO, revisao: principais(b)[0] });
+
+    expect(existe(rejeitada, ART4)).to.equal(true);
+    expect(existe(rejeitada, `${ART4}_par4`)).to.equal(false);
+    expect(existe(rejeitada, `${ART4}_par5`)).to.equal(false);
+  });
+
+  it('sem as listas, o bloco reaberto fica sem selo (arquivo anterior)', () => {
+    const b = abreComRevisoes(a);
+    const rejeitada = elementoReducer(b, { type: REJEITAR_REVISAO, revisao: principais(b)[0] });
+
+    expect(existe(rejeitada, ART4)).to.be.undefined;
+  });
+
+  it('salvar o documento reaberto grava as mesmas listas', () => {
+    const b = abreComSituacao(a);
+
+    expect(montaRevisoesArticulacao(b)!.situacaoDosExcluidos).to.deep.equal(montaRevisoesArticulacao(a)!.situacaoDosExcluidos);
   });
 });
 
