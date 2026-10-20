@@ -50,6 +50,21 @@ const montaArticulacao = (rotuloPena = 'Pena –'): Articulacao => {
   return articulacao;
 };
 
+// Art. 1º com incisos no caput, pena do caput e dois parágrafos.
+const montaArtigoComIncisosPenaEParagrafos = (): Articulacao => {
+  const articulacao = createArticulacao();
+  const art1 = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo) as Artigo;
+  configurarNumero(art1, 1);
+  configurarRotulo(art1, 'Art. 1º');
+  (art1.caput as any).texto = 'Matar alguém:';
+  novo(art1, TipoDispositivo.inciso.tipo, 'I –', 'aqui é um inciso;');
+  novo(art1, TipoDispositivo.inciso.tipo, 'II –', 'outro inciso:', 2);
+  novo(art1, TipoDispositivo.pena.tipo, 'Pena –', 'três anos de reclusão.');
+  novo(art1, TipoDispositivo.paragrafo.tipo, '§ 1º', 'Teste.');
+  novo(art1, TipoDispositivo.paragrafo.tipo, '§ 2º', 'Mais um teste.', 2);
+  return articulacao;
+};
+
 describe('Conversão da pena para e do JSONIX', () => {
   describe('Gravação', () => {
     it('grava a pena em value.pena, fora de lXcontainersOmissis', () => {
@@ -84,6 +99,27 @@ describe('Conversão da pena para e do JSONIX', () => {
       configurarRotulo(art1, 'Art. 1º');
       (art1.caput as any).texto = 'Texto.';
       expect(JSON.stringify(salva(articulacao))).not.to.include('"pena"');
+    });
+  });
+
+  describe('Pena do caput em artigo com incisos e parágrafos', () => {
+    // A pena antes dos incisos do caput é inválida no XSD (controle negativo da task 1.1, registrado em design.md).
+    it('grava a pena em value.pena do Caput, depois dos incisos, e os parágrafos no Artigo', () => {
+      const art1 = raizArticulacao(salva(montaArtigoComIncisosPenaEParagrafos()))[0];
+      expect(art1.value.lXcontainersOmissis.map((n: any) => n.name.localPart)).to.deep.equal(['Caput', 'Paragrafo', 'Paragrafo']);
+      expect(art1.value.pena).to.be.undefined;
+      const caput = art1.value.lXcontainersOmissis[0];
+      expect(caput.value.lXcontainersOmissis.map((n: any) => n.name.localPart)).to.deep.equal(['Inciso', 'Inciso']);
+      expect(caput.value.pena.id).to.equal('art1_cpt_pena');
+      expect(caput.value.pena.p[0].content).to.deep.equal(['três anos de reclusão.']);
+      expect(JSON.stringify(art1.value.lXcontainersOmissis)).not.to.include('"localPart":"Pena"');
+    });
+
+    it('mantém a ordem na ida e volta', () => {
+      const carregado = buildProjetoNormaFromJsonix(salva(montaArtigoComIncisosPenaEParagrafos()));
+      const art1 = carregado.articulacao!.filhos[0] as Artigo;
+      expect(art1.filhos.map(f => f.id)).to.deep.equal(['art1_cpt_inc1', 'art1_cpt_inc2', 'art1_cpt_pena', 'art1_par1', 'art1_par2']);
+      expect(art1.caput!.filhos.map(f => f.tipo)).to.deep.equal(['Inciso', 'Inciso', 'Pena']);
     });
   });
 
