@@ -1,4 +1,5 @@
 import { Elemento } from '../../model/elemento';
+import { AlterarRotuloPena } from '../../model/lexml/acao/penaAction';
 import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { isRevisaoDeExclusao, isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
@@ -126,6 +127,11 @@ export const podeInformarNumeracao = (elemento: Elemento): boolean => {
 };
 
 const onclick = (node: HTMLElement, elemento: Elemento): (() => boolean) => {
+  const editavelPena = elemento.tipo === 'Pena' && !!elemento.acoesPossiveis?.some(acao => acao instanceof AlterarRotuloPena);
+  node.classList.toggle('rotulo-pena-editavel', editavelPena);
+  if (editavelPena) {
+    return (): boolean => node.dispatchEvent(new CustomEvent('rotulo-pena', { bubbles: true, cancelable: true, detail: { elemento } }));
+  }
   if (podeInformarNumeracao(elemento)) {
     return (): boolean => node.dispatchEvent(new CustomEvent('rotulo', { bubbles: true, cancelable: true, detail: { elemento } }));
   } else {
