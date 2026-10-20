@@ -242,8 +242,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.destinoAoAbrir = { ...this._lexmlDestino!.colegiadoApreciador };
     if (!this.anexoParecer) {
       this._lexmlJustificativa.setContent(lerJustificacao(documento));
-      // setContent é silencioso: o alerta avaliado em inicializarEdicao refletiria o texto anterior.
+      // setContent é silencioso: o alerta avaliado em inicializarEdicao e a aba "Notas" refletiriam o texto anterior.
       this.buildAlertaJustificativa();
+      this._lexmlJustificativa.updateNotasRodape();
+      this.notasRodape = this._lexmlJustificativa.notasRodape;
     }
   }
 

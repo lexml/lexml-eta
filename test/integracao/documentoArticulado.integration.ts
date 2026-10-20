@@ -6,6 +6,7 @@ import { novoDocumentoArticulado, novoDocumentoComTextoLiteral } from '../doc/do
 import { MPV_885_2019 } from '../assets/mpv_885_2019';
 import { lerJustificacao } from '../../src/model/lexml/documento/conversor/justificacao';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
+import { encodeHtml } from '../../src/util/string-util';
 
 describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
   for (const [nome, entrada] of [
@@ -116,15 +117,28 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(lerIdsRemissoesInvalidas(retorno.jsonix)).to.deep.equal([idPersistido]);
   });
 
-  it('a justificação vai e volta pelo CLI e valida no XSD', async () => {
+  // Nota de rodapé no formato de `texto` do editor: `texto` é o HTML do modal, codificado.
+  const nota = (id: string, textoHtml: string): string => {
+    const el = document.createElement('lexml-eta-nota-rodape');
+    el.setAttribute('id-lexml-eta-nota-rodape', id);
+    el.setAttribute('numero', '9');
+    el.setAttribute('texto', encodeHtml(textoHtml));
+    el.textContent = '9';
+    return el.outerHTML;
+  };
+
+  it('a justificação vai e volta pelo CLI e valida no XSD, com as notas de rodapé', async () => {
     const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
     // HTML no formato de `texto` do editor da justificação.
     const justificacao =
-      '<p class="align-justify">Texto <strong>negrito</strong> <em>itálico</em>, <u>sublinhado</u>, x<sup>2</sup>, A &amp; B e <a href="https://www.congressonacional.leg.br" rel="noopener noreferrer" target="_blank">site</a>.</p>' +
-      '<ul><li>um</li><li class="indent-1">dois</li></ul><ol><li>a</li></ol><p><br></p>' +
+      `<p class="align-justify">Texto <strong>negrito</strong> <em>itálico</em>, <u>sublinhado</u>, x<sup>2</sup>, A &amp; B e <a href="https://www.congressonacional.leg.br" rel="noopener noreferrer" target="_blank">site</a>${nota(
+        'nr1',
+        '<p>Nota <strong>formatada</strong> com <a href="https://www.senado.leg.br" rel="noopener noreferrer" target="_blank">link</a>.</p>'
+      )}.</p>` +
+      `<ul><li>um${nota('nr2', '<p>Primeiro.</p><p>Segundo.</p>')}</li><li class="indent-1">dois</li></ul><ol><li>a</li></ol><p><br></p>` +
       '<table table_id="t1" border="1" style="width:80%"><tbody><tr row_id="r1">' +
       '<td class="td-q" table_id="t1" row_id="r1" cell_id="c1" width="40%"><p class="align-center">1</p><p>2</p></td>' +
-      '<td class="td-q" table_id="t1" row_id="r1" cell_id="c2" colspan="2" rowspan="1"><p>3</p></td></tr>' +
+      `<td class="td-q" table_id="t1" row_id="r1" cell_id="c2" colspan="2" rowspan="1"><p>3${nota('nr3', '<p>Na tabela.</p>')}</p></td></tr>` +
       '<tr row_id="r2"><td class="td-q" table_id="t1" row_id="r2" cell_id="c3"><p><br></p></td></tr></tbody></table>' +
       `<img src="${png}" width="50%"><p class="ql-text-indent-0px">fim</p>`;
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
@@ -135,6 +149,9 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(retorno.valido, retorno.erro).to.equal(true);
     expect(retorno.xml).to.include('<Justificacao><PartePrincipal>');
     expect(retorno.xml).to.include('<table border="1" id="_tabela1" style="width: 80%">');
+    expect(retorno.xml).to.include('site</a><NotaDeRodape>Nota <b>formatada</b> com <a xlink:href="https://www.senado.leg.br" target="_blank">link</a>.</NotaDeRodape>.');
+    expect(retorno.xml).to.include('<li>um<NotaDeRodape>Primeiro. Segundo.</NotaDeRodape></li>');
+    expect(retorno.xml).to.include('<span class="p">3<NotaDeRodape>Na tabela.</NotaDeRodape></span>');
     // O editor troca `ql-indent` por `indent` ao ler o Quill; o leitor devolve `ql-indent`.
     const lida = lerJustificacao(retorno.jsonix).replace(/ql-indent/g, 'indent');
     const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);

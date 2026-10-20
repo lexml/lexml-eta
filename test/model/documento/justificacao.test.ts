@@ -3,6 +3,7 @@ import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/
 import { lerJustificacao } from '../../../src/model/lexml/documento/conversor/justificacao';
 import { criarDocumentoArticulado, DadosLexEdit, lerDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
 import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
+import { decodeHtml, encodeHtml } from '../../../src/util/string-util';
 
 const PNG = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
 
@@ -27,6 +28,20 @@ const simplificar = (valor: any): any => {
   if (valor.name?.localPart) return { [valor.name.localPart]: simplificar(valor.value) };
   return Object.fromEntries(Object.entries(valor).map(([k, v]) => [k, simplificar(v)]));
 };
+
+// Nota de rodapé no formato de `texto` do editor: `texto` é o HTML do modal, codificado.
+const nota = (id: string, textoHtml: string, numero = 1): string => {
+  const el = document.createElement('lexml-eta-nota-rodape');
+  el.setAttribute('class', 'lexml-eta-nota-rodape');
+  el.setAttribute('contenteditable', 'false');
+  el.setAttribute('id-lexml-eta-nota-rodape', id);
+  el.setAttribute('numero', String(numero));
+  el.setAttribute('texto', encodeHtml(textoHtml));
+  el.textContent = String(numero);
+  return el.outerHTML;
+};
+
+const GEN = 'br_gov_lexml__1.GenInline';
 
 describe('Justificação — salvar (especificação 06)', () => {
   it('grava parágrafos formatados e listas, com as classes', () => {
@@ -145,10 +160,8 @@ describe('Justificação — salvar (especificação 06)', () => {
     expect(simplificar(blocosSalvos('<p>a</p><p><br></p><p>b</p>')[1])).to.deep.equal({ p: { TYPE_NAME: 'br_gov_lexml__1.GenInline' } });
   });
 
-  it('retira a nota de rodapé e as marcas de revisão, mantendo o texto incluído', () => {
-    const [p] = blocosSalvos(
-      '<p>Texto<lexml-eta-nota-rodape id-lexml-eta-nota-rodape="n1" numero="1">1</lexml-eta-nota-rodape> com <ins id-revisao="1">novo</ins><del id-revisao="2">velho</del> fim.</p>'
-    );
+  it('retira as marcas de revisão, mantendo o texto incluído e descartando o excluído com a sua nota', () => {
+    const [p] = blocosSalvos(`<p>Texto com <ins id-revisao="1">novo</ins><del id-revisao="2">velho${nota('nr1', 'da exclusão')}</del> fim.</p>`);
     expect(p.value.content.join('')).to.equal('Texto com novo fim.');
   });
 
@@ -177,6 +190,46 @@ describe('Justificação — salvar (especificação 06)', () => {
   it('sem justificação nos dados gera o mesmo documento de hoje', () => {
     expect(salvar({ justificacao: undefined })).to.deep.equal(salvar({}));
     expect(salvar({}).value.projetoNorma).to.not.have.property('justificacao');
+  });
+});
+
+describe('Justificação — salvar notas de rodapé (especificação 07)', () => {
+  it('grava a nota no ponto da referência, com a formatação e sem número nem id', () => {
+    const [p] = blocosSalvos(`<p>O conceito é definido em regulamento${nota('nr1', '<p>Texto <strong>formatado</strong> da nota.</p>', 3)}.</p>`);
+    expect(simplificar(p.value.content)).to.deep.equal([
+      'O conceito é definido em regulamento',
+      { NotaDeRodape: { TYPE_NAME: GEN, content: ['Texto ', { b: { TYPE_NAME: GEN, content: ['formatado'] } }, ' da nota.'] } },
+      '.',
+    ]);
+  });
+
+  it('grava o link da nota com xlink:href e sem rel', () => {
+    const [p] = blocosSalvos(`<p>a${nota('nr1', '<p>Ver <a href="https://www.congressonacional.leg.br" rel="noopener noreferrer" target="_blank">portal</a>.</p>')}</p>`);
+    expect(simplificar(p.value.content[1])).to.deep.equal({
+      NotaDeRodape: { TYPE_NAME: GEN, content: ['Ver ', { a: { TYPE_NAME: GEN, href: 'https://www.congressonacional.leg.br', target: '_blank', content: ['portal'] } }, '.'] },
+    });
+  });
+
+  it('une os parágrafos da nota com um espaço', () => {
+    const [p] = blocosSalvos(`<p>a${nota('nr1', '<p>Primeiro.</p><p><br></p><p>Segundo.</p>')}</p>`);
+    expect(p.value.content[1].value.content).to.deep.equal(['Primeiro. Segundo.']);
+  });
+
+  it('grava a nota vazia sem conteúdo', () => {
+    const [p] = blocosSalvos(`<p>a${nota('nr1', '<p><br></p>')}</p>`);
+    expect(simplificar(p.value.content[1])).to.deep.equal({ NotaDeRodape: { TYPE_NAME: GEN } });
+  });
+
+  it('grava as notas dentro do item de lista e do span da célula', () => {
+    const tabela = `<table table_id="t1" border="1"><tbody><tr row_id="r1"><td class="td-q" table_id="t1" row_id="r1" cell_id="c1"><p>2025${nota(
+      'nr2',
+      '<p>Na tabela.</p>',
+      2
+    )}</p></td></tr></tbody></table>`;
+    const [lista, tab] = blocosSalvos(`<ul><li>item${nota('nr1', '<p>Na lista.</p>')}</li></ul>${tabela}`);
+    expect(simplificar(lista.value.li[0].content[1])).to.deep.equal({ NotaDeRodape: { TYPE_NAME: GEN, content: ['Na lista.'] } });
+    const span = tab.value.tr[0].tableCellElement[0].value.content[0];
+    expect(simplificar(span)).to.deep.equal({ span: { TYPE_NAME: GEN, clazz: 'p', content: ['2025', { NotaDeRodape: { TYPE_NAME: GEN, content: ['Na tabela.'] } }] } });
   });
 });
 
@@ -253,6 +306,46 @@ describe('Justificação — abrir (especificação 06)', () => {
   it('salvar o HTML lido gera a mesma Justificacao', () => {
     const salvo = salvar({ justificacao: COMPLETO });
     const resalvo = salvar({ justificacao: comoTextoDoEditor(lerJustificacao(salvo)) });
+    expect(resalvo.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
+  });
+});
+
+describe('Justificação — abrir notas de rodapé (especificação 07)', () => {
+  const COM_NOTAS =
+    `<p>Parágrafo${nota('x1', '<p>Texto <strong>formatado</strong> &amp; <a href="https://www.congressonacional.leg.br" target="_blank">link</a>.</p>', 7)}.</p>` +
+    `<ul><li>item${nota('x2', '<p>Na lista.</p>', 8)}</li></ul>` +
+    `<table table_id="t1" border="1"><tbody><tr row_id="r1"><td class="td-q" table_id="t1" row_id="r1" cell_id="c1"><p>2025${nota(
+      'x3',
+      '<p>Na tabela.</p>',
+      9
+    )}</p></td></tr></tbody></table>`;
+
+  const notasLidas = (html: string): HTMLElement[] => Array.from(new DOMParser().parseFromString(html, 'text/html').querySelectorAll('lexml-eta-nota-rodape'));
+
+  it('lê as notas no formato do editor, numeradas pela ordem do texto', () => {
+    const notas = notasLidas(lerJustificacao(salvar({ justificacao: COM_NOTAS })));
+    expect(notas.map(n => n.getAttribute('numero'))).to.deep.equal(['1', '2', '3']);
+    expect(notas.map(n => n.textContent)).to.deep.equal(['1', '2', '3']);
+    expect(notas.map(n => n.closest('p, li')?.tagName)).to.deep.equal(['P', 'LI', 'P']);
+    expect(notas[0].getAttribute('class')).to.equal('lexml-eta-nota-rodape');
+    expect(notas[0].getAttribute('contenteditable')).to.equal('false');
+  });
+
+  it('gera ids distintos, sem reaproveitar os do editor', () => {
+    const ids = notasLidas(lerJustificacao(salvar({ justificacao: COM_NOTAS }))).map(n => n.getAttribute('id-lexml-eta-nota-rodape'));
+    expect(new Set(ids).size).to.equal(3);
+    ids.forEach(id => expect(id).to.match(/^nr\d+$/));
+    expect(ids).to.not.include('x1');
+  });
+
+  it('lê o texto da nota como o HTML do modal, com a formatação', () => {
+    const [primeira] = notasLidas(lerJustificacao(salvar({ justificacao: COM_NOTAS })));
+    expect(decodeHtml(primeira.getAttribute('texto')!)).to.equal('<p>Texto <b>formatado</b> &amp; <a href="https://www.congressonacional.leg.br" target="_blank">link</a>.</p>');
+  });
+
+  it('salvar o HTML lido gera a mesma Justificacao, com as notas', () => {
+    const salvo = salvar({ justificacao: COM_NOTAS });
+    const resalvo = salvar({ justificacao: lerJustificacao(salvo) });
     expect(resalvo.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
   });
 });

@@ -2,6 +2,7 @@ import { expect, fixture } from '@open-wc/testing';
 import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
 import { DOCUMENTO_PADRAO } from '../../../src/model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../../../src/redux/store';
+import { encodeHtml } from '../../../src/util/string-util';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { criarDocumentoArticulado, lerDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
@@ -427,6 +428,70 @@ describe('ETA — salvar e abrir documento articulado', () => {
       editor().updateApenasTexto();
 
       expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+    });
+
+    describe('notas de rodapé', () => {
+      // Nota no formato de `texto`: o atributo `texto` é o HTML do modal, codificado.
+      const nota = (id: string, textoHtml: string, numero: number): string => {
+        const el = document.createElement('lexml-eta-nota-rodape');
+        el.setAttribute('class', 'lexml-eta-nota-rodape');
+        el.setAttribute('contenteditable', 'false');
+        el.setAttribute('id-lexml-eta-nota-rodape', id);
+        el.setAttribute('numero', String(numero));
+        el.setAttribute('texto', encodeHtml(textoHtml));
+        el.textContent = String(numero);
+        return el.outerHTML;
+      };
+      // Números fora de ordem, para conferir a renumeração ao abrir.
+      const COM_NOTAS =
+        `<p class="align-justify">Texto${nota('nr1', '<p>Nota <b>formatada</b>.</p>', 5)} e mais.</p>` +
+        `<ul><li>item${nota('nr2', '<p>Na lista.</p>', 6)}</li></ul>` +
+        '<table table_id="t1" border="1"><tr row_id="r1">' +
+        `<td class="td-q" table_id="t1" row_id="r1" cell_id="c1"><p>2025${nota('nr3', '<p>Na tabela.</p>', 7)}</p></td></tr></table>`;
+      const notasDoEditor = (): HTMLElement[] => Array.from(editor().quill.root.querySelectorAll('lexml-eta-nota-rodape'));
+
+      it('ida e volta com o Quill real: salvar o documento reaberto gera o mesmo documento, com as notas', async () => {
+        carregar(COM_NOTAS);
+        const salvo = component.getDocumentoArticulado();
+        expect(JSON.stringify(salvo.value.projetoNorma.justificacao)).to.include('"localPart":"NotaDeRodape"');
+
+        await component.abrirDocumentoArticulado(salvo);
+        editor().updateApenasTexto();
+
+        expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+      });
+
+      it('ao abrir, as notas são numeradas pela ordem e listadas na aba Notas', async () => {
+        carregar(COM_NOTAS);
+        const salvo = component.getDocumentoArticulado();
+        carregar('');
+
+        await component.abrirDocumentoArticulado(salvo);
+
+        // O Quill envolve o embed com \uFEFF.
+        expect(notasDoEditor().map(n => [n.getAttribute('numero'), n.textContent!.replace(/\uFEFF/g, '')])).to.deep.equal([
+          ['1', '1'],
+          ['2', '2'],
+          ['3', '3'],
+        ]);
+        const lista = editor().notasRodape;
+        expect(lista.map((n: any) => n.numero)).to.deep.equal([1, 2, 3].map(String));
+        expect(lista.map((n: any) => n.texto)).to.deep.equal(['<p>Nota <b>formatada</b>.</p>', '<p>Na lista.</p>', '<p>Na tabela.</p>']);
+        expect((component as any).notasRodape).to.deep.equal(lista);
+      });
+
+      it('abrir um documento sem notas, com uma nota antes no editor, esvazia a lista', async () => {
+        carregar(COM_NOTAS);
+        editor().updateNotasRodape();
+        (component as any).notasRodape = editor().notasRodape;
+        expect((component as any).notasRodape.length).to.equal(3);
+
+        await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+        expect(notasDoEditor()).to.have.length(0);
+        expect(editor().notasRodape).to.deep.equal([]);
+        expect((component as any).notasRodape).to.deep.equal([]);
+      });
     });
 
     // Exceção da spec: o plugin de tabelas não guarda largura, e o setContent a descarta.

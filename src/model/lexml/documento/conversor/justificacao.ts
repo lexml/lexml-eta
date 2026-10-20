@@ -1,5 +1,6 @@
-// Justificação: HTML do editor (`texto` do editor de texto rico) ↔ Justificacao/PartePrincipal do LexML (especificação 06).
-// Mapeamento e decisões em openspec/changes/2026-10-19-c01-salvar-abrir-justificacao/design.md (D4).
+// Justificação: HTML do editor (`texto` do editor de texto rico) ↔ Justificacao/PartePrincipal do LexML (especificações 06 e 07).
+// Decisões em openspec/changes/archive/2026-10-19-c01-salvar-abrir-justificacao/design.md (D4) e 2026-10-19-c02-salvar-abrir-notas-rodape/design.md.
+import { decodeHtml, encodeHtml } from '../../../../util/string-util';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -45,6 +46,7 @@ const montaInline = (nos: NodeListOf<ChildNode> | ChildNode[]): any[] =>
     const el = no as Element;
     if (el.tagName === 'BR') return [];
     if (el.tagName === 'IMG') return [montaImagem(el as HTMLElement)];
+    if (el.tagName === 'LEXML-ETA-NOTA-RODAPE') return [montaNotaRodape(el)];
     const tag = INLINE[el.tagName];
     if (!tag) return montaInline(el.childNodes);
     const value: any = { TYPE_NAME: 'br_gov_lexml__1.GenInline', ...classe(el) };
@@ -54,6 +56,33 @@ const montaInline = (nos: NodeListOf<ChildNode> | ChildNode[]): any[] =>
     }
     return [elemento(tag, comConteudo(value, montaInline(el.childNodes)))];
   });
+
+// Junta textos vizinhos, como o conversor faz ao ler o XML.
+const juntaTextos = (content: any[]): any[] =>
+  content.reduce((acc: any[], item) => {
+    if (typeof item === 'string' && typeof acc[acc.length - 1] === 'string') acc[acc.length - 1] += item;
+    else acc.push(item);
+    return acc;
+  }, []);
+
+// `NotaDeRodape` só aceita inline: os parágrafos do texto da nota são unidos por espaço (especificação 07). Número e id não são gravados.
+const montaNotaRodape = (el: Element): any => {
+  const template = document.createElement('template');
+  template.innerHTML = decodeHtml(el.getAttribute('texto') ?? '');
+  const paragrafos = Array.from(template.content.childNodes)
+    .map(no => (no.nodeType === Node.ELEMENT_NODE && (no as Element).tagName === 'P' ? montaInline(no.childNodes) : montaInline([no])))
+    .filter(content => content.length);
+  const content = juntaTextos(paragrafos.flatMap((p, i) => (i ? [' ', ...p] : p)));
+  if (typeof content[0] === 'string') content[0] = content[0].trimStart();
+  if (typeof content[content.length - 1] === 'string') content[content.length - 1] = content[content.length - 1].trimEnd();
+  return elemento(
+    'NotaDeRodape',
+    comConteudo(
+      { TYPE_NAME: 'br_gov_lexml__1.GenInline' },
+      content.filter(c => c !== '')
+    )
+  );
+};
 
 const montaParagrafo = (el: Element): any => elemento('p', comConteudo({ TYPE_NAME: 'br_gov_lexml__1.GenInline', ...classe(el) }, montaInline(el.childNodes)));
 
@@ -104,8 +133,8 @@ export const montaJustificacao = (html: string | undefined): any | undefined => 
   const template = document.createElement('template');
   template.innerHTML = html ?? '';
   const raiz = template.content;
-  // Notas de rodapé e revisões ainda não são gravadas (#993, #994); `ins` fica só com o texto.
-  raiz.querySelectorAll('del, lexml-eta-nota-rodape').forEach(el => el.remove());
+  // Revisões ainda não são gravadas (#994): `ins` fica só com o texto, e `del` sai com as notas que tiver.
+  raiz.querySelectorAll('del').forEach(el => el.remove());
   const container = document.createElement('div');
   container.append(raiz);
   if (!temConteudo(container)) return undefined;
@@ -173,12 +202,24 @@ const criaImagem = (value: any): HTMLElement => {
 
 const TAGS_INLINE = new Set(['b', 'i', 'u', 'sup', 'sub', 'span', 'a']);
 
+// Nota no formato do editor; `texto` é o HTML do modal, codificado. Id e número são definidos em lerJustificacao.
+const criaNotaRodape = (value: any): HTMLElement => {
+  const p = document.createElement('p');
+  p.append(...criaInline(value?.content));
+  const el = document.createElement('lexml-eta-nota-rodape');
+  el.setAttribute('class', 'lexml-eta-nota-rodape');
+  el.setAttribute('contenteditable', 'false');
+  el.setAttribute('texto', encodeHtml(p.outerHTML));
+  return el;
+};
+
 const criaInline = (content: any[] | undefined): Node[] =>
   (content ?? []).flatMap((item): Node[] => {
     if (typeof item === 'string') return [document.createTextNode(item)];
     const tag = nomeLocal(item);
     if (tag === 'img') return [criaImagem(item.value)];
-    // Inline desconhecido (Remissao, NotaDeRodape, ins, del...): só o texto.
+    if (tag === 'NotaDeRodape') return [criaNotaRodape(item.value)];
+    // Inline desconhecido (Remissao, ins, del...): só o texto.
     if (!tag || !TAGS_INLINE.has(tag)) return criaInline(item?.value?.content);
     const el = document.createElement(tag);
     aplicaAtributos(el, item.value);
@@ -270,5 +311,12 @@ export const lerJustificacao = (documento: any): string => {
       }
     }
   }
+  // Numeração pela ordem do texto (especificação 07); o id só vale na sessão.
+  const prefixoId = `nr${Date.now()}`;
+  container.querySelectorAll('lexml-eta-nota-rodape').forEach((nota, i) => {
+    nota.setAttribute('id-lexml-eta-nota-rodape', `${prefixoId}${i + 1}`);
+    nota.setAttribute('numero', String(i + 1));
+    nota.textContent = String(i + 1);
+  });
   return container.innerHTML;
 };
