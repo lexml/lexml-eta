@@ -180,8 +180,16 @@ const atualizarUuidDoPaiDoElementoRemovido = (state: State, revisao: RevisaoElem
     }
   } else {
     const revisaoPai = findRevisaoById(state.revisoes!, revisao.idRevisaoElementoPai!) as RevisaoElemento;
+    // Dispositivo de bloco de alteração: o artigo hospedeiro é o prefixo do id anterior a `_cpt_alt<n>`.
+    const idHospedeiro =
+      revisao.elementoAposRevisao.hierarquia!.pai!.uuidAlteracao !== undefined ? /^(.+?)_cpt_alt\d+_/.exec(revisao.elementoAposRevisao.lexmlId ?? '')?.[1] : undefined;
+    const hospedeiro = idHospedeiro ? (state.revisoes as RevisaoElemento[]).find(r => isRevisaoElemento(r) && r.elementoAposRevisao.lexmlId === idHospedeiro) : undefined;
     uuid = revisaoPai!.elementoAposRevisao.uuid;
     uuid2 = revisaoPai!.elementoAposRevisao.uuid2;
+    if (hospedeiro) {
+      uuidAlteracao = hospedeiro.elementoAposRevisao.uuid;
+      uuid2Alteracao = hospedeiro.elementoAposRevisao.uuid2;
+    }
   }
 
   revisao.elementoAposRevisao.hierarquia!.pai!.uuid = uuid;

@@ -32,6 +32,7 @@ import {
   getPosicaoDeOrigem,
   getReferenciaDeOrigem,
   getRevisoesElementoAssociadas,
+  getUuidPaiEfetivoDoElemento,
   isMesmoTextoETitulo,
   reconciliarOperacoesRevisao,
   OPERACAO_ADICIONADO,
@@ -295,7 +296,7 @@ const processaEventosDeInclusao = (state: State, actionType: any): Revisao[] => 
     if (revisao) {
       revisoesParaRemover.push(revisao);
     } else {
-      if (!uuidsElementosIncluidos.includes(e.hierarquia?.pai?.uuid)) {
+      if (!uuidsElementosIncluidos.includes(getUuidPaiEfetivoDoElemento(e))) {
         atualizaReferenciaElementoAnteriorSeNecessario(state.articulacao!, state.revisoes, e, 'inclusao');
       }
       result.push(
@@ -322,7 +323,7 @@ const processaEventosDeRemocao = (state: State, actionType: any): Revisao[] => {
     if (revisao && (isRevisaoPrincipal(revisao) || !isRevisaoDeMovimentacao(revisao))) {
       revisoesParaRemover.push(revisao);
     } else {
-      if (!uuidsElementosRemovidos.includes(e.hierarquia?.pai?.uuid)) {
+      if (!uuidsElementosRemovidos.includes(getUuidPaiEfetivoDoElemento(e))) {
         atualizaReferenciaElementoAnteriorSeNecessario(state.articulacao!, state.revisoes, e, 'exclusao');
       }
       const eAux = JSON.parse(JSON.stringify(e)) as Elemento;

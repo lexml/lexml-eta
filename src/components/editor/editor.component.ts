@@ -1,5 +1,6 @@
 import {
   isRevisaoPrincipal,
+  findRevisaoById,
   getQuantidadeRevisoes,
   isRevisaoDeTransformacao,
   isRevisaoDeExclusao,
@@ -2077,8 +2078,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       .forEach(e => mapElementos.set(e.uuid!, e));
 
     const elementos: Elemento[] = [...mapElementos.values()];
-    const uuidsElementosSemRevisao = elementos.filter(e => !e.revisao).map(e => e.uuid!);
-    const uuidsElementosComRevisao = elementos.filter(e => e.revisao && isRevisaoPrincipal(e.revisao)).map(e => e.uuid!);
+    // O elemento de RevisaoRejeitada carrega uma cópia da revisão que já saiu do estado; ela não mantém a marca.
+    const revisoesDoEstado = rootStore.getState().elementoReducer.revisoes;
+    const aindaEmRevisao = (e: Elemento): boolean => !!e.revisao && !!findRevisaoById(revisoesDoEstado, (e.revisao as RevisaoElemento).id);
+    const uuidsElementosSemRevisao = elementos.filter(e => !aindaEmRevisao(e)).map(e => e.uuid!);
+    const uuidsElementosComRevisao = elementos.filter(e => aindaEmRevisao(e) && isRevisaoPrincipal(e.revisao!)).map(e => e.uuid!);
 
     // Remove container de revisão de elementos que não estão mais em revisão
     uuidsElementosSemRevisao.forEach(uuid => {
