@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupadorGenerico, isCaput, isDispositivoGenerico, isOmissis } from '../../dispositivo/tipo';
+import { isAgrupadorGenerico, isCaput, isDispositivoGenerico, isOmissis, isPena } from '../../dispositivo/tipo';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import {
@@ -20,7 +20,8 @@ export const validaHierarquia = (dispositivo: Dispositivo): Mensagem[] => {
       descricao: 'O dispositivo não foi informado',
     });
   }
-  if (dispositivo !== null && dispositivo.filhos.length > 0 && dispositivo.tiposPermitidosFilhos!.length === 0) {
+  // A pena é filha de qualquer dono, então não conta como "filho" para esta regra.
+  if (dispositivo !== null && dispositivo.filhos.some(f => !isPena(f)) && dispositivo.tiposPermitidosFilhos!.filter(t => t !== TipoDispositivo.pena.tipo).length === 0) {
     mensagens.push({
       tipo: TipoMensagem.ERROR,
       descricao: `Segundo a Legislação vigente, ${dispositivo.descricao} não poderia possuir filhos`,
