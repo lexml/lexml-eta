@@ -22,7 +22,7 @@ import {
   podeEditarNotaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { adicionaAcoesDeExistenciaNaNorma, adicionaAcoesDeTitulo, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
+import { adicionaAcaoDePena, adicionaAcoesDeExistenciaNaNorma, adicionaAcoesDeTitulo, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
 
 export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -61,6 +61,8 @@ export function RegrasItem<TBase extends Constructor>(Base: TBase): any {
       adicionaAcoesDeExistenciaNaNorma(dispositivo, acoes);
 
       adicionaAcoesDeTitulo(dispositivo, acoes);
+
+      adicionaAcaoDePena(dispositivo, acoes);
 
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);
