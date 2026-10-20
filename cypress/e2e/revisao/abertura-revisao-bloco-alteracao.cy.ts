@@ -74,3 +74,32 @@ describe('Abertura de artigo com bloco de alteração movido em revisão', () =>
     cy.get('div.container__elemento.elemento-tipo-artigo').first().find('label').should('contain.text', 'Art. 1º');
   });
 });
+
+/**
+ * Situação na norma vigente (Existente/Novo) do bloco de alteração do artigo excluído
+ * (change 2026-10-20-c02-situacao-norma-vigente-dispositivo-excluido).
+ *
+ * Fixture: demo/doc/teste_revisao_exclusao_bloco_situacao.json, gerada por criarDocumentoArticulado() a partir da
+ * MPV 1234/2024, com o artigo do bloco "Existente" e os dois parágrafos "Novo" — não escrita à mão.
+ */
+describe('Abertura de bloco de alteração excluído com a situação na norma vigente', () => {
+  const SEL_EXISTENTE = 'div.container__elemento[existenanormaalterada="true"]';
+  const SEL_NOVO = 'div.container__elemento[existenanormaalterada="false"]';
+
+  beforeEach(() => {
+    abreFixture('teste_revisao_exclusao_bloco_situacao.json');
+  });
+
+  it('exibe Existente e Novo nos dispositivos do bloco do artigo excluído', () => {
+    cy.get(`${SEL_LINHA_EXCLUIDA}[existenanormaalterada="true"]`).should('have.length', 1);
+    cy.get(`${SEL_LINHA_EXCLUIDA}[existenanormaalterada="false"]`).should('have.length', 2);
+  });
+
+  it('rejeitar a exclusão mantém Existente e Novo nos dispositivos restaurados', () => {
+    cy.get(SEL_LINHA_EXCLUIDA).first().find('.blot__revisao_recusar').click({ force: true });
+
+    cy.get(SEL_LINHA_EXCLUIDA).should('not.exist');
+    cy.get(SEL_EXISTENTE).should('have.length', 1);
+    cy.get(SEL_NOVO).should('have.length', 2);
+  });
+});

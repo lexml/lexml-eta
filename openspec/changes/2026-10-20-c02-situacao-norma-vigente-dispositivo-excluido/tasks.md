@@ -11,8 +11,8 @@
 
 ## 3. Integração e E2E
 
-- [ ] 3.1 Cenário no teste de integração com o CLI real (`documentoArticulado.integration.ts`): listas com ids `_…-exc…` sobrevivem à ida e volta
-- [ ] 3.2 E2E (Cypress), avaliado à luz de `docs/guia-cypress.md`: abrir fixture com excluído com bloco e situação, rejeitar a exclusão e conferir os selos; se for inviável, registrar a decisão e manter a cobertura de integração
+- [x] 3.1 Cenário no teste de integração com o CLI real (`documentoArticulado.integration.ts`): listas com ids `_…-exc…` sobrevivem à ida e volta (22 testes passando com o CLI 2.1.0)
+- [x] 3.2 E2E (Cypress), avaliado à luz de `docs/guia-cypress.md`: abrir fixture com excluído com bloco e situação, rejeitar a exclusão e conferir os selos (`abertura-revisao-bloco-alteracao.cy.ts`, fixture `demo/doc/teste_revisao_exclusao_bloco_situacao.json` gerada por `criarDocumentoArticulado`)
 
 ## 4. Fechamento
 

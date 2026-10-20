@@ -349,6 +349,58 @@ describe('Documento articulado — revisões da hierarquia pelo CLI real e XSD',
     });
   });
 
+  describe('bloco de alteração excluído, com a situação na norma vigente (MPV 1234/2024)', () => {
+    const ART4 = 'art1_cpt_alt1_art4';
+    const EXISTENTES = ['_art1-exc1_cpt_alt1_art4'];
+    const NOVOS = ['_art1-exc1_cpt_alt1_art4_par4', '_art1-exc1_cpt_alt1_art4_par5'];
+
+    const existe = (s: State, id: string): boolean | undefined => buscaDispositivoById(s.articulacao!, id)?.existeNaNormaAlterada;
+
+    // O artigo art1 altera uma norma; o bloco tem um artigo "Existente" e dois parágrafos "Novo", e o art1 é excluído em revisão.
+    const sessaoComExclusaoDoBloco = (): State => {
+      let s = elementoReducer(undefined, {
+        type: ABRIR_ARTICULACAO,
+        articulacao: buildProjetoNormaFromJsonix(MPV_1234_2024).articulacao!,
+        classificacao: ClassificacaoDocumento.PROJETO,
+      });
+      s = elementoReducer(s, { type: ATUALIZAR_USUARIO, usuario: { nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' } });
+      buscaDispositivoById(s.articulacao!, ART4)!.existeNaNormaAlterada = true;
+      buscaDispositivoById(s.articulacao!, `${ART4}_par4`)!.existeNaNormaAlterada = false;
+      buscaDispositivoById(s.articulacao!, `${ART4}_par5`)!.existeNaNormaAlterada = false;
+      s = elementoReducer(s, { type: ATIVAR_DESATIVAR_REVISAO });
+      return elementoReducer(s, { type: REMOVER_ELEMENTO, atual: elemento(s, 'art1') });
+    };
+
+    it('as listas com os ids _<id>-exc<n> vão e voltam pelo CLI', async () => {
+      const sessao = sessaoComExclusaoDoBloco();
+      const salvo = criarDocumentoArticulado(sessao.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: montaRevisoesArticulacao(sessao)! });
+
+      const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+
+      expect(retorno.valido, retorno.erro).to.equal(true);
+      expect(retorno.xml).to.include(`<lexedit:SituacaoNaNormaVigente refIdsDispositivosExistentes="${EXISTENTES.join(' ')}" refIdsDispositivosNovos="${NOVOS.join(' ')}"/>`);
+      expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+      expect(lerSituacaoNaNormaVigente(retorno.jsonix)).to.deep.equal({ existentes: EXISTENTES, novos: NOVOS });
+    });
+
+    it('o documento reaberto a partir do retorno do CLI devolve Existente/Novo ao rejeitar a exclusão', async () => {
+      const sessao = sessaoComExclusaoDoBloco();
+      const salvo = criarDocumentoArticulado(sessao.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: montaRevisoesArticulacao(sessao)! });
+      const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+      expect(retorno.valido, retorno.erro).to.equal(true);
+
+      const aberto = abreArticulacao(lerDocumentoArticulado(retorno.jsonix));
+      const lidas = lerMetadadoLexEdit(retorno.jsonix).revisoesLidas!;
+      const reaberto = elementoReducer(aberto, aplicarRevisoesAction.execute(reconstroiRevisoes(aberto.articulacao!, lidas, lerSituacaoNaNormaVigente(retorno.jsonix))));
+
+      expect(principais(reaberto)).to.have.length(1);
+      const rejeitado = elementoReducer(reaberto, { type: REJEITAR_REVISAO, revisao: principais(reaberto)[0] });
+      expect(existe(rejeitado, ART4)).to.equal(true);
+      expect(existe(rejeitado, `${ART4}_par4`)).to.equal(false);
+      expect(existe(rejeitado, `${ART4}_par5`)).to.equal(false);
+    });
+  });
+
   describe('título do dispositivo em revisão (MPV 905/2019)', () => {
     const INCISOS = { adicionado: 'art1_par1u_inc1', alterado: 'art1_par1u_inc2', removido: 'art1_par1u_inc3', formatado: 'art1_par1u_inc4' };
     const ARTIGO = 'art4';
