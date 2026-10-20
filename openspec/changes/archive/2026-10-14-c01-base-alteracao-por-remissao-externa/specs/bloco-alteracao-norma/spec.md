@@ -54,6 +54,18 @@ O sistema SHALL exibir um aviso (WARNING) no artigo com bloco de alteração cuj
 - **WHEN** o artigo tem o aviso de divergência e o usuário salva o documento
 - **THEN** o documento é salvo normalmente
 
+#### Scenario: Aviso aparece ao citar outra norma durante a edição
+- **WHEN** o artigo tem norma alterada "Lei nº 14.133/2021", o usuário apaga a citação dessa lei, escreve a citação da "Lei nº 8.666/1993" e sai da linha
+- **THEN** o artigo exibe o aviso de divergência com as duas normas, sem depender de salvar ou reabrir o documento
+
+#### Scenario: Remissão apagada não conta para o aviso
+- **WHEN** o usuário apaga a única citação do artigo e não há mais nenhuma remissão externa no texto
+- **THEN** nenhum aviso de divergência é exibido
+
+#### Scenario: Aviso permanece ao navegar entre as linhas
+- **WHEN** o artigo exibe o aviso de divergência e o usuário seleciona outra linha e volta ao artigo
+- **THEN** o aviso continua exibido no artigo enquanto a divergência existir
+
 #### Scenario: Aviso permanece até a divergência acabar
 - **WHEN** o usuário ignora o aviso e continua editando outros dispositivos
 - **THEN** o aviso continua exibido no artigo até que a norma alterada e a norma citada passem a coincidir, ou o artigo passe a ter outro número de remissões externas
@@ -73,6 +85,14 @@ Ao abrir um documento, o sistema SHALL avaliar o aviso de divergência de cada a
 - **WHEN** o usuário abre um documento em que a norma alterada de cada artigo de alteração coincide com a norma da sua única remissão externa
 - **THEN** nenhum aviso de divergência é exibido
 
+#### Scenario: Corrigir agora o erro de norma não informada com uma remissão
+- **WHEN** o artigo de alteração não tem norma alterada, tem exatamente uma remissão externa e o usuário aciona "Corrigir agora"
+- **THEN** a norma alterada passa a ser a da remissão, sem abrir o diálogo, e a correção pode ser desfeita
+
+#### Scenario: Corrigir agora o erro de norma não informada sem remissão única
+- **WHEN** o artigo de alteração não tem norma alterada, tem nenhuma ou duas ou mais remissões externas e o usuário aciona "Corrigir agora"
+- **THEN** o diálogo de identificação da norma é aberto e a norma alterada só muda se o usuário confirmá-lo
+
 ### Requirement: Informar a norma alterada preserva a remissão externa do artigo
 Ao informar a norma alterada pelo diálogo "Corrigir agora" de um artigo que já tem uma remissão externa, o sistema SHALL manter essa remissão como remissão externa, com seu comportamento de link, popup de ações e persistência, e SHALL NOT substituí-la por um link comum.
 
@@ -82,7 +102,7 @@ Ao informar a norma alterada pelo diálogo "Corrigir agora" de um artigo que já
 
 #### Scenario: Informar a norma num artigo sem texto continua gerando a frase
 - **WHEN** o artigo de alteração está sem texto e o usuário informa a norma alterada pelo diálogo
-- **THEN** o texto "A/O <norma>, passa a vigorar com as seguintes alterações:" é gerado com a norma como remissão externa, como já ocorre hoje
+- **THEN** o texto "A/O <norma>, passa a vigorar com as seguintes alterações:" é gerado com a norma citada como link, como já ocorre hoje
 
 ### Requirement: Nome da norma gerado para números compostos
 O texto gerado automaticamente com o nome da norma SHALL exibir números compostos de forma legível (ex.: "Medida Provisória nº 2.158-35, de 2001") e SHALL NOT exibir "NaN".

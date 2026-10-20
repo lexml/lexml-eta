@@ -212,10 +212,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   /** Exporta somente os grupos implementados do documento LexML. */
   getDocumentoArticulado(): DocumentoArticulado {
     if (!this.urn) throw new Error('Inicialize um documento antes de salvar.');
+    // O colegiado apreciador não é gravado no anexo de parecer (spec metadados-lexedit).
     return this._lexmlEta!.getDocumentoArticulado({
       local: this.getLocalFecho(),
       data: normalizarDataFecho(this._lexmlData.data),
       autoria: this._lexmlAutoria.getAutoriaAtualizada(),
+      ...(this.anexoParecer ? {} : { colegiadoApreciador: this._lexmlDestino!.colegiadoApreciador }),
       opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao,
     });
   }
@@ -234,6 +236,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     // Dados do arquivo como gravados, sem consultar a lista de parlamentares do host.
     if (dados.autoria) this._lexmlAutoria.autoria = dados.autoria;
     this._lexmlData.data = dados.data ?? '';
+    // A casa continua a do host: ela define a lista de comissões carregada.
+    if (dados.colegiadoApreciador && !this.anexoParecer) {
+      const { tipoColegiado, siglaComissao } = dados.colegiadoApreciador;
+      this._lexmlDestino!.colegiadoApreciador = { ...this._lexmlDestino!.colegiadoApreciador, tipoColegiado, siglaComissao };
+    }
     this.localDoArquivo = dados.local;
     this.destinoAoAbrir = { ...this._lexmlDestino!.colegiadoApreciador };
   }

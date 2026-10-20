@@ -12,7 +12,7 @@ o conteúdo do LexEdit ser convertido em objetos tipados; e Rotulo é xsd:string
 A validação dos testes usa lexedit.xsd como entrada. Ele importa lexml-simples.xsd e, assim,
 valida também o conteúdo de lexedit:Metadado, que lexml-simples.xsd sozinho não verifica.
 
-O teste exige o executável jsonix-lexml da versão 2.0.0, nessa revisão, e Java 11 ou superior.
+O teste exige o executável jsonix-lexml da versão 2.1.0 e Java 11 ou superior.
 Defina JSONIX_LEXML_CLI com o caminho absoluto do executável e execute
 npm run test:documento-articulado:xml.
 

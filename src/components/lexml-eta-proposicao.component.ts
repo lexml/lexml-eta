@@ -8,7 +8,7 @@ import { aplicarRevisoesAction } from '../model/lexml/acao/aplicarRevisoes';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { completarRegistroRemissoes } from '../redux/elemento/reducer/adicionaRemissaoInterna';
-import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildProjetoNormaFromJsonix, lerIdsRemissoesInvalidas, lerSituacaoNaNormaVigente } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../redux/store';
 import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
@@ -18,6 +18,7 @@ import { EditorComponent } from './editor/editor.component';
 import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado, RevisaoArticulacaoLida } from '../model/lexml/documento/documentoArticulado';
 import { montaRevisoesArticulacao } from '../model/lexml/documento/conversor/revisaoArticulacao';
 import { reconstroiRevisoes } from '../model/lexml/documento/conversor/reconstroiRevisoes';
+import { aplicarSituacaoNaNormaVigente } from '../model/lexml/documento/conversor/situacaoNaNormaVigente';
 
 @customElement('lexml-eta-proposicao')
 export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) {
@@ -104,6 +105,8 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     const documento = buildProjetoNormaFromJsonix(this.projetoNorma, preservarTextoDocumento);
     documento.urn = this.urn;
     const idsRemissoesInvalidas = lerIdsRemissoesInvalidas(this.projetoNorma);
+    // Antes do dispatch: os elementos são criados na abertura e já leem a situação do dispositivo.
+    aplicarSituacaoNaNormaVigente(documento.articulacao, lerSituacaoNaNormaVigente(this.projetoNorma));
 
     document.querySelector('lexml-eta')?.querySelector('sl-tab')?.click();
     rootStore.dispatch(openArticulacaoAction(documento.articulacao!, 'edicao', params, idsRemissoesInvalidas));

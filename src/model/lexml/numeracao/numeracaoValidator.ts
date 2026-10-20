@@ -1,6 +1,5 @@
-import { TipoDispositivo } from './../tipo/tipoDispositivo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isDispositivoGenerico, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
@@ -17,7 +16,7 @@ import {
   validaOrdemDispositivo,
 } from '../hierarquia/hierarquiaUtil';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
-import { comparaNumeracao } from './numeracaoUtil';
+import { comparaNumeracao, hasRotuloPendente, podeRenumerarDispositivo } from './numeracaoUtil';
 
 export const getDispositivoAnteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
   const d = getDispositivoAnteriorMesmoTipo(dispositivo);
@@ -81,15 +80,11 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
     });
   }
 
-  if (
-    dispositivo !== null &&
-    !isDispositivoGenerico(dispositivo) &&
-    (dispositivo.rotulo?.endsWith(dispositivo.tipo) || dispositivo.rotulo?.toLowerCase() === TipoDispositivo[dispositivo.tipo.toLowerCase()].descricao?.toLowerCase())
-  ) {
+  if (dispositivo !== null && hasRotuloPendente(dispositivo)) {
     mensagens.push({
       tipo: TipoMensagem.CRITICAL,
       descricao: AutoFix.RENUMERAR_DISPOSITIVO,
-      fix: true,
+      fix: podeRenumerarDispositivo(dispositivo),
     });
   }
   if (dispositivo !== null && isDispositivoAlteracao(dispositivo) && isParagrafo(dispositivo) && !isUnicoMesmoTipo(dispositivo) && dispositivo.rotulo?.endsWith('único.')) {

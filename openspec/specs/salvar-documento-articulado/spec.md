@@ -154,7 +154,7 @@ Ao salvar, o sistema SHALL registrar nos metadados do LexEdit o local do fecho e
 - **THEN** o arquivo salvo registra o local "Sala da comissão"
 
 #### Scenario: Local derivado após mudança de destino
-- **WHEN** o usuário abre um documento cujo local registrado é "Sala da comissão", altera o destino exibido após a abertura (ex.: para "Plenário via Comissão") e salva
+- **WHEN** o usuário abre um documento cujo local registrado é "Sala da comissão", altera o destino exibido após a abertura (ex.: para "Plenário") e salva
 - **THEN** o arquivo salvo registra o local "Sala das sessões"
 
 ### Requirement: Representação textual do local e da data do fecho
@@ -219,7 +219,7 @@ Ao salvar, o sistema SHALL gerar em `ParteFinal`, depois de `LocalDataFecho`, um
 - **THEN** `ParteFinal` contém primeiro `LocalDataFecho` e depois os dois `AssinaturaTexto`, na ordem dos parlamentares
 
 #### Scenario: Validação pelo esquema LexML
-- **WHEN** o documento salvo com autoria de parlamentares é convertido em XML pelo conversor `jsonix-lexml` 2.0.0
+- **WHEN** o documento salvo com autoria de parlamentares é convertido em XML pelo conversor `jsonix-lexml` 2.1.0
 - **THEN** o XML é válido perante o esquema LexML e o esquema do LexEdit, e a conversão de volta para JSON reproduz a mesma autoria e a mesma `ParteFinal`
 
 ### Requirement: Serialização das revisões da hierarquia

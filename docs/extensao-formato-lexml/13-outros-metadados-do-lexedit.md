@@ -2,7 +2,7 @@
 
 ## Necessidade informacional
 
-Além dos grupos de elementos já especificados, o LexEdit precisa preservar alguns dados gerais sobre o arquivo e sobre a proposição legislativa que ele representa: quando o arquivo foi modificado pela última vez, qual aplicação (e versão) o gerou, se a proposição é um substitutivo e se o documento será utilizado como anexo de parecer.
+Além dos grupos de elementos já especificados, o LexEdit precisa preservar alguns dados gerais sobre o arquivo e sobre a proposição legislativa que ele representa: quando o arquivo foi modificado pela última vez, qual aplicação (e versão) o gerou, qual documento a proposição referencia e se o documento será utilizado como anexo de parecer. Também registra a situação, na norma vigente, dos dispositivos de bloco de alteração.
 
 ## Representação adotada
 
@@ -13,13 +13,13 @@ Atributos do próprio elemento `lexedit:Metadado`.
     dataUltimaModificacao='2026-05-12T10:15:00-03:00'
     aplicacao='LexEdit'
     versaoAplicacao='1.0.0'
-    substitutivo='false'
+    urnDocumentoReferenciado='urn:lex:br:senado.federal:projeto.lei:888888;2020'
     anexoParecer='false'>
     ...
 </lexedit:Metadado>
 ```
 
-`dataUltimaModificacao` é do tipo xsd:dateTime. `substitutivo` e `anexoParecer` são do tipo xsd:boolean.
+`dataUltimaModificacao` é do tipo xsd:dateTime. `anexoParecer` é do tipo xsd:boolean. `urnDocumentoReferenciado` é do tipo xsd:string, opcional, e guarda a URN do documento ao qual a proposição se refere; está previsto no esquema, mas o LexEdit ainda não o preenche nem o lê.
 
 ## Pendências
 
@@ -43,3 +43,20 @@ Lista de strings no elemento `lexedit:Pendencias`, cada uma em um elemento `lexe
 </lexedit:Metadado>
 ```
 
+## Situação dos dispositivos na norma vigente
+
+### Necessidade informacional
+
+Em bloco de alteração de norma, cada dispositivo pode ser indicado como existente na norma vigente ou como novo. Essa indicação não consta no texto do dispositivo e precisa ser preservada.
+
+### Representação adotada
+
+Elemento `lexedit:SituacaoNaNormaVigente`, com duas listas de ids de dispositivos, separados por espaço: `refIdsDispositivosExistentes` e `refIdsDispositivosNovos`. Ambos os atributos são opcionais e do tipo xsd:string. Constam apenas dispositivos de bloco de alteração com situação informada, e o elemento é omitido quando as duas listas estão vazias.
+
+```xml
+<lexedit:Metadado>
+    <lexedit:SituacaoNaNormaVigente
+        refIdsDispositivosExistentes='art1_cpt_alt1_art5 art1_cpt_alt1_art5_par1'
+        refIdsDispositivosNovos='art1_cpt_alt1_art5-1'/>
+</lexedit:Metadado>
+```

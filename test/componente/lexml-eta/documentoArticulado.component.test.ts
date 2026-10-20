@@ -236,14 +236,14 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('volta a derivar o local quando o destino muda', async () => {
-      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da comissão', data: '2026-04-24' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala das sessões', data: '2026-04-24' }));
       (component.querySelector('lexml-eta-destino') as any).colegiadoApreciador = {
         siglaCasaLegislativa: 'SF',
-        tipoColegiado: 'Plenário via Comissão',
+        tipoColegiado: 'Comissão',
         siglaComissao: 'CCJ',
       };
 
-      expect(localSalvo()).to.equal('Sala das sessões');
+      expect(localSalvo()).to.equal('Sala da comissão');
     });
 
     it('abrir outro documento não herda o local nem a data do anterior', async () => {
@@ -262,6 +262,85 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
       expect((salvo.value.projetoNorma.norma as any).parteFinal.localDataFecho.p[0].content[0]).to.equal('Sala da comissão, 1º de maio de 2026.');
+    });
+  });
+
+  describe('colegiado apreciador', () => {
+    const destino = (): any => component.querySelector('lexml-eta-destino');
+    const entradaComColegiado = (colegiado: Record<string, unknown>, extra: Record<string, unknown> = {}): any => {
+      const entrada = novoDocumentoArticulado();
+      entrada.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit({ colegiadoApreciador: colegiado, ...extra })];
+      return entrada;
+    };
+
+    it('salva o destino Plenário atual', () => {
+      const colegiado = lexeditSalvo(component.getDocumentoArticulado()).colegiadoApreciador;
+
+      expect(colegiado.tipoColegiado).to.equal('Plenário');
+      expect(colegiado).not.to.have.property('siglaComissao');
+    });
+
+    it('salva o destino Comissão com a sigla escolhida', () => {
+      destino().colegiadoApreciador = { siglaCasaLegislativa: 'SF', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' };
+
+      const colegiado = lexeditSalvo(component.getDocumentoArticulado()).colegiadoApreciador;
+
+      expect(colegiado).to.include({ siglaCasaLegislativa: 'SF', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
+    });
+
+    it('no modo anexo de parecer não salva o colegiado', () => {
+      (component as any).anexoParecer = true;
+
+      expect(lexeditSalvo(component.getDocumentoArticulado())).not.to.have.property('colegiadoApreciador');
+    });
+
+    it('abre o destino Comissão do arquivo', async () => {
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }));
+
+      expect(destino().colegiadoApreciador).to.include({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
+    });
+
+    it('mantém a casa do host em vez da casa do arquivo', async () => {
+      const casaDoHost = destino().colegiadoApreciador.siglaCasaLegislativa;
+      const casaDoArquivo = casaDoHost === 'SF' ? 'CD' : 'SF';
+
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: casaDoArquivo, tipoColegiado: 'Plenário' }));
+
+      expect(destino().colegiadoApreciador.siglaCasaLegislativa).to.equal(casaDoHost);
+    });
+
+    it('arquivo sem o grupo mantém o destino padrão, sem herdar o do documento anterior', async () => {
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }));
+      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+      expect(destino().colegiadoApreciador.tipoColegiado).to.equal('Plenário');
+    });
+
+    it('tipo desconhecido no arquivo assume Plenário', async () => {
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Plenário via Comissão' }));
+
+      expect(destino().colegiadoApreciador.tipoColegiado).to.equal('Plenário');
+    });
+
+    it('tipo desconhecido enviado pelo host assume Plenário', () => {
+      destino().colegiadoApreciador = { siglaCasaLegislativa: 'SF', tipoColegiado: 'Plenário via Comissão' };
+
+      expect(destino().colegiadoApreciador.tipoColegiado).to.equal('Plenário');
+    });
+
+    it('mantém o local do arquivo enquanto o destino aplicado não muda', async () => {
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }, { local: 'Sala da comissão' }));
+
+      expect(lexeditSalvo(component.getDocumentoArticulado()).local).to.equal('Sala da comissão');
+    });
+
+    it('salvar e reabrir preserva o destino', async () => {
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }));
+      const salvo = component.getDocumentoArticulado();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(lexeditSalvo(component.getDocumentoArticulado()).colegiadoApreciador).to.deep.equal(lexeditSalvo(salvo).colegiadoApreciador);
     });
   });
 
@@ -409,6 +488,8 @@ describe('ETA — salvar e abrir documento articulado', () => {
         local: 'Sala da comissão',
         data: '2026-04-24',
         opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...OPCOES },
+        // O arquivo provisório não tem destino: vale o padrão do editor.
+        colegiadoApreciador: { TYPE_NAME: 'br_gov_lexml_lexedit__1.ColegiadoApreciador', siglaCasaLegislativa: 'CN', tipoColegiado: 'Plenário' },
         remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idRemissao },
         pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: ['Corrigir remissões internas inválidas.'] },
       });
