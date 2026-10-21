@@ -3,7 +3,9 @@ import { isCaput } from '../../../model/dispositivo/tipo';
 import { createElemento, createElementoValidado } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
-import { updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
+import { isDispositivoAlteracao, isDispositivoCabecaAlteracao, podeRenumerarFilhosAutomaticamente } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
+import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
 import { textoFoiModificado } from '../util/reducerUtil';
@@ -28,6 +30,13 @@ export const adicionaAposPena = (state: any, action: any, pena: Dispositivo): St
     ? criaDispositivo(dono, TipoDispositivo.paragrafo.tipo, undefined, (dono as Artigo).caput!.filhos.length)
     : criaDispositivo(dono.pai!, dono.tipo, dono);
   novo.texto = '';
+
+  if (isDispositivoAlteracao(novo)) {
+    novo.createRotulo(novo);
+    novo.id = buildId(novo);
+    novo.mensagens?.push({ tipo: TipoMensagem.WARNING, descricao: `É necessário informar o rótulo do dispositivo` });
+    novo.existeNaNormaAlterada = isDispositivoCabecaAlteracao(novo) || !podeRenumerarFilhosAutomaticamente(novo.pai!);
+  }
 
   novo.pai!.renumeraFilhos();
   updateIdDispositivoAndFilhos(novo.pai!);

@@ -4,7 +4,12 @@ import { createElemento, createElementoValidado, getDispositivoFromElemento } fr
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { AdicionarPena } from '../../../model/lexml/acao/penaAction';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { getDispositivoAndFilhosAsLista, getDispositivosAfetadosPelaPena } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  getDispositivoAndFilhosAsLista,
+  getDispositivosAfetadosPelaPena,
+  isDispositivoAlteracao,
+  podeRenumerarFilhosAutomaticamente,
+} from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { normalizaRotuloPena } from '../../../model/lexml/numeracao/rotuloPena';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
@@ -33,6 +38,9 @@ export const adicionaPena = (state: any, action: any): State => {
   const novo = criaDispositivo(dono, TipoDispositivo.pena.tipo);
   novo.texto = '';
   novo.rotulo = rotulo;
+  if (isDispositivoAlteracao(novo)) {
+    novo.existeNaNormaAlterada = !podeRenumerarFilhosAutomaticamente(dono);
+  }
   updateIdDispositivoAndFilhos(referencia);
 
   // A pena é o último filho: a linha entra depois do penúltimo (ou do próprio artigo, no caput sem filhos).

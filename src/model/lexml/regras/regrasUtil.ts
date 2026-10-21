@@ -32,10 +32,10 @@ export const adicionaAcoesDeTitulo = (dispositivo: Dispositivo, acoes: ElementoA
   }
 };
 
-// A pena do artigo pertence ao caput. Em bloco de alteração a ação só é liberada na task 5.1.
+// A pena do artigo pertence ao caput; o artigo que carrega bloco de alteração não aceita pena própria.
 export const adicionaAcaoDePena = (dispositivo: Dispositivo, acoes: ElementoAction[]): void => {
   const dono = isArtigo(dispositivo) ? (dispositivo as Artigo).caput! : dispositivo;
-  if (isBloqueado(dispositivo) || isDispositivoAlteracao(dispositivo) || dispositivo.hasAlteracao() || dono.filhos.some(isPena)) {
+  if (isBloqueado(dispositivo) || dispositivo.hasAlteracao() || dono.filhos.some(isPena)) {
     return;
   }
   acoes.push(adicionarPenaAction);
