@@ -30,7 +30,7 @@
 
 ## 5. Bloco de alteração de norma
 
-- [ ] 5.1 Habilitar a pena dentro do bloco (Existente/Novo, `SituacaoNaNormaVigente`, caput omissis seguido de pena, aspas e "(NR)" na linha da pena quando é a última) e bloquear a pena no artigo que carrega o bloco, inclusive por ação que não passa pelo menu; verificar com testes de reducer, de `createElemento` (fecha aspas) e de conversão com `SituacaoNaNormaVigente`
+- [x] 5.1 Habilitar a pena dentro do bloco (Existente/Novo, `SituacaoNaNormaVigente`, caput omissis seguido de pena, aspas e "(NR)" na linha da pena quando é a última) e bloquear a pena no artigo que carrega o bloco, inclusive por ação que não passa pelo menu; verificar com testes de reducer, de `createElemento` (fecha aspas) e de conversão com `SituacaoNaNormaVigente`
 
 ## 6. Revisão
 
