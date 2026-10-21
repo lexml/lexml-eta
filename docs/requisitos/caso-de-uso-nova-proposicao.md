@@ -123,7 +123,7 @@ Exemplos:
 ```
 urn:lex:br:senado.federal:projeto.lei;pl:2026;999999
 urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;999999
-  urnDocumentoDeReferencia: urn:lex:br:presidencia.republica:medida.provisoria;mpv:2026;4321
+  urnDocumentoDeReferencia: urn:lex:br:federal:medida.provisoria;mpv:2026;4321
 
 urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo
 
@@ -203,7 +203,7 @@ Cada tipo de documento é associado a um modelo de preâmbulo no vocabulário. O
 - Há limite de tamanho para o arquivo importado? (Formatos aceitos: DOCX, TXT e LexML.)
 - No `SF`, como o tipo do documento define as siglas referenciáveis? É preciso um atributo no vocabulário (ex.: lista de siglas substituíveis por tipo) ou a derivação é feita por outra regra?
 - Nas duas casas, as siglas de tipos inativos que aceitavam substitutivo entram na lista? (A RN-00a assume que sim.)
-- Proposições de outras autoridades (ex.: `presidencia.republica`, para MPV) entram na lista de siglas referenciáveis? A MPV do PLV é de `presidencia.republica`, fora das autoridades da casa.
+- Proposições de outras autoridades (ex.: `federal`, para MPV) entram na lista de siglas referenciáveis? A MPV do PLV é de `federal`, fora das autoridades da casa.
 
 ## 9. Caso relacionado: trocar tipo do documento
 
