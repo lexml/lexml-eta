@@ -16,15 +16,22 @@ export const getPreambuloPadrao = (urn: string): string | undefined => {
   return VOCABULARIO.preambulosPadrao.find(p => p.urnTipoDocumento === tipo && p.urnAutoridade === autoridade)?.texto;
 };
 
+// Prefere o item da autoridade da URN; sem ele, vale o primeiro na ordem de mesclagem (normas referenciadas trazem combinações não declaradas).
+const procurarPorAutoridade = <T extends { urnAutoridade: string }>(itens: T[], urn: string, predicado: (item: T) => boolean): T | undefined => {
+  const autoridade = urn.replace('urn:lex:br:', '').split(':')[0];
+  const candidatos = itens.filter(predicado);
+  return candidatos.find(i => i.urnAutoridade === autoridade) ?? candidatos[0];
+};
+
 export const getSigla = (urn: string): string => {
   const tipo = getTipo(urn) ?? {};
-  const fnProcurarPorUrnTipoDocumento = (item: any): any => item.urnTipoDocumento === tipo.urn;
-  return VOCABULARIO.siglas.find(fnProcurarPorUrnTipoDocumento)?.sigla ?? VOCABULARIO.fakeUrns.find(fnProcurarPorUrnTipoDocumento)?.sigla ?? '';
+  const doTipo = (item: { urnTipoDocumento: string }): boolean => item.urnTipoDocumento === tipo.urn;
+  return procurarPorAutoridade(VOCABULARIO.siglas, urn, doTipo)?.sigla ?? procurarPorAutoridade(VOCABULARIO.fakeUrns, urn, doTipo)?.sigla ?? '';
 };
 
 export const getTipo = (urn: string): any => {
   const tipo = urn.replace('urn:lex:br:', '')?.split(':');
-  return VOCABULARIO.tiposDocumento.filter(t => t.urn === tipo[1])[0];
+  return procurarPorAutoridade(VOCABULARIO.tiposDocumento, urn, t => t.urn === tipo[1]);
 };
 
 export const getNumero = (urn: string): string => {
@@ -215,5 +222,5 @@ export const getGeneroUrnNorma = (urn: string): Genero => {
 export const getTipoDocumentoUrn = (urn: string): any => {
   if (!urn) return undefined;
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  return VOCABULARIO.tiposDocumento.find(t => t.urn === partes[1]);
+  return procurarPorAutoridade(VOCABULARIO.tiposDocumento, urn, t => t.urn === partes[1]);
 };
