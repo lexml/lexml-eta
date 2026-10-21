@@ -5,6 +5,7 @@ import {
   getAgrupadorAntes,
   getDispositivosAfetadosPelaPena,
   getPenaSeguinte,
+  getDispositivoAnteriorNaSequenciaDeLeitura,
   getArticulacaoAlteracao,
   getPaiQuePodeReceberFilhoDoTipo,
 } from './../../../model/lexml/hierarquia/hierarquiaUtil';
@@ -45,6 +46,12 @@ export const buildEventoAdicionarElemento = (atual: Dispositivo, novo: Dispositi
 
   if (isDispositivoAlteracao(atual)) {
     eventos.add(StateType.SituacaoElementoModificada, [createElemento(atual)]);
+  }
+
+  // A linha anterior (ex.: a pena do artigo) pode ter deixado de ser a última da alteração e perdido as aspas e a nota.
+  const anterior = isDispositivoAlteracao(novo) ? getDispositivoAnteriorNaSequenciaDeLeitura(novo) : undefined;
+  if (anterior && anterior !== atual && isDispositivoAlteracao(anterior) && anterior.tipo !== 'Articulacao') {
+    eventos.add(StateType.SituacaoElementoModificada, [createElemento(anterior)]);
   }
 
   return eventos;
