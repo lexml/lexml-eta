@@ -1,4 +1,5 @@
 export class LexmlEtaConfig {
+  casaLegislativaEditor = 'SF';
   urlConsultaParlamentares = 'api/parlamentares';
   urlAutocomplete = 'api/autocomplete-norma';
   urlPortalNormas = 'https://normas.leg.br';

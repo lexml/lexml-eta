@@ -1,27 +1,24 @@
-import { VocabularioAutoridade } from './tipos';
+import { TextoPreambuloPadrao, VocabularioAutoridade } from './tipos';
 
 export const federal: VocabularioAutoridade = {
   autoridade: { urn: 'federal', descricao: 'Federal' },
   tiposDocumento: [
-    { urn: 'lei', descricao: 'Lei', genero: 'F' },
-    { urn: 'lei.complementar', descricao: 'Lei Complementar', genero: 'F' },
-    { urn: 'lei.delegada', descricao: 'Lei Delegada', genero: 'F' },
-    { urn: 'decreto.lei', descricao: 'Decreto-Lei', genero: 'M' },
-    { urn: 'decreto', descricao: 'Decreto', genero: 'M' },
-    { urn: 'consolidacao.leis.trabalho', descricao: 'Consolidação das Leis do Trabalho', genero: 'F' },
-    { urn: 'constituicao', descricao: 'Constituição', genero: 'F' },
-    { urn: 'ato.disposicoes.constitucionais.transitorias', descricao: 'Ato das Disposições Constitucionais Transitórias', genero: 'M' },
-    { urn: 'emenda.constitucional', descricao: 'Emenda Constitucional', genero: 'F' },
-    { urn: 'emenda.constitucional.revisao', descricao: 'Emenda Constitucional de Revisão', genero: 'F' },
-    { urn: 'medida.provisoria', descricao: 'Medida Provisória', genero: 'F' },
-    { urn: 'medida.provisoria;mpv', descricao: 'Medida Provisória', genero: 'F' },
+    { urnTipoDocumento: 'lei', descricao: 'Lei', genero: 'F' },
+    { urnTipoDocumento: 'lei.complementar', descricao: 'Lei Complementar', genero: 'F' },
+    { urnTipoDocumento: 'lei.delegada', descricao: 'Lei Delegada', genero: 'F' },
+    { urnTipoDocumento: 'decreto.lei', descricao: 'Decreto-Lei', genero: 'M' },
+    { urnTipoDocumento: 'decreto', descricao: 'Decreto', genero: 'M' },
+    { urnTipoDocumento: 'consolidacao.leis.trabalho', descricao: 'Consolidação das Leis do Trabalho', genero: 'F' },
+    { urnTipoDocumento: 'constituicao', descricao: 'Constituição', genero: 'F' },
+    { urnTipoDocumento: 'ato.disposicoes.constitucionais.transitorias', descricao: 'Ato das Disposições Constitucionais Transitórias', genero: 'M' },
+    { urnTipoDocumento: 'emenda.constitucional', descricao: 'Emenda Constitucional', genero: 'F' },
+    { urnTipoDocumento: 'emenda.constitucional.revisao', descricao: 'Emenda Constitucional de Revisão', genero: 'F' },
+    { urnTipoDocumento: 'medida.provisoria', sigla: 'MPV', descricao: 'Medida Provisória', genero: 'F' },
   ],
-  siglas: [{ urnTipoDocumento: 'medida.provisoria', sigla: 'MPV' }],
-  fakeUrns: [{ sigla: 'MPV', urnTipoDocumento: 'medida.provisoria;mpv' }],
   preambulosPadrao: [
     {
       urnTipoDocumento: 'medida.provisoria',
-      texto: 'O PRESIDENTE DA REPÚBLICA, no uso da atribuição que lhe confere o art. 62 da Constituição, adota a seguinte Medida Provisória, com força de lei:',
+      texto: TextoPreambuloPadrao.PRESIDENTE_ADOTA_MPV,
     },
   ],
 };

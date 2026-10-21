@@ -1,9 +1,4 @@
-import { camara } from './camara';
-import { comum } from './comum';
-import { congresso } from './congresso';
-import { federal } from './federal';
-import { mesclar } from './mesclar';
-import { senado } from './senado';
+import { montarVocabulario } from './montarVocabulario';
 
-// Ordem de mesclagem: define qual cópia vence nos lookups com fallback.
-export const VOCABULARIO = mesclar(comum, [federal, senado, camara, congresso]);
+// Provisório até a tarefa 4.1 (vocabulário estático por casa).
+export const VOCABULARIO = montarVocabulario('SF');

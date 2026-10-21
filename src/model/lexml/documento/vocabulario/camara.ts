@@ -1,29 +1,43 @@
-import { VocabularioAutoridade } from './tipos';
-
-const decreta = 'O CONGRESSO NACIONAL decreta:';
+import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tipos';
 
 export const camara: VocabularioAutoridade = {
   autoridade: { urn: 'camara.deputados', descricao: 'Câmara dos Deputados' },
   tiposDocumento: [
-    { urn: 'decreto.legislativo', descricao: 'Decreto Legislativo', genero: 'M' },
-    { urn: 'regimento.interno', descricao: 'Regimento Interno', genero: 'M' },
-    { urn: 'proposta.emenda.constitucional;pec', descricao: 'Proposta de Emenda Constitucional', genero: 'F' },
-    { urn: 'projeto.lei;pl', descricao: 'Projeto de Lei', genero: 'M' },
-    { urn: 'projeto.lei.complementar;plp', descricao: 'Projeto de Lei Complementar', genero: 'M' },
-    { urn: 'projeto.resolucao;prs', descricao: 'Projeto de Resolução do Senado', genero: 'M' },
-    { urn: 'projeto.resolucao;prc', descricao: 'Projeto de Resolução da Câmara dos Deputados', genero: 'M' },
-  ],
-  // Nunca casa em getSigla (tipo sem `;sigla`); a limpeza fica para outra etapa da #1026.
-  siglas: [{ urnTipoDocumento: 'projeto.lei', sigla: 'PLC' }],
-  fakeUrns: [{ sigla: 'PRC', urnTipoDocumento: 'projeto.resolucao;prc' }],
-  preambulosPadrao: [
-    { urnTipoDocumento: 'projeto.lei', texto: decreta },
-    { urnTipoDocumento: 'projeto.lei.complementar', texto: decreta },
-    { urnTipoDocumento: 'projeto.decreto.legislativo', texto: decreta },
-    { urnTipoDocumento: 'projeto.resolucao', texto: 'A CÂMARA DOS DEPUTADOS resolve:' },
+    { urnTipoDocumento: 'decreto.legislativo', descricao: 'Decreto Legislativo', genero: 'M' },
+    { urnTipoDocumento: 'regimento.interno', descricao: 'Regimento Interno', genero: 'M' },
+    { urnTipoDocumento: 'resolucao', descricao: 'Resolução', genero: 'F' },
     {
       urnTipoDocumento: 'proposta.emenda.constitucional',
-      texto: 'As Mesas da Câmara dos Deputados e do Senado Federal, nos termos do § 3º do art. 60 da Constituição Federal, promulgam a seguinte Emenda ao texto constitucional:',
+      sigla: 'PEC',
+      descricao: 'Proposta de Emenda Constitucional',
+      genero: 'F',
+      tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+    },
+    { urnTipoDocumento: 'projeto.lei', sigla: 'PL', descricao: 'Projeto de Lei', genero: 'M', tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO },
+    {
+      urnTipoDocumento: 'projeto.lei.complementar',
+      sigla: 'PLP',
+      descricao: 'Projeto de Lei Complementar',
+      genero: 'M',
+      tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+    },
+    { urnTipoDocumento: 'substitutivo', sigla: 'SBT', descricao: 'Substitutivo', genero: 'M', tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.E_SUBSTITUTIVO },
+    {
+      urnTipoDocumento: 'subemenda.substitutiva',
+      sigla: 'PEP',
+      descricao: 'Subemenda Substitutiva',
+      genero: 'M',
+      tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA,
+    },
+  ],
+  preambulosPadrao: [
+    { urnTipoDocumento: 'projeto.lei', texto: TextoPreambuloPadrao.CONGRESSO_DECRETA },
+    { urnTipoDocumento: 'projeto.lei.complementar', texto: TextoPreambuloPadrao.CONGRESSO_DECRETA },
+    { urnTipoDocumento: 'projeto.decreto.legislativo', texto: TextoPreambuloPadrao.CONGRESSO_DECRETA },
+    { urnTipoDocumento: 'projeto.resolucao', texto: TextoPreambuloPadrao.CAMARA_RESOLVE },
+    {
+      urnTipoDocumento: 'proposta.emenda.constitucional',
+      texto: TextoPreambuloPadrao.MESAS_PROMULGAM_EMENDA,
     },
   ],
 };
