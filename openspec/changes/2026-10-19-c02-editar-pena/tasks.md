@@ -23,10 +23,10 @@
 
 ## 4. Operações existentes, pontuação e teclado
 
-- [ ] 4.1 Aplicar as guardas do inventário da task 1.2: incluir filho antes da pena (menu, posição "filho", Enter no dono terminado em ":", colar, desfazer, refazer, rejeitar), sem mover para depois da pena, e sem mover, transformar, renumerar ou converter a pena em omissis; tirar a pena das listas de tipos permitidos mostradas ao usuário (`hierarquiaValidator.ts:65-68`, `colarUtil.ts:359`, G23); verificar com um teste por operação, "com e sem pena", como pede a issue
-- [ ] 4.2 Garantir que a pena acompanha o dono ao mover, transformar (inclusive Parágrafo ↔ Artigo, via caput) e remover; verificar com testes de reducer, inclusive desfazer
-- [ ] 4.3 Implementar a regra de pontuação "o dispositivo imediatamente anterior à pena na ordem de leitura termina com ':'", isentando-o da exigência de "." de último de enumeração, fora e dentro de alteração, exceto omissis; verificar com testes dos cenários de "Pontuação do dispositivo anterior à pena"
-- [ ] 4.4 Tratar o Enter na pena (no fim: irmão do dono logo depois; na pena do caput: primeiro parágrafo; antes do fim: nada) e confirmar que TAB e Alt+setas não têm efeito; verificar com testes de reducer e pelo E2E da task 8
+- [x] 4.1 Aplicar as guardas do inventário da task 1.2: incluir filho antes da pena (menu, posição "filho", Enter no dono terminado em ":", colar, desfazer, refazer, rejeitar), sem mover para depois da pena, e sem mover, transformar, renumerar ou converter a pena em omissis; tirar a pena das listas de tipos permitidos mostradas ao usuário (`hierarquiaValidator.ts:65-68`, `colarUtil.ts:359`, G23); verificar com um teste por operação, "com e sem pena", como pede a issue
+- [x] 4.2 Garantir que a pena acompanha o dono ao mover, transformar (inclusive Parágrafo ↔ Artigo, via caput) e remover; verificar com testes de reducer, inclusive desfazer
+- [x] 4.3 Implementar a regra de pontuação "o dispositivo imediatamente anterior à pena na ordem de leitura termina com ':'", isentando-o da exigência de "." de último de enumeração, fora e dentro de alteração, exceto omissis; verificar com testes dos cenários de "Pontuação do dispositivo anterior à pena"
+- [x] 4.4 Tratar o Enter na pena (no fim: irmão do dono logo depois; na pena do caput: primeiro parágrafo; antes do fim: nada) e confirmar que TAB e Alt+setas não têm efeito; verificar com testes de reducer e pelo E2E da task 8
 
 ## 5. Bloco de alteração de norma
 
