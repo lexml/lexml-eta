@@ -1,10 +1,10 @@
 import { Artigo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo, isCaput, isPena } from '../../../model/dispositivo/tipo';
-import { createElemento, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
+import { createElemento, createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { AdicionarPena } from '../../../model/lexml/acao/penaAction';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { getDispositivoAndFilhosAsLista } from '../../../model/lexml/hierarquia/hierarquiaUtil';
+import { getDispositivoAndFilhosAsLista, getDispositivosAfetadosPelaPena } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { normalizaRotuloPena } from '../../../model/lexml/numeracao/rotuloPena';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
@@ -38,6 +38,11 @@ export const adicionaPena = (state: any, action: any): State => {
   // A pena é o último filho: a linha entra depois do penúltimo (ou do próprio artigo, no caput sem filhos).
   const penultimo = dono.filhos.length > 1 ? dono.filhos[dono.filhos.length - 2] : undefined;
   const eventos = buildEventoAdicionarElemento(penultimo ?? (isCaput(dono) ? dono.pai! : dono), novo);
+  // O dono e o dispositivo anterior passam a ter de terminar com dois-pontos.
+  eventos.add(
+    StateType.ElementoValidado,
+    getDispositivosAfetadosPelaPena(novo).map(d => createElementoValidado(d))
+  );
   eventos.add(StateType.ElementoMarcado, [createElemento(novo)]);
 
   const builtEvents = eventos.build();

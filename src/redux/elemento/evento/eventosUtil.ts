@@ -1,8 +1,15 @@
 import { createElementoValidado } from './../../../model/elemento/elementoUtil';
 import { findRevisaoByElementoUuid, isRevisaoDeExclusao } from './../util/revisaoUtil';
-import { hasFilhos, getAgrupadorAntes, getArticulacaoAlteracao, getPaiQuePodeReceberFilhoDoTipo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
+import {
+  hasFilhos,
+  getAgrupadorAntes,
+  getDispositivosAfetadosPelaPena,
+  getPenaSeguinte,
+  getArticulacaoAlteracao,
+  getPaiQuePodeReceberFilhoDoTipo,
+} from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isCaput } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isCaput, isPena } from '../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento';
 import {
   buildListaElementosRenumerados,
@@ -113,6 +120,10 @@ export const removeAndBuildEvents = (state: State, dispositivo: Dispositivo): St
 
   const ehDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
 
+  // Sem a pena, o dono e o dispositivo anterior voltam às regras de pontuação comuns.
+  const afetadosPelaPena = isPena(dispositivo) ? getDispositivosAfetadosPelaPena(dispositivo) : [];
+  const penaSeguinte = isPena(dispositivo) ? undefined : getPenaSeguinte(dispositivo);
+
   const pai = dispositivo.pai!;
   pai.removeFilho(dispositivo);
   pai.renumeraFilhos();
@@ -132,6 +143,10 @@ export const removeAndBuildEvents = (state: State, dispositivo: Dispositivo): St
   }
 
   const eventos = buildEventoExclusaoElemento(removidos, dispositivosRenumerados, criaListaElementosAfinsValidados(dispositivoValidado, false));
+  eventos.add(
+    StateType.ElementoValidado,
+    [...afetadosPelaPena, ...(penaSeguinte ? getDispositivosAfetadosPelaPena(penaSeguinte) : [])].map(d => createElementoValidado(d))
+  );
 
   if (ehDispositivoAlteracao) {
     eventos.add(StateType.ElementoValidado, criaListaElementosAfinsValidados(pai, true));
