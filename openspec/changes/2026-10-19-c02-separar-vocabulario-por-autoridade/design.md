@@ -2,82 +2,95 @@
 
 ## Context
 
-`VOCABULARIO` (`vocabulario.ts`) é um objeto único e plano, consumido só por `urnUtil.ts`. Hoje:
+Hoje o vocabulário (`vocabulario/`) é um objeto global montado por `mesclar` a partir de módulos por autoridade (primeira etapa, já commitada em `f6c69a11`), mas o modelo ainda é o antigo:
 
-- `tiposDocumento` (32 entradas) não tem autoridade; `getTipo`/`getTipoDocumentoUrn` casam apenas o segundo segmento da URN (`partes[1]`).
-- `fakeUrns` (15) mapeia sigla → autoridade + tipo e é a **única** origem da URN de proposição nova (`buildFakeUrn`, chamado por `buildUrnProposicao` a partir da sigla que o host informa em `lexml-eta.component.ts:423/426`). Também é o fallback de `getSigla`.
-- `siglas` tem quatro entradas que nunca casam (`PLN`, `PLS` duas vezes e `PLC`, com `urnTipoDocumento` sem `;sigla`, enquanto `getSigla` compara com `tipo.urn`, que inclui a sigla).
-- `preambulosPadrao` casa por tipo sem `;sigla` e, quando há, por autoridade; a de maior precedência é a que tem a autoridade da URN, e a sem autoridade serve de fallback (`getPreambuloPadrao`).
-- `getTipo` também resolve **normas referenciadas** (`adicionaAlteracaoComAssistente`, `atualizaReferenciaElemento`), de autoridades variadas (`federal:lei`, `congresso.nacional:decreto.legislativo`, `senado.federal:resolucao`...), sem relação com `fakeUrns`.
+- `tiposDocumento[].urn` mistura tipo e sigla (`projeto.lei;pl`); `siglas` e `preambulosPadrao` usam o tipo sem sigla; `fakeUrns` mapeia sigla → tipo e é a **única** origem da URN de proposição nova (`buildFakeUrn`, chamado por `buildUrnProposicao`).
+- `siglas` tem entradas que nunca casam em `getSigla` (comparação com `tipo.urn`, que inclui a sigla) e há duas tabelas para a mesma informação.
+- `getTipo`/`getTipoDocumentoUrn`/`getSigla` casam só o segmento de tipo, e o trabalho em andamento (grupo 3 original) acrescentou um fallback por autoridade (`procurarPorAutoridade`), que esta revisão elimina.
+- O editor tem dois modos: LexEdit (`SF`) e Infoleg Editor (`CD`), com vocabulários que não devem se misturar. O componente já tem `casaLegislativa` (casa do **documento**, com `CN`), que não serve para isso.
 
-Restrições: o formato mesclado não é API pública (decisão do dono do produto: não entra no `index` do pacote); a URN gravada em arquivos de proposição existentes continua precisando abrir, com a única exceção deliberada da URN antiga de MPV.
+O modelo-alvo e os requisitos estão em `docs/requisitos/vocabulario.md`; aqui ficam as decisões de implementação.
+
+Restrições: o vocabulário mesclado não é API pública; o editor admite uma única instância do componente por página; o host (`lexeditweb-editor`, Infoleg Editor) precisa informar a casa do editor.
 
 ## Goals / Non-Goals
 
 **Goals:**
-- Um módulo de dados por autoridade, mais um comum, mesclados em um `VOCABULARIO` com o mesmo formato de hoje acrescido de `urnAutoridade` nos tipos.
-- Redistribuir os dados sem perder nenhuma entrada, exceto as consequências deliberadas (autoridade de MPV e de PLV na URN nova e a distribuição dos preâmbulos por autoridade, D4).
-- `getTipo`/`getTipoDocumentoUrn`/`getSigla` sensíveis à autoridade, com fallback que mantém o comportamento atual para qualquer URN que hoje resolve.
-- Provar que é reorganização por um teste de caracterização escrito **antes** de mover os dados.
+- Vocabulário mesclado **por casa** (`SF`/`CD`) a partir dos módulos por autoridade.
+- Um só cadastro de tipos (`tiposDocumento`) com chave, `ativo`, `tipoRelacaoSubstitutivo` e `tiposReferenciaveis`; sem `fakeUrns` e sem `siglas`.
+- Consultas: tipos ativos/inativos, tipo pela sigla, tipo pela URN, tipos de referência de substitutivo.
+- Resolução sempre pela autoridade exata, sem fallback.
+- Validação do vocabulário na mesclagem.
 
 **Non-Goals:**
-- Flag `ativo`, `tipoRelacaoSubstitutivo`, siglas antigas, sigla da casa legislativa (itens seguintes da issue #1026).
-- Limpar as quatro entradas mortas de `siglas` ou deduplicar `siglas` × `fakeUrns`.
-- Mudar `eventos` e `atalhosUrn`.
-- Qualquer alteração de UI ou de formato de arquivo salvo.
+- Preencher `tiposReferenciaveis` do SF (negócio, depois).
+- Tela de nova proposição que usa as consultas.
+- Concordância de gênero do preâmbulo da MPV e texto padrão de SCD/ECD.
+- Mudar `eventos` e `atalhosUrn` (seguem comuns).
 
 ## Decisions
 
-### D1 — Estrutura de arquivos e mesclagem
+### D1 — Casa do editor e mesclagem por casa
 
-`vocabulario.ts` vira a pasta `vocabulario/` (o import `./vocabulario` de `urnUtil.ts` continua válido via `index.ts`):
+`LexmlEtaConfig.casaLegislativaEditor` (`'SF' | 'CD'`, padrão `'SF'`; já adicionado em `lexmlEtaConfig.ts`) escolhe a composição:
 
 ```
-vocabulario/
-  tipos.ts        // VocabularioAutoridade, VocabularioComum, tipos dos itens
-  comum.ts        // atalhosUrn, eventos
-  federal.ts      // autoridade 'federal'
-  senado.ts       // 'senado.federal'
-  camara.ts       // 'camara.deputados'
-  congresso.ts    // 'congresso.nacional'
-  mesclar.ts      // função pura de mesclagem
-  index.ts        // export const VOCABULARIO = mesclar(...) — não reexportado no index do pacote
+SF = mesclar(comum, [federal, senado, congresso])
+CD = mesclar(comum, [federal, camara, congresso])
 ```
 
-Cada constante de autoridade declara `autoridade` (`urn`, `descricao`) e arrays opcionais `tiposDocumento`, `siglas`, `fakeUrns`, `preambulosPadrao`, cujos itens **não** trazem `urnAutoridade` (tipados com `Omit<..., 'urnAutoridade'>`). `mesclar` carimba a autoridade e concatena na ordem fixa **comum, federal, senado, camara, congresso**. Em `siglas`/`fakeUrns` o campo já existente `urnAutoridade` é o mesmo carimbado; em `tiposDocumento` é campo novo. Itens do comum (`atalhosUrn`, `eventos`) passam sem carimbo; `atalhosUrn` mantém o `urnAutoridade` explícito que já tem.
+`mesclar` segue puro; a composição por casa fica em uma função `montarVocabulario(casa)`. A ordem dos módulos não importa mais para resolução (não há fallback), mas continua fixa para listagens determinísticas. `casaLegislativaEditor` é independente de `casaLegislativa` (casa do documento, colegiado apreciador); os dois campos não se influenciam, e a casa do editor nunca é derivada da URN (a sigla da URN depende do vocabulário).
 
-Alternativa descartada: um único arquivo com todas as autoridades em uma lista — não separa nada e mantém o conflito de merge em um arquivo grande.
+Alternativa descartada: reaproveitar `casaLegislativa`. Ela é gravada no arquivo (`ColegiadoApreciador.siglaCasaLegislativa`), admite `CN` e filtra parlamentares; misturá-la com a seleção de vocabulário quebraria arquivos salvos.
 
-### D2 — Distribuição dos dados
+### D2 — Modelo do tipo de documento
 
-| Constante | `tiposDocumento` | `siglas` | `fakeUrns` |
-|---|---|---|---|
-| **comum** | — | — | — |
-| **federal** | `lei`, `lei.complementar`, `lei.delegada`, `decreto.lei`, `decreto`, `consolidacao.leis.trabalho`, `constituicao`, `ato.disposicoes.constitucionais.transitorias`, `emenda.constitucional`, `emenda.constitucional.revisao`, `medida.provisoria`, `medida.provisoria;mpv` | `MPV` (`medida.provisoria`) | `MPV` |
-| **senado** | `decreto.legislativo`, `regimento.interno`, `resolucao`, `proposta.emenda.constitucional;pec`, `projeto.lei;pl`/`;pls`/`;plc`, `projeto.lei.complementar;plp`/`;pl`/`;pls`/`;plc`, `projeto.resolucao;prs`, `projeto.decreto.legislativo;pds`/`;pdl`, `substitutivo.projeto.lei.senado;scd`, `emenda.projeto.lei.senado;ecd` | `PLS` (`projeto.lei`), `PLS` (`projeto.lei.senado.federal`) — mortas | PEC, PL, PLS, PLP, PLC, PRS, PDS, PDL, SCD, ECD |
-| **camara** | `decreto.legislativo`, `regimento.interno`, `projeto.resolucao;prc`, e cópias de `pec`, `projeto.lei;pl`, `projeto.lei.complementar;plp`, `projeto.resolucao;prs` | `PLC` (`projeto.lei`) — morta | PRC |
-| **congresso** | `decreto.legislativo`, `resolucao`, `projeto.decreto.legislativo;pdn`, `projeto.resolucao;prn`, `projeto.lei.conversao;plv` | `PLN` (`projeto.lei`) — morta, `MPV` (`medida.provisoria`), `PDN`, `PRN` | PDN, PRN, PLV |
+```ts
+interface TipoDocumentoItem {
+  urnTipoDocumento: string;                 // 'projeto.lei'
+  sigla?: string;                           // 'PL' — só proposições
+  descricao: string;
+  genero: string;
+  ativo?: boolean;                          // padrão true
+  tipoRelacaoSubstitutivo?: TipoRelacaoSubstitutivo;
+  tiposReferenciaveis?: string[];           // URNs de tipo (com sigla)
+}
+```
 
-Totais a conferir: 32 tipos distintos (mais as cópias: `decreto.legislativo` ×3, `regimento.interno` ×2, `resolucao` ×2, `pec`/`pl`/`plp`/`prs` ×2 cada), 15 `fakeUrns` (11 + 1 + 3 = 15 com MPV em `federal`, PRC na Câmara e PLV no Congresso: 10 Senado + 1 federal + 1 Câmara + 3 Congresso = 15).
+O mesclado acrescenta `urnAutoridade` e `urn` (calculada: `urnTipoDocumento` + `;` + sigla em minúsculas, ou só `urnTipoDocumento` sem sigla). `tiposReferenciaveis` guarda URNs de tipo na forma `projeto.lei;pls`, coerentes com a chave sem repetir autoridade: a referência é resolvida **dentro da mesma casa**, preferindo a autoridade do tipo que referencia e, se não houver, qualquer outra da casa que tenha essa URN de tipo e sigla (única por construção, ver D3). Esse é o único lugar onde uma URN de tipo é resolvida sem autoridade, e ocorre na mesclagem, não em consulta de URN do usuário.
 
-Pontos de decisão do dono do produto, já tomados:
-- Tipos de norma genéricos vão para `federal`; `medida.provisoria` e `;mpv` também.
-- As cópias de `pec`, `pl`, `plp` e `prs` na Câmara são só de tipo; **as siglas continuam únicas em `fakeUrns`** (PEC, PL, PLP, PRS ficam no Senado), porque o host informa só a sigla e uma sigla duplicada tornaria `buildFakeUrn` ambíguo.
-- `projeto.lei.complementar;pl`/`;pls`/`;plc` ficam no Senado (candidatos a inativos na etapa do flag `ativo`).
-- O `decreto.legislativo` do Congresso é `congresso.nacional:decreto.legislativo`; as cópias de Senado e Câmara permanecem como pedido antes.
+`tipoRelacaoSubstitutivo` é um tipo união de quatro literais (`aceita substitutivo`, `não aceita substitutivo`, `é substitutivo`, `é subemenda substitutiva`); ausente em norma. Para proposição sem valor declarado, assume-se `não aceita substitutivo`.
 
-### D3 — Resolução de tipo e sigla pela autoridade (com fallback)
+### D3 — Validação na mesclagem
 
-Um helper interno `procurarPorAutoridade(itens, autoridadeDaUrn, predicado)` devolve a primeira entrada que satisfaz o predicado **e** tem `urnAutoridade === autoridadeDaUrn`; sem ela, a primeira que satisfaz o predicado (ordem de mesclagem de D1). Usado por:
+`montarVocabulario` valida e lança `Error` com mensagem descritiva quando: duas entradas têm a mesma chave; duas proposições **ativas** têm a mesma sigla; `tiposReferenciaveis` cita URN de tipo inexistente na casa ou de tipo cujo `tipoRelacaoSubstitutivo` não é `aceita substitutivo`/`é substitutivo`. Falhar ao montar é intencional: um vocabulário inválido é erro de dados, não de uso. Siglas repetidas entre inativos (ou entre ativo e inativo) são aceitas porque o vocabulário ainda guarda tipos legados.
 
-- `getTipo` e `getTipoDocumentoUrn` — predicado: `t.urn === partes[1]`;
-- `getSigla` — predicado: `urnTipoDocumento === tipo.urn`, em `siglas` e depois em `fakeUrns`, cada um com a mesma preferência.
+### D4 — Consultas
 
-Mesmo padrão já usado por `getPreambuloPadrao` (autoridade exata, depois fallback), o que mantém um só modelo mental. O fallback é indispensável: normas referenciadas chegam com combinações de autoridade+tipo que nenhum dado declara (ex.: `camara.deputados:lei`), e `validaUrn` exige tipo resolvido. `getAutoridade` não muda.
+Funções de módulo sobre o vocabulário estático (D5), em `vocabulario/consultas.ts`, reexportadas via `urnUtil.ts` onde já existiam:
 
-### D4 — Preâmbulos distribuídos por autoridade (decisão do dono do produto)
+| Consulta | Função | Resolve por |
+|---|---|---|
+| C1 | `getTiposDocumentoAtivos()`, `getTiposDocumentoInativos()` | flag `ativo`, só proposições |
+| C2 | `getTipoPorSigla(sigla)` | sigla (sem caixa), tipo **ativo** |
+| C3 | `getTiposReferenciaveis(tipo)` | `tipoRelacaoSubstitutivo` do tipo ativo |
+| C4 | `getTipo(urn)`, `getTipoDocumentoUrn(urn)` | autoridade + segmento de tipo da URN |
 
-Cada entrada de `preambulosPadrao` passa a ser declarada só nas autoridades abaixo; o lookup (`getPreambuloPadrao`) casa tipo sem `;sigla` **e** autoridade da URN, sem fallback para entrada sem autoridade (não existe mais nenhuma):
+`getSigla(urn)` passa a ser `getTipo(urn)?.sigla ?? ''`. `buildFakeUrn(sigla, numero, ano)` mantém a assinatura (usada por `buildUrnProposicao`) e passa a montar `buildUrn(tipo.urnAutoridade, tipo.urn, numero, ano)` a partir de `getTipoPorSigla`; o nome é mantido para limitar o diff, e a mensagem de sigla não encontrada continua a mesma. Sem fallback: `getTipo` devolve a entrada de mesma autoridade e URN de tipo, ou `undefined`.
+
+C3 por tipo selecionado: `aceita substitutivo` → entradas de `tiposReferenciaveis`; `é substitutivo` → proposições (ativas e inativas) que aceitam substitutivo; `é subemenda substitutiva` → proposições que são substitutivas; demais e tipo inativo → `[]`.
+
+### D5 — Vocabulário estático e inicialização
+
+`vocabulario/index.ts` guarda a instância em variável de módulo (estática), exposta por `getVocabulario()` e `inicializarVocabulario(casa?: string)`. `inicializarVocabulario` normaliza a casa (`SF` por padrão, com `console.warn` para valor inválido), monta e guarda. `urnUtil` e as consultas leem `getVocabulario()`; antes de qualquer inicialização o vocabulário de `SF` é montado sob demanda, para que código de teste e utilitários isolados continuem funcionando.
+
+`LexmlEtaComponent` chama `inicializarVocabulario(config.casaLegislativaEditor)` ao atribuir `lexmlEtaConfig` (setter ou `updated`, conforme o padrão já usado pelo componente), **antes** de `inicializarEdicao`, porque este método chama `getSigla` (`lexml-eta.component.ts:198` e `:346`). Atribuição repetida remonta o vocabulário. Como é estado global, os testes redefinem a casa em `beforeEach` (D7).
+
+Alternativa descartada: passar o vocabulário por parâmetro às ~20 chamadas fora de `urnUtil` (reducers, conversores). Custo alto de propagação para uma instância por página; o estático foi decisão do dono do produto.
+
+### D6 — Preâmbulos por tipo + autoridade, dentro da casa
+
+`preambulosPadrao` mantém o formato (`urnTipoDocumento` sem sigla) e a distribuição por autoridade da tabela abaixo, sem fallback; como a mesclagem é por casa, a autoridade fora da casa não tem preâmbulo.
 
 | Tipo | `federal` | `senado` | `camara` | `congresso` |
 |---|---|---|---|---|
@@ -87,29 +100,28 @@ Cada entrada de `preambulosPadrao` passa a ser declarada só nas autoridades aba
 | `projeto.decreto.legislativo` | — | sim | sim | sim |
 | `proposta.emenda.constitucional` | — | sim | sim | — |
 | `medida.provisoria` | sim | — | — | — |
-| `projeto.resolucao` | — | sim (Senado) | sim (Câmara) | sim (Congresso) |
+| `projeto.resolucao` | — | sim | sim | sim |
 
-Isto **muda o comportamento atual**, em que o texto dependia só do tipo (exceto `projeto.resolucao`). URNs de combinação fora da tabela deixam de ter preâmbulo padrão; os casos conhecidos são `senado.federal:projeto.lei.conversao;plv` e `senado.federal:medida.provisoria;mpv`, além de combinações que não existem na prática (ex.: `federal:projeto.lei`, que aparece só em URNs sintéticas de testes de round-trip). Por isso o comportamento está na delta de `preambulo-proposicao` e o teste de caracterização (D6) registra cada diferença como expectativa explícita.
+`getPreambuloPadrao(urn)` lê autoridade e tipo da URN e procura em `vocabulario.preambulosPadrao`. Combinação fora da tabela devolve `undefined`.
 
-Alternativa descartada: duplicar todos os preâmbulos nas quatro autoridades para preservar o comportamento (era a versão anterior desta decisão). Foi preterida porque a intenção do dono do produto é que o texto padrão reflita quem de fato apresenta cada tipo.
+### D7 — Testes por casa
 
-### D5 — MPV e PLV mudam de autoridade na URN nova
+O teste de caracterização atual descreve o modelo antigo (`fakeUrns`, `siglas`) e é **reescrito** para fixar o comportamento do modelo novo: para cada casa, as URNs que resolvem, as siglas e os textos de preâmbulo. Os testes de vocabulário, `urnUtil` e preâmbulo rodam para `SF` e `CD` com um helper que chama `inicializarVocabulario(casa)` em `beforeEach` e restaura `SF` no `afterEach`. As expectativas deliberadamente alteradas (MPV `federal`, PLV `congresso.nacional`, fim do fallback, preâmbulo por casa) ficam explícitas.
 
-`fakeUrns` de MPV vai para `federal` (a URN real é `urn:lex:br:federal:medida.provisoria;mpv:...`) e o de PLV para `congresso.nacional`. Sem compatibilidade com a URN antiga de MPV por decisão do dono do produto. Para PLV, a URN antiga `senado.federal:...;plv` continua resolvendo por D3. Fixtures `mpv_930_2020` (4 arquivos) e `preambuloPadrao.test.ts` já foram corrigidos para `federal`.
+### D8 — Chamadores devem tolerar "não resolve"
 
-### D6 — Teste de caracterização antes da migração
-
-Um teste percorre o `VOCABULARIO` **atual** e fixa as saídas de `getTipo`, `getSigla`, `getAutoridade`, `getPreambuloPadrao` e `buildFakeUrn` para cada entrada (e para URNs de autoridade cruzada que hoje resolvem). Deve passar antes de mover os dados e depois de movê-los; as únicas expectativas que mudam, explicitadas no próprio teste, são `buildFakeUrn('MPV')` e `buildFakeUrn('PLV')` e os textos padrão de preâmbulo das combinações fora da tabela de D4. Também verifica invariantes do vocabulário mesclado: uma só entrada por sigla em `fakeUrns`, e nenhuma entrada de `tiposDocumento` sem `urnAutoridade`.
+Sem fallback e sem tipos de outra casa, `getTipo` devolve `undefined` com mais frequência (norma citada com autoridade não declarada, documento da outra casa). Decisão: **sem tratamento especial** — a URN fica sem resolver. A tarefa de migração confere cada chamador (`buildProjetoNormaFromJsonix`, `adicionaAlteracaoComAssistente`, `atualizaReferenciaElemento`, `colarUtil`, `dispositivoValidator`, `documentoArticulado`) para garantir que `undefined` não lança exceção não tratada.
 
 ## Risks / Trade-offs
 
-- **Ordem de mesclagem muda qual `find` ganha** → D1 fixa a ordem; D6 detecta qualquer diferença nas saídas de `getSigla`/`getTipo`.
-- **Cópias de tipo divergirem** (`decreto.legislativo` ×3 etc.) → ficam em constantes diferentes e podem se separar; mitigado pelo teste de caracterização e por D3, que devolve a primeira, então a descrição/gênero das cópias devem ser idênticas (o teste confere).
-- **URN nova de MPV/PLV muda para quem integra** → comunicar ao `lexeditweb-editor` (também o item de nota no `CLAUDE.md`); não há migração de arquivos.
-- **Preâmbulo some em combinações antes atendidas** (D4) → intencional e coberto pela delta; os testes e fixtures afetados são ajustados na tarefa 4.2 e a lista de casos acima deve ser conferida na caracterização.
-- **Dados mortos em `siglas` agora ficam espalhados por autoridade** → deliberado; limpeza fica para a change de `siglas`.
-- **Importação circular/tamanho**: `mesclar` roda uma vez na carga do módulo; o custo é desprezível (menos de 200 itens).
+- **Estado global mutável** (D5) → testes que não restauram a casa vazam entre si; mitigado pelo helper de D7 e por inicialização sob demanda de `SF`.
+- **Quebra de documentos entre casas e de URN antiga de PLV/MPV** → decisão do dono do produto; avisar o host e registrar no `CLAUDE.md`.
+- **Mesclagem que lança erro** (D3) → um dado errado derruba a inicialização do editor; mitigado por teste de vocabulário para as duas casas, que roda na suíte.
+- **`tiposReferenciaveis` do SF vazios por enquanto** → C3 devolve `[]` para tipos do SF que aceitam substitutivo até o negócio preencher; documentado.
+- **`ativo` ainda não definido pelo negócio** nos tipos legados (PLS, PLC...) → a marcação inicial segue o código atual (sigla ativa única por sigla) e é revista na tarefa de dados.
+- **Dados mortos antigos** (`siglas`, `fakeUrns`) → removidos junto com a migração do modelo.
+- **Ordem de inicialização** (D5) → coberta por teste do componente que atribui a configuração antes de abrir um documento.
 
 ## Open Questions
 
-- `decreto.legislativo` e `regimento.interno` realmente devem permanecer em Senado e Câmara além do Congresso (`regimento.interno` só tem atalho no Congresso e no Senado)? Mantido como pedido; reavaliar na limpeza.
+- Nenhuma bloqueante. Pendente fora desta change: lista de `tiposReferenciaveis` do SF e marcação definitiva de `ativo` pelo negócio.

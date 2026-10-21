@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Texto padrão do preâmbulo por tipo de proposição
-O sistema SHALL preencher o preâmbulo com o texto padrão da combinação tipo + autoridade da URN da proposição sempre que ele estiver vazio, tanto em proposição nova quanto na abertura de um documento. O tipo SHALL ser lido da URN desconsiderada a sigla após o `;`. Uma combinação de tipo e autoridade fora das listadas abaixo SHALL NOT ter texto padrão.
+O sistema SHALL preencher o preâmbulo com o texto padrão da combinação tipo + autoridade da URN da proposição sempre que ele estiver vazio, tanto em proposição nova quanto na abertura de um documento. O tipo SHALL ser lido da URN desconsiderada a sigla após o `;`. Uma combinação de tipo e autoridade fora das listadas abaixo, ou cuja autoridade não pertença ao vocabulário da casa legislativa do editor, SHALL NOT ter texto padrão.
 
 #### Scenario: Textos padrão por tipo
 - **WHEN** o preâmbulo está vazio e o tipo e a autoridade da URN formam uma das combinações abaixo
@@ -26,6 +26,10 @@ O sistema SHALL preencher o preâmbulo com o texto padrão da combinação tipo 
 
 #### Scenario: Combinação de tipo e autoridade sem texto padrão
 - **WHEN** o preâmbulo está vazio e a URN é, por exemplo, `urn:lex:br:senado.federal:projeto.lei.conversao;plv:2026;1` ou `urn:lex:br:senado.federal:medida.provisoria;mpv:2026;1`
+- **THEN** o preâmbulo permanece vazio e não é exibido
+
+#### Scenario: Autoridade fora do vocabulário da casa
+- **WHEN** o preâmbulo está vazio e a URN é `urn:lex:br:senado.federal:projeto.lei;pl:2026;1`, aberta no editor com `casaLegislativaEditor` igual a `CD`
 - **THEN** o preâmbulo permanece vazio e não é exibido
 
 #### Scenario: Sigla não influencia o texto
