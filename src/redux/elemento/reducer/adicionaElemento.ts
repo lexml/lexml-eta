@@ -19,6 +19,7 @@ import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { buildId, updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
+import { adicionaAposPena } from './adicionaAposPena';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
 import { isNovoDispositivoDesmembrandoAtual, MENSAGEM_ARTIGO_ALTERACAO_SEM_FILHOS_PROPRIOS, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
@@ -39,17 +40,16 @@ export const adicionaElemento = (state: any, action: any): State => {
   const refAtual = getDispositivoFromElemento(state.articulacao, action.atual, true);
   const atualCaputPosicaoFilho = refAtual && isArtigo(refAtual) && action.novo.tipo === TipoDispositivo.inciso.tipo ? (refAtual as TipoArtigo).caput : undefined;
   const atual = action.posicao === 'filho' && atualCaputPosicaoFilho ? atualCaputPosicaoFilho : refAtual;
-  const refUltimoFilho = atual && action.posicao === 'filho' ? (hasFilhos(atual) ? atual.filhos[atual.filhos.length - 1] : undefined) : undefined;
+  // A pena é o último filho, mas não é referência para incluir um novo filho: ele entra antes dela.
+  const refUltimoFilho = atual && action.posicao === 'filho' ? [...atual.filhos].reverse().find(f => !isPena(f)) : undefined;
 
   if (atual === undefined) {
     state.ui.events = [];
     return state;
   }
 
-  // Enter na pena só é tratado na task 4.4; até lá não pode criar uma segunda pena no dono.
   if (isPena(atual)) {
-    state.ui.events = [];
-    return state;
+    return adicionaAposPena(state, action, atual);
   }
 
   // Defesa para quando a ação não vem do menu (que já não a oferece para artigo de alteração).

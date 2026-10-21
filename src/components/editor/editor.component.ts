@@ -490,6 +490,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const indexInicio: number = this.quill.inicioConteudoAtual ?? 0;
     const indexFim: number = indexInicio + blotConteudo.tamanho;
+    // A pena não é desmembrada: Enter só vale com o cursor no fim do texto.
+    if (linha.tipo === TipoDispositivo.pena.tipo && range.index !== indexFim) {
+      return;
+    }
     let textoLinha = '';
     let textoNovaLinha = '';
     let posicao: string | undefined = undefined;
