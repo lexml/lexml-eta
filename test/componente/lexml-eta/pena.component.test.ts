@@ -164,3 +164,45 @@ describe('ETA — pena do caput em artigo com incisos e parágrafos', () => {
     expect(tipos.slice(tipos.indexOf('artigo'), tipos.indexOf('artigo') + 7)).to.deep.equal(['artigo', 'inciso', 'pena', 'inciso', 'inciso', 'paragrafo', 'paragrafo']);
   });
 });
+
+describe('ETA — Enter na linha da pena', () => {
+  let component: LexmlEtaComponent;
+  let editor: any;
+
+  beforeEach(async () => {
+    component = await fixture<LexmlEtaComponent>('<lexml-eta></lexml-eta>');
+    (component as any).getParlamentares = async (): Promise<[]> => [];
+    await component.abrirDocumentoArticulado(documentoComPena());
+    editor = component.querySelector('lexml-eta-proposicao-editor');
+    await editor.aguardarCarregamentoDasLinhas();
+  });
+
+  // Posiciona o cursor na linha da pena (índice relativo ao início do conteúdo) e dispara o mesmo caminho do Enter.
+  const enterNaPena = async (posicaoNoTexto: 'fim' | 'meio' | 'inicio'): Promise<void> => {
+    const pena = buscaDispositivoById(rootStore.getState().elementoReducer.articulacao!, 'art1_cpt_pena')!;
+    const linha = editor.quill.getLinha(pena.uuid);
+    editor.quill.atualizarLinhaCorrente(linha);
+    const inicio = editor.quill.inicioConteudoAtual;
+    const tamanho = linha.blotConteudo.tamanho;
+    const index = posicaoNoTexto === 'fim' ? inicio + tamanho : posicaoNoTexto === 'inicio' ? inicio : inicio + Math.floor(tamanho / 2);
+    editor.adicionarElemento({ index, length: 0 });
+    await aguarda();
+  };
+
+  it('no fim do texto da pena do caput cria o § 1º logo depois da linha da pena', async () => {
+    await enterNaPena('fim');
+    const tipos = tiposDasLinhas(component);
+    const indice = tipos.indexOf('artigo');
+    expect(tipos.slice(indice, indice + 4)).to.deep.equal(['artigo', 'pena', 'paragrafo', 'paragrafo']);
+    expect(editor.quill.linhaAtual?.tipo).to.equal('Paragrafo');
+    expect(buscaDispositivoById(rootStore.getState().elementoReducer.articulacao!, 'art1_par1')?.texto).to.equal('');
+  });
+
+  it('antes do fim do texto, ou no início, não faz nada', async () => {
+    const antes = tiposDasLinhas(component);
+    await enterNaPena('meio');
+    expect(tiposDasLinhas(component)).to.deep.equal(antes);
+    await enterNaPena('inicio');
+    expect(tiposDasLinhas(component)).to.deep.equal(antes);
+  });
+});

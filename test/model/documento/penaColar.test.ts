@@ -3,6 +3,9 @@ import { Artigo } from '../../../src/model/dispositivo/dispositivo';
 import { isPena } from '../../../src/model/dispositivo/tipo';
 import { buildDispositivoFromJsonix } from '../../../src/model/lexml/documento/conversor/buildDispositivoFromJsonix';
 import { getDispositivoAndFilhosAsLista } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { validarArticulacaoColadaAnaliseInicial } from '../../../src/redux/elemento/util/colarUtil';
+import { createArticulacao, criaDispositivo } from '../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { TipoDispositivo } from '../../../src/model/lexml/tipo/tipoDispositivo';
 import { LEXML_COM_PENAS } from '../../doc/pena/lexml-com-penas';
 
 describe('Colar texto com pena (resposta real do conversor)', () => {
@@ -30,5 +33,18 @@ describe('Colar texto com pena (resposta real do conversor)', () => {
     expect(penaAlteracao.pai!.tipo).to.equal('Caput');
     expect(penaAlteracao.texto).to.equal('reclusão, de seis a dez anos.');
     expect(penaAlteracao.pai!.filhos.map(f => f.tipo)).to.deep.equal(['Omissis', 'Pena']);
+  });
+});
+
+describe('Colar: a pena não aparece na lista de tipos permitidos da mensagem de inconsistência', () => {
+  it('cita só os tipos que o usuário pode colar como filho', () => {
+    const articulacao = createArticulacao();
+    const art = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    const inciso = criaDispositivo(art, TipoDispositivo.inciso.tipo);
+    criaDispositivo(inciso, TipoDispositivo.item.tipo);
+    const mensagens = validarArticulacaoColadaAnaliseInicial(articulacao).flatMap(r => r.mensagens);
+    const texto = mensagens.find(m => m.includes('não pode ser colado como filho')) ?? '';
+    expect(texto.includes('o tipo permitido é alínea.')).to.be.true;
+    expect(texto.toLowerCase().includes('pena')).to.be.false;
   });
 });

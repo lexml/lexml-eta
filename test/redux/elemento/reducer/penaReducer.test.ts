@@ -321,13 +321,49 @@ describe('Pena: remoção sem texto e Enter', () => {
     expect(penas().length).to.equal(0);
   });
 
-  it('Enter na pena não cria uma segunda pena nem outro dispositivo (comportamento completo na 4.4)', () => {
-    const antes = getDispositivoAndFilhosAsLista(state.articulacao!).length;
-    const passos = state.past?.length ?? 0;
+  it('Enter na pena nunca cria uma segunda pena no dono', () => {
     state = elementoReducer(state, adicionarElementoAction.execute(createElemento(dispositivo('art1_par1_pena')), ''));
     expect(penas().length).to.equal(1);
-    expect(getDispositivoAndFilhosAsLista(state.articulacao!).length).to.equal(antes);
-    expect(state.past?.length ?? 0).to.equal(passos);
     expect(idsDosFilhos('art1_par1')).to.deep.equal(['art1_par1_inc1', 'art1_par1_pena']);
+  });
+});
+
+describe('Pena: mensagens de pontuação atualizadas na hora', () => {
+  const mensagensValidadas = (id: string): string[] | undefined =>
+    eventosDoTipo(StateType.ElementoValidado)
+      .filter(e => e.lexmlId === id)
+      .pop()
+      ?.mensagens?.map((m: any) => m.descricao);
+  const DOIS_PONTOS = (nome: string): string => `${nome} deveria terminar com dois pontos.`;
+
+  beforeEach(() => {
+    state = openArticulacaoAction(monta());
+    state.ui = { events: [] } as any;
+  });
+
+  it('adicionar pena ao artigo cujo caput termina em ponto revalida o artigo, que passa a pedir dois-pontos', () => {
+    executa(adicionarPenaAction, 'art2');
+    expect(mensagensValidadas('art2')).to.include(DOIS_PONTOS('Artigo'));
+  });
+
+  it('remover a pena revalida o artigo, que deixa de pedir dois-pontos', () => {
+    executa(adicionarPenaAction, 'art2');
+    state = elementoReducer(state, removerElementoAction.execute(createElemento(dispositivo('art2_cpt_pena')), undefined));
+    expect(mensagensValidadas('art2')).not.to.include(DOIS_PONTOS('Artigo'));
+    expect(mensagensValidadas('art2')).to.be.an('array');
+  });
+
+  it('desfazer e refazer a adição reavaliam a mensagem', () => {
+    executa(adicionarPenaAction, 'art2');
+    desfaz();
+    expect(mensagensValidadas('art2')).not.to.include(DOIS_PONTOS('Artigo'));
+    refaz();
+    expect(mensagensValidadas('art2')).to.include(DOIS_PONTOS('Artigo'));
+  });
+
+  it('adicionar pena ao parágrafo revalida o último inciso, que termina em ponto', () => {
+    (dispositivo('art1_par1_inc1') as any).texto = 'no trânsito.';
+    executa(adicionarPenaAction, 'art1_par1');
+    expect(mensagensValidadas('art1_par1_inc1')).to.deep.equal([DOIS_PONTOS('Inciso')]);
   });
 });
