@@ -5,7 +5,7 @@ import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementos, createElementoValidado, getDispositivoFromElemento, listaDispositivosRenumerados } from '../../../model/elemento/elementoUtil';
 import { normalizaSeForOmissis } from '../../../model/lexml/conteudo/conteudoUtil';
 import { createByInferencia, criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
-import { copiaFilhos } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
+import { copiaFilhos, podeSerUltimaalteracao } from '../../../model/lexml/dispositivo/dispositivoLexmlUtil';
 import {
   hasFilhos,
   irmaosMesmoTipo,
@@ -48,7 +48,8 @@ export const adicionaElemento = (state: any, action: any): State => {
     return state;
   }
 
-  if (isPena(atual)) {
+  // Última pena do bloco com o indicador de fim ("(NR)") ou ação de bloco: segue o caminho dos demais dispositivos e sai do bloco.
+  if (isPena(atual) && !action.subType && !podeSerUltimaalteracao(atual, action)) {
     return adicionaAposPena(state, action, atual);
   }
 
