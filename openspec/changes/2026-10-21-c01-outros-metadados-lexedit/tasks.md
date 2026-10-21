@@ -7,10 +7,10 @@
 
 ## 2. Modelo, gravação e leitura
 
-- [ ] 2.1 Adicionar `outrosMetadados` a `DadosLexEdit` e a `MetadadoLexEdit` em `documentoArticulado.ts`
-- [ ] 2.2 Criar o montador `montaOutrosMetadados` em `buildJsonixFromProjetoNorma.ts` e compô-lo em `montaMetadadoLexEdit` (omitido quando vazio, sem pendência)
-- [ ] 2.3 Criar o leitor `lerOutrosMetadados` em `buildProjetoNormaFromJsonix.ts` e compô-lo em `lerMetadadoLexEdit` (tolerante; primeira chave vence)
-- [ ] 2.4 Testes unitários do montador e do leitor: vazio, um e vários pares, caracteres especiais, entrada inválida, chave repetida, objeto único no lugar de lista, convivência com outros grupos
+- [x] 2.1 Adicionar `outrosMetadados` a `DadosLexEdit` e a `MetadadoLexEdit` em `documentoArticulado.ts`
+- [x] 2.2 Criar o montador `montaOutrosMetadados` em `buildJsonixFromProjetoNorma.ts` e compô-lo em `montaMetadadoLexEdit` (omitido quando vazio, sem pendência)
+- [x] 2.3 Criar o leitor `lerOutrosMetadados` em `buildProjetoNormaFromJsonix.ts` e compô-lo em `lerMetadadoLexEdit` (tolerante; primeira chave vence)
+- [x] 2.4 Testes unitários do montador e do leitor: vazio, um e vários pares, caracteres especiais, entrada inválida, chave repetida, objeto único no lugar de lista, convivência com outros grupos
 
 ## 3. Componente
 
