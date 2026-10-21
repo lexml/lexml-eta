@@ -32,6 +32,8 @@ export interface MetadadoLexEdit {
   colegiadoApreciador?: { TYPE_NAME: string; siglaCasaLegislativa: string; tipoColegiado: string; siglaComissao?: string };
   // Ids separados por espaço; cada atributo é omitido quando vazio (especificação 13).
   situacaoNaNormaVigente?: { TYPE_NAME: string; refIdsDispositivosExistentes?: string; refIdsDispositivosNovos?: string };
+  // Pares chave/valor livres dos hosts; o valor é sempre texto.
+  outrosMetadados?: { TYPE_NAME: string; outroMetadado: Array<{ TYPE_NAME: string; chave: string; value: string }> };
   revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
   usuarios?: RevisoesLexEdit['usuarios'];
 }
@@ -71,6 +73,7 @@ export interface DadosLexEdit {
   opcoesImpressao?: OpcoesImpressao;
   autoria?: Autoria;
   colegiadoApreciador?: ColegiadoApreciador;
+  outrosMetadados?: Record<string, string>;
   revisoes?: RevisoesLexEdit;
   // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
   revisoesLidas?: RevisaoArticulacaoLida[];
