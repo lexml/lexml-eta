@@ -4,7 +4,7 @@
      do LexML. Não faz parte do esquema LexML oficial. -->
 
 <xsd:schema targetNamespace="http://www.lexml.gov.br/lexedit/1.0" elementFormDefault="qualified"
-    xmlns="http://www.lexml.gov.br/lexedit/1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns="http://www.lexml.gov.br/lexedit/1.0" xmlns:lexedit="http://www.lexml.gov.br/lexedit/1.0" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns:lexml="http://www.lexml.gov.br/1.0">
 
     <xsd:import schemaLocation="lexml-simples.xsd" namespace="http://www.lexml.gov.br/1.0" />
@@ -23,6 +23,7 @@
                 <xsd:element ref="Pendencias" minOccurs="0" />
                 <xsd:element ref="SituacaoNaNormaVigente" minOccurs="0" />
                 <xsd:element ref="ColegiadoApreciador" minOccurs="0" />
+                <xsd:element ref="OutrosMetadados" minOccurs="0" />
             </xsd:all>
             <xsd:attribute type="xsd:dateTime" name="dataUltimaModificacao" />
             <xsd:attribute type="xsd:string" name="aplicacao" />
@@ -239,6 +240,30 @@
             <xsd:attribute type="SiglaCasaLegislativa" name="siglaCasaLegislativa" use="required" />
             <xsd:attribute type="TipoColegiado" name="tipoColegiado" use="required" />
             <xsd:attribute type="xsd:string" name="siglaComissao" />
+        </xsd:complexType>
+    </xsd:element>
+
+    <!-- Pares chave/valor livres para as aplicações hospedeiras; o valor é sempre texto (um host
+         pode gravar nele, por exemplo, um JSON serializado). -->
+    <xsd:element name="OutrosMetadados">
+        <xsd:complexType>
+            <xsd:sequence>
+                <xsd:element ref="OutroMetadado" maxOccurs="unbounded" />
+            </xsd:sequence>
+        </xsd:complexType>
+        <xsd:unique name="chaveOutroMetadadoUnica">
+            <xsd:selector xpath="lexedit:OutroMetadado" />
+            <xsd:field xpath="@chave" />
+        </xsd:unique>
+    </xsd:element>
+
+    <xsd:element name="OutroMetadado">
+        <xsd:complexType>
+            <xsd:simpleContent>
+                <xsd:extension base="xsd:string">
+                    <xsd:attribute type="xsd:string" name="chave" use="required" />
+                </xsd:extension>
+            </xsd:simpleContent>
         </xsd:complexType>
     </xsd:element>
 
