@@ -96,10 +96,10 @@ describe('Pena: ações de menu', () => {
     expect(nomesDasAcoes('art2')).not.to.include(ADICIONAR);
   });
 
-  it('não oferece adicionar pena em dispositivo de bloco de alteração (task 5.1)', () => {
+  it('oferece adicionar pena em dispositivo de bloco de alteração', () => {
     createAlteracao(dispositivo('art2'));
     const cabeca = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, dispositivo('art2').alteracoes);
-    expect(cabeca.getAcoesPossiveis(cabeca).map((a: any) => a.descricao)).not.to.include(ADICIONAR);
+    expect(cabeca.getAcoesPossiveis(cabeca).map((a: any) => a.descricao)).to.include(ADICIONAR);
   });
 
   it('o menu da pena só tem Remover e Alterar rótulo', () => {
