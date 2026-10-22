@@ -9,6 +9,11 @@ describe('ETA — exibição do preâmbulo no editor', () => {
   let component: LexmlEtaComponent;
   let editor: any;
 
+  before(() => {
+    // Usar o valor impede que o TypeScript elimine o import e garante o registro dos elementos.
+    expect(customElements.get('lexml-eta')).to.equal(LexmlEtaComponent);
+  });
+
   beforeEach(async () => {
     component = await fixture<LexmlEtaComponent>('<lexml-eta></lexml-eta>');
     (component as any).getParlamentares = async (): Promise<[]> => [];
