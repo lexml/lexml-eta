@@ -41,7 +41,7 @@
 urn:lex:br:senado.federal:projeto.lei;pl:9999;999999
 
 urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:9999;999999
-urnDocumentoDeReferencia: urn:lex:br:presidencia.republica:medida.provisoria;mpv:2026;4321
+urnDocumentoDeReferencia: urn:lex:br:federal:medida.provisoria;mpv:2026;4321
 
 urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo
 
