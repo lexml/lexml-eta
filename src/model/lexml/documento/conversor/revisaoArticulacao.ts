@@ -1,5 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
-import { isArticulacao, isArtigo, isCaput } from '../../../dispositivo/tipo';
+import { isArticulacao, isArtigo, isCaput, isPena } from '../../../dispositivo/tipo';
 import { Elemento, Referencia } from '../../../elemento';
 import { getDispositivoFromElemento } from '../../../elemento/elementoUtil';
 import { RevisaoElemento } from '../../../revisao/revisao';
@@ -43,7 +43,9 @@ const montaRevisaoDeDispositivo = (state: State, revisao: RevisaoElemento): Revi
   const antes = revisao.elementoAntesRevisao;
   const tipo = revisao.elementoAposRevisao.tipo;
   if (tipo && antes?.conteudo?.texto !== undefined && getOperacoesRevisao(operacoes).some(o => o.nome === OPERACAO_ALTERADO)) {
-    resultado[lowerFirst(tipo)] = buildJsonixEstadoAnterior(tipo, antes.conteudo.texto, antes.tituloDispositivo);
+    // Rótulo ausente = igual ao atual.
+    const rotuloPena = isPena(dispositivo) && antes.rotulo && antes.rotulo !== dispositivo.rotulo ? antes.rotulo : undefined;
+    resultado[lowerFirst(tipo)] = buildJsonixEstadoAnterior(tipo, antes.conteudo.texto, antes.tituloDispositivo, rotuloPena);
   }
   return resultado;
 };

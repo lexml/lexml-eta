@@ -230,6 +230,7 @@ const NOMES_DISPOSITIVO_NA_REVISAO = [
   'inciso',
   'alinea',
   'item',
+  'pena',
   'dispositivoGenerico',
 ];
 
@@ -248,7 +249,7 @@ const lerOperacoesRevisao = (revisao: unknown): LidaOperacao[] =>
 type LidaOperacao = RevisaoArticulacaoLida['operacoes'][number];
 
 // Estado anterior de uma revisão não excluída: dispositivo sem id (sem título = não havia) ou, por tolerância, `p` solto (título não informado).
-const lerEstadoAnterior = (lida: any): Pick<RevisaoArticulacaoLida, 'textoAnterior' | 'tituloAnterior'> => {
+const lerEstadoAnterior = (lida: any): Pick<RevisaoArticulacaoLida, 'textoAnterior' | 'tituloAnterior' | 'rotuloAnterior'> => {
   const nome = NOMES_DISPOSITIVO_NA_REVISAO.find(n => isObjeto(lida[n]));
   const dispositivo = nome && lida[nome];
   const caput = dispositivo && comoLista(dispositivo.lXcontainersOmissis).find(n => n?.name?.localPart === 'Caput');
@@ -257,7 +258,12 @@ const lerEstadoAnterior = (lida: any): Pick<RevisaoArticulacaoLida, 'textoAnteri
   const textoAnterior = isObjeto(nomeAgrupador) ? buildContent(escaparTextoJsonix(nomeAgrupador.content)) : isObjeto(p) ? buildContent(escaparTextoJsonix(p.content)) : undefined;
   const titulo = dispositivo?.tituloDispositivo;
   const tituloAnterior = dispositivo ? (isObjeto(titulo) ? buildContent(escaparTextoJsonix(titulo.content)) : null) : undefined;
-  return { ...(textoAnterior !== undefined && { textoAnterior }), ...(tituloAnterior !== undefined && { tituloAnterior }) };
+  const rotuloAnterior = nome === 'pena' && textoNaoVazio(dispositivo.rotulo) ? normalizaRotuloPena(dispositivo.rotulo) : undefined;
+  return {
+    ...(textoAnterior !== undefined && { textoAnterior }),
+    ...(tituloAnterior !== undefined && { tituloAnterior }),
+    ...(rotuloAnterior !== undefined && { rotuloAnterior }),
+  };
 };
 
 export const lerUsuarios = (lido: any): Map<string, Usuario> =>

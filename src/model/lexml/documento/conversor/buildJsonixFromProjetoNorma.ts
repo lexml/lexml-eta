@@ -906,10 +906,13 @@ export const buildJsonixContentFromHtml = (html: string): any[] => buildStructur
 // Título vazio ou só com marcação não é gravado.
 const tituloTemTexto = (titulo?: string): boolean => isValidText(getTextoSemHtml((titulo ?? '').replace(/&nbsp;/g, ' ')));
 
-/** Valor jsonix, sem id nem rótulo, do estado anterior (texto e título) de um dispositivo de tipo `tipo` numa revisão `alterado`. */
-export const buildJsonixEstadoAnterior = (tipo: string, texto: string, titulo?: string): any => {
+/** Valor jsonix, sem id, do estado anterior (texto e título) de um dispositivo de tipo `tipo` numa revisão `alterado`; o rótulo só vai para a pena, e só quando mudou. */
+export const buildJsonixEstadoAnterior = (tipo: string, texto: string, titulo?: string, rotuloPena?: string): any => {
   const dispositivo = { tipo } as unknown as Dispositivo;
   const value: any = { TYPE_NAME: buildTypeName(dispositivo) };
+  if (rotuloPena) {
+    value.rotulo = normalizaRotuloPena(rotuloPena);
+  }
   if (tituloTemTexto(titulo)) {
     value.tituloDispositivo = { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildJsonixContentFromHtml(titulo!) };
   }
