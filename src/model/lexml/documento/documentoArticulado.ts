@@ -6,6 +6,7 @@ import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
 import { getAno, getNumero, getSigla } from './urnUtil';
 import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
 import { Usuario } from '../../revisao/usuario';
+import type { SituacaoNaNormaVigente } from './conversor/situacaoNaNormaVigente';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -49,6 +50,8 @@ export interface RevisaoArticulacaoLexEdit {
 export interface RevisoesLexEdit {
   revisoesArticulacao: { TYPE_NAME: string; revisaoArticulacao: RevisaoArticulacaoLexEdit[] };
   usuarios: { TYPE_NAME: string; usuario: Array<{ TYPE_NAME: string; idUsuario: string; nome: string; sigla?: string }> };
+  // Situação dos dispositivos de bloco de alteração contidos nos excluídos, com os ids gravados na revisão (`_<id>-exc<n>...`).
+  situacaoDosExcluidos?: SituacaoNaNormaVigente;
 }
 
 /** Formato provisório gravado antes do conversor 2.0.0 (chave `lexedit`); só lido, nunca gravado. */
