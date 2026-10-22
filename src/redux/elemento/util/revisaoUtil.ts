@@ -106,12 +106,18 @@ export const buildDescricaoRevisao = (revisao: Revisao): string => {
   return isRevisaoElemento(revisao) ? buildDescricaoRevisaoElemento(revisao as RevisaoElemento) : buildDescricaoRevisaoTexto(revisao);
 };
 
+export const mudouRotuloDaPena = (antes?: Partial<Elemento>, apos?: Partial<Elemento>): boolean =>
+  !!antes && !!apos && antes.tipo === 'Pena' && apos.tipo === 'Pena' && antes.rotulo !== apos.rotulo;
+
 // A descrição acompanha o que de fato mudou entre o elemento antes e depois da revisão.
 export const buildDescricaoRevisaoDeModificacao = (revisao: RevisaoElemento): string => {
   const { elementoAntesRevisao: antes, elementoAposRevisao: apos } = revisao;
   const tituloMudou = !!antes && antes.tituloDispositivo !== apos.tituloDispositivo;
   const textoMudou = !antes || antes.conteudo?.texto !== apos.conteudo?.texto;
 
+  if (mudouRotuloDaPena(antes, apos)) {
+    return textoMudou ? 'Texto e rótulo do dispositivo foram alterados' : 'Rótulo do dispositivo foi alterado';
+  }
   if (tituloMudou) {
     return textoMudou ? 'Texto e título do dispositivo foram alterados' : 'Título do dispositivo foi alterado';
   }
@@ -638,9 +644,9 @@ const nomeTipoNaRevisao = (tipo?: string): string => (tipo ?? '').toLowerCase();
 
 const isMesmoPai = (a?: Referencia, b?: Referencia): boolean => (a?.uuid2 !== undefined && b?.uuid2 !== undefined ? a.uuid2 === b.uuid2 : a?.uuid === b?.uuid);
 
-// O título também é conteúdo revisável: mudar só o título conta como alteração.
+// O título também é conteúdo revisável: mudar só o título conta como alteração. O rótulo só entra para a pena (nos demais, a troca é `alteracaoRotulo`).
 export const isMesmoTextoETitulo = (a?: Partial<Elemento>, b?: Partial<Elemento>): boolean =>
-  a?.conteudo?.texto === b?.conteudo?.texto && a?.tituloDispositivo === b?.tituloDispositivo;
+  a?.conteudo?.texto === b?.conteudo?.texto && a?.tituloDispositivo === b?.tituloDispositivo && !mudouRotuloDaPena(a, b);
 
 const isMesmoLugar = (antes: Partial<Elemento>, apos: Partial<Elemento>): boolean =>
   isMesmoPai(antes.hierarquia?.pai, apos.hierarquia?.pai) && antes.hierarquia?.posicao === apos.hierarquia?.posicao;
@@ -738,7 +744,7 @@ export const derivarOperacoesRevisao = (state: State, revisao: RevisaoElemento):
   }
   if (revisao.stateType === StateType.ElementoModificado) {
     let operacoes = '';
-    if (antes && apos && antes.tipo === apos.tipo && antes.rotulo !== apos.rotulo) {
+    if (antes && apos && antes.tipo === apos.tipo && antes.tipo !== 'Pena' && antes.rotulo !== apos.rotulo) {
       operacoes = anexarOperacaoRevisao(operacoes, OPERACAO_ALTERACAO_ROTULO, antes.lexmlId);
     }
     if (!isMesmoTextoETitulo(antes, apos)) {

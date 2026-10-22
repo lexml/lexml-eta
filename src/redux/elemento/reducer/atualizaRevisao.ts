@@ -174,7 +174,9 @@ const getOperacaoDeAlteracaoRotulo = (state: State, actionType: any, elemento: E
     return undefined;
   }
   const anterior = getElementoAntesModificacao(state, elemento);
-  return anterior && anterior.tipo === elemento.tipo && anterior.rotulo !== elemento.rotulo ? { nome: OPERACAO_ALTERACAO_ROTULO, argumento: anterior.lexmlId } : undefined;
+  return anterior && anterior.tipo === elemento.tipo && elemento.tipo !== 'Pena' && anterior.rotulo !== elemento.rotulo
+    ? { nome: OPERACAO_ALTERACAO_ROTULO, argumento: anterior.lexmlId }
+    : undefined;
 };
 
 const getOperacoesDeNovaModificacao = (state: State, actionType: any, elemento: Elemento, anterior: Elemento | undefined): string => {
