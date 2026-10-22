@@ -7,6 +7,9 @@ import { buildListaDispositivos as listaDoDialogoInterno } from '../../../src/co
 import { buildListaDispositivos as listaDoDialogoGeral } from '../../../src/components/editor/remissaoDialog';
 import { podeSerDestinoDeRemissaoInterna } from '../../../src/model/remissao/destinoRemissao';
 import { criaStateComNArtigos, detectaRemissoes } from '../../helpers/dispositivo-helper';
+import { adicionarIncisoAntes } from '../../../src/model/lexml/acao/adicionarElementoAction';
+import { createElemento } from '../../../src/model/elemento/elementoUtil';
+import { elementoReducer } from '../../../src/redux/elemento/reducer/elementoReducer';
 
 describe('remissão interna e a pena', () => {
   let state: any;
@@ -69,6 +72,36 @@ describe('remissão interna e a pena', () => {
       const r = detectaRemissoes(state, pena, 'reclusão, aumentada na forma do caput deste artigo.');
       expect(r).to.have.length(1);
       expect(r[0].targetUuid).to.equal((artigos[0] as Artigo).caput!.uuid);
+    });
+  });
+
+  describe('atualização da remissão que está no texto da pena', () => {
+    it('um inciso incluído antes do destino muda a remissão de "inciso II" para "inciso III" e o texto da pena', () => {
+      ({ state, artigos } = criaStateComNArtigos(1));
+      const art1 = artigos[0] as Artigo;
+      const inciso1 = criaDispositivo(art1, TipoDispositivo.inciso.tipo) as any;
+      inciso1.texto = 'primeiro inciso;';
+      const inciso2 = criaDispositivo(art1, TipoDispositivo.inciso.tipo) as any;
+      inciso2.texto = 'segundo inciso.';
+      const penaDoCaput = criaDispositivo(art1, TipoDispositivo.pena.tipo) as any;
+      penaDoCaput.rotulo = 'Pena –';
+      const prefixo = 'reclusão, nos termos do ';
+      penaDoCaput.texto = `${prefixo}inciso II do art. 1º.`;
+      art1.caput!.renumeraFilhos();
+      updateIdDispositivoAndFilhos(state.articulacao!);
+      state.remissoes = {
+        [penaDoCaput.uuid]: [
+          { refId: 'ref_pena', sourceUuid: penaDoCaput.uuid, targetUuid: inciso2.uuid, targetLexmlId: inciso2.id, textoRef: 'inciso II do art. 1º', inicio: prefixo.length },
+        ],
+      };
+
+      const resultado = elementoReducer(state, adicionarIncisoAntes.execute(createElemento(inciso2, true)));
+
+      const entrada = resultado.remissoes![penaDoCaput.uuid][0];
+      expect(entrada.textoRef).to.equal('inciso III do art. 1º');
+      expect(entrada.targetLexmlId).to.equal(inciso2.id);
+      expect(penaDoCaput.texto).to.contain('inciso III do art. 1º');
+      expect(penaDoCaput.texto).to.not.contain('inciso II do');
     });
   });
 });
