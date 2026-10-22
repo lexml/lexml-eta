@@ -26,8 +26,8 @@
 
 ## 5. Teste E2E (Cypress)
 
-- [ ] 5.1 Avaliar a viabilidade à luz de `docs/guia-cypress.md` e do padrão de `cypress/e2e/documento-articulado/abertura-situacao-e-destino.cy.ts`: gerar o fixture `demo/doc/teste_outros_metadados.json` por `criarDocumentoArticulado`, abrir pela UI e conferir a propriedade `outrosMetadados` do componente. Se a leitura da propriedade pelo Cypress não for viável, registrar a decisão e manter a cobertura no teste de componente (3.3), que exercita o mesmo risco
-- [ ] 5.2 Escrever e executar o spec `cypress/e2e/documento-articulado/abertura-outros-metadados.cy.ts`, incluindo salvar e reabrir pelo `#fileUpload` se o padrão de captura do blob já existente (`titulo-dispositivo.cy.ts`) se aplicar
+- [x] 5.1 Avaliar a viabilidade à luz de `docs/guia-cypress.md` e do padrão de `cypress/e2e/documento-articulado/abertura-situacao-e-destino.cy.ts`: gerar o fixture `demo/doc/teste_outros_metadados.json` por `criarDocumentoArticulado`, abrir pela UI e conferir a propriedade `outrosMetadados` do componente. Se a leitura da propriedade pelo Cypress não for viável, registrar a decisão e manter a cobertura no teste de componente (3.3), que exercita o mesmo risco
+- [x] 5.2 Escrever e executar o spec `cypress/e2e/documento-articulado/abertura-outros-metadados.cy.ts`, incluindo salvar e reabrir pelo `#fileUpload` se o padrão de captura do blob já existente (`titulo-dispositivo.cy.ts`) se aplicar
 
 ## 6. Especificação e documentação
 
