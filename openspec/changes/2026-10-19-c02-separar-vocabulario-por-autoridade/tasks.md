@@ -36,23 +36,23 @@
 
 ## 6. Chamadores e preâmbulo
 
-- [ ] 6.1 Conferir cada chamador de `getTipo`/`getSigla`/`getTipoDocumentoUrn` (`buildProjetoNormaFromJsonix`, `adicionaAlteracaoComAssistente`, `atualizaReferenciaElemento`, `colarUtil`, `dispositivoValidator`, `documentoArticulado`, `lexml-eta.component`) e garantir que o "não resolve" (`undefined`) não lança exceção não tratada (D8), com teste onde houver comportamento novo
-- [ ] 6.2 Ajustar `preambulosPadrao` das autoridades à tabela de D6 e validar os cenários da spec `preambulo-proposicao`, incluindo o de autoridade fora do vocabulário da casa
+- [x] 6.1 Conferir cada chamador de `getTipo`/`getSigla`/`getTipoDocumentoUrn` (`buildProjetoNormaFromJsonix`, `adicionaAlteracaoComAssistente`, `atualizaReferenciaElemento`, `colarUtil`, `dispositivoValidator`, `documentoArticulado`, `lexml-eta.component`) e garantir que o "não resolve" (`undefined`) não lança exceção não tratada (D8), com teste onde houver comportamento novo
+- [x] 6.2 Ajustar `preambulosPadrao` das autoridades à tabela de D6 e validar os cenários da spec `preambulo-proposicao`, incluindo o de autoridade fora do vocabulário da casa
 
 ## 7. Testes e fixtures existentes
 
-- [ ] 7.1 Reescrever `vocabulario.caracterizacao.test.ts` e `vocabulario.lookup.test.ts` (D7) para o modelo novo, rodando `SF` e `CD` com helper que restaura `SF`
-- [ ] 7.2 Ajustar `documentoArticulado.test.ts` (MPV com autoridade `federal`) e `preambuloPadrao.test.ts` (PLV, MPV e demais combinações, por casa)
-- [ ] 7.3 Procurar testes e specs que dependam de URNs de tipo/autoridade que deixam de resolver (ex.: `preambuloCarga.test.ts`, `roundTripRemissaoExterna.test.ts`, `buildJsonixMetadados.test.ts`, `abertura-preambulo.cy.ts`, fixtures de `demo/doc`) e ajustá-los ou registrar por que não são afetados
+- [x] 7.1 Reescrever `vocabulario.caracterizacao.test.ts` (renomeado para `vocabulario.porCasa.test.ts`) e `vocabulario.lookup.test.ts` (D7) para o modelo novo, rodando `SF` e `CD` com helper que restaura `SF`
+- [x] 7.2 Ajustar `documentoArticulado.test.ts` (MPV com autoridade `federal`) e `preambuloPadrao.test.ts` (PLV, MPV e demais combinações, por casa)
+- [x] 7.3 Procurar testes e specs que dependam de URNs de tipo/autoridade que deixam de resolver (ex.: `preambuloCarga.test.ts`, `roundTripRemissaoExterna.test.ts`, `buildJsonixMetadados.test.ts`, `abertura-preambulo.cy.ts`, fixtures de `demo/doc`) e ajustá-los ou registrar por que não são afetados
 
 ## 8. Teste E2E (Cypress)
 
 - [x] 8.1 ~~Avaliar a viabilidade de um spec Cypress~~ Dispensada por decisão do usuário. Decisão registrada: sem spec E2E novo, porque o vocabulário é dado e consulta pura, sem superfície de UI própria; o risco é coberto pelos testes de vocabulário, de `urnUtil` e de componente (5.2)
-- [ ] 8.2 Executar `abertura-preambulo.cy.ts` e confirmar que passa (ou ajustar o fixture/URN, se usar uma combinação que deixou de resolver)
+- [x] 8.2 Executar `abertura-preambulo.cy.ts` e confirmar que passa (ou ajustar o fixture/URN, se usar uma combinação que deixou de resolver)
 
 ## 9. Fechamento
 
-- [ ] 9.1 Executar `npm run build` e `npm test` e confirmar que passam (sem `npm run lint` e sem a suíte E2E completa)
-- [ ] 9.2 Registrar no `CLAUDE.md` (Quirks e Gotchas) a estrutura `vocabulario/` por autoridade e por casa, `casaLegislativaEditor` × `casaLegislativa`, o estado estático, a resolução sem fallback e a mudança da URN de MPV/PLV, sinalizando o `lexeditweb-editor` e o Infoleg Editor como pontos de coordenação
-- [ ] 9.3 Sincronizar `docs/requisitos/vocabulario.md` com o que foi implementado
-- [ ] 9.4 Atualizar `docs/sessao/TODO.md` com o estado da change (issue #1026; próximas: tela de nova proposição, `tiposReferenciaveis` do SF, `ativo` definitivo)
+- [x] 9.1 Executar `npm run build` e `npm test` e confirmar que passam (sem `npm run lint` e sem a suíte E2E completa)
+- [x] 9.2 Registrar no `CLAUDE.md` (Quirks e Gotchas) a estrutura `vocabulario/` por autoridade e por casa, `casaLegislativaEditor` × `casaLegislativa`, o estado estático, a resolução sem fallback e a mudança da URN de MPV/PLV, sinalizando o `lexeditweb-editor` e o Infoleg Editor como pontos de coordenação
+- [x] 9.3 Sincronizar `docs/requisitos/vocabulario.md` com o que foi implementado
+- [x] 9.4 Atualizar `docs/sessao/TODO.md` com o estado da change (issue #1026; próximas: tela de nova proposição, `tiposReferenciaveis` do SF, `ativo` definitivo)
