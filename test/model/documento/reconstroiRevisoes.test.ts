@@ -27,6 +27,7 @@ import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierar
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
+import { montaTextoDiff } from '../../../src/components/editor/exibirDiferencaDialog';
 
 const URN = 'urn:lex:br:senado.federal:projeto.lei:2026;1';
 
@@ -182,6 +183,23 @@ describe('reconstroiRevisoes — alteracaoRotulo: valores reconstruídos (MPV 12
     const [reaberta] = principais(abreComRevisoes(a));
 
     expect(reaberta.descricao).to.equal(`Rótulo do dispositivo foi alterado (rótulo antes era "${rotuloAnterior}")`);
+  });
+
+  it('o popup de diferenças informa o rótulo anterior e o atual, na sessão e depois de reaberto', () => {
+    const rotuloAnterior = buscaDispositivoById(a.articulacao!, PAR)!.rotulo;
+    renumera(PAR, '9');
+    const rotulosDoPopup = (s: State): (string | undefined)[] => {
+      const [revisao] = principais(s);
+      const diff = montaTextoDiff({ ...elemento(s, `${ART4}_par9`), revisao }, {} as any);
+      return [diff.rotuloAntesRevisao, diff.rotuloAtual];
+    };
+
+    const naSessao = rotulosDoPopup(a);
+    const reaberto = rotulosDoPopup(abreComRevisoes(a));
+
+    expect(naSessao[0]).to.equal(rotuloAnterior);
+    expect(naSessao[1]).to.not.equal(rotuloAnterior);
+    expect(reaberto).to.deep.equal(naSessao);
   });
 
   it('id original de outro tipo descarta a revisão, sem impedir as demais', () => {

@@ -5,7 +5,10 @@ import '@shoelace-style/shoelace/dist/components/dialog/dialog';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
-import { TextoDiff, exibirDiferencasDialog } from '../../../src/components/editor/exibirDiferencaDialog';
+import { Elemento } from '../../../src/model/elemento';
+import { RevisaoElemento } from '../../../src/model/revisao/revisao';
+import { StateType } from '../../../src/redux/state';
+import { TextoDiff, exibirDiferencasDialog, montaTextoDiff } from '../../../src/components/editor/exibirDiferencaDialog';
 
 const quillFalso = { blur: (): void => undefined, focus: (): void => undefined };
 
@@ -189,5 +192,45 @@ describe('exibirDiferencasDialog', () => {
 
       expect(cards('modificadoRevisao').every(c => c.querySelector('.rotulo-diff') === null)).to.equal(true);
     });
+  });
+});
+
+describe('montaTextoDiff — rótulo', () => {
+  const elementoEmRevisao = (tipo: string, rotuloAntes: string, rotuloAtual: string, operacoes: string, textoAntes = 'texto.', textoAtual = 'texto.'): Elemento => {
+    const antes = { rotulo: rotuloAntes, conteudo: { texto: textoAntes } } as Partial<Elemento>;
+    const revisao = new RevisaoElemento('', StateType.ElementoModificado, 'Descrição', { nome: 'X' } as any, '', antes, {});
+    revisao.revisao = operacoes;
+    return { ...new Elemento(), tipo, rotulo: rotuloAtual, conteudo: { texto: textoAtual }, revisao };
+  };
+  const diffDe = (e: Elemento): TextoDiff => montaTextoDiff(e, quillFalso as any);
+
+  it('pena com o rótulo trocado informa os dois rótulos', () => {
+    const diff = diffDe(elementoEmRevisao('Pena', 'Pena –', 'Infração –', 'alterado'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal(['Pena –', 'Infração –']);
+  });
+
+  it('pena com só o texto alterado informa o mesmo rótulo nos dois lados', () => {
+    const diff = diffDe(elementoEmRevisao('Pena', 'Pena –', 'Pena –', 'alterado', 'a.', 'b.'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal(['Pena –', 'Pena –']);
+  });
+
+  it('renumeração manual (alteracaoRotulo) informa os dois rótulos', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 4º', '§ 9º', 'alteracaoRotulo;art1_par4'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal(['§ 4º', '§ 9º']);
+  });
+
+  it('alteracaoRotulo combinada com alterado informa os rótulos', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 4º', '§ 9º', 'alteracaoRotulo;art1_par4,alterado'));
+    expect(diff.rotuloAtual).to.equal('§ 9º');
+  });
+
+  it('renumeração automática (só alterado) não informa rótulo', () => {
+    const diff = diffDe(elementoEmRevisao('Artigo', 'Art. 3º', 'Art. 4º', 'alterado', 'a.', 'b.'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal([undefined, undefined]);
+  });
+
+  it('dispositivo movido não informa rótulo', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 2º', '§ 1º', 'movido;2,alterado'));
+    expect(diff.rotuloAtual).to.equal(undefined);
   });
 });

@@ -1,3 +1,5 @@
+import { Elemento } from '../../model/elemento';
+import { RevisaoElemento } from '../../model/revisao/revisao';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { escapeHtml, sanitizarTituloDispositivo } from '../../util/html-util';
 import { substituiEspacosEntreTagsPorNbsp, substituiMultiplosEspacosPorNbsp, textoDiffAsHtml } from '../../util/string-util';
@@ -10,12 +12,38 @@ export class TextoDiff {
   // undefined = sem título; '' = título vazio.
   tituloAntesRevisao?: string;
   tituloAtual?: string;
-  // Informados quando a revisão alterou o rótulo (e sempre na pena).
+  // Só a pena e a revisão alteracaoRotulo informam o rótulo.
   rotuloAntesRevisao?: string;
   rotuloAtual?: string;
   comRevisao = false;
   adicionado = false;
 }
+
+// O rótulo só entra quando a própria revisão o registra: a renumeração automática o muda sem gerar revisão.
+const revisaoRegistraTrocaDeRotulo = (elemento: Elemento, revisao: RevisaoElemento): boolean =>
+  elemento.tipo === 'Pena' || !!revisao.revisao?.split(',').some(operacao => operacao.split(';')[0] === 'alteracaoRotulo');
+
+export const montaTextoDiff = (elemento: Elemento, quill: EtaQuill): TextoDiff => {
+  const diff = new TextoDiff();
+  diff.textoAtual = elemento.conteudo!.texto!;
+  diff.tituloAtual = elemento.tituloDispositivo;
+  diff.quill = quill;
+
+  const revisao = elemento.revisao as RevisaoElemento;
+  if (revisao) {
+    diff.comRevisao = true;
+    diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
+    diff.tituloAntesRevisao = revisao.elementoAntesRevisao!.tituloDispositivo;
+    if (revisaoRegistraTrocaDeRotulo(elemento, revisao)) {
+      diff.rotuloAntesRevisao = revisao.elementoAntesRevisao!.rotulo;
+      diff.rotuloAtual = elemento.rotulo;
+    }
+    diff.textoOriginal = diff.textoAntesRevisao;
+    // Em proposição todo dispositivo nasce novo: não há texto de norma vigente para a aba "Texto original".
+    diff.adicionado = true;
+  }
+  return diff;
+};
 
 const OMISSIS = '....................';
 

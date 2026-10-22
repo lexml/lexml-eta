@@ -82,7 +82,7 @@ import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { LexmlEtaConfig } from '../../model/lexmlEtaConfig';
 import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
-import { TextoDiff, exibirDiferencasDialog } from './exibirDiferencaDialog';
+import { exibirDiferencasDialog, montaTextoDiff } from './exibirDiferencaDialog';
 import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao';
 import { isCaput, isPena } from '../../model/dispositivo/tipo';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
@@ -1502,29 +1502,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   exibirDiferencas(elemento: Elemento): void {
-    const diff: TextoDiff = new TextoDiff();
-    diff.textoAtual = elemento.conteudo!.texto!;
-    diff.tituloAtual = elemento.tituloDispositivo;
-    diff.quill = this.quill;
-
-    const revisao = elemento.revisao as RevisaoElemento;
-
-    if (revisao) {
-      diff.comRevisao = true;
-      diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
-      diff.tituloAntesRevisao = revisao.elementoAntesRevisao!.tituloDispositivo;
-      const rotuloAntes = revisao.elementoAntesRevisao!.rotulo;
-      // O rótulo só aparece quando a revisão o alterou (renumeração, troca de rótulo da pena); a pena o exibe sempre.
-      if (elemento.tipo === 'Pena' || (rotuloAntes !== undefined && rotuloAntes !== elemento.rotulo)) {
-        diff.rotuloAntesRevisao = rotuloAntes;
-        diff.rotuloAtual = elemento.rotulo;
-      }
-      diff.textoOriginal = diff.textoAntesRevisao;
-      // Em proposição todo dispositivo nasce novo: não há texto de norma vigente para a aba "Texto original".
-      diff.adicionado = true;
-    }
-
-    exibirDiferencasDialog(diff);
+    exibirDiferencasDialog(montaTextoDiff(elemento, this.quill));
   }
 
   aceitarRevisao(elemento: Elemento): void {
