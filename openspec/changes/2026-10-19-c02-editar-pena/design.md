@@ -24,7 +24,7 @@ Foram analisadas 6 leis (Leis 10.826/2003, 9.605/1998, 8.072/1990, 11.343/2006, 
 | Rótulo diferente de "Pena" | 0 | separadores "-", "–" e U+0096 |
 | Pena por inciso, alínea ou item | 0 | só no CP, art. 197 (fora do corpus) |
 
-Exceções: DL 3.688, arts. 40 (";") e 46 ("."), texto de 1941. Duas penas no art. 24-A da Lei 11.340 são artefato do Planalto (redação antiga sem tachado), não um caso real.
+Exceções: DL 3.688, arts. 40 (";") e 46 ("."), texto de 1941. Como as 6 penas depois de incisos têm ":" sem exceção, as duas exceções são penas que seguem outro dispositivo (o total dessas não foi recontado). Duas penas no art. 24-A da Lei 11.340 são artefato do Planalto (redação antiga sem tachado), não um caso real.
 
 ## Goals / Non-Goals
 
@@ -136,6 +136,7 @@ A primeira tarefa da implementação completa esse inventário varrendo as 205 l
 
 - [O `jsonix-lexml` 2.1.0 descarta, sem erro, `Pena` como filho direto de `RevisaoArticulacao`] → Dependência do `jsonix-lexml` 2.2.0 (com `lexml:Pena` no `choice` de `RevisaoArticulacao`, como em `schemas/lexedit.xsd` já ajustado aqui) e da atualização do CLI no `lexeditweb-editor`. Até lá, as revisões `alterado` e `excluido` de pena se perdem em silêncio ao salvar; o editor e os testes locais (ida e volta pelo JSONIX e `npm run verify:xsd-lexedit`) já cobrem o formato. O cenário de revisão de pena da task 8.4 fica marcado como dependente do CLI novo.
 - [Revisão `excluido` de dispositivo que não seja artigo dentro de bloco de alteração não é reconstruída ao abrir] → Limitação anterior a esta change, vista na 6.3 com a pena em bloco: o id do excluído sai com o artigo hospedeiro sem número (`_art1_cpt_alt1_art[sn:13]_cpt_pena-exc1`) e a leitura não acha o lugar. Vale igual para parágrafo (`..._art[sn:27]_par1-exc1`). Não corrigida aqui; fica para outra issue.
+- [Arquivo que já aponte uma remissão para um id terminado em `_pena`] → Ao abrir, a remissão resolve por id e viraria link para a pena. O filtro (`podeSerDestinoDeRemissaoInterna`) só protege o diálogo e a detecção, e o editor não produz esse arquivo. Aceito, sem tratamento nesta change; se um arquivo externo aparecer assim, tratar na abertura.
 
 ## Migration Plan
 
