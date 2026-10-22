@@ -14,10 +14,10 @@
 
 ## 3. Componente
 
-- [ ] 3.1 Adicionar a `@property` pública `outrosMetadados` em `lexml-eta.component.ts`, repassada em `getDocumentoArticulado` (inclusive no anexo de parecer)
-- [ ] 3.2 Aplicar o valor lido em `abrirDocumentoArticulado`, depois de `inicializarEdicao`, esvaziando a propriedade quando o arquivo não tem o grupo
-- [ ] 3.3 Testes de componente: salvar com a propriedade definida, anexo de parecer, abrir com e sem o grupo, abrir um arquivo depois do outro
-- [ ] 3.4 Documentar a propriedade em `docs/api-componente-lexml-eta.md`
+- [x] 3.1 Adicionar a `@property` pública `outrosMetadados` em `lexml-eta.component.ts`, repassada em `getDocumentoArticulado` (inclusive no anexo de parecer)
+- [x] 3.2 Aplicar o valor lido em `abrirDocumentoArticulado`, depois de `inicializarEdicao`, esvaziando a propriedade quando o arquivo não tem o grupo
+- [x] 3.3 Testes de componente: salvar com a propriedade definida, anexo de parecer, abrir com e sem o grupo, abrir um arquivo depois do outro
+- [x] 3.4 Documentar a propriedade em `docs/api-componente-lexml-eta.md`
 
 ## 4. Integração com o conversor real
 
