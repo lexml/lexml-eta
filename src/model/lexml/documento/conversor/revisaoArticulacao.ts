@@ -50,9 +50,11 @@ const montaRevisaoDeDispositivo = (state: State, revisao: RevisaoElemento): Revi
   return resultado;
 };
 
-// Inciso de artigo mora no caput; as demais combinações usam o próprio pai.
+// Inciso e pena de artigo moram no caput; as demais combinações usam o próprio pai.
 export const getDestinoDeCriacao = (pai: Dispositivo, elemento: Partial<Elemento>): Dispositivo =>
-  isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.tipo || elemento.tipoOmissis === 'inciso-caput') ? (pai as Artigo).caput! : pai;
+  isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.tipo || elemento.tipo === TipoDispositivo.pena.tipo || elemento.tipoOmissis === 'inciso-caput')
+    ? (pai as Artigo).caput!
+    : pai;
 
 // Reproduz, numa articulação temporária, a cadeia de ancestrais do pai real (até a articulação raiz ou de alteração).
 export const criaHospedeiro = (temporaria: Articulacao, pai: Dispositivo): Dispositivo => {
