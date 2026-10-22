@@ -1,20 +1,20 @@
-import { getVocabulario } from '.';
+import { getVocabularioDaCasa } from '.';
 import { TipoDocumento, TipoRelacaoSubstitutivo } from './tiposVocabulario';
 
-const proposicoes = (): TipoDocumento[] => getVocabulario().tiposDocumento.filter(t => t.sigla);
+const proposicoes = (): TipoDocumento[] => getVocabularioDaCasa().tiposDocumento.filter(t => t.sigla);
 
-export const getTiposDocumentoAtivos = (): TipoDocumento[] => getVocabulario().tiposDocumentoAtivos;
+export const getTiposDocumentoAtivos = (): TipoDocumento[] => getVocabularioDaCasa().tiposDocumentoAtivos;
 
 export const getTiposDocumentoInativos = (): TipoDocumento[] => proposicoes().filter(t => !t.ativo);
 
 export const getTipoPorSigla = (sigla: string): TipoDocumento | undefined => {
   const maiuscula = (sigla ?? '').toUpperCase();
-  return getVocabulario().tiposDocumentoAtivos.find(t => t.sigla === maiuscula);
+  return getVocabularioDaCasa().tiposDocumentoAtivos.find(t => t.sigla === maiuscula);
 };
 
 // Prefere a autoridade do tipo que referencia; sem ela, vale qualquer outra da casa.
 const resolverReferencia = (urn: string, autoridade: string): TipoDocumento | undefined => {
-  const candidatos = getVocabulario().tiposDocumento.filter(t => t.urn === urn);
+  const candidatos = getVocabularioDaCasa().tiposDocumento.filter(t => t.urn === urn);
   return candidatos.find(t => t.urnAutoridade === autoridade) ?? candidatos[0];
 };
 

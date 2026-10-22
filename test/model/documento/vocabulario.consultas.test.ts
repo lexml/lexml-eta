@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { buildFakeUrn, getAutoridade, getSigla, getTipo, getTipoDocumentoUrn } from '../../../src/model/lexml/documento/urnUtil';
 import { getTipoPorSigla, getTiposDocumentoAtivos, getTiposDocumentoInativos, getTiposReferenciaveis } from '../../../src/model/lexml/documento/vocabulario/consultasVocabulario';
-import { getVocabulario, inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
+import { getVocabularioDaCasa, inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
 describe('vocabulário estático e consultas', () => {
   afterEach(() => inicializarVocabulario('SF'));
@@ -17,14 +17,14 @@ describe('vocabulário estático e consultas', () => {
         console.warn = original;
       }
       expect(avisos.length).to.equal(1);
-      expect(getVocabulario().autoridades.map(a => a.urn)).to.not.include('camara.deputados');
+      expect(getVocabularioDaCasa().autoridades.map(a => a.urn)).to.not.include('camara.deputados');
     });
 
     it('reinicializar troca o vocabulário', () => {
       inicializarVocabulario('CD');
-      expect(getVocabulario().autoridades.map(a => a.urn)).to.include('camara.deputados');
+      expect(getVocabularioDaCasa().autoridades.map(a => a.urn)).to.include('camara.deputados');
       inicializarVocabulario('SF');
-      expect(getVocabulario().autoridades.map(a => a.urn)).to.not.include('camara.deputados');
+      expect(getVocabularioDaCasa().autoridades.map(a => a.urn)).to.not.include('camara.deputados');
     });
   });
 

@@ -16,7 +16,7 @@ const aceitaComoReferencia = (t: TipoDocumento): boolean =>
   t.tipoRelacaoSubstitutivo === TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO || t.tipoRelacaoSubstitutivo === TipoRelacaoSubstitutivo.E_SUBSTITUTIVO;
 
 // Falha na montagem: vocabulário inválido é erro de dados, não de uso.
-const validar = (tipos: TipoDocumento[]): void => {
+const validar = (tipos: TipoDocumento[], siglaAtivaUnica: boolean): void => {
   const chaves = new Set<string>();
   const siglasAtivas = new Map<string, TipoDocumento>();
 
@@ -27,7 +27,7 @@ const validar = (tipos: TipoDocumento[]): void => {
     }
     chaves.add(chave);
 
-    if (t.sigla && t.ativo) {
+    if (siglaAtivaUnica && t.sigla && t.ativo) {
       const sigla = t.sigla.toUpperCase();
       const outro = siglasAtivas.get(sigla);
       if (outro) {
@@ -51,9 +51,10 @@ const validar = (tipos: TipoDocumento[]): void => {
 };
 
 // A ordem de `autoridades` define a ordem das listas no vocabulário mesclado.
-export const mesclar = (comum: VocabularioComum, autoridades: VocabularioAutoridade[]): Vocabulario => {
+// Sem `siglaAtivaUnica` (visão completa), siglas ativas podem se repetir entre as casas.
+export const mesclar = (comum: VocabularioComum, autoridades: VocabularioAutoridade[], { siglaAtivaUnica = true } = {}): Vocabulario => {
   const tiposDocumento = autoridades.flatMap(a => carimbar(a.tiposDocumento, a.autoridade.urn)).map(completarTipo);
-  validar(tiposDocumento);
+  validar(tiposDocumento, siglaAtivaUnica);
 
   return {
     autoridades: autoridades.map(a => a.autoridade),
