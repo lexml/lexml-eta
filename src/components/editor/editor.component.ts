@@ -1513,6 +1513,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       diff.comRevisao = true;
       diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
       diff.tituloAntesRevisao = revisao.elementoAntesRevisao!.tituloDispositivo;
+      const rotuloAntes = revisao.elementoAntesRevisao!.rotulo;
+      // O rótulo só aparece quando a revisão o alterou (renumeração, troca de rótulo da pena); a pena o exibe sempre.
+      if (elemento.tipo === 'Pena' || (rotuloAntes !== undefined && rotuloAntes !== elemento.rotulo)) {
+        diff.rotuloAntesRevisao = rotuloAntes;
+        diff.rotuloAtual = elemento.rotulo;
+      }
       diff.textoOriginal = diff.textoAntesRevisao;
       // Em proposição todo dispositivo nasce novo: não há texto de norma vigente para a aba "Texto original".
       diff.adicionado = true;

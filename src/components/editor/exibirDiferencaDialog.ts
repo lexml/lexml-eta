@@ -1,5 +1,5 @@
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
-import { sanitizarTituloDispositivo } from '../../util/html-util';
+import { escapeHtml, sanitizarTituloDispositivo } from '../../util/html-util';
 import { substituiEspacosEntreTagsPorNbsp, substituiMultiplosEspacosPorNbsp, textoDiffAsHtml } from '../../util/string-util';
 
 export class TextoDiff {
@@ -10,6 +10,9 @@ export class TextoDiff {
   // undefined = sem título; '' = título vazio.
   tituloAntesRevisao?: string;
   tituloAtual?: string;
+  // Informados quando a revisão alterou o rótulo (e sempre na pena).
+  rotuloAntesRevisao?: string;
+  rotuloAtual?: string;
   comRevisao = false;
   adicionado = false;
 }
@@ -26,6 +29,17 @@ const montaTitulosDaRevisao = (diff: TextoDiff): { antes: string; diferenca: str
   const antes = sanitizarTituloDispositivo(diff.tituloAntesRevisao);
   const atual = sanitizarTituloDispositivo(diff.tituloAtual);
   return { antes: linha(diff.tituloAntesRevisao), diferenca: `<div class="titulo-diff">${comparaHtml(antes, atual)}</div>`, atual: linha(diff.tituloAtual) };
+};
+
+// Rótulo da pena aparece nos três cards; a comparação só marca o que mudou.
+const montaRotulosDaRevisao = (diff: TextoDiff): { antes: string; diferenca: string; atual: string } => {
+  if (diff.rotuloAntesRevisao === undefined && diff.rotuloAtual === undefined) {
+    return { antes: '', diferenca: '', atual: '' };
+  }
+  const linha = (rotulo?: string): string => `<div class="rotulo-diff">${escapeHtml(rotulo ?? '')}</div>`;
+  const antes = escapeHtml(diff.rotuloAntesRevisao ?? '');
+  const atual = escapeHtml(diff.rotuloAtual ?? '');
+  return { antes: linha(diff.rotuloAntesRevisao), diferenca: `<div class="rotulo-diff">${comparaHtml(antes, atual)}</div>`, atual: linha(diff.rotuloAtual) };
 };
 
 // Compara por palavras e depois por caracteres sobre o resultado sem espaços duplicados.
@@ -69,6 +83,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
 
   const diferencaEntreTextoAtualETextoAntesRevisao = contemRevisao ? comparaHtml(diff.textoAntesRevisao ?? '', diff.textoAtual) : undefined;
   const titulos = montaTitulosDaRevisao(diff);
+  const rotulos = montaRotulosDaRevisao(diff);
 
   diff.textoOriginal = substituiMultiplosEspacosPorNbsp(diff.textoOriginal);
   diff.textoAtual = substituiMultiplosEspacosPorNbsp(diff.textoAtual);
@@ -116,6 +131,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
             <div slot="header">
               Texto antes da revisão
             </div>
+            ${rotulos.antes}
             ${titulos.antes}
             <p class="texto-quill">
               ${diff.textoAntesRevisao}
@@ -126,6 +142,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
             <div slot="header">
               Diferença
             </div>
+            ${rotulos.diferenca}
             ${titulos.diferenca}
             <p class="texto-quill">
               ${diferencaEntreTextoAtualETextoAntesRevisao!}
@@ -136,6 +153,7 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
             <div slot="header">
               Texto atual
             </div>
+            ${rotulos.atual}
             ${titulos.atual}
             <p class="texto-quill">
               ${diff.textoAtual}
@@ -166,6 +184,11 @@ export const exibirDiferencasDialog = (diff: TextoDiff): void => {
     }
 
     .titulo-diff {
+      font-weight: bold;
+      margin: 0 0 0.5rem;
+    }
+
+    .rotulo-diff {
       font-weight: bold;
       margin: 0 0 0.5rem;
     }

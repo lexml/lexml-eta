@@ -113,7 +113,8 @@ export class EtaBlotRotulo extends EtaBlot {
 
   private static montarRotulo(elemento: Elemento): string {
     const descricaoTipo = TipoDispositivo[elemento.tipo!.toLowerCase()]?.descricao;
-    return elemento.revisao && EtaBlotRotulo.isRevisaoPrincipalDeExclusaoDeDispositivo(elemento) ? descricaoTipo ?? '' : elemento.rotulo;
+    // O rótulo da pena é escolhido pelo usuário e não é renumerado: a descrição do tipo o esconderia.
+    return elemento.tipo !== 'Pena' && elemento.revisao && EtaBlotRotulo.isRevisaoPrincipalDeExclusaoDeDispositivo(elemento) ? descricaoTipo ?? '' : elemento.rotulo;
   }
 
   private static isRevisaoPrincipalDeExclusaoDeDispositivo(elemento: Elemento): boolean {
