@@ -23,16 +23,16 @@
 
 ## 4. Consultas e vocabulário estático
 
-- [ ] 4.1 Implementar o estado estático em `vocabulario/index.ts` (D5): `getVocabulario()`, `inicializarVocabulario(casa)` com normalização para `SF` e aviso para valor inválido, e inicialização sob demanda de `SF`
-- [ ] 4.2 Criar `vocabulario/consultas.ts` (D4): `getTiposDocumentoAtivos`, `getTiposDocumentoInativos`, `getTipoPorSigla`, `getTiposReferenciaveis`
-- [ ] 4.3 Reescrever `urnUtil.ts`: `getTipo`/`getTipoDocumentoUrn` pela autoridade exata (remover `procurarPorAutoridade`), `getSigla` pelo tipo resolvido, `buildFakeUrn` a partir de `getTipoPorSigla`, `getPreambuloPadrao` sobre o vocabulário estático
-- [ ] 4.4 Testes de cada consulta para `SF` e `CD`, cobrindo os cenários da spec `vocabulario-urn` (inclusive tipo da outra casa, sem fallback e C3 por `tipoRelacaoSubstitutivo`)
+- [x] 4.1 Implementar o estado estático em `vocabulario/index.ts` (D5): `getVocabulario()`, `inicializarVocabulario(casa)` com normalização para `SF` e aviso para valor inválido, e inicialização sob demanda de `SF`
+- [x] 4.2 Criar `vocabulario/consultas.ts` (D4): `getTiposDocumentoAtivos`, `getTiposDocumentoInativos`, `getTipoPorSigla`, `getTiposReferenciaveis`
+- [x] 4.3 Reescrever `urnUtil.ts`: `getTipo`/`getTipoDocumentoUrn` pela autoridade exata (remover `procurarPorAutoridade`), `getSigla` pelo tipo resolvido, `buildFakeUrn` a partir de `getTipoPorSigla`, `getPreambuloPadrao` sobre o vocabulário estático
+- [x] 4.4 Testes de cada consulta para `SF` e `CD`, cobrindo os cenários da spec `vocabulario-urn` (inclusive tipo da outra casa, sem fallback e C3 por `tipoRelacaoSubstitutivo`)
 
 ## 5. Inicialização no componente
 
-- [ ] 5.1 Confirmar `LexmlEtaConfig.casaLegislativaEditor` (já adicionado, padrão `SF`) e chamar `inicializarVocabulario` no `LexmlEtaComponent` sempre que `lexmlEtaConfig` for atribuída, antes de `inicializarEdicao`
-- [ ] 5.2 Teste de componente: configuração com `CD` muda as consultas; reatribuição remonta; `casaLegislativa` (documento) permanece independente
-- [ ] 5.3 Documentar `casaLegislativaEditor` em `docs/api-componente-lexml-eta.md`
+- [x] 5.1 Confirmar `LexmlEtaConfig.casaLegislativaEditor` (já adicionado, padrão `SF`) e chamar `inicializarVocabulario` no `LexmlEtaComponent` sempre que `lexmlEtaConfig` for atribuída, antes de `inicializarEdicao`
+- [x] 5.2 Teste de componente: configuração com `CD` muda as consultas; reatribuição remonta; `casaLegislativa` (documento) permanece independente
+- [x] 5.3 Documentar `casaLegislativaEditor` em `docs/api-componente-lexml-eta.md`
 
 ## 6. Chamadores e preâmbulo
 
