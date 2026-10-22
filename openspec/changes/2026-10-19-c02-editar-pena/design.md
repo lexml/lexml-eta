@@ -74,6 +74,9 @@ A troca de rótulo vira `alterado`, e o estado anterior (`buildJsonixEstadoAnter
 - `isMesmoTextoETitulo` (`revisaoUtil.ts:642`) passa a comparar também o rótulo da pena, senão a troca não gera revisão.
 - A descrição segue o padrão do título (`revisaoUtil.ts:112-116`), comparando o `antes` com o `apos`: "Rótulo do dispositivo foi alterado" ou "Texto e rótulo do dispositivo foram alterados". O `antes` existe na sessão e é reconstruído ao reabrir, então a descrição fica igual nos dois casos (invariante aa).
 - `rejeitaRevisao` restaura o rótulo.
+- **Formato (6.3):** o estado anterior da pena vai em `<Pena>` filho de `RevisaoArticulacao`, sem `id`, com o `Rotulo` só quando mudou (ausente = igual ao atual) e o texto em `p`. A revisão `excluido` da pena grava a própria `<Pena id="_<base>-exc<n>">` no mesmo lugar. Nada disso cabia no `schemas/lexedit.xsd`: o `choice` de `RevisaoArticulacao` não listava `Pena`, e o validador rejeitava (exit 1). Acrescentados `lexml:Pena` ao `choice` e `pena` a `NOMES_DISPOSITIVO_NA_REVISAO` (`buildProjetoNormaFromJsonix.ts`); sem o segundo, a revisão `excluido` da pena era descartada na leitura.
+- **Dependência do CLI:** o `jsonix-lexml` 2.1.0 **descarta sem erro** o `Pena` direto em `RevisaoArticulacao` (testado: na volta não há pena). Perde-se o estado anterior inteiro da revisão `alterado` da pena (texto também, não só o rótulo) e a revisão `excluido` da pena. Pena dentro de um artigo excluído passa normalmente. A correção é o `jsonix-lexml` 2.2.0 com o `choice` atualizado, e o CLI novo no `lexeditweb-editor`. Até lá, revisões de pena se perdem em silêncio no salvamento.
+- Não se usa `DispositivoGenerico` como contorno.
 
 Alternativas descartadas:
 - `alteracaoRotulo;<arg>`: o argumento é o id anterior, e o id da pena não muda com o rótulo. Sobrecarregar o argumento mudaria uma semântica que já é gravada em arquivo.
@@ -130,6 +133,9 @@ A primeira tarefa da implementação completa esse inventário varrendo as 205 l
 - [Pena com vários `p` no arquivo] → O leitor já concatena os `p` de um dispositivo num texto único (`buildContentDispositivo`). Nenhum caso no corpus.
 - [Transformação Parágrafo ↔ Artigo perder a pena ou deixá-la fora do caput] → Cenário explícito na spec e teste de reducer.
 - [A linha da pena no Quill ficar com o `lexmlId` desatualizado quando o dono é renumerado, porque o evento `ElementoRenumerado` só leva os irmãos do mesmo tipo, como já ocorre com alíneas e itens] → Aceito: as ações localizam a pena pelo uuid e o arquivo é gravado a partir do modelo, cujos ids acompanham o dono (testado). Se aparecer efeito visível, reavaliar.
+
+- [O `jsonix-lexml` 2.1.0 descarta, sem erro, `Pena` como filho direto de `RevisaoArticulacao`] → Dependência do `jsonix-lexml` 2.2.0 (com `lexml:Pena` no `choice` de `RevisaoArticulacao`, como em `schemas/lexedit.xsd` já ajustado aqui) e da atualização do CLI no `lexeditweb-editor`. Até lá, as revisões `alterado` e `excluido` de pena se perdem em silêncio ao salvar; o editor e os testes locais (ida e volta pelo JSONIX e `npm run verify:xsd-lexedit`) já cobrem o formato. O cenário de revisão de pena da task 8.4 fica marcado como dependente do CLI novo.
+- [Revisão `excluido` de dispositivo que não seja artigo dentro de bloco de alteração não é reconstruída ao abrir] → Limitação anterior a esta change, vista na 6.3 com a pena em bloco: o id do excluído sai com o artigo hospedeiro sem número (`_art1_cpt_alt1_art[sn:13]_cpt_pena-exc1`) e a leitura não acha o lugar. Vale igual para parágrafo (`..._art[sn:27]_par1-exc1`). Não corrigida aqui; fica para outra issue.
 
 ## Migration Plan
 
