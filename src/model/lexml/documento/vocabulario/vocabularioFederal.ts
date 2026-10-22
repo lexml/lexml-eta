@@ -1,4 +1,4 @@
-import { TextoPreambuloPadrao, VocabularioAutoridade } from './tipos';
+import { TextoPreambuloPadrao, VocabularioAutoridade } from './tiposVocabulario';
 
 export const federal: VocabularioAutoridade = {
   autoridade: { urn: 'federal', descricao: 'Federal' },

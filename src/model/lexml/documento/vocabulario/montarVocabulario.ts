@@ -1,10 +1,10 @@
-import { camara } from './camara';
-import { comum } from './comum';
-import { congresso } from './congresso';
-import { federal } from './federal';
-import { mesclar } from './mesclar';
-import { senado } from './senado';
-import { CasaLegislativaEditor, Vocabulario, VocabularioAutoridade } from './tipos';
+import { camara } from './vocabularioCamara';
+import { comum } from './vocabularioComum';
+import { congresso } from './vocabularioCongresso';
+import { federal } from './vocabularioFederal';
+import { mesclar } from './mesclarVocabulario';
+import { senado } from './vocabularioSenado';
+import { CasaLegislativaEditor, Vocabulario, VocabularioAutoridade } from './tiposVocabulario';
 
 const AUTORIDADES_POR_CASA: Record<CasaLegislativaEditor, VocabularioAutoridade[]> = {
   SF: [federal, senado, congresso],

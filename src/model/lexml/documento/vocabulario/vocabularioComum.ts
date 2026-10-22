@@ -1,4 +1,4 @@
-import { VocabularioComum } from './tipos';
+import { VocabularioComum } from './tiposVocabulario';
 
 export const comum: VocabularioComum = {
   atalhosUrn: [

@@ -1,4 +1,4 @@
-import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tipos';
+import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tiposVocabulario';
 
 export const congresso: VocabularioAutoridade = {
   autoridade: { urn: 'congresso.nacional', descricao: 'Congresso Nacional' },

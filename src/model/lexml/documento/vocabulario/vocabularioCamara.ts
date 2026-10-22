@@ -1,4 +1,4 @@
-import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tipos';
+import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tiposVocabulario';
 
 export const camara: VocabularioAutoridade = {
   autoridade: { urn: 'camara.deputados', descricao: 'Câmara dos Deputados' },

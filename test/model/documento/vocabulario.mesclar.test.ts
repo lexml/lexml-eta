@@ -1,7 +1,13 @@
 import { expect } from '@open-wc/testing';
-import { mesclar } from '../../../src/model/lexml/documento/vocabulario/mesclar';
+import { mesclar } from '../../../src/model/lexml/documento/vocabulario/mesclarVocabulario';
 import { montarVocabulario } from '../../../src/model/lexml/documento/vocabulario/montarVocabulario';
-import { TextoPreambuloPadrao, TipoDocumentoItem, TipoRelacaoSubstitutivo, VocabularioAutoridade, VocabularioComum } from '../../../src/model/lexml/documento/vocabulario/tipos';
+import {
+  TextoPreambuloPadrao,
+  TipoDocumentoItem,
+  TipoRelacaoSubstitutivo,
+  VocabularioAutoridade,
+  VocabularioComum,
+} from '../../../src/model/lexml/documento/vocabulario/tiposVocabulario';
 
 const comum: VocabularioComum = {
   atalhosUrn: [{ urnTipoDocumento: 'constituicao', urnAutoridade: 'federal', urn: 'u', nome: 'n' }],

@@ -1,4 +1,4 @@
-import { ComAutoridade, TipoDocumento, TipoDocumentoItem, TipoRelacaoSubstitutivo, Vocabulario, VocabularioAutoridade, VocabularioComum } from './tipos';
+import { ComAutoridade, TipoDocumento, TipoDocumentoItem, TipoRelacaoSubstitutivo, Vocabulario, VocabularioAutoridade, VocabularioComum } from './tiposVocabulario';
 
 const carimbar = <T>(itens: T[] | undefined, urnAutoridade: string): ComAutoridade<T>[] => (itens ?? []).map(i => ({ ...i, urnAutoridade }));
 

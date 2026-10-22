@@ -1,4 +1,4 @@
-import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tipos';
+import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tiposVocabulario';
 
 export const senado: VocabularioAutoridade = {
   autoridade: { urn: 'senado.federal', descricao: 'Senado Federal' },
