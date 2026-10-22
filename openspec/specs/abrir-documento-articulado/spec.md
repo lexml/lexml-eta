@@ -122,10 +122,14 @@ Ao abrir um documento, o sistema SHALL aplicar ao formulário de opções de imp
 - **THEN** o formulário exibe as mesmas opções de impressão do momento em que o documento foi salvo
 
 ### Requirement: Recuperação do local e da data do fecho ao abrir
-Ao abrir um documento, o sistema SHALL aplicar ao campo "Data" a data do fecho registrada nos metadados do LexEdit. Data ausente, vazia ou fora do formato `AAAA-MM-DD` SHALL corresponder a "Não informar". O local registrado SHALL ser preservado para o próximo salvamento enquanto o destino não for alterado. O texto de `LocalDataFecho` não SHALL ser interpretado: os dados estruturados são a fonte, e o texto é gerado novamente ao salvar.
+Ao abrir um documento, em qualquer modo (inclusive o anexo de parecer), o sistema SHALL aplicar ao campo "Data" a data do fecho registrada nos metadados do LexEdit. Data ausente, vazia ou fora do formato `AAAA-MM-DD` SHALL corresponder a "Não informar". O local registrado SHALL ser preservado para o próximo salvamento enquanto o destino não for alterado. O texto de `LocalDataFecho` não SHALL ser interpretado: os dados estruturados são a fonte, e o texto é gerado novamente ao salvar.
 
 #### Scenario: Documento com data
 - **WHEN** o usuário abre um documento cuja data do fecho é `2026-04-24`
+- **THEN** o campo "Data" exibe 24/04/2026 como data informada
+
+#### Scenario: Documento com data no modo anexo de parecer
+- **WHEN** o usuário abre, no modo anexo de parecer, um documento cuja data do fecho é `2026-04-24`
 - **THEN** o campo "Data" exibe 24/04/2026 como data informada
 
 #### Scenario: Documento sem data ou com data vazia
@@ -196,6 +200,28 @@ Ao abrir um documento com revisões `excluido`, o sistema SHALL exibir cada disp
 #### Scenario: Excluído com filhos
 - **WHEN** o usuário abre um documento cujo artigo excluído tem parágrafo e incisos
 - **THEN** o editor exibe o artigo excluído com o parágrafo e os incisos, na hierarquia e na ordem salvas
+
+### Requirement: Reconstrução de bloco de alteração em dispositivo excluído ao abrir
+Ao abrir um documento com revisão `excluido` cujo dispositivo contém `Alteracao`, o sistema SHALL exibir o dispositivo excluído com o bloco de alteração reconstruído, na hierarquia e na ordem salvas, associando os dispositivos do bloco à revisão do dispositivo excluído, de modo que exista uma única marca de revisão.
+
+#### Scenario: Excluído com bloco de alteração
+- **WHEN** o usuário abre um documento cujo artigo excluído altera uma norma e contém um artigo de alteração com parágrafo
+- **THEN** o editor exibe o artigo excluído, o artigo e o parágrafo do bloco, com uma única marca de revisão e a contagem de revisões igual a um
+
+#### Scenario: Rejeitar a exclusão restaura o bloco
+- **WHEN** o usuário abre esse documento e rejeita a revisão de exclusão
+- **THEN** o artigo volta à articulação com a norma alterada e o bloco de alteração completo
+
+#### Scenario: Ida e volta
+- **WHEN** o usuário exclui, em revisão, um artigo que altera norma, salva, abre o arquivo e salva novamente
+- **THEN** o bloco de alteração do excluído é preservado nos dois arquivos
+
+### Requirement: Reconstrução das operações de dispositivo movido com bloco de alteração
+Ao abrir um documento com revisão `movido` ou `transformado` em dispositivo que contém bloco de alteração, o sistema SHALL reconstruir uma única revisão principal, e os dispositivos do bloco SHALL ser associados a ela sem revisões principais próprias.
+
+#### Scenario: Artigo movido reaberto
+- **WHEN** o usuário abre um documento com uma revisão `movido;3` em um artigo que altera norma
+- **THEN** o editor exibe uma única marca de revisão, e rejeitá-la devolve o artigo e o bloco à posição 3
 
 ### Requirement: Reconstrução das operações de cada revisão
 Ao abrir um documento, o sistema SHALL reconstruir, a partir do atributo `revisao` e do conteúdo filho de cada `RevisaoArticulacao`, as operações registradas (`adicionado`, `excluido`, `alterado`, `movido`, `transformado`, `alteracaoRotulo`), inclusive combinadas, de modo que as marcas exibidas descrevam todas as operações, com a mesma descrição da sessão de edição em que a revisão foi criada, e o conteúdo, o título, a posição, o tipo e o rótulo anteriores possam ser restaurados. Quando o filho de uma revisão `alterado` for um dispositivo, o sistema SHALL ler dele o texto anterior e o título anterior, e a ausência de `TituloDispositivo` nesse dispositivo SHALL significar que não havia título. Um parágrafo solto como filho SHALL ser aceito na leitura, com o título anterior igual ao atual. Operações desconhecidas SHALL ser ignoradas, sem impedir a leitura das demais.

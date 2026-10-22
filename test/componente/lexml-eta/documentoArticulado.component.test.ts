@@ -1,5 +1,5 @@
 import { expect, fixture } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaParametrosEdicao } from '../../../src';
+import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
 import { DOCUMENTO_PADRAO } from '../../../src/model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../../../src/redux/store';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
@@ -165,16 +165,26 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(lexeditSalvo(salvo).local).to.equal('Sala da comissão');
     });
 
-    it('no modo anexo de parecer não exporta fecho', () => {
+    it('no modo anexo de parecer exporta local, data e o fecho', () => {
       (component as any)._lexmlData.data = '2026-04-24';
       (component as any).anexoParecer = true;
 
       const salvo = component.getDocumentoArticulado();
 
       const lexedit = lexeditSalvo(salvo);
-      expect(lexedit).to.not.have.property('local');
-      expect(lexedit).to.not.have.property('data');
-      expect(salvo.value.projetoNorma.norma).to.not.have.property('parteFinal');
+      expect(lexedit.local).to.equal('Sala das sessões');
+      expect(lexedit.data).to.equal('2026-04-24');
+      expect(textoFecho(salvo)).to.equal('Sala das sessões, 24 de abril de 2026.');
+    });
+
+    it('no modo anexo de parecer sem data exporta só o local', () => {
+      (component as any)._lexmlData.data = '';
+      (component as any).anexoParecer = true;
+
+      const salvo = component.getDocumentoArticulado();
+
+      expect(lexeditSalvo(salvo)).to.not.have.property('data');
+      expect(textoFecho(salvo)).to.equal('Sala das sessões,');
     });
   });
 
@@ -193,6 +203,22 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       expect(campoData().data).to.equal('2026-04-24');
       expect(campoData().shadowRoot.querySelector('#no-date').checked).to.equal(false);
+    });
+
+    it('no modo anexo de parecer aplica a data lida e preserva local e data ao salvar e reabrir', async () => {
+      component.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), { anexoParecer: true });
+      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da comissão', data: '2026-04-24' }));
+      await campoData().updateComplete;
+
+      expect(campoData().data).to.equal('2026-04-24');
+      const salvo = component.getDocumentoArticulado();
+      expect(lexeditSalvo(salvo).local).to.equal('Sala da comissão');
+      expect(lexeditSalvo(salvo).data).to.equal('2026-04-24');
+
+      await component.abrirDocumentoArticulado(salvo);
+      expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+      // Remover o componente antes de o sl-tab-group renderizar lança no ResizeObserver do Shoelace.
+      await (component.querySelector('sl-tab-group') as any).updateComplete;
     });
 
     it('sem data no arquivo seleciona "Não informar"', async () => {
@@ -339,14 +365,14 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(identificacoesSalvas(component.getDocumentoArticulado())).to.deep.equal(['1111']);
     });
 
-    it('no modo anexo de parecer não exporta autoria nem assinaturas', () => {
+    it('no modo anexo de parecer exporta a autoria e as assinaturas', () => {
       campoAutoria().autoria = { ...new Autoria(), parlamentares: [davi] };
       (component as any).anexoParecer = true;
 
       const salvo = component.getDocumentoArticulado();
 
-      expect(salvo.value.metadado.metadadoProprietario?.[0].any[0].value).to.not.have.property('autoria');
-      expect(salvo.value.projetoNorma.norma).to.not.have.property('parteFinal');
+      expect(identificacoesSalvas(salvo)).to.deep.equal(['1111']);
+      expect((salvo.value.projetoNorma.norma as any).parteFinal.assinaturaTexto).to.have.length(1);
     });
   });
 

@@ -35,7 +35,11 @@ export const getNumero = (urn: string): string => {
 };
 
 export const formataNumero = (numero: string): string => {
-  return new Intl.NumberFormat('pt-BR', { style: 'decimal' }).format(+numero);
+  const [principal, ...sufixo] = numero.split('-');
+  if (!/^\d+$/.test(principal)) {
+    return numero;
+  }
+  return [new Intl.NumberFormat('pt-BR', { style: 'decimal' }).format(+principal), ...sufixo].join('-');
 };
 
 export const getData = (urn: string): string => {
@@ -167,7 +171,7 @@ export const getNomeExtensoComDataExtenso = (urn: string): string => {
   const dataString = getData(u);
   const [diaOuApenasAno, mes, ano] = dataString.split('/').map(p => parseInt(p));
   const dataExtenso = dataString.includes('/') ? getDataExtenso(new Date(ano, mes - 1, diaOuApenasAno)) : diaOuApenasAno;
-  return (tipo ? tipo : '') + (numero ? ' nº ' + parseInt(numero).toLocaleString('pt-BR') : '') + ', de ' + dataExtenso;
+  return (tipo ? tipo : '') + (numero ? ' nº ' + formataNumero(numero) : '') + ', de ' + dataExtenso;
 };
 
 export const buildHtmlLink = (urn: string): string => {

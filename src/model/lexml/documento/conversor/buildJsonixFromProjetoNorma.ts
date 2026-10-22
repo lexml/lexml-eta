@@ -21,7 +21,7 @@ import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
 import { Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
 import { formatarLocalDataFecho } from '../urnUtil';
-import { coletarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
+import { coletarSituacaoNaNormaVigente, mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 export const PENDENCIA_REVISAO_ARTICULACAO = 'Resolver marcas de revisão na articulação.';
@@ -45,7 +45,14 @@ const garantirIdsRemissoesInvalidas = (remissoes?: Remissoes): string[] => {
 
 export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
   const idsRemissoesInvalidas = garantirIdsRemissoesInvalidas(remissoes);
-  const resultado = montaCabecalho(urn, montaMetadadoLexEdit(dados, idsRemissoesInvalidas, coletarSituacaoNaNormaVigente(projetoNorma.articulacao)));
+  const resultado = montaCabecalho(
+    urn,
+    montaMetadadoLexEdit(
+      dados,
+      idsRemissoesInvalidas,
+      mesclarSituacaoNaNormaVigente(coletarSituacaoNaNormaVigente(projetoNorma.articulacao), dados?.revisoes?.situacaoDosExcluidos)
+    )
+  );
   resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas, dados);
   return resultado;
 };
@@ -846,7 +853,7 @@ const buildStructuredContent = (dispositivo: Dispositivo, campo: string, remisso
   // Injeta links de remissão externa que ainda não estão no texto
   if (campo === 'texto' && remissoesExternas && dispositivo.uuid !== undefined) {
     const uuid = dispositivo.uuid;
-    const entriesExt = Object.values(remissoesExternas).filter(e => e.sourceUuid === uuid);
+    const entriesExt = Object.values(remissoesExternas).filter(e => e.sourceUuid === uuid || (dispositivo.tipo === 'Caput' && e.sourceUuid === dispositivo.pai?.uuid));
     if (entriesExt.length) {
       raw = injetarLinksRemissaoExternaNoTexto(raw, entriesExt);
     }

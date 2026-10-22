@@ -1,5 +1,7 @@
 import { expect, fixture } from '@open-wc/testing';
-import { LexmlEtaComponent } from '../../../src';
+// Import de efeito colateral: sem ele o TypeScript remove o import (só de tipo) e <lexml-eta> e seus filhos não são registrados.
+import '../../../src';
+import type { LexmlEtaComponent } from '../../../src';
 import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
 
 const tiposDasLinhas = (component: LexmlEtaComponent): (string | undefined)[] =>
@@ -8,11 +10,6 @@ const tiposDasLinhas = (component: LexmlEtaComponent): (string | undefined)[] =>
 describe('ETA — exibição do preâmbulo no editor', () => {
   let component: LexmlEtaComponent;
   let editor: any;
-
-  before(() => {
-    // Usar o valor impede que o TypeScript elimine o import e garante o registro dos elementos.
-    expect(customElements.get('lexml-eta')).to.equal(LexmlEtaComponent);
-  });
 
   beforeEach(async () => {
     component = await fixture<LexmlEtaComponent>('<lexml-eta></lexml-eta>');
