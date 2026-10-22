@@ -7,7 +7,14 @@ export const senado: VocabularioAutoridade = {
     { urnTipoDocumento: 'regimento.interno', descricao: 'Regimento Interno', genero: 'M' },
     { urnTipoDocumento: 'resolucao', descricao: 'Resolução', genero: 'F' },
     { urnTipoDocumento: 'proposta.emenda.constitucional', sigla: 'PEC', descricao: 'Proposta de Emenda Constitucional', genero: 'F' },
-    { urnTipoDocumento: 'projeto.lei', sigla: 'PL', descricao: 'Projeto de Lei', genero: 'M', tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO },
+    {
+      urnTipoDocumento: 'projeto.lei',
+      sigla: 'PL',
+      descricao: 'Projeto de Lei',
+      genero: 'M',
+      tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      tiposReferenciaveis: ['projeto.lei;pl', 'projeto.lei;pls', 'projeto.lei;plc'],
+    },
     {
       urnTipoDocumento: 'projeto.lei',
       sigla: 'PLS',
@@ -30,6 +37,7 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Lei Complementar',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      tiposReferenciaveis: ['projeto.lei.complementar;plp', 'projeto.lei.complementar;pls', 'projeto.lei.complementar;plc'],
     },
     {
       urnTipoDocumento: 'projeto.lei.complementar',
@@ -53,6 +61,7 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Resolução do Senado',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      tiposReferenciaveis: ['projeto.resolucao;prs'],
     },
     {
       urnTipoDocumento: 'projeto.decreto.legislativo',
@@ -68,6 +77,7 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Decreto Legislativo',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      tiposReferenciaveis: ['projeto.decreto.legislativo;pdl'],
     },
   ],
   preambulosPadrao: [

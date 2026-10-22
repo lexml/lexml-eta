@@ -84,8 +84,26 @@ describe('vocabulário estático e consultas', () => {
       expect(getAutoridade('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1')).to.equal(undefined);
     });
 
-    it('tipo que aceita substitutivo devolve os referenciáveis declarados (vazio por enquanto)', () => {
-      expect(getTiposReferenciaveis(getTipoPorSigla('PL'))).to.deep.equal([]);
+    it('PL referencia PL (ativo) e PLS e PLC (inativos)', () => {
+      const referencias = getTiposReferenciaveis(getTipoPorSigla('PL'));
+      expect(referencias.map(t => t.urn)).to.deep.equal(['projeto.lei;pl', 'projeto.lei;pls', 'projeto.lei;plc']);
+      expect(referencias.map(t => t.ativo)).to.deep.equal([true, false, false]);
+    });
+
+    it('PLP referencia PLP (ativo) e PLS e PLC (inativos)', () => {
+      expect(getTiposReferenciaveis(getTipoPorSigla('PLP')).map(t => t.urn)).to.deep.equal([
+        'projeto.lei.complementar;plp',
+        'projeto.lei.complementar;pls',
+        'projeto.lei.complementar;plc',
+      ]);
+    });
+
+    it('PDL referencia só PDL', () => {
+      expect(getTiposReferenciaveis(getTipoPorSigla('PDL')).map(t => t.urn)).to.deep.equal(['projeto.decreto.legislativo;pdl']);
+    });
+
+    it('PRS referencia só PRS', () => {
+      expect(getTiposReferenciaveis(getTipoPorSigla('PRS')).map(t => t.urn)).to.deep.equal(['projeto.resolucao;prs']);
     });
 
     it('tipo que não aceita substitutivo, inativo ou indefinido devolve vazio', () => {
