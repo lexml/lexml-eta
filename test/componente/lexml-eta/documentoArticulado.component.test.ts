@@ -265,6 +265,62 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
   });
 
+  describe('outros metadados', () => {
+    const outros = { tituloAntesDaEpigrafe: 'COMISSÃO XPTO', jsonDadosComissao: '{"id":1}' };
+    const entradaComOutros = (pares: unknown): any => {
+      const entrada = novoDocumentoArticulado();
+      entrada.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit({ outrosMetadados: pares })];
+      return entrada;
+    };
+    const arquivoCom = (valores: Record<string, string>): any =>
+      entradaComOutros({
+        outroMetadado: Object.entries(valores).map(([chave, value]) => ({ TYPE_NAME: 'br_gov_lexml_lexedit__1.OutroMetadado', chave, value })),
+      });
+
+    it('começa vazia e não grava o grupo', () => {
+      expect(component.outrosMetadados).to.deep.equal({});
+      expect(lexeditSalvo(component.getDocumentoArticulado())).not.to.have.property('outrosMetadados');
+    });
+
+    it('salva os pares definidos pelo host', () => {
+      component.outrosMetadados = outros;
+
+      const pares = lexeditSalvo(component.getDocumentoArticulado()).outrosMetadados.outroMetadado;
+
+      expect(pares.map((p: any) => [p.chave, p.value])).to.deep.equal(Object.entries(outros));
+    });
+
+    it('no modo anexo de parecer também salva', () => {
+      (component as any).anexoParecer = true;
+      component.outrosMetadados = outros;
+
+      expect(lexeditSalvo(component.getDocumentoArticulado()).outrosMetadados.outroMetadado).to.have.length(2);
+    });
+
+    it('abrir um arquivo preenche a propriedade', async () => {
+      await component.abrirDocumentoArticulado(arquivoCom(outros));
+
+      expect(component.outrosMetadados).to.deep.equal(outros);
+    });
+
+    it('arquivo sem o grupo esvazia a propriedade, sem herdar a do documento anterior', async () => {
+      await component.abrirDocumentoArticulado(arquivoCom(outros));
+      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+      expect(component.outrosMetadados).to.deep.equal({});
+    });
+
+    it('salvar e reabrir preserva os pares', async () => {
+      component.outrosMetadados = outros;
+      const salvo = component.getDocumentoArticulado();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(component.outrosMetadados).to.deep.equal(outros);
+      expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+    });
+  });
+
   describe('colegiado apreciador', () => {
     const destino = (): any => component.querySelector('lexml-eta-destino');
     const entradaComColegiado = (colegiado: Record<string, unknown>, extra: Record<string, unknown> = {}): any => {
