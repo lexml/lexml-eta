@@ -21,8 +21,8 @@
 
 ## 4. Integração com o conversor real
 
-- [ ] 4.1 Adicionar ao `documentoArticulado.integration.ts` o cenário de ida e volta com três pares (inclusive `<`, `&`, aspas e acentos), validando o XML com `schemas/lexedit.xsd` e comparando o segundo salvamento com o primeiro
-- [ ] 4.2 Executar `npm run test:documento-articulado:xml` com o `JSONIX_LEXML_CLI` da versão nova
+- [x] 4.1 Adicionar ao `documentoArticulado.integration.ts` o cenário de ida e volta com três pares (inclusive `<`, `&`, aspas e acentos), validando o XML com `schemas/lexedit.xsd` e comparando o segundo salvamento com o primeiro
+- [x] 4.2 Executar `npm run test:documento-articulado:xml` com o `JSONIX_LEXML_CLI` da versão nova
 
 ## 5. Teste E2E (Cypress)
 
