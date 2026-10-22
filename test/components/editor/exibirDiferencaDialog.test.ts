@@ -165,4 +165,29 @@ describe('exibirDiferencasDialog', () => {
       cards('modificadoRevisao').forEach(card => expect(card.querySelector('.titulo-diff')).to.not.equal(null));
     });
   });
+  describe('rótulo da pena', () => {
+    const base = { comRevisao: true, textoAntesRevisao: 'reclusão.', textoOriginal: 'reclusão.', textoAtual: 'reclusão.' };
+    const rotulo = (card: HTMLElement): string | undefined => card.querySelector('.rotulo-diff')?.innerHTML;
+
+    it('rótulo alterado: o anterior no card antes, o atual no card atual e a comparação no card Diferença', () => {
+      abre({ ...base, rotuloAntesRevisao: 'Pena –', rotuloAtual: 'Infração –' });
+
+      const [antes, diferenca, atual] = cards('modificadoRevisao');
+      expect(rotulo(antes)).to.equal('Pena –');
+      expect(rotulo(atual)).to.equal('Infração –');
+      expect(rotulo(diferenca)).to.contain('<del>').and.to.contain('<ins>');
+    });
+
+    it('rótulo igual nos dois lados não é marcado na comparação', () => {
+      abre({ ...base, rotuloAntesRevisao: 'Pena –', rotuloAtual: 'Pena –' });
+
+      expect(rotulo(cards('modificadoRevisao')[1])).to.equal('Pena –');
+    });
+
+    it('sem rótulo informado nenhum card ganha a linha', () => {
+      abre(base);
+
+      expect(cards('modificadoRevisao').every(c => c.querySelector('.rotulo-diff') === null)).to.equal(true);
+    });
+  });
 });
