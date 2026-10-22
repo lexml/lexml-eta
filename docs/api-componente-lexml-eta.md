@@ -190,6 +190,7 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 
 | Campo | Tipo | Padrão | Descrição |
 |---|---|---|---|
+| `casaLegislativaEditor` | `'SF' \| 'CD'` | `'SF'` | Casa do editor: define o vocabulário de tipos de documento e URNs (`SF` = LexEdit; `CD` = Infoleg Editor). Valor ausente ou inválido assume `SF` e registra um aviso. Distinta de `casaLegislativa` (casa do documento, que admite `CN`); uma não influencia a outra. |
 | `urlConsultaParlamentares` | `string` | `'api/parlamentares'` | Endpoint (GET) que devolve a lista de parlamentares. |
 | `urlAutocomplete` | `string` | `'api/autocomplete-norma'` | Endpoint (GET `?query=`) de busca de normas, usado nos diálogos de alteração de norma e de remissão externa. |
 | `urlPortalNormas` | `string` | `'https://normas.leg.br'` | Base dos links para abrir uma norma referenciada. |
@@ -197,6 +198,8 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `anexoParecer` | `boolean` | `false` | Modo "anexo de parecer": sem justificação, fecho, data nem autoria; só destino e impressão. |
 | `tamanhoMaximoAnexo` | `number` | `5120` | Tamanho máximo de um anexo, em KB (5 MB). |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
+
+O vocabulário é (re)montado a cada atribuição de `lexmlEtaConfig`, portanto atribua a configuração **antes** de `inicializarEdicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). Tipos da outra casa, ou de uma autoridade que a casa não declara, não são resolvidos.
 
 O valor de `anexoParecer` é lido a cada `inicializarEdicao`. Para trocar de modo, altere a config e chame `inicializarEdicao` de novo.
 
