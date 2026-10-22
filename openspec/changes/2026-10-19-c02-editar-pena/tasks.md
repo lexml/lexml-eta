@@ -41,8 +41,8 @@
 
 ## 7. Remissão e paginação
 
-- [ ] 7.1 Excluir a pena dos destinos do diálogo de remissão interna e da detecção automática, mantendo as remissões no texto da pena; verificar com testes unitários do filtro de destinos e da detecção
-- [ ] 7.2 Cobrir a paginação: pena no último artigo de uma página e pena adicionada nesse artigo; verificar com testes unitários de `paginacaoUtil` (decisão: sem E2E, porque o risco é de cálculo, já coberto pelo unitário)
+- [x] 7.1 Excluir a pena dos destinos do diálogo de remissão interna e da detecção automática, mantendo as remissões no texto da pena; verificar com testes unitários do filtro de destinos e da detecção
+- [x] 7.2 Cobrir a paginação: pena no último artigo de uma página e pena adicionada nesse artigo; verificar com testes unitários de `paginacaoUtil` (decisão: sem E2E, porque o risco é de cálculo, já coberto pelo unitário)
 
 ## 8. E2E, integração e fechamento
 
