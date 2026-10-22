@@ -76,7 +76,7 @@ Funções de módulo sobre o vocabulário estático (D5), em `vocabulario/consul
 | C3 | `getTiposReferenciaveis(tipo)` | `tipoRelacaoSubstitutivo` do tipo ativo |
 | C4 | `getTipo(urn)`, `getTipoDocumentoUrn(urn)` | autoridade + segmento de tipo da URN |
 
-`getSigla(urn)` passa a ser `getTipo(urn)?.sigla ?? ''`. `buildFakeUrn(sigla, numero, ano)` mantém a assinatura (usada por `buildUrnProposicao`) e passa a montar `buildUrn(tipo.urnAutoridade, tipo.urn, numero, ano)` a partir de `getTipoPorSigla`; o nome é mantido para limitar o diff, e a mensagem de sigla não encontrada continua a mesma. Sem fallback: `getTipo` devolve a entrada de mesma autoridade e URN de tipo, ou `undefined`.
+`getSigla(urn)` passa a ser `getTipo(urn)?.sigla ?? ''`. `buildFakeUrn(sigla, numero, ano)` mantém a assinatura (usada por `buildUrnProposicao`) e passa a montar `buildUrn(tipo.urnAutoridade, tipo.urn, numero, ano)` a partir de `getTipoPorSigla`; o nome é mantido para limitar o diff, e a mensagem de sigla não encontrada continua a mesma. Sem fallback entre autoridades: `getTipo` devolve a entrada de mesma autoridade e URN de tipo, ou `undefined`. Exceção deliberada, dentro da mesma autoridade: segmento de tipo **sem sigla** que não é norma declarada (ex.: `medida.provisoria:2019-11-11;905`, formato comum em documentos e remissões) resolve para o tipo ativo com sigla que tem esse `urnTipoDocumento`.
 
 C3 por tipo selecionado: `aceita substitutivo` → entradas de `tiposReferenciaveis`; `é substitutivo` → proposições (ativas e inativas) que aceitam substitutivo; `é subemenda substitutiva` → proposições que são substitutivas; demais e tipo inativo → `[]`.
 

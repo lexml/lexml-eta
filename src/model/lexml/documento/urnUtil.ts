@@ -19,10 +19,11 @@ export const getPreambuloPadrao = (urn: string): string | undefined => {
 
 export const getSigla = (urn: string): string => getTipo(urn)?.sigla ?? '';
 
-// Casa a autoridade e o tipo da URN exatamente, sem alternativa em outra autoridade.
+// Casa a autoridade e o tipo da URN, sem alternativa em outra autoridade. Tipo sem sigla que não é norma declarada vale o tipo ativo com sigla.
 export const getTipo = (urn: string): any => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  return getVocabulario().tiposDocumento.find(t => t.urnAutoridade === partes[0] && t.urn === partes[1]);
+  const tipos = getVocabulario().tiposDocumento.filter(t => t.urnAutoridade === partes[0]);
+  return tipos.find(t => t.urn === partes[1]) ?? tipos.find(t => t.ativo && t.sigla && t.urnTipoDocumento === partes[1]);
 };
 
 export const getNumero = (urn: string): string => {

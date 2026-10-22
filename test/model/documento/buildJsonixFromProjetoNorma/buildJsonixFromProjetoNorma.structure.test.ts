@@ -19,7 +19,7 @@ describe('buildJsonixFromProjetoNorma - Integração: Parser de medida provisór
   });
 
   it('Deveria apresentar medida provisória como tipo da norma', () => {
-    expect(documento?.tipo?.urn).equals('medida.provisoria');
+    expect(documento?.tipo?.urn).equals('medida.provisoria;mpv');
   });
 
   it('Deveria apresentar epigrafe', () => {

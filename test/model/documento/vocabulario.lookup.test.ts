@@ -1,63 +1,107 @@
 import { expect } from '@open-wc/testing';
-import { getSigla, getTipo, getTipoDocumentoUrn } from '../../../src/model/lexml/documento/urnUtil';
+import { getSigla, getTipo, getTipoDocumentoUrn, validaUrn } from '../../../src/model/lexml/documento/urnUtil';
+import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
 const urn = (autoridade: string, tipo: string): string => `urn:lex:br:${autoridade}:${tipo}:2026;1`;
 
-describe('vocabulário — lookups pela autoridade da URN', () => {
-  describe('entrada da própria autoridade', () => {
-    ['senado.federal', 'camara.deputados', 'congresso.nacional'].forEach(autoridade => {
-      it(`decreto.legislativo em ${autoridade}`, () => {
-        expect(getTipo(urn(autoridade, 'decreto.legislativo')).urnAutoridade).to.equal(autoridade);
-        expect(getTipoDocumentoUrn(urn(autoridade, 'decreto.legislativo')).urnAutoridade).to.equal(autoridade);
+[
+  { casa: 'SF', autoridadesComDecreto: ['senado.federal', 'congresso.nacional'], outra: 'camara.deputados' },
+  { casa: 'CD', autoridadesComDecreto: ['camara.deputados', 'congresso.nacional'], outra: 'senado.federal' },
+].forEach(({ casa, autoridadesComDecreto, outra }) => {
+  describe(`vocabulário — lookups pela autoridade da URN (${casa})`, () => {
+    beforeEach(() => inicializarVocabulario(casa));
+    after(() => inicializarVocabulario('SF'));
+
+    describe('entrada da própria autoridade', () => {
+      autoridadesComDecreto.forEach(autoridade => {
+        it(`decreto.legislativo em ${autoridade}`, () => {
+          expect(getTipo(urn(autoridade, 'decreto.legislativo')).urnAutoridade).to.equal(autoridade);
+          expect(getTipoDocumentoUrn(urn(autoridade, 'decreto.legislativo')).urnAutoridade).to.equal(autoridade);
+        });
+      });
+
+      it('lei em federal', () => {
+        expect(getTipo(urn('federal', 'lei')).urnAutoridade).to.equal('federal');
       });
     });
 
-    it('lei em federal', () => {
-      expect(getTipo(urn('federal', 'lei')).urnAutoridade).to.equal('federal');
-    });
-  });
+    describe('sem fallback para outra autoridade', () => {
+      it('lei em autoridade que não a declara não resolve', () => {
+        expect(getTipo(urn(autoridadesComDecreto[0], 'lei'))).to.equal(undefined);
+        expect(getTipoDocumentoUrn(urn(autoridadesComDecreto[0], 'lei'))).to.equal(undefined);
+      });
 
-  describe('fallback para outra autoridade', () => {
-    it('camara.deputados:lei resolve pela federal', () => {
-      expect(getTipo(urn('camara.deputados', 'lei')).urnAutoridade).to.equal('federal');
-      expect(getTipoDocumentoUrn(urn('camara.deputados', 'lei')).descricao).to.equal('Lei');
-    });
+      it('PLV só existe no Congresso Nacional', () => {
+        expect(getTipo(urn(autoridadesComDecreto[0], 'projeto.lei.conversao;plv'))).to.equal(undefined);
+        expect(getSigla(urn(autoridadesComDecreto[0], 'projeto.lei.conversao;plv'))).to.equal('');
+        expect(getSigla(urn('congresso.nacional', 'projeto.lei.conversao;plv'))).to.equal('PLV');
+      });
 
-    it('senado.federal:projeto.lei.conversao;plv resolve pelo Congresso, com sigla PLV', () => {
-      expect(getTipo(urn('senado.federal', 'projeto.lei.conversao;plv')).descricao).to.equal('Projeto de Lei de Conversão');
-      expect(getSigla(urn('senado.federal', 'projeto.lei.conversao;plv'))).to.equal('PLV');
-    });
+      it('decreto.legislativo na federal não cai na primeira autoridade da mesclagem', () => {
+        expect(getTipo(urn('federal', 'decreto.legislativo'))).to.equal(undefined);
+      });
 
-    it('autoridade que não declara o tipo cai na primeira da ordem de mesclagem', () => {
-      expect(getTipo(urn('federal', 'decreto.legislativo')).urnAutoridade).to.equal('senado.federal');
-    });
-  });
-
-  describe('tipo desconhecido', () => {
-    it('não resolve tipo nem sigla', () => {
-      expect(getTipo(urn('federal', 'xyz'))).to.equal(undefined);
-      expect(getTipoDocumentoUrn(urn('federal', 'xyz'))).to.equal(undefined);
-      expect(getSigla(urn('federal', 'xyz'))).to.equal('');
+      it('autoridade da outra casa não resolve', () => {
+        expect(getTipo(urn(outra, 'decreto.legislativo'))).to.equal(undefined);
+      });
     });
 
-    it('getTipoDocumentoUrn sem URN devolve undefined', () => {
-      expect(getTipoDocumentoUrn('')).to.equal(undefined);
-    });
-  });
+    describe('tipo sem sigla na URN', () => {
+      it('medida provisória sem sigla resolve para MPV ativa', () => {
+        const u = 'urn:lex:br:federal:medida.provisoria:2019-11-11;905';
+        expect(getTipo(u).urn).to.equal('medida.provisoria;mpv');
+        expect(getTipoDocumentoUrn(u).descricao).to.equal('Medida Provisória');
+        expect(getSigla(u)).to.equal('MPV');
+        expect(validaUrn(u)).to.equal(true);
+      });
 
-  describe('sigla', () => {
-    it('MPV federal vem da própria autoridade', () => {
-      expect(getSigla(urn('federal', 'medida.provisoria;mpv'))).to.equal('MPV');
-      expect(getSigla(urn('federal', 'medida.provisoria'))).to.equal('MPV');
+      it('com e sem sigla apontam para a mesma entrada ativa', () => {
+        expect(getTipo('urn:lex:br:federal:medida.provisoria;mpv:2019;905')).to.equal(getTipo('urn:lex:br:federal:medida.provisoria:2019-11-11;905'));
+        const autoridade = autoridadesComDecreto[0] === 'senado.federal' ? 'senado.federal' : 'camara.deputados';
+        expect(getTipo(urn(autoridade, 'projeto.lei;pl'))).to.equal(getTipo(urn(autoridade, 'projeto.lei')));
+        expect(getTipo(urn(autoridade, 'projeto.lei')).ativo).to.equal(true);
+      });
+
+      it('projeto de lei sem sigla resolve para o tipo ativo, não para o inativo', () => {
+        const u = urn(autoridadesComDecreto[0] === 'senado.federal' ? 'senado.federal' : 'camara.deputados', 'projeto.lei');
+        expect(getSigla(u)).to.equal('PL');
+      });
+
+      it('a autoridade continua obrigatória', () => {
+        expect(getTipo(urn('federal', 'projeto.lei'))).to.equal(undefined);
+        expect(getTipo(urn(outra, 'projeto.lei'))).to.equal(undefined);
+      });
+
+      it('norma declarada sem sigla tem precedência', () => {
+        expect(getTipo(urn('federal', 'lei')).sigla).to.equal(undefined);
+      });
     });
 
-    it('MPV com autoridade antiga continua com sigla', () => {
-      expect(getSigla(urn('senado.federal', 'medida.provisoria;mpv'))).to.equal('MPV');
+    describe('tipo desconhecido', () => {
+      it('não resolve tipo nem sigla', () => {
+        expect(getTipo(urn('federal', 'xyz'))).to.equal(undefined);
+        expect(getTipoDocumentoUrn(urn('federal', 'xyz'))).to.equal(undefined);
+        expect(getSigla(urn('federal', 'xyz'))).to.equal('');
+      });
+
+      it('getTipoDocumentoUrn sem URN devolve undefined', () => {
+        expect(getTipoDocumentoUrn('')).to.equal(undefined);
+      });
     });
 
-    it('tipo sem sigla devolve vazio', () => {
-      expect(getSigla(urn('federal', 'lei'))).to.equal('');
-      expect(getSigla(urn('federal', 'decreto'))).to.equal('');
+    describe('sigla', () => {
+      it('MPV federal vem da própria autoridade', () => {
+        expect(getSigla(urn('federal', 'medida.provisoria;mpv'))).to.equal('MPV');
+      });
+
+      it('MPV com autoridade antiga não resolve', () => {
+        expect(getSigla(urn('senado.federal', 'medida.provisoria;mpv'))).to.equal('');
+      });
+
+      it('tipo sem sigla devolve vazio', () => {
+        expect(getSigla(urn('federal', 'lei'))).to.equal('');
+        expect(getSigla(urn('federal', 'decreto'))).to.equal('');
+      });
     });
   });
 });

@@ -118,7 +118,7 @@ O sistema SHALL gerar a URN de uma proposição nova a partir da sigla informada
 - **THEN** a geração da URN falha com a mensagem de que a sigla não foi encontrada no vocabulário
 
 ### Requirement: Resolução de tipo e sigla pela autoridade exata da URN
-O sistema SHALL resolver o tipo de documento de uma URN casando a autoridade e o segmento de tipo (com a sigla, quando houver) com uma entrada do vocabulário da casa, incluindo tipos inativos e normas, e SHALL NOT usar entrada de outra autoridade como alternativa. A sigla de uma URN SHALL ser a do tipo resolvido, e texto vazio quando o tipo não tiver sigla. URN cuja autoridade e tipo não estejam no vocabulário SHALL ficar sem resolução e falhar na validação.
+O sistema SHALL resolver o tipo de documento de uma URN casando a autoridade e o segmento de tipo (com a sigla, quando houver) com uma entrada do vocabulário da casa, incluindo tipos inativos e normas, e SHALL NOT usar entrada de outra autoridade como alternativa. A sigla de uma URN SHALL ser a do tipo resolvido, e texto vazio quando o tipo não tiver sigla. Quando o segmento de tipo da URN não traz sigla e não é uma norma declarada na autoridade, o sistema SHALL resolvê-lo para o tipo **ativo** com sigla da mesma autoridade que tem esse tipo, nunca para um inativo nem para outra autoridade. URN cuja autoridade e tipo não estejam no vocabulário SHALL ficar sem resolução e falhar na validação.
 
 #### Scenario: Proposição ativa
 - **WHEN** o tipo é resolvido para `urn:lex:br:senado.federal:projeto.lei;pl:2026;1` no vocabulário de `SF`
@@ -135,6 +135,18 @@ O sistema SHALL resolver o tipo de documento de uma URN casando a autoridade e o
 #### Scenario: Norma da autoridade declarada
 - **WHEN** o tipo é resolvido para `urn:lex:br:federal:lei:2020-01-01;1`
 - **THEN** o resultado é a entrada de `lei` de `federal`, e a sigla é texto vazio
+
+#### Scenario: Tipo sem sigla na URN
+- **WHEN** o tipo é resolvido para `urn:lex:br:federal:medida.provisoria:2019-11-11;905`
+- **THEN** o resultado é a entrada ativa `medida.provisoria;mpv` de `federal`, e a sigla obtida é `MPV`
+
+#### Scenario: Com e sem sigla são equivalentes
+- **WHEN** o tipo é resolvido para `urn:lex:br:senado.federal:projeto.lei;pl:2026;1` e para `urn:lex:br:senado.federal:projeto.lei:2026;1`
+- **THEN** ambos resolvem para a mesma entrada, o tipo ativo `projeto.lei;pl` de `senado.federal`
+
+#### Scenario: Tipo sem sigla e autoridade que não o declara
+- **WHEN** o tipo é resolvido para `urn:lex:br:federal:projeto.lei:2026;1`
+- **THEN** não há resultado
 
 #### Scenario: Sem fallback para outra autoridade
 - **WHEN** o tipo é resolvido para `urn:lex:br:senado.federal:projeto.lei.conversao;plv:2026;1` e `projeto.lei.conversao;plv` só existe no Congresso Nacional
