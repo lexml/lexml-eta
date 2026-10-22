@@ -1,11 +1,12 @@
 import { generoFromLetra } from '../../dispositivo/genero';
 import { Autoridade } from '../../documento/autoridade';
 import { Genero, generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
-import { VOCABULARIO } from './vocabulario';
+import { getVocabulario } from './vocabulario';
+import { getTipoPorSigla } from './vocabulario/consultasVocabulario';
 
 export const getAutoridade = (urn: string): Autoridade | undefined => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  return VOCABULARIO.autoridades.filter(t => t.urn === partes[0])[0];
+  return getVocabulario().autoridades.filter(t => t.urn === partes[0])[0];
 };
 
 // Casa pelo tipo da URN sem o `;sigla` e pela autoridade; combinação não declarada não tem texto padrão.
@@ -13,25 +14,15 @@ export const getPreambuloPadrao = (urn: string): string | undefined => {
   const partes = (urn ?? '').replace('urn:lex:br:', '').split(':');
   const autoridade = partes[0];
   const tipo = partes[1]?.split(';')[0];
-  return VOCABULARIO.preambulosPadrao.find(p => p.urnTipoDocumento === tipo && p.urnAutoridade === autoridade)?.texto;
+  return getVocabulario().preambulosPadrao.find(p => p.urnTipoDocumento === tipo && p.urnAutoridade === autoridade)?.texto;
 };
 
-// Prefere o item da autoridade da URN; sem ele, vale o primeiro na ordem de mesclagem (normas referenciadas trazem combinações não declaradas).
-const procurarPorAutoridade = <T extends { urnAutoridade: string }>(itens: T[], urn: string, predicado: (item: T) => boolean): T | undefined => {
-  const autoridade = urn.replace('urn:lex:br:', '').split(':')[0];
-  const candidatos = itens.filter(predicado);
-  return candidatos.find(i => i.urnAutoridade === autoridade) ?? candidatos[0];
-};
+export const getSigla = (urn: string): string => getTipo(urn)?.sigla ?? '';
 
-export const getSigla = (urn: string): string => {
-  const tipo = getTipo(urn) ?? {};
-  const doTipo = (item: { urnTipoDocumento: string }): boolean => item.urnTipoDocumento === tipo.urn;
-  return procurarPorAutoridade(VOCABULARIO.siglas, urn, doTipo)?.sigla ?? procurarPorAutoridade(VOCABULARIO.fakeUrns, urn, doTipo)?.sigla ?? '';
-};
-
+// Casa a autoridade e o tipo da URN exatamente, sem alternativa em outra autoridade.
 export const getTipo = (urn: string): any => {
-  const tipo = urn.replace('urn:lex:br:', '')?.split(':');
-  return procurarPorAutoridade(VOCABULARIO.tiposDocumento, urn, t => t.urn === tipo[1]);
+  const partes = urn.replace('urn:lex:br:', '')?.split(':');
+  return getVocabulario().tiposDocumento.find(t => t.urnAutoridade === partes[0] && t.urn === partes[1]);
 };
 
 export const getNumero = (urn: string): string => {
@@ -134,9 +125,9 @@ export const buildUrn = (autoridade: string, tipo: string, numero: string, data:
 
 // Para inicialização de edição de proposição sem texto lexml
 export const buildFakeUrn = (sigla: string, numero: string, ano: string): string => {
-  const fake = VOCABULARIO.fakeUrns.find(f => f.sigla === sigla.toUpperCase());
-  if (fake) {
-    return buildUrn(fake.urnAutoridade, fake.urnTipoDocumento, numero, ano);
+  const tipo = getTipoPorSigla(sigla);
+  if (tipo) {
+    return buildUrn(tipo.urnAutoridade, tipo.urn, numero, ano);
   }
   throw `Sigla '${sigla}' não encontrada no vocabulário para montagem da urn.`;
 };
@@ -165,7 +156,7 @@ export const getNomeExtenso = (urn: string): string => {
 };
 
 export const getNomeExtensoComDataExtenso = (urn: string): string => {
-  const atalho = VOCABULARIO.atalhosUrn.find(a => a.urn === urn);
+  const atalho = getVocabulario().atalhosUrn.find(a => a.urn === urn);
   if (atalho) {
     return atalho.nome;
   }
@@ -221,6 +212,5 @@ export const getGeneroUrnNorma = (urn: string): Genero => {
 
 export const getTipoDocumentoUrn = (urn: string): any => {
   if (!urn) return undefined;
-  const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  return procurarPorAutoridade(VOCABULARIO.tiposDocumento, urn, t => t.urn === partes[1]);
+  return getTipo(urn);
 };
