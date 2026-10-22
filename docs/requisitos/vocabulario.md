@@ -1,8 +1,8 @@
 # Vocabulário de URN: conceitos, estrutura e requisitos
 
-Rascunho para definir a estrutura e os requisitos do vocabulário (issue #1026). Parte do que o código faz hoje (`src/model/lexml/documento/vocabulario/` e `urnUtil.ts`) e registra as **decisões já tomadas** e os **pontos ainda em aberto**.
+Estrutura e requisitos do vocabulário (issue #1026), conforme implementado em `src/model/lexml/documento/vocabulario/` e `urnUtil.ts`, com as **decisões tomadas**.
 
-> Leitura de 21/10/2026, com os módulos do vocabulário modificados e ainda não commitados (tipos desnecessários removidos, tipos de norma mantidos). `fakeUrns` e `siglas` ainda existem no código; a seção 4 descreve o modelo-alvo que os substitui.
+> Sincronizado com a implementação em 22/10/2026. `fakeUrns` e `siglas` foram removidos; a sigla é atributo do tipo (seção 4).
 
 ## 1. Para que serve
 
@@ -44,7 +44,7 @@ O **vocabulário mesclado é um por casa**: o do SF não contém nada da CD, e v
 
 ### 3.2 Autoridade
 
-Quem emite o documento. Cada autoridade é um módulo (`federal.ts`, `senado.ts`, `camara.ts`, `congresso.ts`) cujos itens são carimbados com `urnAutoridade` na mesclagem.
+Quem emite o documento. Cada autoridade é um módulo (`vocabularioFederal.ts`, `vocabularioSenado.ts`, `vocabularioCamara.ts`, `vocabularioCongresso.ts`) cujos itens são carimbados com `urnAutoridade` na mesclagem.
 
 | URN | Descrição | Uso típico |
 |---|---|---|
@@ -74,7 +74,7 @@ Invariantes: **sigla única entre os tipos ativos**; sigla pode se repetir entre
 Não há mais tabelas de sigla à parte: a sigla é atributo do tipo.
 
 - **Sigla → tipo** (nova proposição, C2): procura-se o tipo **ativo** com aquela sigla; a URN nova sai da autoridade e do tipo dele. Substitui `fakeUrns`.
-- **URN → sigla**: identifica-se o segmento de tipo da URN (`projeto.lei;pl`) no vocabulário. Substitui `siglas` (cujas quatro entradas nunca casavam por causa da convenção de chave).
+- **URN → tipo/sigla** (C4): casa-se a autoridade e o segmento de tipo da URN. O segmento pode vir **com ou sem sigla** e as duas formas são válidas: `senado.federal:projeto.lei;pl` e `senado.federal:projeto.lei` resolvem para o mesmo tipo ativo (PL); `federal:medida.provisoria` e `federal:medida.provisoria;mpv`, para MPV. Com sigla, vale a entrada exata (inclusive inativa: `projeto.lei;pls`); sem sigla, e quando não for uma norma declarada, vale o tipo **ativo** com sigla da mesma autoridade. A autoridade continua obrigatória.
 
 ### 3.5 Substitutivo e tipos de referência
 
@@ -132,12 +132,13 @@ Removidos: `fakeUrns`, `siglas`. Mantidos: `autoridades`, `preambulosPadrao`, `a
 | C3 | Tipos de referência do substitutivo | vocabulário, tipo ativo selecionado | tipos (ativos e inativos); vazio para `não aceita substitutivo` |
 | C4 | Identificar o tipo pela URN | vocabulário, URN | tipo (autoridade + segmento de tipo, incluindo inativos) |
 
-## 5. Divergências do código atual
+## 5. Mudanças em relação ao código anterior
 
-1. `fakeUrns` e `siglas` ainda existem; `fakeUrns` do Senado ainda cita `SCD` e `ECD`, cujos tipos já foram removidos. Somem com o modelo-alvo.
-2. As tabelas hoje usam `urn` (com sigla) em `tiposDocumento` e tipo sem sigla em `siglas`/`preambulosPadrao`; no modelo-alvo, `urnTipoDocumento` + `sigla` separados.
-3. `getTipo`, `getTipoDocumentoUrn` e `getSigla` usam o helper `procurarPorAutoridade` (fallback por autoridade). Com a chave incluindo a autoridade, o fallback sai (RV-16).
-4. `VOCABULARIO` é uma constante de módulo; o alvo é uma variável estática inicializada por `casaLegislativaEditor`.
+1. `fakeUrns` e `siglas` foram removidos; `SCD`, `ECD` e `PRC` não existem mais e não precisam ter tipo correspondente entre Senado e Câmara.
+2. `tiposDocumento` usa `urnTipoDocumento` + `sigla` separados; a `urn` do tipo é calculada.
+3. `procurarPorAutoridade` (fallback por autoridade) foi removido (RV-16).
+4. `VOCABULARIO` (constante) virou variável estática, inicializada por `casaLegislativaEditor` (`getVocabulario`, `inicializarVocabulario`).
+5. A URN de MPV passa a ter autoridade `federal` e a de PLV, `congresso.nacional`; URNs antigas com `senado.federal` não resolvem mais (coordenação com `lexeditweb-editor` e Infoleg Editor).
 
 ## 6. Requisitos (rascunho)
 
@@ -155,6 +156,7 @@ Removidos: `fakeUrns`, `siglas`. Mantidos: `autoridades`, `preambulosPadrao`, `a
 - **RV-12** A nova proposição de MPV SHALL ter autoridade `federal` e a de PLV, `congresso.nacional`; a URN antiga de MPV (`senado.federal`) deixa de ser gerada.
 - **RV-13** Os testes de vocabulário e de `urnUtil` SHALL rodar para as duas casas (SF e CD), reinicializando o vocabulário estático a cada caso.
 - **RV-16** `getTipo`, `getTipoDocumentoUrn` e `getSigla` SHALL resolver pela autoridade exata da URN, sem fallback para outra autoridade; URN cuja autoridade+tipo não esteja no vocabulário da casa não resolve.
+- **RV-17** O segmento de tipo da URN SHALL poder vir com ou sem sigla: sem sigla, e não sendo norma declarada, resolve para o tipo **ativo** com sigla da mesma autoridade (`senado.federal:projeto.lei` e `senado.federal:projeto.lei;pl` apontam para PL; `federal:medida.provisoria` e `federal:medida.provisoria;mpv`, para MPV).
 - **RV-14** A sigla SHALL existir apenas em tipos de proposição.
 - **RV-15** `casaLegislativaEditor` (em `LexmlEtaConfig`) SHALL ser `SF` ou `CD`; ausente ou inválida, assume `SF` com aviso; `casaLegislativa` (casa do documento) permanece independente dela.
 
@@ -178,6 +180,8 @@ Removidos: `fakeUrns`, `siglas`. Mantidos: `autoridades`, `preambulosPadrao`, `a
 
 - O vocabulário estático é (re)inicializado sempre que `LexmlEtaComponent.lexmlEtaConfig` é atribuída.
 - Norma citada com autoridade ausente do vocabulário da casa fica **sem resolver** (sem tratamento especial).
+- URN com ou sem sigla é válida e resolve para o tipo ativo (RV-17).
+- `PRC`, `SCD` e `ECD` não existem mais e não serão adicionados; Senado e Câmara não precisam ter tipos correspondentes.
 
 **Fora do escopo desta change:**
 
