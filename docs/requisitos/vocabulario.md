@@ -1,8 +1,6 @@
 # Vocabulário de URN: conceitos, estrutura e requisitos
 
-Estrutura e requisitos do vocabulário (issue #1026), conforme implementado em `src/model/lexml/documento/vocabulario/` e `urnUtil.ts`, com as **decisões tomadas**.
-
-> Sincronizado com a implementação em 22/10/2026. `fakeUrns` e `siglas` foram removidos; a sigla é atributo do tipo (seção 4).
+Estrutura e requisitos do vocabulário de URN (issue #1026), conforme implementado em `src/model/lexml/documento/vocabulario/` e `urnUtil.ts`.
 
 ## 1. Para que serve
 
@@ -71,9 +69,9 @@ Invariantes: **sigla única entre os tipos ativos**; sigla pode se repetir entre
 
 ### 3.4 Sigla
 
-Não há mais tabelas de sigla à parte: a sigla é atributo do tipo.
+A sigla é atributo do tipo.
 
-- **Sigla → tipo** (nova proposição, C2): procura-se o tipo **ativo** com aquela sigla; a URN nova sai da autoridade e do tipo dele. Substitui `fakeUrns`.
+- **Sigla → tipo** (nova proposição, C2): procura-se o tipo **ativo** com aquela sigla; a URN nova sai da autoridade e do tipo dele.
 - **URN → tipo/sigla** (C4): casa-se a autoridade e o segmento de tipo da URN. O segmento pode vir **com ou sem sigla** e as duas formas são válidas: `senado.federal:projeto.lei;pl` e `senado.federal:projeto.lei` resolvem para o mesmo tipo ativo (PL); `federal:medida.provisoria` e `federal:medida.provisoria;mpv`, para MPV. Com sigla, vale a entrada exata (inclusive inativa: `projeto.lei;pls`); sem sigla, e quando não for uma norma declarada, vale o tipo **ativo** com sigla da mesma autoridade. A autoridade continua obrigatória.
 
 ### 3.5 Substitutivo e tipos de referência
@@ -85,22 +83,22 @@ Só o tipo **ativo** é "selecionado" na criação; os tipos de referência pode
 | `aceita substitutivo` (SF) | As siglas que ele pode substituir (ex.: PL → PL, PLS, PLC) | Lista declarada em `tiposReferenciaveis` (RN-00a) |
 | `aceita substitutivo` (CD) | Todos os tipos que aceitam substitutivo | Derivável |
 | `é substitutivo` (CD, `sbt`) | Tipos que aceitam substitutivo | RN-12 |
-| `é subemenda substitutiva` (CD, `pep`) | Tipos que são substitutivos — **a confirmar** | Seção 5 do caso de uso |
+| `é subemenda substitutiva` (CD, `pep`) | Tipos que são substitutivos | Seção 5 do caso de uso |
 | `não aceita substitutivo` | Nenhum | RN-01 |
 | PLV | MPV, fixa (RN-03) | Fora de C3 |
 
-Regra de modelagem proposta: `tiposReferenciaveis` é a fonte declarada no tipo; a mesclagem preenche o que é derivável (CD) e **valida** que toda referência existe e aceita substitutivo.
+Regra de modelagem proposta: `tiposReferenciaveis` é a fonte declarada no tipo; a lista derivável (CD) é calculada na consulta C3 e a mesclagem **valida** que toda referência existe e aceita substitutivo.
 
 ### 3.6 Preâmbulo padrão (`preambulosPadrao`)
 
-Texto inicial do preâmbulo, escolhido por **tipo (sem sigla) + autoridade da URN**, sem fallback: URN fora da tabela fica sem texto padrão. Os textos estão no código; a distribuição por autoridade está na D4 da change.
+Texto inicial do preâmbulo, escolhido por **tipo (sem sigla) + autoridade da URN**, URN fora da tabela fica sem texto padrão. Os textos e a distribuição por autoridade estão em `preambulosPadrao`, em cada `vocabularioXxx.ts`.
 
 ### 3.7 Atalhos de URN (`atalhosUrn`) e eventos (`eventos`)
 
 - `atalhosUrn`: normas notórias com URN fixa e nome próprio (Constituição, ADCT, CLT, Regimento Interno do SF, Regimento Comum). Alimenta o nome por extenso e o autocomplete.
 - `eventos`: versão do texto no processo legislativo (`@apresentacao.substitutivo`...), com gênero.
 
-Ambos são hoje do vocabulário **comum** (válidos nas duas casas); ver ponto em aberto 7.
+Ambos são do vocabulário **comum** (válidos nas duas casas).
 
 ## 4. Modelo-alvo e consultas
 
@@ -118,10 +116,10 @@ interface TipoDocumento {            // item de uma autoridade
 }
 // Mesclado (por casa), calculado em mesclar():
 //   tiposDocumento:        TipoDocumento + urnAutoridade + urn
-//   tiposDocumentoAtivos:  só os ativos, já com tiposReferenciaveis resolvidos
+//   tiposDocumentoAtivos:  só as proposições ativas
 ```
 
-Removidos: `fakeUrns`, `siglas`. Mantidos: `autoridades`, `preambulosPadrao`, `atalhosUrn`, `eventos`. `tiposDocumentoAtivos` é **derivado** na mesclagem (a fonte única continua sendo `tiposDocumento` + `ativo`).
+O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosUrn` e `eventos`. `tiposDocumentoAtivos` é **derivado** na mesclagem (a fonte única é `tiposDocumento` + `ativo`).
 
 ### 4.2 Consultas
 
@@ -132,18 +130,10 @@ Removidos: `fakeUrns`, `siglas`. Mantidos: `autoridades`, `preambulosPadrao`, `a
 | C3 | Tipos de referência do substitutivo | vocabulário, tipo ativo selecionado | tipos (ativos e inativos); vazio para `não aceita substitutivo` |
 | C4 | Identificar o tipo pela URN | vocabulário, URN | tipo (autoridade + segmento de tipo, incluindo inativos) |
 
-## 5. Mudanças em relação ao código anterior
-
-1. `fakeUrns` e `siglas` foram removidos; `SCD`, `ECD` e `PRC` não existem mais e não precisam ter tipo correspondente entre Senado e Câmara.
-2. `tiposDocumento` usa `urnTipoDocumento` + `sigla` separados; a `urn` do tipo é calculada.
-3. `procurarPorAutoridade` (fallback por autoridade) foi removido (RV-16).
-4. `VOCABULARIO` (constante) virou variável estática, inicializada por `casaLegislativaEditor` (`getVocabulario`, `inicializarVocabulario`).
-5. A URN de MPV passa a ter autoridade `federal` e a de PLV, `congresso.nacional`; URNs antigas com `senado.federal` não resolvem mais (coordenação com `lexeditweb-editor` e Infoleg Editor).
-
-## 6. Requisitos (rascunho)
+## 5. Requisitos
 
 - **RV-01** O vocabulário SHALL ser declarado por autoridade e mesclado **por casa legislativa** (`SF`, `CD`); o vocabulário de uma casa SHALL NOT conter tipos exclusivos da outra.
-- **RV-02** O vocabulário mesclado SHALL ficar em uma variável estática, inicializada uma vez com `casaLegislativaEditor` (uma instância do componente por página); a casa SHALL vir só do host.
+- **RV-02** O vocabulário mesclado SHALL ficar em uma variável estática, inicializada com `casaLegislativaEditor` a cada atribuição de `lexmlEtaConfig` (uma instância do componente por página); a casa SHALL vir só do host.
 - **RV-03** Todo tipo SHALL ter `urnAutoridade` após a mesclagem; a chave é `urnAutoridade` + `urnTipoDocumento` + `sigla` (opcional).
 - **RV-04** A URN do tipo SHALL ser calculada (`urnTipoDocumento;sigla` em minúsculas), nunca declarada.
 - **RV-05** A sigla SHALL ser única entre os tipos ativos do vocabulário mesclado; a mesclagem SHALL falhar quando violada.
@@ -152,45 +142,29 @@ Removidos: `fakeUrns`, `siglas`. Mantidos: `autoridades`, `preambulosPadrao`, `a
 - **RV-08** O vocabulário SHALL identificar o tipo pela sigla (C2) e pela URN (C4), devolvendo o tipo e não só a URN.
 - **RV-09** Dado um tipo ativo, o vocabulário SHALL devolver os tipos (ativos e inativos) que podem ser a referência do substitutivo, segundo a tabela 3.5 (C3); a lista é vazia para `não aceita substitutivo`.
 - **RV-10** A mesclagem SHALL validar que toda referência de `tiposReferenciaveis` existe e aceita substitutivo.
-- **RV-11** O preâmbulo padrão SHALL ser escolhido por tipo (sem sigla) + autoridade da URN, sem fallback.
-- **RV-12** A nova proposição de MPV SHALL ter autoridade `federal` e a de PLV, `congresso.nacional`; a URN antiga de MPV (`senado.federal`) deixa de ser gerada.
+- **RV-11** O preâmbulo padrão SHALL ser escolhido por tipo (sem sigla) + autoridade da URN; combinação fora da tabela não tem texto.
+- **RV-12** A nova proposição de MPV SHALL ter autoridade `federal` e a de PLV, `congresso.nacional`.
 - **RV-13** Os testes de vocabulário e de `urnUtil` SHALL rodar para as duas casas (SF e CD), reinicializando o vocabulário estático a cada caso.
-- **RV-16** `getTipo`, `getTipoDocumentoUrn` e `getSigla` SHALL resolver pela autoridade exata da URN, sem fallback para outra autoridade; URN cuja autoridade+tipo não esteja no vocabulário da casa não resolve.
-- **RV-17** O segmento de tipo da URN SHALL poder vir com ou sem sigla: sem sigla, e não sendo norma declarada, resolve para o tipo **ativo** com sigla da mesma autoridade (`senado.federal:projeto.lei` e `senado.federal:projeto.lei;pl` apontam para PL; `federal:medida.provisoria` e `federal:medida.provisoria;mpv`, para MPV).
 - **RV-14** A sigla SHALL existir apenas em tipos de proposição.
 - **RV-15** `casaLegislativaEditor` (em `LexmlEtaConfig`) SHALL ser `SF` ou `CD`; ausente ou inválida, assume `SF` com aviso; `casaLegislativa` (casa do documento) permanece independente dela.
+- **RV-16** `getTipo`, `getTipoDocumentoUrn` e `getSigla` SHALL resolver pela autoridade exata da URN, sem usar outra autoridade; URN cuja autoridade+tipo não esteja no vocabulário da casa não resolve.
+- **RV-17** O segmento de tipo da URN SHALL poder vir com ou sem sigla: sem sigla, e não sendo norma declarada, resolve para o tipo **ativo** com sigla da mesma autoridade (`senado.federal:projeto.lei` e `senado.federal:projeto.lei;pl` apontam para PL; `federal:medida.provisoria` e `federal:medida.provisoria;mpv`, para MPV).
 
-## 7. Decisões tomadas e pontos em aberto
+## 6. Decisões
 
-**Decididos:**
+- `casaLegislativaEditor` (`SF`/`CD`, padrão `SF`) seleciona o vocabulário; `casaLegislativa` é a casa do documento e admite `CN`.
+- A casa vem do host, não da URN (a sigla da URN depende do vocabulário).
+- Uma instância do componente por página; o vocabulário é estático, sem parâmetro nas chamadas de `urnUtil`.
+- Tipos de norma ficam no vocabulário, sem sigla, para referenciar; cada norma referenciável é declarada na autoridade que a emite.
+- `decreto.legislativo` e `resolucao` aparecem em mais de uma autoridade, com descrição e gênero idênticos. Senado e Câmara não precisam ter tipos correspondentes.
+- MPV tem autoridade `federal`; PLV, `congresso.nacional`.
+- Referência da subemenda substitutiva (`pep`): os tipos substitutivos.
+- `atalhosUrn` e `eventos` são do vocabulário comum.
+- Norma citada com autoridade ausente do vocabulário da casa fica sem resolver, sem tratamento especial.
+- `tiposReferenciaveis` do SF estão preenchidos para PL (PL, PLS, PLC), PLP (PLP, PLS, PLC) e PDL (PDL) e PRS (PRS); os demais tipos que aceitam substitutivo e a marcação definitiva de `ativo` dependem do negócio.
 
-- `casaLegislativaEditor` (`SF`/`CD`, padrão `SF`) seleciona o vocabulário; `casaLegislativa` segue como casa do documento, inclusive com `CN`.
-- A casa vem do host, não da URN (resolve a dependência circular com `getSigla`).
-- Uma instância do componente por página; vocabulário em variável estática (sem parâmetro nas ~20 chamadas de `urnUtil` fora do módulo).
-- Tipos de norma permanecem no vocabulário; sigla só para proposições.
-- MPV tem autoridade `federal` (`caso-de-uso-nova-proposicao.md` e `pendencias.md` já ajustados).
-- Referência da subemenda substitutiva (`pep`): tipos substitutivos (inferência aceita).
-- `atalhosUrn` permanecem no vocabulário comum.
-- `tiposReferenciaveis` do SF serão preenchidos depois pelo negócio.
-
-- Resolução de tipos **sempre pela autoridade exata** da URN, sem fallback para outra autoridade (vale para proposições e normas). Cada norma referenciável precisa estar declarada na autoridade correspondente; `camara.deputados:lei` não existe e `camara.deputados:resolucao` foi adicionada.
-- `decreto.legislativo` e `resolucao` permanecem duplicados entre autoridades (cópias com descrição e gênero idênticos).
-- `casaLegislativaEditor` ausente ou inválida cai em `SF`, com aviso.
-- Inicialização: o `LexmlEtaComponent` lê `LexmlEtaConfig.casaLegislativaEditor` e inicializa o vocabulário estático.
-
-- O vocabulário estático é (re)inicializado sempre que `LexmlEtaComponent.lexmlEtaConfig` é atribuída.
-- Norma citada com autoridade ausente do vocabulário da casa fica **sem resolver** (sem tratamento especial).
-- URN com ou sem sigla é válida e resolve para o tipo ativo (RV-17).
-- `PRC`, `SCD` e `ECD` não existem mais e não serão adicionados; Senado e Câmara não precisam ter tipos correspondentes.
-
-**Fora do escopo desta change:**
-
-- Concordância de gênero do preâmbulo da MPV (fica sem concordância) e tipos sem texto padrão (herdado da change anterior).
-- "Sigla da casa legislativa" no vocabulário (item da #1026): coberta por `casaLegislativaEditor`.
-
-**Em aberto:** nenhum.
-
-## 8. Referências
+**Fora do escopo:** concordância de gênero do preâmbulo da MPV e tipos sem texto padrão.
+## 7. Referências
 
 - `src/model/lexml/documento/vocabulario/` e `src/model/lexml/documento/urnUtil.ts`
 - `src/components/lexml-eta.component.ts` (`casaLegislativa`, `inicializaCasaLegislativa`; ponto de entrada de `casaLegislativaEditor`)
