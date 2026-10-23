@@ -31,6 +31,6 @@
 
 ## 6. Especificação e documentação
 
-- [ ] 6.1 Criar a especificação do grupo em `docs/extensao-formato-lexml/` (necessidade informacional, representação e exemplo) e registrá-la em `00-especificacao-esquema-lexedit.md`
-- [ ] 6.2 Atualizar `99-exemplo-completo.md` e `documento-articulado-exemplo.json`/`.xml` com o grupo, e o `plano-xsd-lexedit.md`
-- [ ] 6.3 Rodar a suíte completa (`npm test`), o lint e o `openspec validate`
+- [x] 6.1 Criar a especificação do grupo em `docs/extensao-formato-lexml/` (necessidade informacional, representação e exemplo) e registrá-la em `00-especificacao-esquema-lexedit.md`
+- [x] 6.2 Atualizar `99-exemplo-completo.md` e `documento-articulado-exemplo.json`/`.xml` com o grupo, e o `plano-xsd-lexedit.md`
+- [x] 6.3 Rodar a suíte completa (`npm test`), o lint e o `openspec validate`
