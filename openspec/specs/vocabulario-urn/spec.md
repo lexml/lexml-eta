@@ -1,51 +1,59 @@
 # vocabulario-urn
 
 ## Purpose
-Definir o vocabulário de URN do editor, separado por autoridade (federal, senado, câmara, congresso e comum), mesclado por casa legislativa do editor e usado para resolver tipo, sigla e autoridade de uma URN.
+Definir o vocabulário de URN do editor, separado por autoridade (federal, senado, câmara, congresso e comum), mesclado em uma visão completa (todas as autoridades, para resolver tipo, sigla e autoridade de uma URN) e em uma visão da casa legislativa do editor (para as consultas sem autoridade), e recusar documento de outra casa ao iniciar a edição.
 
 ## Requirements
 
 ### Requirement: Vocabulário por autoridade e por casa legislativa do editor
-O sistema SHALL organizar o vocabulário de URN em definições por autoridade (`federal`, `senado.federal`, `camara.deputados` e `congresso.nacional`) mais uma definição comum (`atalhosUrn` e `eventos`), e SHALL mesclá-las em um vocabulário **por casa legislativa do editor**: `SF` com `federal`, `senado.federal` e `congresso.nacional`; `CD` com `federal`, `camara.deputados` e `congresso.nacional`. O vocabulário de uma casa SHALL NOT conter tipos exclusivos da outra. Todo tipo de documento SHALL ter, após a mesclagem, a autoridade da definição de onde veio.
+O sistema SHALL organizar o vocabulário de URN em definições por autoridade (`federal`, `senado.federal`, `camara.deputados` e `congresso.nacional`) mais uma definição comum (`atalhosUrn` e `eventos`), e SHALL mesclá-las em duas visões:
+- a **visão completa**, com todas as autoridades, independente da casa do editor;
+- a **visão da casa**, com as autoridades da casa legislativa do editor: `SF` com `federal`, `senado.federal` e `congresso.nacional`; `CD` com `federal`, `camara.deputados` e `congresso.nacional`.
+
+A visão da casa SHALL NOT conter tipos exclusivos da outra casa. As consultas que partem de uma URN SHALL usar a visão completa; as consultas sem autoridade (tipo pela sigla, tipos ativos e inativos, tipos de referência do substitutivo) SHALL usar a visão da casa. Todo tipo de documento SHALL ter, após a mesclagem, a autoridade da definição de onde veio.
 
 #### Scenario: Vocabulário do Senado
-- **WHEN** o vocabulário é montado para `SF`
-- **THEN** ele contém tipos de `senado.federal`, `congresso.nacional` e `federal`, e nenhum de `camara.deputados`
+- **WHEN** a visão da casa é montada para `SF`
+- **THEN** ela contém tipos de `senado.federal`, `congresso.nacional` e `federal`, e nenhum de `camara.deputados`
 
 #### Scenario: Vocabulário da Câmara
-- **WHEN** o vocabulário é montado para `CD`
-- **THEN** ele contém tipos de `camara.deputados`, `congresso.nacional` e `federal`, e nenhum de `senado.federal`
+- **WHEN** a visão da casa é montada para `CD`
+- **THEN** ela contém tipos de `camara.deputados`, `congresso.nacional` e `federal`, e nenhum de `senado.federal`
+
+#### Scenario: Visão completa
+- **WHEN** a visão completa é consultada, com qualquer casa do editor
+- **THEN** ela contém tipos das quatro autoridades
 
 #### Scenario: Item recebe a autoridade na mesclagem
-- **WHEN** o vocabulário de `SF` é consultado por um tipo declarado na definição do Senado
+- **WHEN** o vocabulário é consultado por um tipo declarado na definição do Senado
 - **THEN** a entrada tem `urnAutoridade` igual a `senado.federal`
 
 #### Scenario: Tipo repetido em mais de uma autoridade
 - **WHEN** o vocabulário é consultado por `decreto.legislativo` ou `resolucao`
-- **THEN** existe uma entrada para cada autoridade da casa que o declara, com descrição e gênero idênticos
+- **THEN** existe uma entrada para cada autoridade que o declara, com descrição e gênero idênticos
 
 #### Scenario: Vocabulário fora da API pública
 - **WHEN** o pacote é consumido por um host
-- **THEN** o vocabulário mesclado não é exportado pelo ponto de entrada do pacote
+- **THEN** nenhuma das visões do vocabulário é exportada pelo ponto de entrada do pacote
 
 ### Requirement: Casa legislativa do editor e inicialização do vocabulário
-O sistema SHALL selecionar o vocabulário pela propriedade `casaLegislativaEditor` de `LexmlEtaConfig` (`SF` ou `CD`), distinta de `casaLegislativa` (casa do documento). O vocabulário mesclado SHALL ficar em variável estática e SHALL ser (re)inicializado pelo `LexmlEtaComponent` sempre que `lexmlEtaConfig` for atribuída. Valor ausente ou inválido SHALL assumir `SF` e registrar um aviso. A casa do editor SHALL vir só da configuração, nunca da URN.
+O sistema SHALL selecionar a visão da casa pela propriedade `casaLegislativaEditor` de `LexmlEtaConfig` (`SF` ou `CD`), distinta de `casaLegislativa` (casa do documento). As visões SHALL ficar em variável estática, e a visão da casa SHALL ser (re)inicializada pelo `LexmlEtaComponent` sempre que `lexmlEtaConfig` for atribuída; a visão completa não depende da casa. Valor ausente ou inválido SHALL assumir `SF` e registrar um aviso. A casa do editor SHALL vir só da configuração, nunca da URN.
 
 #### Scenario: Configuração com a Câmara
 - **WHEN** `lexmlEtaConfig` é atribuída com `casaLegislativaEditor` igual a `CD`
-- **THEN** as consultas passam a usar o vocabulário de `CD`
+- **THEN** as consultas sem autoridade passam a usar a visão da casa de `CD`
 
 #### Scenario: Reatribuição da configuração
 - **WHEN** `lexmlEtaConfig` é atribuída novamente com outra casa
-- **THEN** o vocabulário é montado de novo para a nova casa
+- **THEN** a visão da casa é montada de novo para a nova casa, e a resolução por URN não muda
 
 #### Scenario: Casa ausente ou inválida
 - **WHEN** `casaLegislativaEditor` está ausente ou tem valor diferente de `SF` e `CD`
-- **THEN** o vocabulário de `SF` é usado e um aviso é registrado
+- **THEN** a visão da casa de `SF` é usada e um aviso é registrado
 
 #### Scenario: Casa do documento independente
 - **WHEN** `casaLegislativaEditor` é `SF` e a casa do documento (`casaLegislativa`) é `CN`
-- **THEN** o vocabulário continua o de `SF` e a casa do documento não é alterada
+- **THEN** a visão da casa continua a de `SF` e a casa do documento não é alterada
 
 ### Requirement: Tipo de documento e sua chave
 O sistema SHALL representar cada tipo de documento com `urnTipoDocumento` (tipo sem sigla), `sigla` opcional em maiúsculas (só em proposições), `descricao`, `genero`, `ativo` (padrão `true`), `tipoRelacaoSubstitutivo` e `tiposReferenciaveis` (estes três, apenas em proposições). A chave do tipo no vocabulário mesclado SHALL ser `urnAutoridade + urnTipoDocumento + sigla`. A URN do tipo SHALL ser calculada como `urnTipoDocumento` seguido de `;` e a sigla em minúsculas, quando houver sigla, e SHALL NOT ser declarada nos dados.
@@ -63,11 +71,15 @@ O sistema SHALL representar cada tipo de documento com `urnTipoDocumento` (tipo 
 - **THEN** são entradas distintas do vocabulário mesclado
 
 ### Requirement: Validação do vocabulário mesclado
-A mesclagem SHALL falhar com erro descritivo quando: houver duas proposições **ativas** com a mesma sigla; houver duas entradas com a mesma chave; `tiposReferenciaveis` referir um tipo inexistente no vocabulário; ou `tiposReferenciaveis` referir um tipo cujo `tipoRelacaoSubstitutivo` não seja `aceita substitutivo` ou `é substitutivo`. Siglas repetidas entre proposições inativas, ou entre uma ativa e uma inativa, SHALL ser permitidas.
+A mesclagem SHALL falhar com erro descritivo quando: houver duas proposições **ativas** com a mesma sigla **na visão de uma mesma casa**; houver duas entradas com a mesma chave; `tiposReferenciaveis` referir um tipo inexistente em alguma visão de casa que contém o tipo que o declara; ou `tiposReferenciaveis` referir um tipo cujo `tipoRelacaoSubstitutivo` não seja `aceita substitutivo` ou `é substitutivo`. Siglas repetidas entre proposições inativas, entre uma ativa e uma inativa, ou entre ativas de casas diferentes (por exemplo, `PL` do Senado e `PL` da Câmara na visão completa), SHALL ser permitidas.
 
 #### Scenario: Sigla duplicada entre ativos
-- **WHEN** duas proposições ativas declaram a sigla `PL`
+- **WHEN** duas proposições ativas da visão de uma mesma casa declaram a sigla `PL`
 - **THEN** a mesclagem falha informando a sigla duplicada
+
+#### Scenario: Sigla repetida entre casas
+- **WHEN** `senado.federal` e `camara.deputados` declaram, cada um, uma proposição ativa com a sigla `PL`
+- **THEN** a mesclagem conclui sem erro
 
 #### Scenario: Sigla repetida com inativo
 - **WHEN** uma proposição ativa e uma inativa declaram a mesma sigla
@@ -123,10 +135,10 @@ O sistema SHALL gerar a URN de uma proposição nova a partir da sigla informada
 - **THEN** a geração da URN falha com a mensagem de que a sigla não foi encontrada no vocabulário
 
 ### Requirement: Resolução de tipo e sigla pela autoridade exata da URN
-O sistema SHALL resolver o tipo de documento de uma URN casando a autoridade e o segmento de tipo (com a sigla, quando houver) com uma entrada do vocabulário da casa, incluindo tipos inativos e normas, e SHALL NOT usar entrada de outra autoridade como alternativa. A sigla de uma URN SHALL ser a do tipo resolvido, e texto vazio quando o tipo não tiver sigla. Quando o segmento de tipo da URN não traz sigla e não é uma norma declarada na autoridade, o sistema SHALL resolvê-lo para o tipo **ativo** com sigla da mesma autoridade que tem esse tipo, nunca para um inativo nem para outra autoridade. URN cuja autoridade e tipo não estejam no vocabulário SHALL ficar sem resolução e falhar na validação.
+O sistema SHALL resolver o tipo de documento de uma URN casando a autoridade e o segmento de tipo (com a sigla, quando houver) com uma entrada da **visão completa** do vocabulário, incluindo tipos inativos e normas, qualquer que seja a casa do editor, e SHALL NOT usar entrada de outra autoridade como alternativa. A sigla de uma URN SHALL ser a do tipo resolvido, e texto vazio quando o tipo não tiver sigla. Quando o segmento de tipo da URN não traz sigla e não é uma norma declarada na autoridade, o sistema SHALL resolvê-lo para o tipo **ativo** com sigla da mesma autoridade que tem esse tipo, nunca para um inativo nem para outra autoridade. URN cuja autoridade e tipo não estejam no vocabulário SHALL ficar sem resolução e falhar na validação.
 
 #### Scenario: Proposição ativa
-- **WHEN** o tipo é resolvido para `urn:lex:br:senado.federal:projeto.lei;pl:2026;1` no vocabulário de `SF`
+- **WHEN** o tipo é resolvido para `urn:lex:br:senado.federal:projeto.lei;pl:2026;1`
 - **THEN** o resultado é a entrada ativa de `projeto.lei;pl` do Senado
 
 #### Scenario: Proposição inativa
@@ -157,9 +169,17 @@ O sistema SHALL resolver o tipo de documento de uma URN casando a autoridade e o
 - **WHEN** o tipo é resolvido para `urn:lex:br:senado.federal:projeto.lei.conversao;plv:2026;1` e `projeto.lei.conversao;plv` só existe no Congresso Nacional
 - **THEN** não há resultado, e a validação da URN falha
 
+#### Scenario: Norma da outra casa no editor do Senado
+- **WHEN** a casa do editor é `SF` e o tipo é resolvido para `urn:lex:br:camara.deputados:resolucao:1989-09-21;17`
+- **THEN** o resultado é a entrada de `resolucao` de `camara.deputados`, e a URN é válida
+
+#### Scenario: Norma da outra casa no editor da Câmara
+- **WHEN** a casa do editor é `CD` e o tipo é resolvido para `urn:lex:br:senado.federal:resolucao:1970-11-27;93`
+- **THEN** o resultado é a entrada de `resolucao` de `senado.federal`, e a URN é válida
+
 #### Scenario: Tipo da outra casa
-- **WHEN** o tipo é resolvido para `urn:lex:br:camara.deputados:projeto.lei;pl:2026;1` no vocabulário de `SF`
-- **THEN** não há resultado
+- **WHEN** a casa do editor é `SF` e o tipo é resolvido para `urn:lex:br:camara.deputados:projeto.lei;pl:2026;1`
+- **THEN** o resultado é a entrada ativa de `projeto.lei;pl` de `camara.deputados`
 
 ### Requirement: Tipos de referência de um substitutivo
 O sistema SHALL devolver, para um tipo de proposição **ativo**, os tipos que podem ser a referência do substitutivo, ativos ou inativos, conforme o `tipoRelacaoSubstitutivo` do tipo selecionado: `aceita substitutivo` — os tipos listados em `tiposReferenciaveis` do tipo; `é substitutivo` — os tipos que aceitam substitutivo; `é subemenda substitutiva` — os tipos que são substitutivos; `não aceita substitutivo` — nenhum. Um tipo inativo selecionado SHALL resultar em lista vazia.
@@ -183,3 +203,22 @@ O sistema SHALL devolver, para um tipo de proposição **ativo**, os tipos que p
 #### Scenario: Tipo inativo selecionado
 - **WHEN** os tipos de referência são consultados para um tipo inativo
 - **THEN** o resultado é vazio
+
+### Requirement: Recusa de documento de outra casa
+Ao iniciar a edição de um documento já identificado por URN (recebida do host ou lida de arquivo), o sistema SHALL recusar a URN cuja autoridade não pertença à visão da casa do editor, com um erro de inicialização cuja mensagem informa que documento de outra casa legislativa não é suportado. A recusa SHALL acontecer antes de qualquer alteração do documento em edição, que permanece como estava. A criação de proposição nova pela sigla SHALL NOT ser afetada, porque sempre gera URN de autoridade da casa.
+
+#### Scenario: Documento da Câmara no editor do Senado
+- **WHEN** a casa do editor é `SF` e a edição é iniciada com a URN `urn:lex:br:camara.deputados:projeto.lei;pl:2026;1`
+- **THEN** a inicialização falha com a mensagem de documento de outra casa, e o documento que estava em edição continua aberto
+
+#### Scenario: Documento do Senado no editor da Câmara
+- **WHEN** a casa do editor é `CD` e um arquivo com a URN `urn:lex:br:senado.federal:projeto.lei;pl:2026;1` é aberto
+- **THEN** a abertura falha com a mensagem de documento de outra casa
+
+#### Scenario: Autoridade comum às duas casas
+- **WHEN** a casa do editor é `CD` e a edição é iniciada com a URN `urn:lex:br:federal:medida.provisoria;mpv:2026;1` ou `urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;1`
+- **THEN** a edição é iniciada normalmente
+
+#### Scenario: Proposição nova
+- **WHEN** a casa do editor é `SF` e a edição é iniciada sem URN, com a sigla `PL`
+- **THEN** a URN gerada tem autoridade `senado.federal` e a edição é iniciada normalmente
