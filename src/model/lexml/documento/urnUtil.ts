@@ -1,7 +1,7 @@
 import { generoFromLetra } from '../../dispositivo/genero';
 import { Autoridade } from '../../documento/autoridade';
 import { Genero, generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
-import { getVocabularioCompleto } from './vocabulario';
+import { getVocabularioCompleto, getVocabularioDaCasa } from './vocabulario';
 import { getTipoPorSigla } from './vocabulario/consultasVocabulario';
 
 export const getAutoridade = (urn: string): Autoridade | undefined => {
@@ -15,6 +15,14 @@ export const getPreambuloPadrao = (urn: string): string | undefined => {
   const autoridade = partes[0];
   const tipo = partes[1]?.split(';')[0];
   return getVocabularioCompleto().preambulosPadrao.find(p => p.urnTipoDocumento === tipo && p.urnAutoridade === autoridade)?.texto;
+};
+
+// Abrir documento da outra casa ainda não é suportado (#1026); a URN gerada pela sigla é sempre da casa.
+export const verificarUrnDaCasaDoEditor = (urn: string): void => {
+  const autoridade = (urn ?? '').replace('urn:lex:br:', '').split(':')[0];
+  if (!getVocabularioDaCasa().autoridades.some(a => a.urn === autoridade)) {
+    throw new Error(`Documento de outra casa legislativa não é suportado neste editor (autoridade '${autoridade}').`);
+  }
 };
 
 export const getSigla = (urn: string): string => getTipo(urn)?.sigla ?? '';

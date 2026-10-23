@@ -1,5 +1,6 @@
 import { expect, fixture, html } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaConfig } from '../../../src';
+import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
+import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
 import { getTipoPorSigla } from '../../../src/model/lexml/documento/vocabulario/consultasVocabulario';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
@@ -53,5 +54,65 @@ describe('LexmlEtaComponent - casa legislativa do editor', () => {
     component.casaLegislativa = 'CN';
     component.lexmlEtaConfig = configDaCasa('SF');
     expect(component.casaLegislativa).to.equal('CN');
+  });
+});
+
+describe('LexmlEtaComponent - documento de outra casa', () => {
+  afterEach(() => inicializarVocabulario('SF'));
+
+  const criar = async (casa: string): Promise<LexmlEtaComponent> => {
+    const component = await fixture<LexmlEtaComponent>(html`<lexml-eta></lexml-eta>`);
+    component.lexmlEtaConfig = configDaCasa(casa);
+    (component as any).getParlamentares = async (): Promise<[]> => [];
+    return component;
+  };
+
+  const comUrn = (urn: string): LexmlEtaParametrosEdicao => Object.assign(new LexmlEtaParametrosEdicao(), { urn });
+
+  it('SF: recusa a URN da Câmara sem alterar o documento em edição', async () => {
+    const component = await criar('SF');
+    await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+    const projetoNorma = (component as any).projetoNorma;
+    const antes = component.getDocumentoArticulado();
+    const erroOriginal = console.error;
+    console.error = (): void => undefined;
+    let mensagem = '';
+    try {
+      await component.inicializarEdicao(comUrn('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1'));
+    } catch (e) {
+      mensagem = (e as Error).message;
+    } finally {
+      console.error = erroOriginal;
+    }
+    expect(mensagem).to.equal("Documento de outra casa legislativa não é suportado neste editor (autoridade 'camara.deputados').");
+    expect((component as any).projetoNorma).to.equal(projetoNorma);
+    expect(component.getDocumentoArticulado()).to.deep.equal(antes);
+  });
+
+  it('CD: recusa a abertura de arquivo do Senado', async () => {
+    const component = await criar('CD');
+    const entrada = novoDocumentoArticulado();
+    entrada.value.metadado.identificacao.urn = 'urn:lex:br:senado.federal:projeto.lei;pl:2026;1';
+    let mensagem = '';
+    try {
+      await component.abrirDocumentoArticulado(entrada);
+    } catch (e) {
+      mensagem = (e as Error).message;
+    }
+    expect(mensagem).to.match(/Documento de outra casa legislativa não é suportado/);
+  });
+
+  ['urn:lex:br:federal:medida.provisoria;mpv:2026;1', 'urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;1'].forEach(urn => {
+    it(`CD: inicia normalmente com ${urn}`, async () => {
+      const component = await criar('CD');
+      await component.inicializarEdicao(comUrn(urn));
+      expect((component as any).urn).to.equal(urn);
+    });
+  });
+
+  it('CD: proposição nova pela sigla gera URN da Câmara', async () => {
+    const component = await criar('CD');
+    await component.inicializarEdicao(Object.assign(new LexmlEtaParametrosEdicao(), { sigla: 'PL' }));
+    expect((component as any).urn).to.match(/^urn:lex:br:camara\.deputados:projeto\.lei;pl:/);
   });
 });

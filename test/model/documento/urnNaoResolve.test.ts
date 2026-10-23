@@ -1,7 +1,15 @@
 import { expect } from '@open-wc/testing';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { DOCUMENTO_PADRAO } from '../../../src/model/lexml/documento/modelo/documentoPadrao';
-import { getNomeExtenso, getNomeExtensoComDataExtenso, getPreambuloPadrao, getSigla, getTipo, validaUrn } from '../../../src/model/lexml/documento/urnUtil';
+import {
+  getNomeExtenso,
+  getNomeExtensoComDataExtenso,
+  getPreambuloPadrao,
+  getSigla,
+  getTipo,
+  validaUrn,
+  verificarUrnDaCasaDoEditor,
+} from '../../../src/model/lexml/documento/urnUtil';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
 const URN_PLV_SENADO = 'urn:lex:br:senado.federal:projeto.lei.conversao;plv:2026;1';
@@ -77,6 +85,32 @@ describe('URN da outra casa', () => {
       it('a conversão do documento resolve o tipo', () => {
         expect(buildProjetoNormaFromJsonix(documentoCom(urn)).tipo?.urn).to.equal('projeto.lei;pl');
       });
+
+      it('como documento em edição, é recusada', () => {
+        expect(() => verificarUrnDaCasaDoEditor(urn)).to.throw(`Documento de outra casa legislativa não é suportado neste editor (autoridade '${autoridade}').`);
+      });
     });
+  });
+});
+
+describe('Documento em edição da casa do editor', () => {
+  afterEach(() => inicializarVocabulario('SF'));
+
+  [
+    ['SF', URN_PL_SENADO],
+    ['CD', URN_PL_CAMARA],
+    ['SF', 'urn:lex:br:federal:medida.provisoria;mpv:2026;1'],
+    ['CD', 'urn:lex:br:federal:medida.provisoria;mpv:2026;1'],
+    ['SF', 'urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;1'],
+    ['CD', 'urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;1'],
+  ].forEach(([casa, urn]) => {
+    it(`${casa}: aceita ${urn}`, () => {
+      inicializarVocabulario(casa);
+      expect(() => verificarUrnDaCasaDoEditor(urn)).to.not.throw();
+    });
+  });
+
+  it('recusa autoridade desconhecida', () => {
+    expect(() => verificarUrnDaCasaDoEditor('urn:lex:br:xyz:lei:2026;1')).to.throw(/autoridade 'xyz'/);
   });
 });
