@@ -35,5 +35,5 @@ A issue #1019 pede o tratamento do dispositivo "Pena" da técnica legislativa pe
 - Validação: `src/model/lexml/conteudo/conteudoValidator.ts`, `dispositivoValidator.ts`.
 - UI: `editor.component.ts`, novo diálogo de rótulo (no molde de `editarTituloDispositivoDialog.ts`), `eta-keyboard.ts`, blots/containers do Quill.
 - Conversão: `buildJsonixFromProjetoNorma.ts`, `buildProjetoNormaFromJsonix.ts`, `buildDispositivoFromJsonix.ts`, `revisaoArticulacao.ts`, `reconstroiRevisoes.ts`.
-- Dependência externa: o CLI `jsonix-lexml` 2.1.0 precisa converter `Pena` em ida e volta (não verificado ainda; primeira subtask).
+- Dependência externa: o CLI `jsonix-lexml` precisa converter `Pena` em ida e volta, inclusive dentro de `lexedit:RevisaoArticulacao`. Resolvida pela issue #1040: `schemas/lexedit.xsd` aceita `lexml:Pena` em `RevisaoArticulacao`, e o CLI 2.3.0, gerado a partir dele, converte a pena (ver `design.md`, "Conversão da pena pelo CLI").
 - Comunicação: comentar na issue #1019 as duas divergências (minúscula e ":").
