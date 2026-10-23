@@ -55,6 +55,7 @@ const CAMARA: Record<string, Tipo> = {
   'proposta.emenda.constitucional;pec': ['Proposta de Emenda Constitucional', 'F', 'PEC', true],
   'projeto.lei;pl': ['Projeto de Lei', 'M', 'PL', true],
   'projeto.lei.complementar;plp': ['Projeto de Lei Complementar', 'M', 'PLP', true],
+  'projeto.resolucao;prc': ['Projeto de Resolução', 'M', 'PRC', true],
   'substitutivo;sbt': ['Substitutivo', 'M', 'SBT', true],
   'subemenda.substitutiva;pep': ['Subemenda Substitutiva', 'M', 'PEP', true],
 };
@@ -128,6 +129,7 @@ const CASAS: Casa[] = [
       PEC: ['camara.deputados', 'proposta.emenda.constitucional;pec'],
       PL: ['camara.deputados', 'projeto.lei;pl'],
       PLP: ['camara.deputados', 'projeto.lei.complementar;plp'],
+      PRC: ['camara.deputados', 'projeto.resolucao;prc'],
       SBT: ['camara.deputados', 'substitutivo;sbt'],
       PEP: ['camara.deputados', 'subemenda.substitutiva;pep'],
       PRN: ['congresso.nacional', 'projeto.resolucao;prn'],

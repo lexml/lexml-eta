@@ -21,6 +21,13 @@ export const camara: VocabularioAutoridade = {
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
     },
+    {
+      urnTipoDocumento: 'projeto.resolucao',
+      sigla: 'PRC',
+      descricao: 'Projeto de Resolução',
+      genero: 'M',
+      tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+    },
     { urnTipoDocumento: 'substitutivo', sigla: 'SBT', descricao: 'Substitutivo', genero: 'M', tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.E_SUBSTITUTIVO },
     {
       urnTipoDocumento: 'subemenda.substitutiva',
