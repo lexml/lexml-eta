@@ -86,7 +86,7 @@ Cada arquivo descreve a necessidade informacional, a representação adotada e a
 
 ## Esquema auxiliar (`lexedit.xsd`)
 
-[`schemas/lexedit.xsd`](../../schemas/lexedit.xsd) cobre o namespace `http://www.lexml.gov.br/lexedit/1.0` para todos os grupos, inclusive os ainda não implementados. O arquivo é uma cópia do esquema do conversor `jsonix-lexml` (ver [`schemas/README.md`](../../schemas/README.md)). Ele serve sobretudo de contrato para a conversão jsonix, e não de validador rígido: regras que o XSD expressa mal ficam para o código.
+[`schemas/lexedit.xsd`](../../schemas/lexedit.xsd) cobre o namespace `http://www.lexml.gov.br/lexedit/1.0` para todos os grupos, inclusive os ainda não implementados. O original é o deste projeto: ele é copiado para o conversor `jsonix-lexml`, que gera dele os mapeamentos do CLI, e os dois arquivos devem ser iguais (ver [`schemas/README.md`](../../schemas/README.md)). Ele serve sobretudo de contrato para a conversão jsonix, e não de validador rígido: regras que o XSD expressa mal ficam para o código.
 
 - Os elementos LexML são referenciados por `xs:import` de `lexml-simples.xsd`, sem cópia nem `xsd:any`.
 - `lexedit:RevisaoArticulacao` aceita um único elemento entre os dispositivos dos grupos `LXhier` e `LXcontainers`, `Pena` e `p`. Ele serve tanto ao dispositivo excluído quanto ao estado anterior de um dispositivo alterado.
