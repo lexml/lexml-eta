@@ -2,7 +2,7 @@
 
 ## Necessidade informacional
 
-O editor precisa referenciar anexos de forma interoperável, preservando o nome e o tipo do arquivo original para apresentação e manipulação.
+O editor precisa referenciar anexos de forma interoperável, preservando o nome e o tipo do arquivo original para apresentação e manipulação. O conteúdo dos arquivos não faz parte do documento articulado: quem o armazena é a aplicação hospedeira, que o recupera pelo identificador do arquivo.
 
 ## Representação adotada
 
@@ -21,3 +21,17 @@ Dados estruturados na estrutura do LexEdit.
     </lexedit:Anexos>
 </lexedit:Metadado>
 ```
+
+Os cinco atributos de `lexedit:Anexo` são obrigatórios e do tipo xsd:string:
+
+| Atributo | Conteúdo |
+| --- | --- |
+| `idArquivo` | Identificador do arquivo, devolvido pela aplicação hospedeira ao receber o arquivo. É o único elo para recuperar o conteúdo. |
+| `nomeArquivo` | Nome do arquivo original, com extensão. |
+| `nomeDocumento` | Nome do documento exibido ao usuário; por padrão, o nome do arquivo sem a extensão. |
+| `tipo` | Código do tipo do anexo, escolhido numa lista informada pela aplicação hospedeira. Sem enumeração fechada; `outro` quando não há tipo específico. |
+| `mimeType` | `application/pdf` ou `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (DOCX). |
+
+A ordem dos `lexedit:Anexo` é a ordem de exibição. Sem anexos, o elemento `lexedit:Anexos` é omitido, pois o esquema exige ao menos um `lexedit:Anexo`. O grupo não gera pendência e é gravado também em documento usado como anexo de parecer.
+
+Ao abrir, um `lexedit:Anexo` sem `idArquivo` ou `nomeArquivo`, ou com `mimeType` diferente de PDF e DOCX, é descartado sem impedir a leitura dos demais. `nomeDocumento` ausente assume o nome do arquivo sem extensão, e `tipo` ausente ou vazio assume `outro`.
