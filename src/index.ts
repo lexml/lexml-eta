@@ -37,6 +37,7 @@ export { LexmlAutocomplete } from './components/lexml-autocomplete';
 export { DataComponent } from './components/data/data.component';
 export { LexmlEtaComponent, LexmlEtaParametrosEdicao } from './components/lexml-eta.component';
 export { LexmlEtaConfig } from './model/lexmlEtaConfig';
+export type { DeleteAnexoCallback, ObterAnexoBlobCallback, ObterAnexoBlobResult, UploadAnexoCallback, VisualizarAnexoCallback } from './model/lexmlEtaConfig';
 export { AlertasComponent } from './components/alertas/alertas.component';
 export { AjudaComponent } from './components/ajuda/ajuda.component';
 export { AjudaModalComponent } from './components/ajuda/ajuda.modal.component';
@@ -47,7 +48,9 @@ export { SwitchRevisaoComponent } from './components/switchRevisao/switch-revisa
 export { SubstituicaoTermoComponent } from './components/substituicao-termo/substituicao-termo.component';
 export { Usuario } from './model/revisao/usuario';
 export { ProposicaoDivididaDialog } from './components/editor/proposicaoDivididaDialog';
-export { Proposicao } from './model/proposicao/proposicao';
+export { Proposicao, MimeType } from './model/proposicao/proposicao';
+export type { Anexo } from './model/proposicao/proposicao';
+export type { TipoAnexo } from './model/proposicao/tipoAnexo';
 
 configurePrivateQuill();
 

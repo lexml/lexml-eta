@@ -4,7 +4,7 @@ import { buildJsonixFromProjetoNorma } from './conversor/buildJsonixFromProjetoN
 import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJsonix';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
 import { getAno, getNumero, getSigla, verificarUrnDaCasaDoEditor } from './urnUtil';
-import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
+import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
 import { Usuario } from '../../revisao/usuario';
 import type { SituacaoNaNormaVigente } from './conversor/situacaoNaNormaVigente';
 
@@ -34,6 +34,8 @@ export interface MetadadoLexEdit {
   situacaoNaNormaVigente?: { TYPE_NAME: string; refIdsDispositivosExistentes?: string; refIdsDispositivosNovos?: string };
   // Pares chave/valor livres dos hosts; o valor é sempre texto.
   outrosMetadados?: { TYPE_NAME: string; outroMetadado: Array<{ TYPE_NAME: string; chave: string; value: string }> };
+  // Só os metadados dos anexos, na ordem de exibição; o conteúdo fica com o host.
+  anexos?: { TYPE_NAME: string; anexo: Array<Anexo & { TYPE_NAME: string }> };
   revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
   usuarios?: RevisoesLexEdit['usuarios'];
 }
@@ -74,6 +76,7 @@ export interface DadosLexEdit {
   autoria?: Autoria;
   colegiadoApreciador?: ColegiadoApreciador;
   outrosMetadados?: Record<string, string>;
+  anexos?: Anexo[];
   revisoes?: RevisoesLexEdit;
   // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
   revisoesLidas?: RevisaoArticulacaoLida[];
