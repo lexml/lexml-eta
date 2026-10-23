@@ -31,9 +31,9 @@
 
 ## 5. Aba no editor e integração com o documento
 
-- [ ] 5.1 Adicionar a aba e o painel "Anexos" antes de "Avisos" em `lexml-eta.component.ts` (inclusive no modo anexo de parecer), o contador no rótulo (`@state` atualizado pelo `onchange` e ao abrir) e o reconhecimento da aba em `focusOnTab`; teste de componente da posição, do contador e do modo anexo de parecer
-- [ ] 5.2 Coletar `anexos` em `getDocumentoArticulado` (inclusive no anexo de parecer) e aplicá-los em `abrirDocumentoArticulado` depois de `inicializarEdicao`; ligar `getProposicao`/`setProposicao` à lista do componente. Testes de componente: salvar com anexos, anexo de parecer, abrir com e sem o grupo, abrir um arquivo depois do outro, documento novo sem anexos
-- [ ] 5.3 Documentar em `docs/api-componente-lexml-eta.md` os callbacks, `tiposAnexos`, `tamanhoMaximoAnexo` (sem padrão), a aba, o `onchange` de origem `anexo` e que `onDeleteAnexo` é um aviso de exclusão, cabendo ao host decidir se e quando remove o conteúdo (a referência no documento salvo pode sobreviver até o salvamento); remover o que a seção da config diz do `tamanhoMaximoAnexo` antigo
+- [x] 5.1 Adicionar a aba e o painel "Anexos" antes de "Avisos" em `lexml-eta.component.ts` (inclusive no modo anexo de parecer) e o contador no rótulo (`@state` atualizado pelo `onchange` e ao abrir); teste de componente da posição, do contador e do modo anexo de parecer
+- [x] 5.2 Coletar `anexos` em `getDocumentoArticulado` (inclusive no anexo de parecer) e aplicá-los em `abrirDocumentoArticulado` depois de `inicializarEdicao`; ligar `getProposicao`/`setProposicao` à lista do componente. Testes de componente: salvar com anexos, anexo de parecer, abrir com e sem o grupo, abrir um arquivo depois do outro, documento novo sem anexos
+- [x] 5.3 Documentar em `docs/api-componente-lexml-eta.md` os callbacks, `tiposAnexos`, `tamanhoMaximoAnexo` (sem padrão), a aba, o `onchange` de origem `anexo` e que `onDeleteAnexo` é um aviso de exclusão, cabendo ao host decidir se e quando remove o conteúdo (a referência no documento salvo pode sobreviver até o salvamento); remover o que a seção da config diz do `tamanhoMaximoAnexo` antigo
 
 ## 6. Demo e teste E2E (Cypress)
 
