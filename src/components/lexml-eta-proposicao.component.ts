@@ -3,7 +3,6 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
-import { Anexo } from '../model/proposicao/proposicao';
 import { aplicarRevisoesAction } from '../model/lexml/acao/aplicarRevisoes';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
@@ -86,14 +85,6 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     const remissoes = completarRegistroRemissoes(state.articulacao, state.remissoes ?? {}, externas);
     const revisoes = montaRevisoesArticulacao(state);
     return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas, revisoes ? { ...dados, revisoes } : dados);
-  }
-
-  getAnexos() {
-    return this.editorComponent.anexos;
-  }
-
-  atualizaAnexos(anexos: Anexo[]) {
-    this.editorComponent.atualizaAnexo(anexos);
   }
 
   private loadProjetoNorma(params?: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): void {
