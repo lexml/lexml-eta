@@ -9,17 +9,17 @@
 
 ## 2. Gravação e leitura no documento articulado
 
-- [ ] 2.1 Adicionar `anexos` a `DadosLexEdit` e `MetadadoLexEdit` em `documentoArticulado.ts`
-- [ ] 2.2 Criar o montador `montaAnexos` em `buildJsonixFromProjetoNorma.ts` e compô-lo em `montaMetadadoLexEdit` (omitido sem anexos, só os cinco atributos, sem pendência)
-- [ ] 2.3 Criar o leitor `lerAnexos` em `buildProjetoNormaFromJsonix.ts` e compô-lo em `lerMetadadoLexEdit` (lista ou objeto único, descarta anexo sem `idArquivo`/`nomeArquivo` ou com `mimeType` fora de PDF/DOCX, padrões de `nomeDocumento` e `tipo`)
-- [ ] 2.4 Testes unitários do montador e do leitor: vazio, um e vários anexos, ordem preservada, campos extras ignorados, entrada inválida, objeto único no lugar de lista, convivência com outros grupos
-- [ ] 2.5 Adicionar ao `documentoArticulado.integration.ts` o cenário de ida e volta com três anexos (acentos e `&`), validando o XML com `schemas/lexedit.xsd` e comparando o segundo salvamento com o primeiro; executar `npm run test:documento-articulado:xml`
-- [ ] 2.6 Atualizar `docs/extensao-formato-lexml/05-anexos.md` (só metadados, ordem, `tipo` `outro`, sem conteúdo) e conferir que `99-exemplo-completo.md`, `documento-articulado-exemplo.json`/`.xml` e `plano-xsd-lexedit.md` continuam coerentes; verificar com `scripts/validar-exemplos-lexedit.mjs`
+- [x] 2.1 Adicionar `anexos` a `DadosLexEdit` e `MetadadoLexEdit` em `documentoArticulado.ts`
+- [x] 2.2 Criar o montador `montaAnexos` em `buildJsonixFromProjetoNorma.ts` e compô-lo em `montaMetadadoLexEdit` (omitido sem anexos, só os cinco atributos, sem pendência)
+- [x] 2.3 Criar o leitor `lerAnexos` em `buildProjetoNormaFromJsonix.ts` e compô-lo em `lerMetadadoLexEdit` (lista ou objeto único, descarta anexo sem `idArquivo`/`nomeArquivo` ou com `mimeType` fora de PDF/DOCX, padrões de `nomeDocumento` e `tipo`)
+- [x] 2.4 Testes unitários do montador e do leitor: vazio, um e vários anexos, ordem preservada, campos extras ignorados, entrada inválida, objeto único no lugar de lista, convivência com outros grupos
+- [x] 2.5 Adicionar ao `documentoArticulado.integration.ts` o cenário de ida e volta com três anexos (acentos e `&`), validando o XML com `schemas/lexedit.xsd` e comparando o segundo salvamento com o primeiro; executar `npm run test:documento-articulado:xml`
+- [x] 2.6 Atualizar `docs/extensao-formato-lexml/05-anexos.md` (só metadados, ordem, `tipo` `outro`, sem conteúdo) e conferir que `99-exemplo-completo.md`, `documento-articulado-exemplo.json`/`.xml` e `plano-xsd-lexedit.md` continuam coerentes; verificar com `scripts/validar-exemplos-lexedit.mjs`
 
 ## 3. Remoção do anexo atual
 
-- [ ] 3.1 Apagar `editor-texto-rico/uploadAnexoDialog.ts` e remover a lista `anexos`, `atualizaAnexo`, `labelAnexo`, o botão e a movimentação de `.panel-anexo` para a barra do Quill de `editor.component.ts` e `editor-texto-rico.component.ts`, e o CSS associado
-- [ ] 3.2 Remover `getAnexos`/`atualizaAnexos` de `lexml-eta-proposicao.component.ts` e as chamadas em `lexml-eta.component.ts` (`getProposicao` e `setProposicao`); ajustar os testes e fixtures que citam `anexos` (`test/assets/altera_norma_trava_editor.ts`, `lexml-eta-anexo-parecer.test.ts`). Verificar com `npm run build` sem erros e `npm test` sem regressão
+- [x] 3.1 Apagar `editor-texto-rico/uploadAnexoDialog.ts` e remover a lista `anexos`, `atualizaAnexo`, `labelAnexo`, o botão e a movimentação de `.panel-anexo` para a barra do Quill de `editor.component.ts` e `editor-texto-rico.component.ts`, e o CSS associado
+- [x] 3.2 Remover `getAnexos`/`atualizaAnexos` de `lexml-eta-proposicao.component.ts` e as chamadas em `lexml-eta.component.ts` (`getProposicao` e `setProposicao`); ajustar os testes e fixtures que citam `anexos` (`test/assets/altera_norma_trava_editor.ts`, `lexml-eta-anexo-parecer.test.ts`). Verificar com `npm run build` sem erros e `npm test` sem regressão
 
 ## 4. Componente da aba de anexos
 
