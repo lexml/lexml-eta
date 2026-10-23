@@ -1,7 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { buildFakeUrn, getAutoridade, getSigla, getTipo, getTipoDocumentoUrn } from '../../../src/model/lexml/documento/urnUtil';
 import { getTipoPorSigla, getTiposDocumentoAtivos, getTiposDocumentoInativos, getTiposReferenciaveis } from '../../../src/model/lexml/documento/vocabulario/consultasVocabulario';
-import { getVocabulario, inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
+import { getVocabularioDaCasa, inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
 describe('vocabulário estático e consultas', () => {
   afterEach(() => inicializarVocabulario('SF'));
@@ -17,14 +17,14 @@ describe('vocabulário estático e consultas', () => {
         console.warn = original;
       }
       expect(avisos.length).to.equal(1);
-      expect(getVocabulario().autoridades.map(a => a.urn)).to.not.include('camara.deputados');
+      expect(getVocabularioDaCasa().autoridades.map(a => a.urn)).to.not.include('camara.deputados');
     });
 
     it('reinicializar troca o vocabulário', () => {
       inicializarVocabulario('CD');
-      expect(getVocabulario().autoridades.map(a => a.urn)).to.include('camara.deputados');
+      expect(getVocabularioDaCasa().autoridades.map(a => a.urn)).to.include('camara.deputados');
       inicializarVocabulario('SF');
-      expect(getVocabulario().autoridades.map(a => a.urn)).to.not.include('camara.deputados');
+      expect(getVocabularioDaCasa().autoridades.map(a => a.urn)).to.not.include('camara.deputados');
     });
   });
 
@@ -77,11 +77,19 @@ describe('vocabulário estático e consultas', () => {
       expect(getSigla('urn:lex:br:federal:lei:2020-01-01;1')).to.equal('');
     });
 
-    it('não usa fallback para outra autoridade nem tipo da outra casa', () => {
+    it('não usa fallback para outra autoridade', () => {
       expect(getTipo('urn:lex:br:senado.federal:projeto.lei.conversao;plv:2026;1')).to.equal(undefined);
       expect(getTipoDocumentoUrn('urn:lex:br:senado.federal:projeto.lei.conversao;plv:2026;1')).to.equal(undefined);
-      expect(getTipo('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1')).to.equal(undefined);
-      expect(getAutoridade('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1')).to.equal(undefined);
+    });
+
+    it('resolve pela URN o tipo da outra casa', () => {
+      expect(getTipo('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1')?.urnAutoridade).to.equal('camara.deputados');
+      expect(getAutoridade('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1')?.urn).to.equal('camara.deputados');
+    });
+
+    it('listagens não trazem tipos da Câmara', () => {
+      expect(getTiposDocumentoAtivos().some(t => t.urnAutoridade === 'camara.deputados')).to.equal(false);
+      expect(getTiposDocumentoInativos().some(t => t.urnAutoridade === 'camara.deputados')).to.equal(false);
     });
 
     it('PL referencia PL (ativo) e PLS e PLC (inativos)', () => {
@@ -120,9 +128,18 @@ describe('vocabulário estático e consultas', () => {
       expect(buildFakeUrn('PL', '1', '2026')).to.equal('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1');
     });
 
-    it('sigla do Senado não resolve', () => {
+    it('sigla do Senado não resolve, mas a URN do Senado resolve', () => {
       expect(getTipoPorSigla('PRS')).to.equal(undefined);
-      expect(getTipo('urn:lex:br:senado.federal:projeto.lei;pl:2026;1')).to.equal(undefined);
+      expect(getTipo('urn:lex:br:senado.federal:projeto.lei;pl:2026;1')?.urnAutoridade).to.equal('senado.federal');
+    });
+
+    it('PL pela sigla é o da Câmara', () => {
+      expect(getTipoPorSigla('PL')?.urnAutoridade).to.equal('camara.deputados');
+    });
+
+    it('listagens não trazem tipos do Senado', () => {
+      expect(getTiposDocumentoAtivos().some(t => t.urnAutoridade === 'senado.federal')).to.equal(false);
+      expect(getTiposDocumentoInativos().some(t => t.urnAutoridade === 'senado.federal')).to.equal(false);
     });
 
     it('substitutivo referencia os tipos que aceitam substitutivo', () => {
@@ -130,6 +147,7 @@ describe('vocabulário estático e consultas', () => {
       expect(referencias.length).to.be.greaterThan(0);
       expect(referencias.every(t => t.tipoRelacaoSubstitutivo === 'aceita substitutivo')).to.equal(true);
       expect(referencias.map(t => t.sigla)).to.include('PL');
+      expect(referencias.some(t => t.urnAutoridade === 'senado.federal')).to.equal(false);
     });
 
     it('subemenda substitutiva referencia os tipos que são substitutivos', () => {

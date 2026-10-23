@@ -106,6 +106,8 @@ A identificação do documento (a URN) é resolvida nesta ordem:
 4. a URN montada a partir de `params.proposicao.{sigla,numero,ano}`;
 5. a URN montada a partir de `params.{sigla,numero,ano}`.
 
+Nos casos 1 a 3 (URN recebida), a autoridade da URN precisa ser da casa do editor (`casaLegislativaEditor`: `SF` aceita `senado.federal`, `congresso.nacional` e `federal`; `CD` aceita `camara.deputados`, `congresso.nacional` e `federal`). Documento de outra casa é recusado **antes de qualquer alteração do editor**, com `Error('Documento de outra casa legislativa não é suportado neste editor (autoridade \'...\').')`, pelo caminho de falha descrito acima (`fatalError` e exceção relançada). As URNs montadas pela sigla (casos 4 e 5) são sempre da casa do editor.
+
 No caso 5, `sigla` é obrigatória. Se `numero`/`ano` faltarem, assumem valores provisórios — **exceto** com `substitutivo = true`, caso em que ambos são obrigatórios (senão lança `Error`).
 
 Casa legislativa: para `MPV`, `PDN` e `PRN` é sempre `CN`; senão vale `proposicao.colegiadoApreciador.siglaCasaLegislativa` ou `params.casaLegislativa`, com `CN` por padrão.
@@ -163,7 +165,7 @@ Diferença em relação a `getProposicao()`: aqui o resultado é **um arquivo Le
 
 ### 4.4 `abrirDocumentoArticulado(entrada): Promise<void>`
 
-Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, lança `Error` (por exemplo, URN sem ano e número, articulação ausente, ids repetidos) e o editor segue intacto. Depois da abertura, aplica ao formulário os metadados do arquivo (opções de impressão, data, local, autoria).
+Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, lança `Error` (por exemplo, URN sem ano e número, documento de outra casa legislativa, articulação ausente, ids repetidos) e o editor segue intacto. Depois da abertura, aplica ao formulário os metadados do arquivo (opções de impressão, data, local, autoria).
 
 ```ts
 await editor.abrirDocumentoArticulado(await arquivo.text());
@@ -201,7 +203,7 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `tamanhoMaximoAnexo` | `number` | `5120` | Tamanho máximo de um anexo, em KB (5 MB). |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
 
-O vocabulário é (re)montado a cada atribuição de `lexmlEtaConfig`, portanto atribua a configuração **antes** de `inicializarEdicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). Tipos da outra casa, ou de uma autoridade que a casa não declara, não são resolvidos.
+O vocabulário da casa é (re)montado quando `lexmlEtaConfig` é atribuída com outra casa, portanto atribua a configuração **antes** de `inicializarEdicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). A casa restringe as siglas de proposição nova e as listas de tipos; URNs de normas citadas ou alteradas resolvem em qualquer autoridade (inclusive da outra casa), mas o documento em edição precisa ser da casa do editor (seção 4.1).
 
 O valor de `anexoParecer` é lido a cada `inicializarEdicao`. Para trocar de modo, altere a config e chame `inicializarEdicao` de novo.
 

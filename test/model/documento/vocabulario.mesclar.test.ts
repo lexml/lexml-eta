@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { mesclar } from '../../../src/model/lexml/documento/vocabulario/mesclarVocabulario';
-import { montarVocabulario } from '../../../src/model/lexml/documento/vocabulario/montarVocabulario';
+import { montarVocabulario, montarVocabularioCompleto } from '../../../src/model/lexml/documento/vocabulario/montarVocabulario';
 import {
   TextoPreambuloPadrao,
   TipoDocumentoItem,
@@ -88,6 +88,14 @@ describe('mesclar', () => {
       expect(() => mesclar(comum, [autoridade('a', [pl]), autoridade('b', [pl])])).to.throw(/sigla 'PL' ativa/);
     });
 
+    it('sem a checagem de sigla única (visão completa), aceita a mesma sigla ativa em autoridades diferentes', () => {
+      expect(() => mesclar(comum, [autoridade('a', [pl]), autoridade('b', [pl])], { siglaAtivaUnica: false })).not.to.throw();
+    });
+
+    it('sem a checagem de sigla única, ainda rejeita tipo duplicado', () => {
+      expect(() => mesclar(comum, [autoridade('a', [lei, lei])], { siglaAtivaUnica: false })).to.throw(/tipo duplicado 'a:lei'/);
+    });
+
     it('aceita sigla repetida entre ativo e inativo, e entre inativos', () => {
       const inativo = { ...pl, urnTipoDocumento: 'projeto.lei.complementar', ativo: false };
       expect(() => mesclar(comum, [autoridade('a', [pl, inativo])])).not.to.throw();
@@ -118,6 +126,12 @@ describe('montarVocabulario', () => {
     const v = montarVocabulario('SF');
     expect(v.autoridades.map(a => a.urn)).to.deep.equal(['federal', 'senado.federal', 'congresso.nacional']);
     expect(v.tiposDocumento.some(t => t.urnAutoridade === 'camara.deputados')).to.equal(false);
+  });
+
+  it('monta a visão completa com as quatro autoridades, com siglas ativas repetidas entre as casas', () => {
+    const v = montarVocabularioCompleto();
+    expect(v.autoridades.map(a => a.urn)).to.deep.equal(['federal', 'senado.federal', 'camara.deputados', 'congresso.nacional']);
+    expect(v.tiposDocumentoAtivos.filter(t => t.sigla === 'PL').map(t => t.urnAutoridade)).to.deep.equal(['senado.federal', 'camara.deputados']);
   });
 
   it('monta o vocabulário da Câmara sem tipos do Senado', () => {

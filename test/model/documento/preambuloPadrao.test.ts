@@ -56,8 +56,8 @@ describe('Texto padrão do preâmbulo por tipo e autoridade da URN', () => {
       expect(getPreambuloPadrao(urn('congresso.nacional', 'proposta.emenda.constitucional;pec'))).to.be.undefined;
     });
 
-    it('autoridade fora do vocabulário da casa não tem texto', () => {
-      expect(getPreambuloPadrao(urn('camara.deputados', 'projeto.lei;pl'))).to.be.undefined;
+    it('autoridade da outra casa recebe o texto dela', () => {
+      expect(getPreambuloPadrao(urn('camara.deputados', 'projeto.resolucao;prc'))).to.equal('A CÂMARA DOS DEPUTADOS resolve:');
     });
 
     it('tipo sem texto padrão (norma) devolve undefined', () => {
@@ -92,9 +92,9 @@ describe('Texto padrão do preâmbulo por tipo e autoridade da URN', () => {
       expect(getPreambuloPadrao(urn('federal', 'medida.provisoria;mpv'))).to.equal(MPV);
     });
 
-    it('autoridade do Senado não tem texto', () => {
-      expect(getPreambuloPadrao(urn('senado.federal', 'projeto.lei;pl'))).to.be.undefined;
-      expect(getPreambuloPadrao(urn('senado.federal', 'projeto.resolucao;prs'))).to.be.undefined;
+    it('autoridade do Senado recebe o texto dela', () => {
+      expect(getPreambuloPadrao(urn('senado.federal', 'projeto.lei;pl'))).to.equal(decreta);
+      expect(getPreambuloPadrao(urn('senado.federal', 'projeto.resolucao;prs'))).to.equal('O SENADO FEDERAL resolve:');
     });
   });
 });

@@ -1,12 +1,12 @@
 import { generoFromLetra } from '../../dispositivo/genero';
 import { Autoridade } from '../../documento/autoridade';
 import { Genero, generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
-import { getVocabulario } from './vocabulario';
+import { getVocabularioCompleto, getVocabularioDaCasa } from './vocabulario';
 import { getTipoPorSigla } from './vocabulario/consultasVocabulario';
 
 export const getAutoridade = (urn: string): Autoridade | undefined => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  return getVocabulario().autoridades.filter(t => t.urn === partes[0])[0];
+  return getVocabularioCompleto().autoridades.filter(t => t.urn === partes[0])[0];
 };
 
 // Casa pelo tipo da URN sem o `;sigla` e pela autoridade; combinação não declarada não tem texto padrão.
@@ -14,15 +14,23 @@ export const getPreambuloPadrao = (urn: string): string | undefined => {
   const partes = (urn ?? '').replace('urn:lex:br:', '').split(':');
   const autoridade = partes[0];
   const tipo = partes[1]?.split(';')[0];
-  return getVocabulario().preambulosPadrao.find(p => p.urnTipoDocumento === tipo && p.urnAutoridade === autoridade)?.texto;
+  return getVocabularioCompleto().preambulosPadrao.find(p => p.urnTipoDocumento === tipo && p.urnAutoridade === autoridade)?.texto;
+};
+
+// Abrir documento da outra casa ainda não é suportado (#1026); a URN gerada pela sigla é sempre da casa.
+export const verificarUrnDaCasaDoEditor = (urn: string): void => {
+  const autoridade = (urn ?? '').replace('urn:lex:br:', '').split(':')[0];
+  if (!getVocabularioDaCasa().autoridades.some(a => a.urn === autoridade)) {
+    throw new Error(`Documento de outra casa legislativa não é suportado neste editor (autoridade '${autoridade}').`);
+  }
 };
 
 export const getSigla = (urn: string): string => getTipo(urn)?.sigla ?? '';
 
-// Casa a autoridade e o tipo da URN, sem alternativa em outra autoridade. Tipo sem sigla que não é norma declarada vale o tipo ativo com sigla.
+// Casa a autoridade e o tipo da URN na visão completa (qualquer casa), sem alternativa em outra autoridade. Tipo sem sigla que não é norma declarada vale o tipo ativo com sigla.
 export const getTipo = (urn: string): any => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  const tipos = getVocabulario().tiposDocumento.filter(t => t.urnAutoridade === partes[0]);
+  const tipos = getVocabularioCompleto().tiposDocumento.filter(t => t.urnAutoridade === partes[0]);
   return tipos.find(t => t.urn === partes[1]) ?? tipos.find(t => t.ativo && t.sigla && t.urnTipoDocumento === partes[1]);
 };
 
@@ -161,7 +169,7 @@ export const getNomeExtenso = (urn: string): string => {
 };
 
 export const getNomeExtensoComDataExtenso = (urn: string): string => {
-  const atalho = getVocabulario().atalhosUrn.find(a => a.urn === urn);
+  const atalho = getVocabularioCompleto().atalhosUrn.find(a => a.urn === urn);
   if (atalho) {
     return atalho.nome;
   }

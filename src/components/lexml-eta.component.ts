@@ -14,7 +14,16 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { ANO_PROVISORIO, NUMERO_PROVISORIO, buildUrnProposicao, getAno, getNumero, getSigla, normalizarDataFecho } from '../model/lexml/documento/urnUtil';
+import {
+  ANO_PROVISORIO,
+  NUMERO_PROVISORIO,
+  buildUrnProposicao,
+  getAno,
+  getNumero,
+  getSigla,
+  normalizarDataFecho,
+  verificarUrnDaCasaDoEditor,
+} from '../model/lexml/documento/urnUtil';
 import { inicializarVocabulario } from '../model/lexml/documento/vocabulario';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
@@ -342,6 +351,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   async inicializarEdicao(params: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): Promise<void> {
     try {
+      // Antes de qualquer atribuição, para que o documento em edição continue como estava.
+      const urnRecebida = this.getUrnRecebida(params);
+      if (urnRecebida) verificarUrnDaCasaDoEditor(urnRecebida);
+
       this.localDoArquivo = undefined;
       this.destinoAoAbrir = undefined;
       this.anexoParecer = this.lexmlEtaConfig.anexoParecer ?? false;
@@ -421,10 +434,14 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  private getUrnRecebida(params: LexmlEtaParametrosEdicao): string | undefined {
+    return getUrn(params.projetoNorma) || params.urn || params.proposicao?.urn;
+  }
+
   private inicializaProposicao(params: LexmlEtaParametrosEdicao): void {
     this.urn = '';
 
-    const urnRecebida = getUrn(this.projetoNorma) || params.urn || params.proposicao?.urn;
+    const urnRecebida = this.getUrnRecebida(params);
     if (urnRecebida) {
       this.urn = urnRecebida;
     } else if (params.proposicao) {
