@@ -20,6 +20,12 @@
             siglaCasaLegislativa='SF'
             tipoColegiado='Plenário'/>
 
+        <!-- Outros metadados (pares chave/valor do host) -->
+        <lexedit:OutrosMetadados>
+          <lexedit:OutroMetadado chave='tituloAntesDaEpigrafe'>COMISSÃO XPTO</lexedit:OutroMetadado>
+          <lexedit:OutroMetadado chave='jsonDadosComissao'>{"id":1,"ativa":true}</lexedit:OutroMetadado>
+        </lexedit:OutrosMetadados>
+
         <!-- Opções de impressão -->
         <lexedit:OpcoesImpressao
             imprimirBrasao='true'
