@@ -23,11 +23,11 @@
 
 ## 4. Componente da aba de anexos
 
-- [ ] 4.1 Criar `lexml-eta-anexos` (`src/components/anexos/`) com a propriedade `anexos`, a normalização do tipo contra `tiposAnexos` e a lista na ordem (tipo, nome do documento, nome do arquivo, ações), com indicação de lista vazia; testes de componente da renderização e da normalização do tipo
-- [ ] 4.2 Edição do tipo (`sl-select`, ignorando o eco de `sl-change` — invariante v) e do nome do documento (vazio volta ao nome do arquivo sem extensão), e reordenação com os botões desabilitados nas pontas; testes de componente, incluindo a lista reaplicada que não sobrescreve a escolha do usuário
-- [ ] 4.3 Importação: diálogo com arquivo (`.pdf`/`.docx`, por MIME ou extensão), tipo obrigatório e nome do documento, nome de arquivo único com sufixo ` (n)`, limite opcional de tamanho antes do upload, `onUploadAnexo`, confirmar desabilitado durante o upload e aviso em caso de erro ou de host sem callback; testes de componente com callbacks simulados (sucesso, erro, sem callback, formato recusado, acima e abaixo do limite, sem limite)
-- [ ] 4.4 Exclusão (`onDeleteAnexo` e só então remove), visualização (só PDF; `onVisualizarAnexo` ou blob em nova aba) e download (`onObterAnexoBlob`); testes de componente de cada ação e das falhas do host
-- [ ] 4.5 Emissão de `onchange` com `origemEvento` `anexo` em toda alteração da lista; teste de componente de cada operação
+- [x] 4.1 Criar `lexml-eta-anexos` (`src/components/anexos/`) com a propriedade `anexos`, a normalização do tipo contra `tiposAnexos` e a lista na ordem (tipo, nome do documento, nome do arquivo, ações), com indicação de lista vazia; testes de componente da renderização e da normalização do tipo
+- [x] 4.2 Edição do tipo (`sl-select`, ignorando o eco de `sl-change` — invariante v) e do nome do documento (vazio volta ao nome do arquivo sem extensão), e reordenação com os botões desabilitados nas pontas; testes de componente, incluindo a lista reaplicada que não sobrescreve a escolha do usuário
+- [x] 4.3 Importação: diálogo com arquivo (`.pdf`/`.docx`, por MIME ou extensão), tipo obrigatório e nome do documento, nome de arquivo único com sufixo ` (n)`, limite opcional de tamanho antes do upload, `onUploadAnexo`, confirmar desabilitado durante o upload e aviso em caso de erro ou de host sem callback; testes de componente com callbacks simulados (sucesso, erro, sem callback, formato recusado, acima e abaixo do limite, sem limite)
+- [x] 4.4 Exclusão (`onDeleteAnexo` e só então remove), visualização (só PDF; `onVisualizarAnexo` ou blob em nova aba) e download (`onObterAnexoBlob`); testes de componente de cada ação e das falhas do host
+- [x] 4.5 Emissão de `onchange` com `origemEvento` `anexo` em toda alteração da lista; teste de componente de cada operação
 
 ## 5. Aba no editor e integração com o documento
 
