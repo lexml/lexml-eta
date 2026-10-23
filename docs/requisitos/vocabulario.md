@@ -38,7 +38,14 @@ O editor trabalha em **um** de dois modos, definido pelo host na inicialização
 | `SF` (padrão) | LexEdit | `senado.federal`, `congresso.nacional`, `federal` |
 | `CD` | Infoleg Editor | `camara.deputados`, `congresso.nacional`, `federal` |
 
-O **vocabulário mesclado é um por casa**: o do SF não contém nada da CD, e vice-versa. O editor admite **uma só instância do componente por página**, então o vocabulário mesclado fica em uma **variável estática**, inicializada pelo `LexmlEtaComponent` a partir de `LexmlEtaConfig.casaLegislativaEditor`; as funções de `urnUtil` o consultam sem recebê-lo por parâmetro. A casa vem só do host, nunca da URN (a sigla da URN depende do vocabulário). Os módulos por autoridade continuam sendo as peças (`congresso` e `federal` entram nas duas casas).
+Os módulos por autoridade são mesclados em **duas visões**, ambas em variáveis estáticas (o editor admite **uma só instância do componente por página**), consultadas pelas funções de `urnUtil` e de `consultasVocabulario` sem parâmetro:
+
+- **Visão da casa** (`getVocabularioDaCasa()`): as autoridades da tabela acima. O vocabulário do SF não contém nada da CD, e vice-versa. É inicializada pelo `LexmlEtaComponent` a partir de `LexmlEtaConfig.casaLegislativaEditor` (`inicializarVocabulario(casa)`, que reaproveita a visão quando a casa é a mesma). Atende às consultas **sem autoridade**: sigla, listagens e tipos de referência do substitutivo.
+- **Visão completa** (`getVocabularioCompleto()`): as quatro autoridades, montada uma vez e independente da casa. Atende às consultas **que partem de uma URN** (`getTipo`, `getSigla`, `getAutoridade`, `getTipoDocumentoUrn`, `getPreambuloPadrao`, nomes por extenso, `validaUrn`, `atalhosUrn`), para que uma norma da outra casa citada ou alterada (ex.: o Regimento Interno da Câmara no editor do SF) resolva e seja válida.
+
+A casa vem só do host, nunca da URN (a sigla da URN depende do vocabulário). `congresso` e `federal` entram nas duas casas.
+
+**Documento da outra casa:** abrir para edição um documento cuja URN seja de autoridade fora da visão da casa é **recusado** (`verificarUrnDaCasaDoEditor`), com a mensagem "Documento de outra casa legislativa não é suportado neste editor", antes de qualquer alteração do editor — em `lerDocumentoArticulado` (abertura de arquivo) e no início de `inicializarEdicao` (URN recebida do host). Proposição nova pela sigla não é afetada (sempre gera URN da casa). A abertura de documento da outra casa fica fora do escopo atual e pode ser retomada oportunamente.
 
 ### 3.2 Autoridade
 
@@ -65,7 +72,7 @@ Cadastro dos tipos de documento: **proposições** (têm sigla) e **normas** (`l
 | `tipoRelacaoSubstitutivo` | `aceita substitutivo` \| `não aceita substitutivo` \| `é substitutivo` \| `é subemenda substitutiva`. |
 | `tiposReferenciaveis` | Chaves dos tipos que podem ser a referência do substitutivo (ver 3.5). |
 
-Invariantes: **sigla única entre os tipos ativos**; sigla pode se repetir entre inativos; toda referência de `tiposReferenciaveis` aponta para um tipo existente.
+Invariantes: **sigla única entre os tipos ativos de cada casa** (na visão completa, PL, PLP e PEC ativos se repetem entre Senado e Câmara); sigla pode se repetir entre inativos; toda referência de `tiposReferenciaveis` aponta para um tipo existente.
 
 ### 3.4 Sigla
 
@@ -114,7 +121,7 @@ interface TipoDocumento {            // item de uma autoridade
   tipoRelacaoSubstitutivo?: ...;
   tiposReferenciaveis?: ChaveTipo[];
 }
-// Mesclado (por casa), calculado em mesclar():
+// Mesclado (visão da casa ou completa), calculado em mesclar():
 //   tiposDocumento:        TipoDocumento + urnAutoridade + urn
 //   tiposDocumentoAtivos:  só as proposições ativas
 ```
@@ -123,20 +130,20 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosU
 
 ### 4.2 Consultas
 
-| # | Consulta | Entrada | Saída |
-|---|---|---|---|
-| C1 | Listar tipos ativos (ou inativos) | vocabulário, filtro `ativo` | tipos de documento |
-| C2 | Identificar o tipo pela sigla | vocabulário, sigla | o tipo **ativo** com a sigla; vazio se não houver |
-| C3 | Tipos de referência do substitutivo | vocabulário, tipo ativo selecionado | tipos (ativos e inativos); vazio para `não aceita substitutivo` |
-| C4 | Identificar o tipo pela URN | vocabulário, URN | tipo (autoridade + segmento de tipo, incluindo inativos) |
+| # | Consulta | Visão | Entrada | Saída |
+|---|---|---|---|---|
+| C1 | Listar tipos ativos (ou inativos) | da casa | filtro `ativo` | tipos de documento |
+| C2 | Identificar o tipo pela sigla | da casa | sigla | o tipo **ativo** com a sigla; vazio se não houver |
+| C3 | Tipos de referência do substitutivo | da casa | tipo ativo selecionado | tipos (ativos e inativos); vazio para `não aceita substitutivo` |
+| C4 | Identificar o tipo pela URN | completa | URN | tipo (autoridade + segmento de tipo, incluindo inativos) |
 
 ## 5. Requisitos
 
-- **RV-01** O vocabulário SHALL ser declarado por autoridade e mesclado **por casa legislativa** (`SF`, `CD`); o vocabulário de uma casa SHALL NOT conter tipos exclusivos da outra.
-- **RV-02** O vocabulário mesclado SHALL ficar em uma variável estática, inicializada com `casaLegislativaEditor` a cada atribuição de `lexmlEtaConfig` (uma instância do componente por página); a casa SHALL vir só do host.
+- **RV-01** O vocabulário SHALL ser declarado por autoridade e mesclado em duas visões: a **da casa** (`SF`, `CD`), que SHALL NOT conter tipos exclusivos da outra casa e atende às consultas sem autoridade (C1-C3), e a **completa**, com todas as autoridades, que atende às consultas por URN (C4, preâmbulo, nomes por extenso, `validaUrn`).
+- **RV-02** As visões SHALL ficar em variáveis estáticas: a da casa, inicializada com `casaLegislativaEditor` a cada atribuição de `lexmlEtaConfig` (sem remontar quando a casa não muda); a completa, montada uma vez. A casa SHALL vir só do host.
 - **RV-03** Todo tipo SHALL ter `urnAutoridade` após a mesclagem; a chave é `urnAutoridade` + `urnTipoDocumento` + `sigla` (opcional).
 - **RV-04** A URN do tipo SHALL ser calculada (`urnTipoDocumento;sigla` em minúsculas), nunca declarada.
-- **RV-05** A sigla SHALL ser única entre os tipos ativos do vocabulário mesclado; a mesclagem SHALL falhar quando violada.
+- **RV-05** A sigla SHALL ser única entre os tipos ativos da visão de cada casa; a mesclagem SHALL falhar quando violada. A visão completa valida só a chave duplicada e dispara a validação das duas casas.
 - **RV-06** Cada tipo SHALL declarar `ativo` (padrão `true`); só tipos ativos criam documento novo (C2).
 - **RV-07** O vocabulário SHALL listar os tipos ativos e, separadamente, os inativos (C1).
 - **RV-08** O vocabulário SHALL identificar o tipo pela sigla (C2) e pela URN (C4), devolvendo o tipo e não só a URN.
@@ -147,8 +154,9 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosU
 - **RV-13** Os testes de vocabulário e de `urnUtil` SHALL rodar para as duas casas (SF e CD), reinicializando o vocabulário estático a cada caso.
 - **RV-14** A sigla SHALL existir apenas em tipos de proposição.
 - **RV-15** `casaLegislativaEditor` (em `LexmlEtaConfig`) SHALL ser `SF` ou `CD`; ausente ou inválida, assume `SF` com aviso; `casaLegislativa` (casa do documento) permanece independente dela.
-- **RV-16** `getTipo`, `getTipoDocumentoUrn` e `getSigla` SHALL resolver pela autoridade exata da URN, sem usar outra autoridade; URN cuja autoridade+tipo não esteja no vocabulário da casa não resolve.
+- **RV-16** `getTipo`, `getTipoDocumentoUrn` e `getSigla` SHALL resolver pela autoridade exata da URN na visão completa, sem usar outra autoridade; URN da outra casa resolve, e URN cuja autoridade+tipo não esteja em nenhuma autoridade não resolve.
 - **RV-17** O segmento de tipo da URN SHALL poder vir com ou sem sigla: sem sigla, e não sendo norma declarada, resolve para o tipo **ativo** com sigla da mesma autoridade (`senado.federal:projeto.lei` e `senado.federal:projeto.lei;pl` apontam para PL; `federal:medida.provisoria` e `federal:medida.provisoria;mpv`, para MPV).
+- **RV-18** Iniciar a edição de um documento com URN recebida (arquivo ou host) de autoridade fora da visão da casa SHALL falhar com a mensagem de documento de outra casa, antes de qualquer alteração do documento em edição; a proposição nova pela sigla SHALL NOT ser afetada.
 
 ## 6. Decisões
 
@@ -160,7 +168,9 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosU
 - MPV tem autoridade `federal`; PLV, `congresso.nacional`.
 - Referência da subemenda substitutiva (`pep`): os tipos substitutivos.
 - `atalhosUrn` e `eventos` são do vocabulário comum.
-- Norma citada com autoridade ausente do vocabulário da casa fica sem resolver, sem tratamento especial.
+- Norma citada ou alterada com autoridade da outra casa resolve pela visão completa; autoridade desconhecida fica sem resolver, sem tratamento especial.
+- Documento da outra casa é recusado ao abrir; a abertura para edição fica fora do escopo atual (exigiria definir a casa do documento, as listas de parlamentares e comissões e o tratamento da sigla).
+- A Câmara tem PRC (Projeto de Resolução, aceita substitutivo).
 - `tiposReferenciaveis` do SF estão preenchidos para PL (PL, PLS, PLC), PLP (PLP, PLS, PLC) e PDL (PDL) e PRS (PRS); os demais tipos que aceitam substitutivo e a marcação definitiva de `ativo` dependem do negócio.
 
 **Fora do escopo:** concordância de gênero do preâmbulo da MPV e tipos sem texto padrão.
@@ -168,6 +178,6 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosU
 
 - `src/model/lexml/documento/vocabulario/` e `src/model/lexml/documento/urnUtil.ts`
 - `src/components/lexml-eta.component.ts` (`casaLegislativa`, `inicializaCasaLegislativa`; ponto de entrada de `casaLegislativaEditor`)
-- `openspec/changes/2026-10-19-c02-separar-vocabulario-por-autoridade/`
+- `openspec/changes/2026-10-19-c02-separar-vocabulario-por-autoridade/` e `openspec/changes/2026-10-22-c01-vocabulario-visao-completa-e-da-casa/`
 - `docs/requisitos/caso-de-uso-nova-proposicao.md` (seções 1, 4, 5 e 6) e `docs/requisitos/pendencias.md`
 - `docs/estrutura-lexml.md` (formato da URN LexML)
