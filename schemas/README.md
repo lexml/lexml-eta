@@ -4,6 +4,11 @@ Esquemas do conversor [jsonix-lexml](https://github.com/lexml/jsonix-lexml), rev
 Os arquivos lexedit.xsd, lexml-simples.xsd, math.xsd, xlink.xsd e xml.xsd são iguais aos de
 schemas/ nessa revisão. São usados na validação local dos testes do ETA.
 
+Exceção temporária: lexedit.xsd aceita lexml:Pena em RevisaoArticulacao (issue #1040), antes
+de a mudança chegar ao jsonix-lexml. Até sair a versão do conversor com ela, o CLI não converte
+uma Pena nesse ponto. Ao atualizar a revisão acima, conferir que a mudança está lá e remover
+esta nota.
+
 lexml-simples.xsd tem dois desvios intencionais do esquema LexML oficial, feitos no jsonix-lexml
 e comentados no próprio arquivo: MetadadoProprietario usa xsd:any com processContents="lax", para
 o conteúdo do LexEdit ser convertido em objetos tipados; e Rotulo é xsd:string, para o JSON de

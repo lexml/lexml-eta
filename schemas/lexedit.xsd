@@ -169,7 +169,7 @@
          fragmento — xsd:string, mesmo motivo das demais referências cruzadas acima. Ausente na
          operação "excluido" (o dispositivo excluído não tem id na articulação atual).
          O choice lista diretamente os elementos dos grupos lexml:LXhier e lexml:LXcontainers
-         (mais lexml:p), para não depender da definição desses grupos em lexml-simples.xsd.
+         (mais lexml:Pena, que fica fora desses grupos, e lexml:p), para não depender da definição desses grupos em lexml-simples.xsd.
          Revisar esta lista se a hierarquia do LexML mudar. O mapping Jsonix gerado é o mesmo
          nas duas formas: uma propriedade por elemento, das quais só uma pode ser preenchida. -->
     <xsd:element name="RevisaoArticulacao">
@@ -191,6 +191,7 @@
                 <xsd:element ref="lexml:Alinea" />
                 <xsd:element ref="lexml:Item" />
                 <xsd:element ref="lexml:DispositivoGenerico" />
+                <xsd:element ref="lexml:Pena" />
                 <xsd:element ref="lexml:p" />
             </xsd:choice>
             <xsd:attribute type="xsd:string" name="refIdDispositivo" />
