@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Fixture do grupo OutrosMetadados (change 2026-10-21-c01-outros-metadados-lexedit) -->
+<lexedit:Metadado xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
+  <lexedit:OutrosMetadados>
+    <lexedit:OutroMetadado chave='tituloAntesDaEpigrafe'>COMISSÃO XPTO</lexedit:OutroMetadado>
+    <lexedit:OutroMetadado chave='jsonDadosComissao'>{"id":1,"ativa":true,"nome":"A &amp; B &lt;C&gt;"}</lexedit:OutroMetadado>
+    <lexedit:OutroMetadado chave='vazio'></lexedit:OutroMetadado>
+  </lexedit:OutrosMetadados>
+</lexedit:Metadado>

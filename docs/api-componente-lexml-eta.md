@@ -88,6 +88,7 @@ Em Lit, a configuração pode ser passada por binding de propriedade: `<lexml-et
 | `parlamentares` | `Parlamentar[]` | `[]` | Lista usada na autoria. É **preenchida pelo próprio componente** em `inicializarEdicao`, a partir de `urlConsultaParlamentares`. |
 | `comissoes` | `Comissao[]` | `[]` | Lista de comissões da casa legislativa. Também preenchida pelo componente, a partir de `urlComissoes`. |
 | `exibirAjuda` | `boolean` | `true` | Exibe o conteúdo de ajuda. |
+| `outrosMetadados` | `Record<string, string>` | `{}` | Pares chave/valor do host gravados no documento (`lexedit:OutrosMetadados`), também no modo `anexoParecer`. Os valores são sempre texto: para dados estruturados, grave um JSON serializado. `abrirDocumentoArticulado` substitui o valor pelos pares do arquivo (vazio se o arquivo não tiver o grupo), então o host deve lê-lo depois de abrir. |
 | `totalAlertas` | `number` | `0` | Quantidade de alertas (somente leitura na prática; atualizada pelo componente). |
 
 ## 4. Métodos
@@ -165,7 +166,7 @@ Diferença em relação a `getProposicao()`: aqui o resultado é **um arquivo Le
 
 ### 4.4 `abrirDocumentoArticulado(entrada): Promise<void>`
 
-Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, lança `Error` (por exemplo, URN sem ano e número, documento de outra casa legislativa, articulação ausente, ids repetidos) e o editor segue intacto. Depois da abertura, aplica ao formulário os metadados do arquivo (opções de impressão, data, local, autoria).
+Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, lança `Error` (por exemplo, URN sem ano e número, documento de outra casa legislativa, articulação ausente, ids repetidos) e o editor segue intacto. Depois da abertura, aplica ao formulário os metadados do arquivo (opções de impressão, data, local, autoria) e preenche `outrosMetadados`.
 
 ```ts
 await editor.abrirDocumentoArticulado(await arquivo.text());

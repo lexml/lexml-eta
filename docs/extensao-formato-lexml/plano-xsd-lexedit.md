@@ -50,6 +50,7 @@ Levantamento feito lendo os 13 arquivos de especificação. Coluna "Status" indi
 | `12` | `lexedit:Usuarios` > `lexedit:Usuario` | **Implementado**: salvar (usuários das revisões da hierarquia) e abrir |
 | `13` | `lexedit:Metadado/@dataUltimaModificacao`, `@aplicacao`, `@versaoAplicacao`, `@urnDocumentoReferenciado` (previsto, não preenchido), `@anexoParecer`; `lexedit:Pendencias` > `lexedit:Pendencia`; `lexedit:SituacaoNaNormaVigente` | Parcial (`Pendencias` implementado, inclusive a de marcas de revisão na articulação) |
 | `14` | `lexedit:ColegiadoApreciador` (`@siglaCasaLegislativa`, `@tipoColegiado`, `@siglaComissao`) | Salvar e abrir (change `2026-10-19-c01-metadados-lexedit-situacao-colegiado`) |
+| `15` | `lexedit:OutrosMetadados` > `lexedit:OutroMetadado` (`@chave` única, conteúdo texto) | **Implementado**: salvar e abrir (change `2026-10-21-c01-outros-metadados-lexedit`) |
 
 O XSD cobre todos os grupos acima, incluindo os ainda não implementados em código — os elementos/atributos do namespace LexML citados como dependência (`Justificacao`, `NotaDeRodape`, `ins`/`del`, `Remissao`, dispositivos da articulação) já pertencem ao esquema LexML oficial e não são redefinidos aqui.
 

@@ -205,6 +205,35 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
   });
 
+  it('valida e reabre um documento com outros metadados', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const outrosMetadados = { tituloAntesDaEpigrafe: 'COMISSÃO XPTO', jsonDadosComissao: '{"id":1,"nome":"A & B <C> \\"d\\""}', vazio: '' };
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { outrosMetadados });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('<lexedit:OutroMetadado chave="tituloAntesDaEpigrafe">COMISSÃO XPTO</lexedit:OutroMetadado>');
+    expect(retorno.xml).to.include('A &amp; B &lt;C>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    const dados = lerMetadadoLexEdit(retorno.jsonix);
+    expect(dados.outrosMetadados).to.deep.equal(outrosMetadados);
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+  });
+
+  it('o XSD rejeita chave repetida em lexedit:OutrosMetadados', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { outrosMetadados: { a: '1', b: '2' } });
+    const pares = (salvo.value.metadado.metadadoProprietario![0].any[0].value.outrosMetadados as any).outroMetadado;
+    pares[1].chave = 'a';
+
+    const retorno = await executeServerCommand<{ valido: boolean; erro: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido).to.equal(false);
+    expect(retorno.erro).to.include('chaveOutroMetadadoUnica');
+  });
+
   // Com lexml-simples.xsd sozinho este valor passaria: o conteúdo do xsd:any lax não seria checado.
   it('o XSD detecta valor inválido dentro de lexedit:Metadado', async () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);

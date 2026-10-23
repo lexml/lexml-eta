@@ -94,6 +94,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
   @property({ type: Array }) comissoes: Comissao[] = [];
+  // Pares chave/valor do host gravados no documento; ao abrir um arquivo, recebe os pares dele.
+  @property({ type: Object }) outrosMetadados: Record<string, string> = {};
+
   private _lexmlEtaConfig = new LexmlEtaConfig();
 
   // O vocabulário depende da casa do editor e precisa estar pronto antes de inicializarEdicao.
@@ -242,6 +245,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       autoria: this._lexmlAutoria.getAutoriaAtualizada(),
       ...(this.anexoParecer ? {} : { colegiadoApreciador: this._lexmlDestino!.colegiadoApreciador }),
       opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao,
+      outrosMetadados: this.outrosMetadados,
     });
   }
 
@@ -266,6 +270,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
     this.localDoArquivo = dados.local;
     this.destinoAoAbrir = { ...this._lexmlDestino!.colegiadoApreciador };
+    this.outrosMetadados = dados.outrosMetadados ?? {};
   }
 
   getProposicao(): Proposicao {

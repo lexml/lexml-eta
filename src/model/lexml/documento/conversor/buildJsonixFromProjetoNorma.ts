@@ -124,6 +124,16 @@ const montaSituacaoNaNormaVigente = (situacao: SituacaoNaNormaVigente): Metadado
   };
 };
 
+// Sem pares não há grupo; chave vazia ou valor não textual é descartado (o objeto vem do host).
+const montaOutrosMetadados = (outros?: Record<string, string>): MetadadoLexEdit['outrosMetadados'] => {
+  const pares = Object.entries(outros ?? {}).filter(([chave, valor]) => chave.trim() && typeof valor === 'string');
+  if (!pares.length) return undefined;
+  return {
+    TYPE_NAME: 'br_gov_lexml_lexedit__1.OutrosMetadados',
+    outroMetadado: pares.map(([chave, value]) => ({ TYPE_NAME: 'br_gov_lexml_lexedit__1.OutroMetadado', chave, value })),
+  };
+};
+
 // Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
 const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[], situacao: SituacaoNaNormaVigente): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
@@ -149,6 +159,8 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
   }
   const situacaoNaNormaVigente = montaSituacaoNaNormaVigente(situacao);
   if (situacaoNaNormaVigente) lexedit.situacaoNaNormaVigente = situacaoNaNormaVigente;
+  const outrosMetadados = montaOutrosMetadados(dados?.outrosMetadados);
+  if (outrosMetadados) lexedit.outrosMetadados = outrosMetadados;
   if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
   // > 1 porque TYPE_NAME está sempre presente.
   return Object.keys(lexedit).length > 1 ? lexedit : undefined;

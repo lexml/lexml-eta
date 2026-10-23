@@ -40,6 +40,21 @@
                                     "siglaCasaLegislativa": "SF",
                                     "tipoColegiado": "Plenário"
                                 },
+                                "outrosMetadados": {
+                                    "TYPE_NAME": "br_gov_lexml_lexedit__1.OutrosMetadados",
+                                    "outroMetadado": [
+                                        {
+                                            "TYPE_NAME": "br_gov_lexml_lexedit__1.OutroMetadado",
+                                            "chave": "tituloAntesDaEpigrafe",
+                                            "value": "COMISSÃO XPTO"
+                                        },
+                                        {
+                                            "TYPE_NAME": "br_gov_lexml_lexedit__1.OutroMetadado",
+                                            "chave": "jsonDadosComissao",
+                                            "value": "{\"id\":1,\"ativa\":true}"
+                                        }
+                                    ]
+                                },
                                 "opcoesImpressao": {
                                     "TYPE_NAME": "br_gov_lexml_lexedit__1.OpcoesImpressao",
                                     "imprimirBrasao": true,
