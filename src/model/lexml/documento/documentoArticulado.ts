@@ -3,7 +3,7 @@ import { ProjetoNorma } from './projetoNorma';
 import { buildJsonixFromProjetoNorma } from './conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJsonix';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
-import { getAno, getNumero, getSigla } from './urnUtil';
+import { getAno, getNumero, getSigla, verificarUrnDaCasaDoEditor } from './urnUtil';
 import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
 import { Usuario } from '../../revisao/usuario';
 import type { SituacaoNaNormaVigente } from './conversor/situacaoNaNormaVigente';
@@ -198,6 +198,7 @@ export const lerDocumentoArticulado = (entrada: unknown): DocumentoArticulado =>
     }
   }
   const validado = validarDocumentoArticulado(doc);
+  verificarUrnDaCasaDoEditor(validado.value.metadado.identificacao.urn);
   const copia = JSON.parse(JSON.stringify(validado)) as DocumentoArticulado;
   // Exercita o leitor antes de permitir que a interface substitua seu estado.
   try {

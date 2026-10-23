@@ -107,6 +107,8 @@ A identificação do documento (a URN) é resolvida nesta ordem:
 4. a URN montada a partir de `params.proposicao.{sigla,numero,ano}`;
 5. a URN montada a partir de `params.{sigla,numero,ano}`.
 
+Nos casos 1 a 3 (URN recebida), a autoridade da URN precisa ser da casa do editor (`casaLegislativaEditor`: `SF` aceita `senado.federal`, `congresso.nacional` e `federal`; `CD` aceita `camara.deputados`, `congresso.nacional` e `federal`). Documento de outra casa é recusado **antes de qualquer alteração do editor**, com `Error('Documento de outra casa legislativa não é suportado neste editor (autoridade \'...\').')`, pelo caminho de falha descrito acima (`fatalError` e exceção relançada). As URNs montadas pela sigla (casos 4 e 5) são sempre da casa do editor.
+
 No caso 5, `sigla` é obrigatória. Se `numero`/`ano` faltarem, assumem valores provisórios — **exceto** com `substitutivo = true`, caso em que ambos são obrigatórios (senão lança `Error`).
 
 Casa legislativa: para `MPV`, `PDN` e `PRN` é sempre `CN`; senão vale `proposicao.colegiadoApreciador.siglaCasaLegislativa` ou `params.casaLegislativa`, com `CN` por padrão.
@@ -164,7 +166,7 @@ Diferença em relação a `getProposicao()`: aqui o resultado é **um arquivo Le
 
 ### 4.4 `abrirDocumentoArticulado(entrada): Promise<void>`
 
-Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, lança `Error` (por exemplo, URN sem ano e número, articulação ausente, ids repetidos) e o editor segue intacto. Depois da abertura, aplica ao formulário os metadados do arquivo (opções de impressão, data, local, autoria) e preenche `outrosMetadados`.
+Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, lança `Error` (por exemplo, URN sem ano e número, documento de outra casa legislativa, articulação ausente, ids repetidos) e o editor segue intacto. Depois da abertura, aplica ao formulário os metadados do arquivo (opções de impressão, data, local, autoria) e preenche `outrosMetadados`.
 
 ```ts
 await editor.abrirDocumentoArticulado(await arquivo.text());
@@ -193,6 +195,7 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 
 | Campo | Tipo | Padrão | Descrição |
 |---|---|---|---|
+| `casaLegislativaEditor` | `'SF' \| 'CD'` | `'SF'` | Casa do editor: define o vocabulário de tipos de documento e URNs (`SF` = LexEdit; `CD` = Infoleg Editor). Valor ausente ou inválido assume `SF` e registra um aviso. Distinta de `casaLegislativa` (casa do documento, que admite `CN`); uma não influencia a outra. |
 | `urlConsultaParlamentares` | `string` | `'api/parlamentares'` | Endpoint (GET) que devolve a lista de parlamentares. |
 | `urlAutocomplete` | `string` | `'api/autocomplete-norma'` | Endpoint (GET `?query=`) de busca de normas, usado nos diálogos de alteração de norma e de remissão externa. |
 | `urlPortalNormas` | `string` | `'https://normas.leg.br'` | Base dos links para abrir uma norma referenciada. |
@@ -200,6 +203,8 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `anexoParecer` | `boolean` | `false` | Modo "anexo de parecer": oculta as abas de justificação e de notas de rodapé, e a justificação não é exigida. Destino, data, autoria e impressão seguem disponíveis, e o fecho e as assinaturas são salvos como no modo normal. |
 | `tamanhoMaximoAnexo` | `number` | `5120` | Tamanho máximo de um anexo, em KB (5 MB). |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
+
+O vocabulário da casa é (re)montado quando `lexmlEtaConfig` é atribuída com outra casa, portanto atribua a configuração **antes** de `inicializarEdicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). A casa restringe as siglas de proposição nova e as listas de tipos; URNs de normas citadas ou alteradas resolvem em qualquer autoridade (inclusive da outra casa), mas o documento em edição precisa ser da casa do editor (seção 4.1).
 
 O valor de `anexoParecer` é lido a cada `inicializarEdicao`. Para trocar de modo, altere a config e chame `inicializarEdicao` de novo.
 

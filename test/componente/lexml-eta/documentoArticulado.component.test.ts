@@ -86,7 +86,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
   it('preserva a autoridade e o evento da URN recebida', async () => {
     const entrada = novoDocumentoArticulado();
-    const urn = 'urn:lex:br:camara.deputados:projeto.lei;pl:2026;123@data.evento;leitura;2026-03-19t14.00';
+    const urn = 'urn:lex:br:senado.federal:projeto.lei;pl:2026;123@data.evento;leitura;2026-03-19t14.00';
     entrada.value.metadado.identificacao.urn = urn;
     await component.abrirDocumentoArticulado(entrada);
     expect(component.getDocumentoArticulado().value.metadado.identificacao.urn).to.equal(urn);

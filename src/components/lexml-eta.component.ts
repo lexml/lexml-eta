@@ -14,7 +14,17 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { ANO_PROVISORIO, NUMERO_PROVISORIO, buildUrnProposicao, getAno, getNumero, getSigla, normalizarDataFecho } from '../model/lexml/documento/urnUtil';
+import {
+  ANO_PROVISORIO,
+  NUMERO_PROVISORIO,
+  buildUrnProposicao,
+  getAno,
+  getNumero,
+  getSigla,
+  normalizarDataFecho,
+  verificarUrnDaCasaDoEditor,
+} from '../model/lexml/documento/urnUtil';
+import { inicializarVocabulario } from '../model/lexml/documento/vocabulario';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
 import { LexmlEtaProposicaoComponent } from './lexml-eta-proposicao.component';
@@ -84,9 +94,23 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
   @property({ type: Array }) comissoes: Comissao[] = [];
-  @property({ type: Object }) lexmlEtaConfig: LexmlEtaConfig = new LexmlEtaConfig();
   // Pares chave/valor do host gravados no documento; ao abrir um arquivo, recebe os pares dele.
   @property({ type: Object }) outrosMetadados: Record<string, string> = {};
+
+  private _lexmlEtaConfig = new LexmlEtaConfig();
+
+  // O vocabulário depende da casa do editor e precisa estar pronto antes de inicializarEdicao.
+  @property({ type: Object })
+  get lexmlEtaConfig(): LexmlEtaConfig {
+    return this._lexmlEtaConfig;
+  }
+
+  set lexmlEtaConfig(config: LexmlEtaConfig) {
+    const anterior = this._lexmlEtaConfig;
+    this._lexmlEtaConfig = config;
+    inicializarVocabulario(config?.casaLegislativaEditor);
+    this.requestUpdate('lexmlEtaConfig', anterior);
+  }
 
   private urn = '';
 
@@ -332,6 +356,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   async inicializarEdicao(params: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): Promise<void> {
     try {
+      // Antes de qualquer atribuição, para que o documento em edição continue como estava.
+      const urnRecebida = this.getUrnRecebida(params);
+      if (urnRecebida) verificarUrnDaCasaDoEditor(urnRecebida);
+
       this.localDoArquivo = undefined;
       this.destinoAoAbrir = undefined;
       this.anexoParecer = this.lexmlEtaConfig.anexoParecer ?? false;
@@ -411,10 +439,14 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  private getUrnRecebida(params: LexmlEtaParametrosEdicao): string | undefined {
+    return getUrn(params.projetoNorma) || params.urn || params.proposicao?.urn;
+  }
+
   private inicializaProposicao(params: LexmlEtaParametrosEdicao): void {
     this.urn = '';
 
-    const urnRecebida = getUrn(this.projetoNorma) || params.urn || params.proposicao?.urn;
+    const urnRecebida = this.getUrnRecebida(params);
     if (urnRecebida) {
       this.urn = urnRecebida;
     } else if (params.proposicao) {
@@ -531,6 +563,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   constructor() {
     super();
+    inicializarVocabulario(this._lexmlEtaConfig.casaLegislativaEditor);
     this.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.onChangeNotasRodape);
     this.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.onChangeNotasRodape);
   }
