@@ -37,10 +37,10 @@ Quando houver mais de um grupo de metadados do LexEdit a serializar, o sistema S
 - **AND** ao abrir esse arquivo, o sistema reconstrói tanto as opções de impressão quanto o estado inválido das remissões
 
 ### Requirement: Formato do ponto de extensão compatível com o conversor LexML
-O sistema SHALL gravar o conteúdo do LexEdit, dentro de `MetadadoProprietario`, como o elemento nomeado `lexedit:Metadado` (namespace `http://www.lexml.gov.br/lexedit/1.0`), com os grupos tipados conforme `schemas/lexedit.xsd`, no mesmo formato de `docs/extensao-formato-lexml/documento-articulado-exemplo.json`. A lista de identificadores de remissões internas inválidas SHALL ser gravada como um único texto, com os identificadores separados por espaço. A lista de pendências SHALL ser gravada como uma sequência de elementos `Pendencia` dentro de `Pendencias`. O conversor `jsonix-lexml` 2.1.0 SHALL converter o arquivo salvo em XML sem erro e sem descartar nenhum grupo.
+O sistema SHALL gravar o conteúdo do LexEdit, dentro de `MetadadoProprietario`, como o elemento nomeado `lexedit:Metadado` (namespace `http://www.lexml.gov.br/lexedit/1.0`), com os grupos tipados conforme `schemas/lexedit.xsd`, no mesmo formato de `docs/extensao-formato-lexml/documento-articulado-exemplo.json`. A lista de identificadores de remissões internas inválidas SHALL ser gravada como um único texto, com os identificadores separados por espaço. A lista de pendências SHALL ser gravada como uma sequência de elementos `Pendencia` dentro de `Pendencias`. O conversor `jsonix-lexml`, na versão indicada em `schemas/README.md`, SHALL converter o arquivo salvo em XML sem erro e sem descartar nenhum grupo.
 
 #### Scenario: Conversão para XML preserva os grupos do LexEdit
-- **WHEN** o usuário salva um documento com local "Sala das sessões", data `2026-04-24` e opções de impressão, e o arquivo é convertido em XML pelo conversor `jsonix-lexml` 2.1.0
+- **WHEN** o usuário salva um documento com local "Sala das sessões", data `2026-04-24` e opções de impressão, e o arquivo é convertido em XML pelo conversor `jsonix-lexml`
 - **THEN** o XML contém `MetadadoProprietario` com um `lexedit:Metadado` que tem `local="Sala das sessões"`, `data="2026-04-24"` e o filho `lexedit:OpcoesImpressao` com os quatro atributos
 
 #### Scenario: Documento com mais de uma remissão interna inválida
@@ -56,7 +56,7 @@ O sistema SHALL gravar o conteúdo do LexEdit, dentro de `MetadadoProprietario`,
 - **THEN** a validação não aponta erro, nem na parte LexML nem no conteúdo de `lexedit:Metadado`
 
 ### Requirement: Ida e volta dos metadados do LexEdit pelo conversor
-Ao converter em XML um documento salvo pelo editor e convertê-lo de volta em JSON pelo conversor `jsonix-lexml` 2.1.0, o sistema SHALL abrir o resultado com os mesmos valores de todos os grupos do LexEdit que suporta. Salvar de novo esse documento SHALL gerar um arquivo igual ao original.
+Ao converter em XML um documento salvo pelo editor e convertê-lo de volta em JSON pelo conversor `jsonix-lexml`, o sistema SHALL abrir o resultado com os mesmos valores de todos os grupos do LexEdit que suporta. Salvar de novo esse documento SHALL gerar um arquivo igual ao original.
 
 #### Scenario: Opções de impressão, fecho e remissão inválida voltam do XML
 - **WHEN** um documento com opções de impressão alteradas, local e data do fecho e uma remissão interna inválida é salvo, convertido em XML, convertido de volta em JSON e aberto
@@ -94,7 +94,7 @@ O sistema SHALL gravar o grupo `Usuarios` em `lexedit:Metadado` somente quando h
 - **THEN** o arquivo salvo contém um único `MetadadoProprietario` com todos os grupos, e `Usuarios` com os usuários das revisões
 
 ### Requirement: Revisões da hierarquia compatíveis com o conversor LexML
-O sistema SHALL gravar `RevisoesArticulacao` no formato tipado do conversor `jsonix-lexml` 2.1.0, conforme `schemas/lexedit.xsd`, incluindo o conteúdo filho de cada `RevisaoArticulacao` (dispositivo com o estado anterior, com o texto e o título anteriores, ou dispositivo excluído com sua hierarquia). O conversor SHALL converter o arquivo em XML sem erro e sem descartar nenhum atributo ou conteúdo das revisões.
+O sistema SHALL gravar `RevisoesArticulacao` no formato tipado do conversor `jsonix-lexml`, conforme `schemas/lexedit.xsd`, incluindo o conteúdo filho de cada `RevisaoArticulacao` (dispositivo com o estado anterior, com o texto e o título anteriores, ou dispositivo excluído com sua hierarquia). O conversor SHALL converter o arquivo em XML sem erro e sem descartar nenhum atributo ou conteúdo das revisões.
 
 #### Scenario: Conversão para XML preserva as revisões
 - **WHEN** o usuário salva um documento com revisões de adição, exclusão, alteração, movimentação e transformação, e o arquivo é convertido em XML pelo conversor
@@ -180,7 +180,7 @@ O sistema SHALL gravar o destino da proposição em `lexedit:ColegiadoApreciador
 - **THEN** o `lexedit:ColegiadoApreciador` contém `tipoColegiado="Comissão"` e a `siglaComissao` escolhida
 
 ### Requirement: Novos grupos na ida e volta pelo conversor
-O conversor `jsonix-lexml` 2.1.0 SHALL converter para XML e de volta para JSON um documento com `lexedit:SituacaoNaNormaVigente` e `lexedit:ColegiadoApreciador` sem descartá-los, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`.
+O conversor `jsonix-lexml` SHALL converter para XML e de volta para JSON um documento com `lexedit:SituacaoNaNormaVigente` e `lexedit:ColegiadoApreciador` sem descartá-los, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`.
 
 #### Scenario: Ida e volta preserva situação e destino
 - **WHEN** um documento com bloco de alteração (dispositivos existentes e novos) e destino Comissão é salvo, convertido em XML, convertido de volta em JSON e aberto
