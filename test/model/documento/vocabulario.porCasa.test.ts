@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { buildFakeUrn, getAutoridade, getPreambuloPadrao, getSigla, getTipo, getTipoDocumentoUrn } from '../../../src/model/lexml/documento/urnUtil';
+import { buildFakeUrn, getAutoridade, getPreambuloPadrao, getSigla, getTipo, getTipoDocumentoUrn, validaUrn } from '../../../src/model/lexml/documento/urnUtil';
 import { getVocabularioCompleto, getVocabularioDaCasa, inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
 // Fixa o vocabulário de cada casa (#1026). Os dados abaixo são literais de propósito: não leem o vocabulário, para não compará-lo consigo mesmo.
@@ -73,7 +73,8 @@ interface Casa {
   fakeUrns: Record<string, [string, string]>;
   comPreambulo: [string, string, string][];
   semPreambulo: [string, string][];
-  foraDaCasa: [string, string][];
+  // [autoridade, tipo, sigla]: da outra casa, resolvem pela visão completa.
+  daOutraCasa: [string, string, string][];
 }
 
 const CASAS: Casa[] = [
@@ -115,10 +116,12 @@ const CASAS: Casa[] = [
       ['congresso.nacional', 'medida.provisoria;mpv'],
       ['federal', 'lei'],
     ],
-    foraDaCasa: [
-      ['camara.deputados', 'projeto.lei;pl'],
-      ['camara.deputados', 'substitutivo;sbt'],
-      ['camara.deputados', 'projeto.resolucao;prc'],
+    daOutraCasa: [
+      ['camara.deputados', 'projeto.lei;pl', 'PL'],
+      ['camara.deputados', 'substitutivo;sbt', 'SBT'],
+      ['camara.deputados', 'projeto.resolucao;prc', 'PRC'],
+      ['camara.deputados', 'regimento.interno', ''],
+      ['camara.deputados', 'resolucao', ''],
     ],
   },
   {
@@ -153,9 +156,10 @@ const CASAS: Casa[] = [
       ['federal', 'projeto.lei;pl'],
       ['congresso.nacional', 'proposta.emenda.constitucional;pec'],
     ],
-    foraDaCasa: [
-      ['senado.federal', 'projeto.lei;pl'],
-      ['senado.federal', 'projeto.resolucao;prs'],
+    daOutraCasa: [
+      ['senado.federal', 'projeto.lei;pl', 'PL'],
+      ['senado.federal', 'projeto.resolucao;prs', 'PRS'],
+      ['senado.federal', 'resolucao', ''],
     ],
   },
 ];
@@ -191,10 +195,13 @@ CASAS.forEach(casa => {
         expect(getSigla(urn('federal', 'xyz'))).to.equal('');
       });
 
-      casa.foraDaCasa.forEach(([autoridade, tipo]) => {
-        it(`${autoridade}:${tipo} é da outra casa e não resolve`, () => {
-          expect(getTipo(urn(autoridade, tipo))).to.equal(undefined);
-          expect(getSigla(urn(autoridade, tipo))).to.equal('');
+      casa.daOutraCasa.forEach(([autoridade, tipo, sigla]) => {
+        it(`${autoridade}:${tipo} é da outra casa e resolve`, () => {
+          const u = urn(autoridade, tipo);
+          expect(getTipo(u)?.urnAutoridade).to.equal(autoridade);
+          expect(getTipo(u)?.urn).to.equal(tipo);
+          expect(getSigla(u)).to.equal(sigla);
+          expect(validaUrn(u)).to.equal(true);
         });
       });
     });
@@ -202,9 +209,13 @@ CASAS.forEach(casa => {
     describe('autoridades', () => {
       casa.autoridades.forEach(a => it(a, () => expect(getAutoridade(urn(a, 'lei'))?.urn).to.equal(a)));
 
-      it('autoridade desconhecida ou da outra casa não resolve', () => {
+      it('autoridade desconhecida não resolve', () => {
         expect(getAutoridade(urn('xyz', 'lei'))).to.equal(undefined);
-        expect(getAutoridade(urn(casa.nome === 'SF' ? 'camara.deputados' : 'senado.federal', 'lei'))).to.equal(undefined);
+      });
+
+      it('autoridade da outra casa resolve', () => {
+        const outra = casa.nome === 'SF' ? 'camara.deputados' : 'senado.federal';
+        expect(getAutoridade(urn(outra, 'lei'))?.urn).to.equal(outra);
       });
     });
 

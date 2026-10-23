@@ -41,8 +41,29 @@ const urn = (autoridade: string, tipo: string): string => `urn:lex:br:${autorida
         expect(getTipo(urn('federal', 'decreto.legislativo'))).to.equal(undefined);
       });
 
-      it('autoridade da outra casa não resolve', () => {
-        expect(getTipo(urn(outra, 'decreto.legislativo'))).to.equal(undefined);
+      it('autoridade da outra casa resolve para a própria entrada', () => {
+        expect(getTipo(urn(outra, 'decreto.legislativo')).urnAutoridade).to.equal(outra);
+      });
+    });
+
+    describe('norma da outra casa', () => {
+      it('Regimento Interno da Câmara resolve e é válido', () => {
+        const u = 'urn:lex:br:camara.deputados:resolucao:1989-09-21;17';
+        expect(getTipo(u).urnAutoridade).to.equal('camara.deputados');
+        expect(getTipo(u).urn).to.equal('resolucao');
+        expect(validaUrn(u)).to.equal(true);
+      });
+
+      it('Regimento Interno do Senado resolve e é válido', () => {
+        const u = 'urn:lex:br:senado.federal:resolucao:1970-11-27;93';
+        expect(getTipo(u).urnAutoridade).to.equal('senado.federal');
+        expect(getTipo(u).urn).to.equal('resolucao');
+        expect(validaUrn(u)).to.equal(true);
+      });
+
+      it('proposição da outra casa resolve para o tipo dela', () => {
+        expect(getTipo(urn(outra, 'projeto.lei;pl')).urnAutoridade).to.equal(outra);
+        expect(getSigla(urn(outra, 'projeto.lei;pl'))).to.equal('PL');
       });
     });
 
@@ -69,7 +90,11 @@ const urn = (autoridade: string, tipo: string): string => `urn:lex:br:${autorida
 
       it('a autoridade continua obrigatória', () => {
         expect(getTipo(urn('federal', 'projeto.lei'))).to.equal(undefined);
-        expect(getTipo(urn(outra, 'projeto.lei'))).to.equal(undefined);
+      });
+
+      it('na autoridade da outra casa, resolve para o tipo ativo dela', () => {
+        expect(getTipo(urn(outra, 'projeto.lei')).urnAutoridade).to.equal(outra);
+        expect(getSigla(urn(outra, 'projeto.lei'))).to.equal('PL');
       });
 
       it('norma declarada sem sigla tem precedência', () => {

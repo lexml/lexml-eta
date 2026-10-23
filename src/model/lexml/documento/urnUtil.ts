@@ -1,12 +1,12 @@
 import { generoFromLetra } from '../../dispositivo/genero';
 import { Autoridade } from '../../documento/autoridade';
 import { Genero, generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
-import { getVocabularioDaCasa } from './vocabulario';
+import { getVocabularioCompleto } from './vocabulario';
 import { getTipoPorSigla } from './vocabulario/consultasVocabulario';
 
 export const getAutoridade = (urn: string): Autoridade | undefined => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  return getVocabularioDaCasa().autoridades.filter(t => t.urn === partes[0])[0];
+  return getVocabularioCompleto().autoridades.filter(t => t.urn === partes[0])[0];
 };
 
 // Casa pelo tipo da URN sem o `;sigla` e pela autoridade; combinação não declarada não tem texto padrão.
@@ -14,15 +14,15 @@ export const getPreambuloPadrao = (urn: string): string | undefined => {
   const partes = (urn ?? '').replace('urn:lex:br:', '').split(':');
   const autoridade = partes[0];
   const tipo = partes[1]?.split(';')[0];
-  return getVocabularioDaCasa().preambulosPadrao.find(p => p.urnTipoDocumento === tipo && p.urnAutoridade === autoridade)?.texto;
+  return getVocabularioCompleto().preambulosPadrao.find(p => p.urnTipoDocumento === tipo && p.urnAutoridade === autoridade)?.texto;
 };
 
 export const getSigla = (urn: string): string => getTipo(urn)?.sigla ?? '';
 
-// Casa a autoridade e o tipo da URN, sem alternativa em outra autoridade. Tipo sem sigla que não é norma declarada vale o tipo ativo com sigla.
+// Casa a autoridade e o tipo da URN na visão completa (qualquer casa), sem alternativa em outra autoridade. Tipo sem sigla que não é norma declarada vale o tipo ativo com sigla.
 export const getTipo = (urn: string): any => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  const tipos = getVocabularioDaCasa().tiposDocumento.filter(t => t.urnAutoridade === partes[0]);
+  const tipos = getVocabularioCompleto().tiposDocumento.filter(t => t.urnAutoridade === partes[0]);
   return tipos.find(t => t.urn === partes[1]) ?? tipos.find(t => t.ativo && t.sigla && t.urnTipoDocumento === partes[1]);
 };
 
@@ -161,7 +161,7 @@ export const getNomeExtenso = (urn: string): string => {
 };
 
 export const getNomeExtensoComDataExtenso = (urn: string): string => {
-  const atalho = getVocabularioDaCasa().atalhosUrn.find(a => a.urn === urn);
+  const atalho = getVocabularioCompleto().atalhosUrn.find(a => a.urn === urn);
   if (atalho) {
     return atalho.nome;
   }

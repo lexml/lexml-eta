@@ -14,13 +14,12 @@ const documentoCom = (urn: string): any => {
   return documento;
 };
 
-describe('URN que não resolve no vocabulário da casa', () => {
+describe('URN que não resolve no vocabulário', () => {
   afterEach(() => inicializarVocabulario('SF'));
 
   [
     ['SF', URN_PLV_SENADO],
-    ['SF', URN_PL_CAMARA],
-    ['CD', URN_PL_SENADO],
+    ['CD', URN_PLV_SENADO],
   ].forEach(([casa, urn]) => {
     describe(`${casa} com ${urn}`, () => {
       beforeEach(() => inicializarVocabulario(casa));
@@ -48,9 +47,36 @@ describe('URN que não resolve no vocabulário da casa', () => {
     });
   });
 
-  it('a mesma URN do Senado resolve em SF e tem preâmbulo', () => {
+  it('a URN do Senado resolve e tem preâmbulo', () => {
     inicializarVocabulario('SF');
     expect(getPreambuloPadrao(URN_PL_SENADO)).to.equal('O CONGRESSO NACIONAL decreta:');
     expect(getPreambuloPadrao('urn:lex:br:senado.federal:medida.provisoria;mpv:2026;1')).to.equal(undefined);
+  });
+});
+
+describe('URN da outra casa', () => {
+  afterEach(() => inicializarVocabulario('SF'));
+
+  [
+    ['SF', URN_PL_CAMARA, 'camara.deputados'],
+    ['CD', URN_PL_SENADO, 'senado.federal'],
+  ].forEach(([casa, urn, autoridade]) => {
+    describe(`${casa} com ${urn}`, () => {
+      beforeEach(() => inicializarVocabulario(casa));
+
+      it('resolve tipo e sigla pela autoridade da URN e é válida', () => {
+        expect(getTipo(urn)?.urnAutoridade).to.equal(autoridade);
+        expect(getSigla(urn)).to.equal('PL');
+        expect(validaUrn(urn)).to.equal(true);
+      });
+
+      it('tem o preâmbulo padrão da própria autoridade', () => {
+        expect(getPreambuloPadrao(urn)).to.equal('O CONGRESSO NACIONAL decreta:');
+      });
+
+      it('a conversão do documento resolve o tipo', () => {
+        expect(buildProjetoNormaFromJsonix(documentoCom(urn)).tipo?.urn).to.equal('projeto.lei;pl');
+      });
+    });
   });
 });

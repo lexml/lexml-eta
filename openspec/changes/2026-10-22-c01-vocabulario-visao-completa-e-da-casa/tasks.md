@@ -6,9 +6,9 @@
 
 ## 2. Distribuição das consultas
 
-- [ ] 2.1 Em `urnUtil.ts`, passar `getAutoridade`, `getTipo` (e, por consequência, `getSigla`/`getTipoDocumentoUrn`), `getPreambuloPadrao` e `getNomeExtensoComDataExtenso` (`atalhosUrn`) para a visão completa; em `consultasVocabulario.ts`, passar todas as consultas para a visão da casa (D2). Verificação: `npm run build` e busca sem ocorrências de `getVocabulario()`.
-- [ ] 2.2 Testes em `vocabulario.lookup.test.ts`, para `SF` e `CD`: "Norma da outra casa no editor do Senado" (RICD), "Norma da outra casa no editor da Câmara" (RISF), "Tipo da outra casa" (PL da Câmara no SF resolve e `validaUrn` é verdadeiro), mantendo "Sem fallback para outra autoridade" e "Tipo sem sigla e autoridade que não o declara". Verificação: `npm test`.
-- [ ] 2.3 Testes em `vocabulario.consultas.test.ts` confirmando que as consultas sem autoridade seguem restritas: "Sigla de outra casa" (`PRC` no SF é vazio), tipos ativos de `SF` sem tipo da Câmara e `getTiposReferenciaveis` de `substitutivo;sbt` em `CD` sem tipos do Senado. Verificação: `npm test`.
+- [x] 2.1 Em `urnUtil.ts`, passar `getAutoridade`, `getTipo` (e, por consequência, `getSigla`/`getTipoDocumentoUrn`), `getPreambuloPadrao` e `getNomeExtensoComDataExtenso` (`atalhosUrn`) para a visão completa; em `consultasVocabulario.ts`, passar todas as consultas para a visão da casa (D2). Verificação: `npm run build` e busca sem ocorrências de `getVocabulario()`.
+- [x] 2.2 Testes em `vocabulario.lookup.test.ts`, para `SF` e `CD`: "Norma da outra casa no editor do Senado" (RICD), "Norma da outra casa no editor da Câmara" (RISF), "Tipo da outra casa" (PL da Câmara no SF resolve e `validaUrn` é verdadeiro), mantendo "Sem fallback para outra autoridade" e "Tipo sem sigla e autoridade que não o declara". Verificação: `npm test`.
+- [x] 2.3 Testes em `vocabulario.consultas.test.ts` confirmando que as consultas sem autoridade seguem restritas: "Sigla de outra casa" (`PRC` no SF é vazio), tipos ativos de `SF` sem tipo da Câmara e `getTiposReferenciaveis` de `substitutivo;sbt` em `CD` sem tipos do Senado. Verificação: `npm test`.
 
 ## 3. Recusa de documento de outra casa
 
