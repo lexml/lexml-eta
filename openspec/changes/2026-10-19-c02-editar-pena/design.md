@@ -7,6 +7,7 @@ Ver `proposal.md` (Why) e `specs/pena-dispositivo/spec.md` (comportamento). Esta
 - **LexML.** `Pena` é um `DispositivoType` próprio (`schemas/lexml-simples.xsd:20`), declarado como último elemento opcional (0..1) de qualquer `DispositivoType`, **depois** do grupo `LXcontainersOmissis` (`:581`). No JSONIX ele não é item de `lXcontainersOmissis`: é a propriedade irmã `value.pena`.
 - **Código.** Não há nenhum suporte. `buildProjetoNormaFromJsonix.ts` ignora `value.pena`, então a pena é descartada ao abrir e ao colar.
 - **Árvore.** `Artigo.filhos` é calculado como `caput.filhos + paragrafos` (`hierarquiaArtigo.ts:17`); o caput nunca está em `artigo.filhos` (invariante n do CLAUDE.md). As linhas do editor saem de uma travessia recursiva de `filhos` (`createElementos`, `elementoUtil.ts:172`).
+- **Esquema do LexEdit.** O choice de `lexedit:RevisaoArticulacao` não aceitava `Pena`, o que impediria gravar a pena excluída e o estado anterior da pena alterada. A issue #1040 acrescentou `lexml:Pena` em `schemas/lexedit.xsd`, que é o original copiado para o `jsonix-lexml`.
 - **Precedente.** O título de dispositivo (change `2026-10-06-c01-editar-titulo-dispositivo` e seguintes) serve de molde para as ações de menu, o diálogo, a validação e a revisão `alterado` com estado anterior, mas **não** para a exibição: o título fica na linha do próprio dispositivo, e a pena fica depois da subárvore.
 
 ### Evidência de uso real (corpus)
@@ -25,6 +26,10 @@ Foram analisadas 6 leis (Leis 10.826/2003, 9.605/1998, 8.072/1990, 11.343/2006, 
 | Pena por inciso, alínea ou item | 0 | só no CP, art. 197 (fora do corpus) |
 
 Exceções: DL 3.688, arts. 40 (";") e 46 ("."), texto de 1941. Duas penas no art. 24-A da Lei 11.340 são artefato do Planalto (redação antiga sem tachado), não um caso real.
+
+### Conversão da pena pelo CLI
+
+Verificado em 23/10/2026 com o `jsonix-lexml` 2.3.0 (revisão `d6aa790`), cujos esquemas são idênticos aos de `schemas/`. Um XML com três penas fez a ida e volta XML → JSON → XML. A primeira era a pena de um parágrafo na articulação, com id. A segunda era o estado anterior de uma revisão `alterado`, sem id e com o rótulo anterior. A terceira era uma pena excluída, com id `_<base>-exc1`. Os dois arquivos de saída foram gerados. No JSON, cada pena é a propriedade `pena` (`br_gov_lexml__1.DispositivoType`, com `rotulo` como texto), e as três voltaram iguais no XML, que é válido pelo `schemas/lexedit.xsd`. Falta conferir a pena do `Caput`.
 
 ## Goals / Non-Goals
 
@@ -122,7 +127,7 @@ A primeira tarefa da implementação completa esse inventário varrendo as 205 l
 
 ## Risks / Trade-offs
 
-- [O CLI `jsonix-lexml` 2.1.0 não converter `Pena`, ou falhar em silêncio, porque já saiu com código 0 em erro antes (item 13 do CLAUDE.md)] → A primeira subtask é uma prova de ida e volta real, que confere se o arquivo de saída existe e se a pena está nele, antes de qualquer outro código.
+- [O CLI `jsonix-lexml` não converter `Pena`, ou falhar em silêncio, porque já saiu com código 0 em erro antes (item 13 do CLAUDE.md)] → Mitigado: o CLI 2.3.0 converte a pena na articulação e em `RevisaoArticulacao` (ver "Conversão da pena pelo CLI"). A task 1.1 completa a prova com a pena do `Caput`, e a task 8.4 cobre a conversão na integração.
 - [Leitura de `filhos` fora das guardas conhecidas trata a pena como uma subdivisão comum] → Inventário completo na task 1; testes de cada operação "com e sem pena" na task 4, como a issue pede.
 - [O exemplo da issue e os textos antigos passam a mostrar aviso de pontuação] → Aceito: o aviso não bloqueia. A divergência é comentada na issue.
 - [Enter na pena do caput cria o § 1º, e um usuário que esperava um artigo novo se surpreende] → Segue o padrão mais comum do corpus (43 contra 17) e o que fica logo abaixo na tela. Fica registrado no cenário da spec.
