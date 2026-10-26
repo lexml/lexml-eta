@@ -226,7 +226,7 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const anexos = [
       { idArquivo: 'f669f339-4c8c', nomeArquivo: 'Parecer da Comissão.pdf', nomeDocumento: 'Parecer "da" Comissão', tipo: 'substitutivo', mimeType: MimeType.PDF },
-      { idArquivo: 'id-2', nomeArquivo: 'Emenda Nº 4 & CCJ.docx', nomeDocumento: 'Emenda Nº 4 & CCJ <final>', tipo: 'outro', mimeType: MimeType.DOCX },
+      { idArquivo: 'id-2', nomeArquivo: 'Emenda Nº 4 & CCJ.docx', nomeDocumento: 'Emenda Nº 4 & CCJ <final>', tipo: 'nao.informado', mimeType: MimeType.DOCX },
       { idArquivo: 'id-3', nomeArquivo: 'Relatório.pdf', nomeDocumento: "Relatório d'água", tipo: 'emenda', mimeType: MimeType.PDF },
     ];
     const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { anexos });
@@ -245,7 +245,7 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
   it('o XSD exige os cinco atributos de lexedit:Anexo', async () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, {
-      anexos: [{ idArquivo: 'id-1', nomeArquivo: 'A.pdf', nomeDocumento: 'A', tipo: 'outro', mimeType: MimeType.PDF }],
+      anexos: [{ idArquivo: 'id-1', nomeArquivo: 'A.pdf', nomeDocumento: 'A', tipo: 'nao.informado', mimeType: MimeType.PDF }],
     });
     delete (salvo.value.metadado.metadadoProprietario![0].any[0].value.anexos as any).anexo[0].mimeType;
 

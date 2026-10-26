@@ -18,7 +18,7 @@ const anexo = (idArquivo: string, nomeArquivo: string, mimeType: MimeType, extra
   idArquivo,
   nomeArquivo,
   nomeDocumento: nomeArquivo.replace(/\.[^.]*$/, ''),
-  tipo: 'outro',
+  tipo: 'nao.informado',
   mimeType,
   ...extras,
 });
@@ -49,7 +49,7 @@ describe('Anexos — salvar (especificação 05)', () => {
       TYPE_NAME: TYPE_NAME_GRUPO,
       anexo: [
         { TYPE_NAME: TYPE_NAME_ITEM, idArquivo: 'id-1', nomeArquivo: 'Parecer.pdf', nomeDocumento: 'Parecer', tipo: 'substitutivo', mimeType: MimeType.PDF },
-        { TYPE_NAME: TYPE_NAME_ITEM, idArquivo: 'id-2', nomeArquivo: 'Emenda.docx', nomeDocumento: 'Emenda', tipo: 'outro', mimeType: MimeType.DOCX },
+        { TYPE_NAME: TYPE_NAME_ITEM, idArquivo: 'id-2', nomeArquivo: 'Emenda.docx', nomeDocumento: 'Emenda', tipo: 'nao.informado', mimeType: MimeType.DOCX },
       ],
     });
   });
@@ -61,10 +61,10 @@ describe('Anexos — salvar (especificação 05)', () => {
     expect(lexedit.anexos.anexo[0].nomeArquivo).to.equal('Relatório.pdf');
   });
 
-  it('nome do documento e tipo vazios assumem o nome do arquivo e "outro"', () => {
+  it('nome do documento e tipo vazios assumem o nome do arquivo e "nao.informado"', () => {
     const lexedit = lexeditSalvo(salvar([anexo('id-1', 'Parecer.pdf', MimeType.PDF, { nomeDocumento: ' ', tipo: '' })]));
 
-    expect(lexedit.anexos.anexo[0]).to.include({ nomeDocumento: 'Parecer.pdf', tipo: 'outro' });
+    expect(lexedit.anexos.anexo[0]).to.include({ nomeDocumento: 'Parecer.pdf', tipo: 'nao.informado' });
   });
 
   it('sem anexos o grupo não é gravado', () => {
@@ -111,7 +111,7 @@ describe('Anexos — abrir (especificação 05)', () => {
     expect(lerAnexos({ anexo: lido('id-1', 'A.pdf', MimeType.PDF) })?.map(a => a.idArquivo)).to.deep.equal(['id-1']);
   });
 
-  it('nomeDocumento ausente assume o nome do arquivo sem extensão, e tipo ausente ou vazio assume "outro"', () => {
+  it('nomeDocumento ausente assume o nome do arquivo sem extensão, e tipo ausente ou vazio assume "nao.informado"', () => {
     const anexos = lerAnexos({
       anexo: [
         lido('id-1', 'Parecer da CCJ.v2.pdf', MimeType.PDF, { nomeDocumento: undefined, tipo: undefined }),
@@ -120,8 +120,8 @@ describe('Anexos — abrir (especificação 05)', () => {
     });
 
     expect(anexos?.map(a => [a.nomeDocumento, a.tipo])).to.deep.equal([
-      ['Parecer da CCJ.v2', 'outro'],
-      ['B', 'outro'],
+      ['Parecer da CCJ.v2', 'nao.informado'],
+      ['B', 'nao.informado'],
     ]);
   });
 

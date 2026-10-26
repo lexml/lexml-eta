@@ -18,20 +18,20 @@ describe('Configuração de anexos', () => {
 });
 
 describe('normalizarTiposAnexos', () => {
-  const outro = { codigo: 'outro', nome: 'Outro' };
+  const naoInformado = { codigo: 'nao.informado', nome: 'Não informado' };
 
-  it('sem lista oferece somente "Outro"', () => {
-    expect(normalizarTiposAnexos()).to.deep.equal([outro]);
-    expect(normalizarTiposAnexos(null)).to.deep.equal([outro]);
-    expect(normalizarTiposAnexos([])).to.deep.equal([outro]);
+  it('sem lista oferece somente "Não informado"', () => {
+    expect(normalizarTiposAnexos()).to.deep.equal([naoInformado]);
+    expect(normalizarTiposAnexos(null)).to.deep.equal([naoInformado]);
+    expect(normalizarTiposAnexos([])).to.deep.equal([naoInformado]);
   });
 
-  it('com lista válida mantém a ordem e acrescenta "Outro" no fim', () => {
+  it('com lista válida mantém a ordem e acrescenta "Não informado" no fim', () => {
     const tipos = normalizarTiposAnexos([
       { codigo: 'substitutivo', nome: 'Substitutivo' },
       { codigo: 'emenda', nome: 'Emenda' },
     ]);
-    expect(tipos).to.deep.equal([{ codigo: 'substitutivo', nome: 'Substitutivo' }, { codigo: 'emenda', nome: 'Emenda' }, outro]);
+    expect(tipos).to.deep.equal([{ codigo: 'substitutivo', nome: 'Substitutivo' }, { codigo: 'emenda', nome: 'Emenda' }, naoInformado]);
   });
 
   it('ignora entradas sem código ou nome, e com código repetido', () => {
@@ -43,22 +43,22 @@ describe('normalizarTiposAnexos', () => {
       { codigo: ' emenda ', nome: ' Emenda ' },
       { codigo: 'emenda', nome: 'Emenda repetida' },
     ]);
-    expect(tipos).to.deep.equal([{ codigo: 'emenda', nome: 'Emenda' }, outro]);
+    expect(tipos).to.deep.equal([{ codigo: 'emenda', nome: 'Emenda' }, naoInformado]);
   });
 
-  it('descarta o "outro" vindo do host e não o repete', () => {
+  it('descarta o "nao.informado" vindo do host e não o repete', () => {
     const tipos = normalizarTiposAnexos([
-      { codigo: 'outro', nome: 'Diversos' },
+      { codigo: 'nao.informado', nome: 'Diversos' },
       { codigo: 'emenda', nome: 'Emenda' },
     ]);
-    expect(tipos).to.deep.equal([{ codigo: 'emenda', nome: 'Emenda' }, outro]);
+    expect(tipos).to.deep.equal([{ codigo: 'emenda', nome: 'Emenda' }, naoInformado]);
   });
 
-  it('não altera a lista recebida nem compartilha o objeto "Outro"', () => {
+  it('não altera a lista recebida nem compartilha o objeto "Não informado"', () => {
     const entrada = [{ codigo: 'emenda', nome: 'Emenda' }];
     const resultado = normalizarTiposAnexos(entrada);
     expect(entrada).to.have.length(1);
     resultado[resultado.length - 1].nome = 'Alterado';
-    expect(normalizarTiposAnexos().pop()).to.deep.equal(outro);
+    expect(normalizarTiposAnexos().pop()).to.deep.equal(naoInformado);
   });
 });

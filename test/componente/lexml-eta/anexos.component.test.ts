@@ -7,7 +7,7 @@ import { lexeditSalvo, metadadoProprietarioLexEdit, novoDocumentoArticulado } fr
 const TYPE_NAME_GRUPO = 'br_gov_lexml_lexedit__1.Anexos';
 const TYPE_NAME_ITEM = 'br_gov_lexml_lexedit__1.Anexo';
 
-const anexo = (idArquivo: string, nomeArquivo: string, tipo = 'outro'): Anexo => ({
+const anexo = (idArquivo: string, nomeArquivo: string, tipo = 'nao.informado'): Anexo => ({
   idArquivo,
   nomeArquivo,
   nomeDocumento: nomeArquivo.replace(/\.[^.]*$/, ''),
@@ -98,7 +98,7 @@ describe('ETA — aba e documento articulado com anexos', () => {
 
       expect(lexedit.anexos.anexo.map((a: any) => [a.idArquivo, a.nomeArquivo, a.tipo, a.mimeType])).to.deep.equal([
         ['id-1', 'Parecer.pdf', 'substitutivo', MimeType.PDF],
-        ['id-2', 'Emenda.docx', 'outro', MimeType.DOCX],
+        ['id-2', 'Emenda.docx', 'nao.informado', MimeType.DOCX],
       ]);
     });
 
@@ -114,10 +114,10 @@ describe('ETA — aba e documento articulado com anexos', () => {
       expect(lexeditSalvo(component.getDocumentoArticulado()).anexos.anexo).to.have.length(1);
     });
 
-    it('grava o tipo desconhecido do host como "outro"', () => {
+    it('grava o tipo desconhecido do host como "nao.informado"', () => {
       aba.anexos = [anexo('id-1', 'Parecer.pdf', 'tipo-que-o-host-nao-informou')];
 
-      expect(lexeditSalvo(component.getDocumentoArticulado()).anexos.anexo[0].tipo).to.equal('outro');
+      expect(lexeditSalvo(component.getDocumentoArticulado()).anexos.anexo[0].tipo).to.equal('nao.informado');
     });
   });
 
@@ -129,11 +129,11 @@ describe('ETA — aba e documento articulado com anexos', () => {
       expect(aba.anexos).to.deep.equal(ANEXOS);
     });
 
-    it('tipo que o host não informou é exibido como "outro"', async () => {
+    it('tipo que o host não informou é exibido como "nao.informado"', async () => {
       await component.abrirDocumentoArticulado(comAnexos(ANEXOS));
 
       expect(aba.anexos.map(a => a.idArquivo)).to.deep.equal(['id-1', 'id-2']);
-      expect(aba.anexos[0].tipo).to.equal('outro');
+      expect(aba.anexos[0].tipo).to.equal('nao.informado');
     });
 
     it('arquivo sem o grupo abre sem anexos', async () => {

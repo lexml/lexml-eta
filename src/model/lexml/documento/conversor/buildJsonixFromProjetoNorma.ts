@@ -20,7 +20,7 @@ import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
 import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
-import { TIPO_ANEXO_OUTRO } from '../../../proposicao/tipoAnexo';
+import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
 import { formatarLocalDataFecho } from '../urnUtil';
 import { coletarSituacaoNaNormaVigente, mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
@@ -146,7 +146,7 @@ const montaAnexos = (anexos?: Anexo[]): MetadadoLexEdit['anexos'] => {
       idArquivo: a.idArquivo,
       nomeArquivo: a.nomeArquivo,
       nomeDocumento: a.nomeDocumento?.trim() || a.nomeArquivo,
-      tipo: a.tipo?.trim() || TIPO_ANEXO_OUTRO.codigo,
+      tipo: a.tipo?.trim() || TIPO_ANEXO_NAO_INFORMADO.codigo,
       mimeType: a.mimeType,
     })),
   };

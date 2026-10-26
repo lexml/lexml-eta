@@ -9,7 +9,7 @@ import '@shoelace-style/shoelace/dist/components/select/select.js';
 import type { SlDialog, SlInput, SlSelect } from '@shoelace-style/shoelace';
 import { LexmlEtaConfig } from '../../model/lexmlEtaConfig';
 import { Anexo, MimeType } from '../../model/proposicao/proposicao';
-import { normalizarTiposAnexos, TIPO_ANEXO_OUTRO, TipoAnexo } from '../../model/proposicao/tipoAnexo';
+import { normalizarTiposAnexos, TIPO_ANEXO_NAO_INFORMADO, TipoAnexo } from '../../model/proposicao/tipoAnexo';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 
 const FORMATOS_POR_EXTENSAO: Record<string, MimeType> = { '.pdf': MimeType.PDF, '.docx': MimeType.DOCX };
@@ -39,7 +39,7 @@ export class AnexosComponent extends LitElement {
   @state() private _brutos: Anexo[] = [];
   @state() private _dialogAberto = false;
   @state() private _arquivo: File | null = null;
-  @state() private _tipoDialog = '';
+  @state() private _tipoDialog: string = TIPO_ANEXO_NAO_INFORMADO.codigo;
   @state() private _nomeDialog = '';
   @state() private _enviando = false;
 
@@ -75,7 +75,7 @@ export class AnexosComponent extends LitElement {
   // Tipo fora da lista do host vale "outro" (design.md, D3b).
   private comTiposNormalizados(anexos: Anexo[]): Anexo[] {
     const codigos = new Set(this.tipos.map(tipo => tipo.codigo));
-    return anexos.map(anexo => ({ ...anexo, tipo: codigos.has(anexo.tipo) ? anexo.tipo : TIPO_ANEXO_OUTRO.codigo }));
+    return anexos.map(anexo => ({ ...anexo, tipo: codigos.has(anexo.tipo) ? anexo.tipo : TIPO_ANEXO_NAO_INFORMADO.codigo }));
   }
 
   private emitirOnChange(): void {
@@ -177,7 +177,7 @@ export class AnexosComponent extends LitElement {
 
   private abrirDialogo(): void {
     this._arquivo = null;
-    this._tipoDialog = '';
+    this._tipoDialog = TIPO_ANEXO_NAO_INFORMADO.codigo;
     this._nomeDialog = '';
     this._nomeDigitado = false;
     this._dialogAberto = true;
@@ -298,9 +298,14 @@ export class AnexosComponent extends LitElement {
         }
         .lexml-eta-anexos .anexo-campos {
           display: grid;
-          grid-template-columns: minmax(10em, 1fr) minmax(10em, 2fr);
+          grid-template-columns: 1fr;
           gap: 1em;
           padding: 0.75em;
+        }
+        /* O tipo é fixo (nao.informado) por enquanto: os campos de tipo ficam no componente, ocultos. */
+        .lexml-eta-anexos .anexo-tipo,
+        .lexml-eta-anexos #select-tipo-anexo {
+          display: none;
         }
         .lexml-eta-anexos .anexos-vazio {
           text-align: center;

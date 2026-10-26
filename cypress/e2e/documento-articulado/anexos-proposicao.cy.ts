@@ -20,15 +20,9 @@ const abrirAba = (): void => {
 const nomesDosArquivos = (): Cypress.Chainable<string[]> =>
   cy.get(`${LINHA} .anexo-nome-arquivo`).then($el => Array.from($el).map(el => el.textContent!.replace('Anexo', '').trim()));
 
-const escolherTipoNoDialogo = (codigo: string): void => {
-  cy.get('#select-tipo-anexo').click();
-  cy.get(`#select-tipo-anexo sl-menu-item[value="${codigo}"]`).click({ force: true });
-};
-
-const importar = (nome: string, mimeType: string, tipo = 'emenda'): void => {
+const importar = (nome: string, mimeType: string): void => {
   cy.get('#btn-importar-anexo').click();
   cy.get('#input-arquivo-anexo').selectFile({ contents: Cypress.Buffer.from('conteudo de teste'), fileName: nome, mimeType }, { force: true });
-  escolherTipoNoDialogo(tipo);
   cy.get('#btn-confirmar-importacao').click();
 };
 
@@ -51,12 +45,13 @@ describe('Anexos da proposição', () => {
     abrirAba();
   });
 
-  it('exibe os anexos do arquivo, na ordem, com o tipo e o contador no rótulo da aba', () => {
+  it('exibe os anexos do arquivo, na ordem, com o contador no rótulo da aba e sem exibir o tipo', () => {
     cy.get(ABA).should('contain.text', 'Anexos (3)');
     cy.get(LINHA).should('have.length', 3);
     nomesDosArquivos().should('deep.equal', NOMES_ARQUIVO);
+    cy.get(`${LINHA} .anexo-tipo`).should('not.be.visible');
     cy.get(`${LINHA} .anexo-tipo`).then($tipos => {
-      expect(Array.from($tipos).map(el => (el as any).value)).to.deep.equal(['substitutivo', 'outro', 'emenda']);
+      expect(Array.from($tipos).map(el => (el as any).value)).to.deep.equal(['substitutivo', 'nao.informado', 'emenda']);
     });
     cy.get(`${LINHA}:eq(1) .btn-visualizar`).should('have.prop', 'disabled', true);
   });
@@ -68,12 +63,12 @@ describe('Anexos da proposição', () => {
     nomesDosArquivos().should('deep.equal', [...NOMES_ARQUIVO, 'novo anexo.pdf']);
     cy.get(ABA).should('contain.text', 'Anexos (4)');
     cy.get(`${LINHA}:eq(3) .anexo-nome-documento`).should('have.prop', 'value', 'novo anexo');
+    cy.get(`${LINHA}:eq(3) .anexo-tipo`).should('have.prop', 'value', 'nao.informado');
   });
 
   it('recusa um arquivo de formato não aceito, sem alterar a lista', () => {
     cy.get('#btn-importar-anexo').click();
     cy.get('#input-arquivo-anexo').selectFile({ contents: Cypress.Buffer.from('x'), fileName: 'planilha.xlsx', mimeType: 'application/vnd.ms-excel' }, { force: true });
-    escolherTipoNoDialogo('emenda');
 
     cy.get('#btn-confirmar-importacao').should('have.prop', 'disabled', true);
     cy.get('#alertaInfo').should('exist');
@@ -111,7 +106,7 @@ describe('Anexos da proposição', () => {
         const salvo = JSON.parse(texto);
         const anexos = salvo.value.metadado.metadadoProprietario[0].any[0].value.anexos.anexo;
         expect(anexos.map((a: { nomeArquivo: string }) => a.nomeArquivo)).to.deep.equal(['Emenda Nº 4 - CCJ.docx', 'novo anexo.pdf', 'Relatório final.pdf']);
-        expect(anexos[1]).to.include({ idArquivo: 'demo-1', mimeType: 'application/pdf' });
+        expect(anexos[1]).to.include({ idArquivo: 'demo-1', mimeType: 'application/pdf', tipo: 'nao.informado' });
         expect(texto).not.to.include('conteudo de teste');
 
         cy.get('#fileUpload').selectFile({ contents: Cypress.Buffer.from(texto), fileName: 'salvo.json' }, { force: true });

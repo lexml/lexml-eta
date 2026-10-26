@@ -7,7 +7,7 @@ const anexo = (idArquivo: string, nomeArquivo: string, extras: Partial<Anexo> = 
   idArquivo,
   nomeArquivo,
   nomeDocumento: nomeArquivo.replace(/\.[^.]*$/, ''),
-  tipo: 'outro',
+  tipo: 'nao.informado',
   mimeType: nomeArquivo.endsWith('.docx') ? MimeType.DOCX : MimeType.PDF,
   ...extras,
 });
@@ -52,13 +52,6 @@ const escolherArquivo = async (el: AnexosComponent, file: File): Promise<void> =
   await el.updateComplete;
 };
 
-const escolherTipoNoDialogo = async (el: AnexosComponent, codigo: string): Promise<void> => {
-  const select = el.querySelector<any>('#select-tipo-anexo');
-  select.value = codigo;
-  select.dispatchEvent(new CustomEvent('sl-change', { bubbles: true }));
-  await el.updateComplete;
-};
-
 const digitarNomeNoDialogo = async (el: AnexosComponent, nome: string): Promise<void> => {
   const campo = el.querySelector<any>('#input-nome-anexo');
   campo.value = nome;
@@ -73,10 +66,9 @@ const abrirDialogo = async (el: AnexosComponent): Promise<void> => {
   await el.updateComplete;
 };
 
-const importar = async (el: AnexosComponent, file: File, tipo = 'emenda'): Promise<void> => {
+const importar = async (el: AnexosComponent, file: File): Promise<void> => {
   await abrirDialogo(el);
   await escolherArquivo(el, file);
-  await escolherTipoNoDialogo(el, tipo);
   clicar(confirmar(el));
 };
 
@@ -97,7 +89,7 @@ describe('lexml-eta-anexos — renderização', () => {
     expect(itens[0].querySelector('.anexo-nome-arquivo')?.textContent).to.include('Parecer.pdf');
     expect(itens[1].querySelector('.anexo-nome-arquivo')?.textContent).to.include('Emenda.docx');
     expect(botao(itens[0], 'anexo-tipo').value).to.equal('substitutivo');
-    expect(botao(itens[1], 'anexo-tipo').value).to.equal('outro');
+    expect(botao(itens[1], 'anexo-tipo').value).to.equal('nao.informado');
     expect(botao(itens[0], 'anexo-nome-documento').value).to.equal('Parecer');
     for (const classe of ['btn-visualizar', 'btn-baixar', 'btn-subir', 'btn-descer', 'btn-excluir']) {
       expect(botao(itens[0], classe), classe).to.exist;
@@ -105,33 +97,43 @@ describe('lexml-eta-anexos — renderização', () => {
     expect(el.querySelector('.anexos-vazio')).to.be.null;
   });
 
-  it('oferece os tipos do host mais "Outro"', async () => {
+  it('o campo de tipo fica oculto na lista e no diálogo de importação', async () => {
+    const { el } = await montar([anexo('a', 'Parecer.pdf')]);
+
+    expect(getComputedStyle(botao(linhas(el)[0], 'anexo-tipo')).display).to.equal('none');
+    expect(getComputedStyle(el.querySelector('#select-tipo-anexo')!).display).to.equal('none');
+    expect(getComputedStyle(botao(linhas(el)[0], 'anexo-nome-documento')).display).not.to.equal('none');
+  });
+
+  it('o select de tipo oferece os tipos do host mais "Não informado"', async () => {
     const { el } = await montar([anexo('a', 'Parecer.pdf')]);
 
     const opcoes = Array.from(linhas(el)[0].querySelectorAll('sl-menu-item')).map(item => [item.getAttribute('value'), item.textContent?.trim()]);
     expect(opcoes).to.deep.equal([
       ['substitutivo', 'Substitutivo'],
       ['emenda', 'Emenda'],
-      ['outro', 'Outro'],
+      ['nao.informado', 'Não informado'],
     ]);
   });
 
-  it('sem tipos do host oferece somente "Outro"', async () => {
+  it('sem tipos do host o select oferece somente "Não informado" e aceita o valor', async () => {
     const { el } = await montar([anexo('a', 'Parecer.pdf')], new LexmlEtaConfig());
 
-    expect(Array.from(linhas(el)[0].querySelectorAll('sl-menu-item')).map(item => item.getAttribute('value'))).to.deep.equal(['outro']);
+    const item = linhas(el)[0];
+    expect(Array.from(item.querySelectorAll('sl-menu-item')).map(opcao => opcao.getAttribute('value'))).to.deep.equal(['nao.informado']);
+    expect(botao(item, 'anexo-tipo').value).to.equal('nao.informado');
   });
 
-  it('tipo fora da lista do host passa a "outro", e tipo conhecido é mantido', async () => {
+  it('tipo fora da lista do host passa a "nao.informado", e tipo conhecido é mantido', async () => {
     const { el } = await montar([anexo('a', 'A.pdf', { tipo: 'parecer' }), anexo('b', 'B.pdf', { tipo: 'emenda' })]);
 
-    expect(el.anexos.map(a => a.tipo)).to.deep.equal(['outro', 'emenda']);
-    expect(botao(linhas(el)[0], 'anexo-tipo').value).to.equal('outro');
+    expect(el.anexos.map(a => a.tipo)).to.deep.equal(['nao.informado', 'emenda']);
+    expect(botao(linhas(el)[0], 'anexo-tipo').value).to.equal('nao.informado');
   });
 
   it('a configuração atribuída depois da lista também normaliza o tipo', async () => {
     const { el } = await montar([anexo('a', 'A.pdf', { tipo: 'emenda' })], new LexmlEtaConfig());
-    expect(el.anexos[0].tipo).to.equal('outro');
+    expect(el.anexos[0].tipo).to.equal('nao.informado');
 
     el.anexos = [anexo('a', 'A.pdf', { tipo: 'emenda' })];
     el.lexmlEtaConfig = configCom();
@@ -267,22 +269,21 @@ describe('lexml-eta-anexos — importação', () => {
     await waitUntil(() => el.anexos.length === 2, 'o anexo deveria ser incluído');
 
     expect(recebidos).to.deep.equal(['parecer.pdf']);
-    expect(el.anexos[1]).to.deep.equal({ idArquivo: 'f669f339', nomeArquivo: 'parecer.pdf', nomeDocumento: 'parecer', tipo: 'emenda', mimeType: MimeType.PDF });
+    expect(el.anexos[1]).to.deep.equal({ idArquivo: 'f669f339', nomeArquivo: 'parecer.pdf', nomeDocumento: 'parecer', tipo: 'nao.informado', mimeType: MimeType.PDF });
     expect(eventos).to.deep.equal(['anexo']);
     expect((el.querySelector('#dlg-importar-anexo') as any).open).to.be.false;
   });
 
-  it('importa um DOCX com o tipo MIME de DOCX e o nome do documento informado', async () => {
+  it('importa um DOCX com o tipo MIME de DOCX, o nome do documento informado e o tipo fixo', async () => {
     const { el } = await montar([], configCom({ onUploadAnexo: async () => 'id-1' }));
 
     await abrirDialogo(el);
     await escolherArquivo(el, arquivo('emenda.docx'));
     await digitarNomeNoDialogo(el, 'Emenda da CCJ');
-    await escolherTipoNoDialogo(el, 'substitutivo');
     clicar(confirmar(el));
     await waitUntil(() => el.anexos.length === 1);
 
-    expect(el.anexos[0]).to.deep.equal({ idArquivo: 'id-1', nomeArquivo: 'emenda.docx', nomeDocumento: 'Emenda da CCJ', tipo: 'substitutivo', mimeType: MimeType.DOCX });
+    expect(el.anexos[0]).to.deep.equal({ idArquivo: 'id-1', nomeArquivo: 'emenda.docx', nomeDocumento: 'Emenda da CCJ', tipo: 'nao.informado', mimeType: MimeType.DOCX });
   });
 
   it('aceita o formato pelo tipo MIME quando a extensão não é reconhecida', async () => {
@@ -308,7 +309,6 @@ describe('lexml-eta-anexos — importação', () => {
 
     await abrirDialogo(el);
     await escolherArquivo(el, arquivo('planilha.xlsx', 10, 'application/vnd.ms-excel'));
-    await escolherTipoNoDialogo(el, 'emenda');
 
     expect(avisos).to.deep.equal(['Arquivo inválido. Envie apenas PDF ou DOCX.']);
     expect(confirmar(el).disabled).to.be.true;
@@ -317,16 +317,13 @@ describe('lexml-eta-anexos — importação', () => {
     expect(el.anexos).to.have.length(0);
   });
 
-  it('o botão de confirmar fica desabilitado sem arquivo ou sem tipo', async () => {
+  it('o botão de confirmar só habilita com um arquivo válido, sem exigir tipo', async () => {
     const { el } = await montar([], configCom({ onUploadAnexo: async () => 'id' }));
 
     await abrirDialogo(el);
     expect(confirmar(el).disabled).to.be.true;
 
     await escolherArquivo(el, arquivo('a.pdf'));
-    expect(confirmar(el).disabled).to.be.true;
-
-    await escolherTipoNoDialogo(el, 'emenda');
     expect(confirmar(el).disabled).to.be.false;
   });
 
@@ -407,7 +404,6 @@ describe('lexml-eta-anexos — importação', () => {
 
       await abrirDialogo(el);
       await escolherArquivo(el, arquivo('grande.pdf', 6 * 1024 * 1024));
-      await escolherTipoNoDialogo(el, 'emenda');
 
       expect(avisos).to.have.length(1);
       expect(avisos[0]).to.include('5 MB');

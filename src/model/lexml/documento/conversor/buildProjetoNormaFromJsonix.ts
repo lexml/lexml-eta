@@ -9,7 +9,7 @@ import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getPreambuloPadrao, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 import { Anexo, Autoria, ColegiadoApreciador, MimeType, OpcoesImpressao, Parlamentar, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO } from '../../../proposicao/proposicao';
-import { TIPO_ANEXO_OUTRO } from '../../../proposicao/tipoAnexo';
+import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
 import { DadosLexEdit, RevisaoArticulacaoLida } from '../documentoArticulado';
 import { SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
@@ -218,7 +218,7 @@ export const lerAnexos = (lido: any): Anexo[] | undefined => {
       idArquivo: item.idArquivo,
       nomeArquivo: item.nomeArquivo,
       nomeDocumento: textoNaoVazio(item.nomeDocumento) ? item.nomeDocumento : item.nomeArquivo.replace(/\.[^.]*$/, ''),
-      tipo: textoNaoVazio(item.tipo) ? item.tipo : TIPO_ANEXO_OUTRO.codigo,
+      tipo: textoNaoVazio(item.tipo) ? item.tipo : TIPO_ANEXO_NAO_INFORMADO.codigo,
       mimeType: item.mimeType,
     });
   }
