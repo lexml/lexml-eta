@@ -1,5 +1,7 @@
 import { Elemento } from '../../model/elemento';
+import { TipoDispositivo } from '../../model/lexml/tipo/tipoDispositivo';
 import { RevisaoElemento } from '../../model/revisao/revisao';
+import { getOperacoesRevisao, OPERACAO_ALTERACAO_ROTULO } from '../../redux/elemento/util/revisaoUtil';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { escapeHtml, sanitizarTituloDispositivo } from '../../util/html-util';
 import { substituiEspacosEntreTagsPorNbsp, substituiMultiplosEspacosPorNbsp, textoDiffAsHtml } from '../../util/string-util';
@@ -21,7 +23,7 @@ export class TextoDiff {
 
 // O rótulo só entra quando a própria revisão o registra: a renumeração automática o muda sem gerar revisão.
 const revisaoRegistraTrocaDeRotulo = (elemento: Elemento, revisao: RevisaoElemento): boolean =>
-  elemento.tipo === 'Pena' || !!revisao.revisao?.split(',').some(operacao => operacao.split(';')[0] === 'alteracaoRotulo');
+  elemento.tipo === TipoDispositivo.pena.tipo || getOperacoesRevisao(revisao.revisao).some(operacao => operacao.nome === OPERACAO_ALTERACAO_ROTULO);
 
 export const montaTextoDiff = (elemento: Elemento, quill: EtaQuill): TextoDiff => {
   const diff = new TextoDiff();

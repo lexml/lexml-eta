@@ -114,7 +114,9 @@ export class EtaBlotRotulo extends EtaBlot {
   private static montarRotulo(elemento: Elemento): string {
     const descricaoTipo = TipoDispositivo[elemento.tipo!.toLowerCase()]?.descricao;
     // O rótulo da pena é escolhido pelo usuário e não é renumerado: a descrição do tipo o esconderia.
-    return elemento.tipo !== 'Pena' && elemento.revisao && EtaBlotRotulo.isRevisaoPrincipalDeExclusaoDeDispositivo(elemento) ? descricaoTipo ?? '' : elemento.rotulo;
+    return elemento.tipo !== TipoDispositivo.pena.tipo && elemento.revisao && EtaBlotRotulo.isRevisaoPrincipalDeExclusaoDeDispositivo(elemento)
+      ? descricaoTipo ?? ''
+      : elemento.rotulo;
   }
 
   private static isRevisaoPrincipalDeExclusaoDeDispositivo(elemento: Elemento): boolean {
@@ -128,7 +130,7 @@ export const podeInformarNumeracao = (elemento: Elemento): boolean => {
 };
 
 const onclick = (node: HTMLElement, elemento: Elemento): (() => boolean) => {
-  const editavelPena = elemento.tipo === 'Pena' && !!elemento.acoesPossiveis?.some(acao => acao instanceof AlterarRotuloPena);
+  const editavelPena = elemento.tipo === TipoDispositivo.pena.tipo && !!elemento.acoesPossiveis?.some(acao => acao instanceof AlterarRotuloPena);
   node.classList.toggle('rotulo-pena-editavel', editavelPena);
   if (editavelPena) {
     return (): boolean => node.dispatchEvent(new CustomEvent('rotulo-pena', { bubbles: true, cancelable: true, detail: { elemento } }));

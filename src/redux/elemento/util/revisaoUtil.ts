@@ -113,7 +113,7 @@ export const buildDescricaoRevisao = (revisao: Revisao): string => {
 };
 
 export const mudouRotuloDaPena = (antes?: Partial<Elemento>, apos?: Partial<Elemento>): boolean =>
-  !!antes && !!apos && antes.tipo === 'Pena' && apos.tipo === 'Pena' && antes.rotulo !== apos.rotulo;
+  !!antes && !!apos && antes.tipo === TipoDispositivo.pena.tipo && apos.tipo === TipoDispositivo.pena.tipo && antes.rotulo !== apos.rotulo;
 
 // A descrição acompanha o que de fato mudou entre o elemento antes e depois da revisão.
 export const buildDescricaoRevisaoDeModificacao = (revisao: RevisaoElemento): string => {
@@ -750,7 +750,7 @@ export const derivarOperacoesRevisao = (state: State, revisao: RevisaoElemento):
   }
   if (revisao.stateType === StateType.ElementoModificado) {
     let operacoes = '';
-    if (antes && apos && antes.tipo === apos.tipo && antes.tipo !== 'Pena' && antes.rotulo !== apos.rotulo) {
+    if (antes && apos && antes.tipo === apos.tipo && antes.tipo !== TipoDispositivo.pena.tipo && antes.rotulo !== apos.rotulo) {
       operacoes = anexarOperacaoRevisao(operacoes, OPERACAO_ALTERACAO_ROTULO, antes.lexmlId);
     }
     if (!isMesmoTextoETitulo(antes, apos)) {
