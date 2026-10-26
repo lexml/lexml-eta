@@ -1,5 +1,17 @@
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isDispositivoGenerico, isEmenta, isIncisoCaput, isParagrafo, Tipo, isCaput } from '../../dispositivo/tipo';
+import {
+  isAgrupador,
+  isArticulacao,
+  isArtigo,
+  isDispositivoDeArtigo,
+  isDispositivoGenerico,
+  isEmenta,
+  isIncisoCaput,
+  isParagrafo,
+  isPena,
+  Tipo,
+  isCaput,
+} from '../../dispositivo/tipo';
 import { omissis } from '../acao/adicionarElementoAction';
 import { isAgrupadorNaoArticulacao, isOmissis } from './../../dispositivo/tipo';
 import { TipoDispositivo } from './../tipo/tipoDispositivo';
@@ -593,6 +605,39 @@ const buscaDispositivoDeArtigoPosterior = (pai: Dispositivo, index: number): Dis
   }
 
   return buscaDispositivoDeArtigoPosterior(pai.pai!, pai.pai!.indexOf(pai!));
+};
+
+// Dispositivos cuja pontuação depende da pena: o dono dela e o imediatamente anterior a ela na ordem de leitura (o dono, ou o último descendente dele).
+export const getDispositivosAfetadosPelaPena = (pena: Dispositivo): Dispositivo[] => {
+  const anterior = getDispositivoAnteriorNaSequenciaDeLeitura(pena);
+  const comoElemento = (d: Dispositivo): Dispositivo => (isCaput(d) ? d.pai! : d);
+  const dono = comoElemento(pena.pai!);
+  return [...new Set([dono, anterior ? comoElemento(anterior) : dono])];
+};
+
+// O dispositivo é o imediatamente anterior a uma pena na ordem de leitura: o próprio dono sem outros filhos ou o último descendente do irmão que precede a pena de um ancestral.
+export const antecedePena = (dispositivo: Dispositivo): boolean => {
+  if (isPena(dispositivo)) {
+    return false;
+  }
+  const dono = isArtigo(dispositivo) ? (dispositivo as Artigo).caput! : dispositivo;
+  if (dono.filhos.length > 0) {
+    return dono.filhos.every(isPena);
+  }
+  return getPenaSeguinte(dispositivo) !== undefined;
+};
+
+// A pena que vem logo depois do dispositivo e de seus descendentes na ordem de leitura, se houver.
+export const getPenaSeguinte = (dispositivo: Dispositivo): Dispositivo | undefined => {
+  let atual: Dispositivo = dispositivo;
+  while (atual.pai && !isCaput(atual)) {
+    const posterior = getDispositivoPosterior(atual);
+    if (posterior) {
+      return isPena(posterior) ? posterior : undefined;
+    }
+    atual = atual.pai;
+  }
+  return undefined;
 };
 
 export const isUltimaEnumeracao = (dispositivo: Dispositivo): boolean => {

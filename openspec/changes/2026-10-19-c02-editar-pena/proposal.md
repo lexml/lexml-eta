@@ -14,7 +14,7 @@ A issue #1019 pede o tratamento do dispositivo "Pena" da técnica legislativa pe
 - **Operações existentes** passam a respeitar a pena: incluir filho entra antes dela; nada é movido para depois dela; a pena não se move, não se transforma, não é renumerada e não vira omissis; ela acompanha o dono ao mover, transformar e remover.
 - **Teclado**: Enter no fim da pena cria um irmão do dono logo depois dela (na pena do caput, o primeiro parágrafo); Enter no meio do texto da pena não faz nada.
 - **Bloco de alteração de norma**: pena com Existente/Novo, caput omissis seguido de pena ("Art. 213. ..... / Pena – ..."), aspas e "(NR)" na linha da pena quando ela é a última; sem pena no artigo que carrega o bloco.
-- **Revisão**: adicionar, remover e editar a pena geram as marcas de sempre; a troca de rótulo é uma revisão `alterado`, com o rótulo anterior no estado anterior, descrição própria e rejeição que restaura o rótulo.
+- **Revisão**: adicionar, remover e editar a pena geram as marcas de sempre; a troca de rótulo é uma revisão `alterado`, com o rótulo anterior no estado anterior, descrição própria e rejeição que restaura o rótulo. O estado anterior da pena (texto e rótulo) e a pena excluída em revisão são gravados como `Pena` em `RevisaoArticulacao`, o que exige `lexml:Pena` no `choice` do `lexedit.xsd`.
 - **Salvar/abrir**: a pena é gravada no elemento `Pena` (fora de `lXcontainersOmissis`) e lida de volta, com o separador do rótulo normalizado para " –". O colar texto articulado também passa a ler a pena (só o mínimo para não perdê-la).
 
 ## Capabilities
@@ -35,5 +35,5 @@ A issue #1019 pede o tratamento do dispositivo "Pena" da técnica legislativa pe
 - Validação: `src/model/lexml/conteudo/conteudoValidator.ts`, `dispositivoValidator.ts`.
 - UI: `editor.component.ts`, novo diálogo de rótulo (no molde de `editarTituloDispositivoDialog.ts`), `eta-keyboard.ts`, blots/containers do Quill.
 - Conversão: `buildJsonixFromProjetoNorma.ts`, `buildProjetoNormaFromJsonix.ts`, `buildDispositivoFromJsonix.ts`, `revisaoArticulacao.ts`, `reconstroiRevisoes.ts`.
-- Dependência externa: o CLI `jsonix-lexml` precisa converter `Pena` em ida e volta, inclusive dentro de `lexedit:RevisaoArticulacao`. Resolvida pela issue #1040: `schemas/lexedit.xsd` aceita `lexml:Pena` em `RevisaoArticulacao`, e o CLI 2.3.0, gerado a partir dele, converte a pena (ver `design.md`, "Conversão da pena pelo CLI").
+- Dependência externa: o CLI `jsonix-lexml` 2.1.0 converte `Pena` em ida e volta (verificado na 1.1), **mas descarta sem erro `Pena` como filho direto de `RevisaoArticulacao`**. As revisões `alterado` e `excluido` de pena só sobrevivem ao salvamento com o `jsonix-lexml` 2.2.0 (`lexml:Pena` no `choice` de `RevisaoArticulacao`, já em `schemas/lexedit.xsd`) e com o CLI atualizado no `lexeditweb-editor`. Até lá, essas revisões se perdem em silêncio ao salvar.
 - Comunicação: comentar na issue #1019 as duas divergências (minúscula e ":").

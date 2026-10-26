@@ -572,6 +572,10 @@ export const editorStyles = html`
       cursor: pointer;
     }
 
+    .rotulo-pena-editavel {
+      cursor: pointer;
+    }
+
     .nota-alteracao-editavel {
       text-decoration: underline;
       cursor: pointer;

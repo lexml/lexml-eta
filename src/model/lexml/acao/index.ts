@@ -1,5 +1,6 @@
 import { adicionarAgrupadorArtigoAction, adicionarAgrupadorArtigoAntesAction } from './adicionarAgrupadorArtigoAction';
 import { atualizarNotaAlteracaoAction } from './atualizarNotaAlteracaoAction';
+import { adicionarPenaAction, alterarRotuloPenaAction } from './penaAction';
 import { adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction } from './atualizarTituloDispositivoAction';
 import { Referencia } from '../../elemento';
 import {
@@ -87,6 +88,8 @@ acoesMenu.push(atualizarNotaAlteracaoAction);
 acoesMenu.push(adicionarTituloDispositivoAction);
 acoesMenu.push(editarTituloDispositivoAction);
 acoesMenu.push(removerTituloDispositivoAction);
+acoesMenu.push(adicionarPenaAction);
+acoesMenu.push(alterarRotuloPenaAction);
 acoesMenu.push(moverElementoAbaixoAction);
 acoesMenu.push(moverElementoAcimaAction);
 acoesMenu.push(renumerarElementoAction);

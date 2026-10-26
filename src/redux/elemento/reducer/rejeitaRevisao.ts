@@ -1,7 +1,7 @@
 import { isRevisaoDeModificacao, isRevisaoDeTransformacao, mergeEventosStatesAposAceitarOuRejeitarMultiplasRevisoes } from './../util/revisaoUtil';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import { updateIdDispositivoAndFilhos } from '../../../model/lexml/util/idUtil';
-import { isCaput } from './../../../model/dispositivo/tipo';
+import { isCaput, isPena } from './../../../model/dispositivo/tipo';
 import { Elemento } from '../../../model/elemento/elemento';
 import {
   createElemento,
@@ -192,16 +192,20 @@ const restauraTextoETitulo = (state: State, revisao: RevisaoElemento): StateEven
   const antes = revisao.elementoAntesRevisao;
   const dispositivo = antes ? getDispositivoFromElemento(state.articulacao!, antes, true) : undefined;
   const tituloMudou = !!dispositivo && dispositivo.tituloDispositivo !== antes!.tituloDispositivo;
+  const rotuloMudou = !!dispositivo && isPena(dispositivo) && dispositivo.rotulo !== antes!.rotulo;
 
-  // O título é restaurado antes do texto para que o elemento do evento já o traga.
+  // Título e rótulo (da pena) são restaurados antes do texto para que o elemento do evento já os traga.
   if (tituloMudou) {
     dispositivo!.tituloDispositivo = antes!.tituloDispositivo;
+  }
+  if (rotuloMudou) {
+    dispositivo!.rotulo = antes!.rotulo;
   }
 
   const eventos = atualizaTextoElemento(state, { atual: revisao.elementoAntesRevisao }).ui?.events || [];
 
-  // Sem mudança de texto o reducer de texto não emite nada, mas a linha precisa refletir o título.
-  return tituloMudou && !eventos.length ? buildEventoAtualizacaoElemento(dispositivo!).build() : eventos;
+  // Sem mudança de texto o reducer de texto não emite nada, mas a linha precisa refletir o título e o rótulo.
+  return (tituloMudou || rotuloMudou) && !eventos.length ? buildEventoAtualizacaoElemento(dispositivo!).build() : eventos;
 };
 
 const rejeitaInclusao = (state: State, revisao: RevisaoElemento): StateEvent[] => {

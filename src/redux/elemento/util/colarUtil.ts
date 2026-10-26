@@ -356,7 +356,7 @@ const getTextoInconsistencia = (dispositivos: Dispositivo[]): string => {
   const dispositivo = dispositivos.find(d => isDispositivoInconsistente(d));
   if (dispositivo && dispositivo.pai) {
     const pai = isCaput(dispositivo.pai) ? dispositivo.pai.pai : dispositivo.pai;
-    const tiposPermitidos = pai?.tiposPermitidosFilhos?.map(t => TipoDispositivo[t.toLowerCase()].descricao?.toLowerCase());
+    const tiposPermitidos = pai?.tiposPermitidosFilhos?.filter(t => t !== TipoDispositivo.pena.tipo).map(t => TipoDispositivo[t.toLowerCase()].descricao?.toLowerCase());
     return `O dispositivo "${dispositivo.rotulo}" não pode ser colado como filho de "${pai?.rotulo}" pois o tipo do dispositivo é ${TipoDispositivo[
       dispositivo.tipo.toLowerCase()
     ].descricao?.toLowerCase()} e o tipo permitido é ${tiposPermitidos?.join(' ou ')}.`;

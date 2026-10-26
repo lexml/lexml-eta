@@ -46,6 +46,10 @@ export default {
     {
       name: 'validar-documento-articulado',
       async executeCommand({ command, payload }) {
+        if (command === 'versao-jsonix-lexml') {
+          const { stdout } = await executar(resolve(cli), ['-V'], { timeout: 30000 });
+          return stdout.trim();
+        }
         if (command === 'validar-documento-lexml') {
           const diretorio = await mkdtemp(join(tmpdir(), 'eta-documento-'));
           try {

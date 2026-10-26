@@ -4,6 +4,7 @@ import { Elemento } from '../../../model/elemento';
 import { REDO } from '../../../model/lexml/acao/redoAction';
 import { UNDO } from '../../../model/lexml/acao/undoAction';
 import { RENUMERAR_ELEMENTO } from '../../../model/lexml/acao/renumerarElementoAction';
+import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { Revisao, RevisaoElemento } from '../../../model/revisao/revisao';
 import { formatDateTime } from '../../../util/date-util';
 import { State, StateEvent, StateType } from '../../state';
@@ -175,7 +176,9 @@ const getOperacaoDeAlteracaoRotulo = (state: State, actionType: any, elemento: E
     return undefined;
   }
   const anterior = getElementoAntesModificacao(state, elemento);
-  return anterior && anterior.tipo === elemento.tipo && anterior.rotulo !== elemento.rotulo ? { nome: OPERACAO_ALTERACAO_ROTULO, argumento: anterior.lexmlId } : undefined;
+  return anterior && anterior.tipo === elemento.tipo && elemento.tipo !== TipoDispositivo.pena.tipo && anterior.rotulo !== elemento.rotulo
+    ? { nome: OPERACAO_ALTERACAO_ROTULO, argumento: anterior.lexmlId }
+    : undefined;
 };
 
 const getOperacoesDeNovaModificacao = (state: State, actionType: any, elemento: Elemento, anterior: Elemento | undefined): string => {

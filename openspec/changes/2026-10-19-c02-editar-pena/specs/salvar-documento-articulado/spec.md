@@ -63,3 +63,15 @@ Quando o texto, o título ou, na pena, o rótulo de um dispositivo é alterado e
 #### Scenario: Rótulo da pena alterado
 - **WHEN** o usuário, em modo de revisão, troca o rótulo de uma pena de "Pena –" para "Infração –" e salva
 - **THEN** a articulação contém a pena com o `Rotulo` "Infração –", e a revisão `alterado` contém como filho uma `Pena`, sem `id`, com o `Rotulo` "Pena –" e o texto da pena
+
+#### Scenario: Só o texto da pena alterado
+- **WHEN** o usuário, em modo de revisão, altera só o texto de uma pena e salva
+- **THEN** a revisão `alterado` contém como filho uma `Pena`, sem `id` e sem `Rotulo`, com o texto anterior
+
+#### Scenario: Pena excluída em revisão
+- **WHEN** o usuário, em modo de revisão, remove uma pena e salva
+- **THEN** a revisão `excluido` contém como filho a `Pena` removida, com `id` `_<base>-exc<n>`, `Rotulo` e texto
+
+#### Scenario: Esquema do LexEdit
+- **WHEN** o arquivo contém essas revisões de pena
+- **THEN** o `lexedit.xsd` aceita `Pena` como filho de `RevisaoArticulacao`; o `jsonix-lexml` 2.1.0 descarta esse filho sem erro, então a gravação depende do `jsonix-lexml` 2.2.0

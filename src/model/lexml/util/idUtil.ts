@@ -1,5 +1,5 @@
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isArticulacao, isCaput, isOmissis } from '../../dispositivo/tipo';
+import { isArticulacao, isCaput, isOmissis, isPena } from '../../dispositivo/tipo';
 import { getDispositivoAndFilhosAsLista } from '../hierarquia/hierarquiaUtil';
 import { isArtigo, isParagrafo } from './../../dispositivo/tipo';
 import { getArticulacao, isDispositivoAlteracao, irmaosMesmoTipo } from './../hierarquia/hierarquiaUtil';
@@ -17,7 +17,7 @@ export const buildHref = (dispositivo: Dispositivo): string | undefined => {
     /* eslint-disable prettier/prettier */
     return (
       dispositivo.tagId +
-      (isCaput(dispositivo)
+      (isCaput(dispositivo) || isPena(dispositivo)
         ? ''
         : isOmissis(dispositivo)
         ? calculaSequencialOmissis(dispositivo)

@@ -22,7 +22,7 @@ import { Elemento } from '../../src/model/elemento';
 import { createElemento } from '../../src/model/elemento/elementoUtil';
 import { RevisaoElemento } from '../../src/model/revisao/revisao';
 import { isRevisaoPrincipal } from '../../src/redux/elemento/util/revisaoUtil';
-import { buscaDispositivoById } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, getDispositivoAndFilhosAsLista } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { elementoReducer } from '../../src/redux/elemento/reducer/elementoReducer';
 import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
@@ -38,6 +38,8 @@ import { ATUALIZAR_TEXTO_ELEMENTO } from '../../src/model/lexml/acao/atualizarTe
 import { MOVER_ELEMENTO_ABAIXO } from '../../src/model/lexml/acao/moverElementoAbaixoAction';
 import { TAB } from '../../src/model/lexml/acao/tabAction';
 import { REJEITAR_REVISAO } from '../../src/model/lexml/acao/rejeitarRevisaoAction';
+import { alterarRotuloPenaAction } from '../../src/model/lexml/acao/penaAction';
+import { LEXML_COM_PENAS } from '../doc/pena/lexml-com-penas';
 import { adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction } from '../../src/model/lexml/acao/atualizarTituloDispositivoAction';
 
 describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
@@ -530,5 +532,61 @@ describe('Documento articulado — revisões da hierarquia pelo CLI real e XSD',
       const rejeitado = elementoReducer(reaberto, { type: REJEITAR_REVISAO });
       [...Object.values(INCISOS), ARTIGO].forEach(id => expect(titulo(rejeitado, id), id).to.equal(antes[id]));
     });
+  });
+});
+
+describe('Documento articulado — penas pelo CLI real e XSD', () => {
+  const URN = 'urn:lex:br:senado.federal:projeto.lei:2026;1';
+  type Resultado = { valido: boolean; xml: string; jsonix: any; erro?: string };
+
+  const penasDe = (s: State): { id?: string; rotulo?: string; texto?: string }[] =>
+    getDispositivoAndFilhosAsLista(s.articulacao!)
+      .filter(d => d.tipo === 'Pena')
+      .map(d => ({ id: d.id, rotulo: d.rotulo, texto: d.texto }));
+
+  const abre = (documento: unknown): State => {
+    const projetoNorma = buildProjetoNormaFromJsonix(documento, true);
+    return elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
+  };
+
+  it('as penas do caput, do parágrafo, do inciso e do bloco de alteração vão e voltam pelo CLI, idênticas', async () => {
+    const modelo = buildProjetoNormaFromJsonix(LEXML_COM_PENAS, true);
+    const salvo = criarDocumentoArticulado(modelo, URN);
+
+    const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    ['art1_cpt_pena', 'art1_par1_inc1_pena', 'art1_par1_pena', 'art2_cpt_alt1_art213_cpt_pena'].forEach(id => expect(retorno.xml).to.match(new RegExp(`<Pena[^>]* id="${id}"`)));
+    const reaberto = abre(lerDocumentoArticulado(retorno.jsonix));
+    expect(penasDe(reaberto)).to.deep.equal(penasDe(abre(salvo)));
+    expect(penasDe(reaberto)).to.have.length(4);
+    expect(criarDocumentoArticulado(reaberto.articulacao!.projetoNorma!, URN)).to.deep.equal(salvo);
+  });
+
+  // O jsonix-lexml 2.1.0 descarta, sem erro, a pena dentro de RevisaoArticulacao. O teste decide pela versão do CLI, não pelo
+  // resultado: a partir do 2.2.0 exige a ida e volta completa (uma regressão que volte a descartar a pena falha); abaixo, confirma o descarte.
+  it('a revisão da pena (rótulo alterado e pena excluída) é válida no XSD e depende do CLI 2.2.0 para voltar', async () => {
+    let s = abre(LEXML_COM_PENAS);
+    s = elementoReducer(s, { type: ATUALIZAR_USUARIO, usuario: { nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' } });
+    s = elementoReducer(s, { type: ATIVAR_DESATIVAR_REVISAO });
+    const pena = (id: string): Elemento => createElemento(buscaDispositivoById(s.articulacao!, id)!);
+    s = elementoReducer(s, alterarRotuloPenaAction.execute(pena('art1_cpt_pena'), 'Infração'));
+    s = elementoReducer(s, { type: REMOVER_ELEMENTO, atual: pena('art1_par1_inc1_pena') });
+    const salvo = criarDocumentoArticulado(s.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: montaRevisoesArticulacao(s)! });
+    const revisoesComPena = (doc: any): any[] => (doc.value.metadado.metadadoProprietario[0].any[0].value.revisoesArticulacao?.revisaoArticulacao ?? []).filter((r: any) => r.pena);
+    expect(revisoesComPena(salvo), 'o editor grava a pena em RevisaoArticulacao').to.have.length(2);
+
+    const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    const versao = await executeServerCommand<string, unknown>('versao-jsonix-lexml', null);
+    const [maior, menor] = (/\d+\.\d+\.\d+/.exec(versao)?.[0] ?? '0.0.0').split('.').map(Number);
+    if (maior > 2 || (maior === 2 && menor >= 2)) {
+      expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    } else {
+      expect(revisoesComPena(retorno.jsonix), `jsonix-lexml ${versao} deveria descartar a pena`).to.have.length(0);
+      // eslint-disable-next-line no-console
+      console.warn('jsonix-lexml anterior ao 2.2.0: a pena dentro de RevisaoArticulacao foi descartada (esperado até a atualização do CLI).');
+    }
   });
 });

@@ -93,6 +93,8 @@ export interface RevisaoArticulacaoLida {
   textoAnterior?: string;
   // Título anterior: ausente = o arquivo não informa (`p` solto); null = o dispositivo não tinha título.
   tituloAnterior?: string | null;
+  // Rótulo anterior da pena: ausente = igual ao atual.
+  rotuloAnterior?: string;
   // Dispositivo excluído (nó jsonix `{ name, value }`), quando a revisão é de exclusão.
   excluido?: { name: { namespaceURI: string; localPart: string }; value: any };
 }

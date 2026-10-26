@@ -125,6 +125,29 @@
         refIdUsuario="sf:fulano"
         data="2026-05-11T15:51:00-03:00"/>
 
+    <!-- Alteração de pena: o estado anterior é uma pena sem id; o Rotulo só aparece quando mudou -->
+    <lexedit:RevisaoArticulacao
+        refIdDispositivo="art1_cpt_pena"
+        revisao="alterado"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00">
+      <Pena>
+        <Rotulo>Pena –</Rotulo>
+        <p>reclusão, de seis a vinte anos.</p>
+      </Pena>
+    </lexedit:RevisaoArticulacao>
+
+    <!-- Exclusão de pena: a própria pena é o dispositivo excluído -->
+    <lexedit:RevisaoArticulacao
+        revisao="excluido"
+        refIdUsuario="sf:fulano"
+        data="2026-05-11T15:51:00-03:00">
+      <Pena id="_art2_cpt_pena-exc1">
+        <Rotulo>Infração –</Rotulo>
+        <p>multa.</p>
+      </Pena>
+    </lexedit:RevisaoArticulacao>
+
   </lexedit:RevisoesArticulacao>
   <lexedit:Usuarios>
     <lexedit:Usuario idUsuario='sf:fulano' nome='Fulano de Tal'/>

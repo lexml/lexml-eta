@@ -1,5 +1,5 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
-import { isArticulacao, isArtigo, isCaput } from '../../../dispositivo/tipo';
+import { isArticulacao, isArtigo, isCaput, isPena } from '../../../dispositivo/tipo';
 import { Elemento, Referencia } from '../../../elemento';
 import { getDispositivoFromElemento } from '../../../elemento/elementoUtil';
 import { RevisaoElemento } from '../../../revisao/revisao';
@@ -44,14 +44,18 @@ const montaRevisaoDeDispositivo = (state: State, revisao: RevisaoElemento): Revi
   const antes = revisao.elementoAntesRevisao;
   const tipo = revisao.elementoAposRevisao.tipo;
   if (tipo && antes?.conteudo?.texto !== undefined && getOperacoesRevisao(operacoes).some(o => o.nome === OPERACAO_ALTERADO)) {
-    resultado[lowerFirst(tipo)] = buildJsonixEstadoAnterior(tipo, antes.conteudo.texto, antes.tituloDispositivo);
+    // Rótulo ausente = igual ao atual.
+    const rotuloPena = isPena(dispositivo) && antes.rotulo && antes.rotulo !== dispositivo.rotulo ? antes.rotulo : undefined;
+    resultado[lowerFirst(tipo)] = buildJsonixEstadoAnterior(tipo, antes.conteudo.texto, antes.tituloDispositivo, rotuloPena);
   }
   return resultado;
 };
 
-// Inciso de artigo mora no caput; as demais combinações usam o próprio pai.
+// Inciso e pena de artigo moram no caput; as demais combinações usam o próprio pai.
 export const getDestinoDeCriacao = (pai: Dispositivo, elemento: Partial<Elemento>): Dispositivo =>
-  isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.tipo || elemento.tipoOmissis === 'inciso-caput') ? (pai as Artigo).caput! : pai;
+  isArtigo(pai) && (elemento.tipo === TipoDispositivo.inciso.tipo || elemento.tipo === TipoDispositivo.pena.tipo || elemento.tipoOmissis === 'inciso-caput')
+    ? (pai as Artigo).caput!
+    : pai;
 
 // Reproduz, numa articulação temporária, a cadeia de ancestrais do pai real (até a articulação raiz ou de alteração).
 export const criaHospedeiro = (temporaria: Articulacao, pai: Dispositivo): Dispositivo => {
