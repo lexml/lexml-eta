@@ -202,7 +202,7 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `urlComissoes` | `string?` | — | Endpoint (GET `?siglaCasaLegislativa=`) de comissões. Se ausente, a lista de comissões fica vazia. |
 | `anexoParecer` | `boolean` | `false` | Modo "anexo de parecer": oculta as abas de justificação e de notas de rodapé, e a justificação não é exigida. Destino, data, autoria e impressão seguem disponíveis, e o fecho e as assinaturas são salvos como no modo normal. |
 | `tamanhoMaximoAnexo` | `number?` | — | Tamanho máximo de um anexo, em KB. Sem valor (ou não positivo), o tamanho não é limitado. Veja a seção 5.1. |
-| `tiposAnexos` | `{ codigo: string; nome: string }[]?` | — | Tipos oferecidos para um anexo; "Outro" (`outro`) é sempre acrescentado. Veja a seção 5.1. |
+| `tiposAnexos` | `{ codigo: string; nome: string }[]?` | — | Tipos que o campo de tipo do anexo aceita; "Não informado" (`nao.informado`) é sempre acrescentado. O campo está oculto por enquanto. Veja a seção 5.1. |
 | `onUploadAnexo`, `onDeleteAnexo`, `onObterAnexoBlob`, `onVisualizarAnexo` | funções? | — | Callbacks com os quais o host armazena e entrega os arquivos anexados. Veja a seção 5.1. |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
 
@@ -230,7 +230,7 @@ A lista é filtrada pela casa legislativa corrente (`CN` aceita ambas). Erros de
 
 ### 5.1 Anexos da proposição
 
-A aba "Anexos", antes de "Avisos" (também no modo `anexoParecer`), permite importar, visualizar, baixar, reordenar, renomear, mudar o tipo e excluir anexos em PDF ou DOCX. O editor **não guarda o conteúdo dos arquivos**: o host os armazena e o editor só registra os metadados (`idArquivo`, `nomeArquivo`, `nomeDocumento`, `tipo`, `mimeType`), na ordem de exibição. Os metadados vão no documento articulado (`getDocumentoArticulado()`) e são lidos por `abrirDocumentoArticulado()`; o host **não informa a lista de anexos**.
+A aba "Anexos", antes de "Avisos" (também no modo `anexoParecer`), permite importar, visualizar, baixar, reordenar, renomear e excluir anexos em PDF ou DOCX. O editor **não guarda o conteúdo dos arquivos**: o host os armazena e o editor só registra os metadados (`idArquivo`, `nomeArquivo`, `nomeDocumento`, `tipo`, `mimeType`), na ordem de exibição. Os metadados vão no documento articulado (`getDocumentoArticulado()`) e são lidos por `abrirDocumentoArticulado()`; o host **não informa a lista de anexos**.
 
 | Callback | Assinatura | Quando é chamado |
 |---|---|---|
@@ -243,7 +243,7 @@ Sem o callback correspondente, a operação mostra um aviso de erro e a lista n�
 
 `onDeleteAnexo` é um **aviso de exclusão**, não uma ordem de apagar: ele é chamado na hora, antes de o documento ser salvo, e cabe ao host decidir se e quando remove o conteúdo. O documento salvo antes da exclusão ainda referencia o anexo, então o host pode, por exemplo, adiar a remoção física até o salvamento.
 
-`tiposAnexos` define as opções de tipo (entradas sem código ou nome, ou com código repetido, são ignoradas). Um anexo cujo tipo não está na lista é exibido e gravado como `outro`, então mantenha a lista estável entre as edições. `tamanhoMaximoAnexo` só vale quando tem valor; um arquivo maior é recusado antes do upload, com um aviso que informa o limite.
+`tiposAnexos` define os códigos que o campo de tipo aceita (entradas sem código ou nome, ou com código repetido, são ignoradas). **O campo de tipo está oculto por enquanto**: todo anexo adicionado recebe o tipo fixo `nao.informado`. Um anexo cujo tipo não está na lista (host + `nao.informado`) é exibido e gravado como `nao.informado`, então mantenha a lista estável entre as edições. `tamanhoMaximoAnexo` só vale quando tem valor; um arquivo maior é recusado antes do upload, com um aviso que informa o limite.
 
 ```ts
 editor.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), {
@@ -263,7 +263,7 @@ Todos são `CustomEvent` com `bubbles: true` e `composed: true`, emitidos no pr�
 |---|---|---|
 | `onrevisao` | `{ emRevisao: boolean }` | O usuário ativa ou desativa o modo de marcas de revisão. |
 | `fatalError` | `{ err: any }` | `inicializarEdicao` falhou. |
-| `onchange` | `{ origemEvento: 'anexo' }` | O usuário importa, exclui, reordena ou altera o tipo ou o nome de um anexo. Alterar a lista ao abrir um arquivo não emite o evento. Outros formulários emitem `onchange` com outra `origemEvento`. |
+| `onchange` | `{ origemEvento: 'anexo' }` | O usuário importa, exclui, reordena ou altera o nome de um anexo. Alterar a lista ao abrir um arquivo não emite o evento. Outros formulários emitem `onchange` com outra `origemEvento`. |
 
 ## 7. Utilitários de arquivo
 
@@ -314,7 +314,7 @@ interface Anexo {
   idArquivo: string;     // devolvido pelo host no upload; único elo para recuperar o conteúdo
   nomeArquivo: string;   // nome do arquivo original, com extensão
   nomeDocumento: string; // nome exibido; por padrão, o nome do arquivo sem extensão
-  tipo: string;          // código do tipo (`outro` quando não há tipo específico)
+  tipo: string;          // código do tipo (`nao.informado` em todo anexo adicionado, por enquanto)
   mimeType: MimeType;    // 'application/pdf' ou o tipo MIME do DOCX
 }
 
