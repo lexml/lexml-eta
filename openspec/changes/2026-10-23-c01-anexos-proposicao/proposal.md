@@ -6,10 +6,10 @@ O editor só tem hoje um anexo simples: um botão no editor que aceita **um** PD
 
 ## What Changes
 
-- Nova aba **"Anexos"**, antes da aba "Avisos", com a lista de anexos (tipo, nome do documento, visualizar, baixar, mover para cima/baixo, excluir), um botão "Importar anexo" e o contador de anexos no rótulo. A aba também aparece no modo `anexoParecer`.
-- Importação de **PDF e DOCX**, com escolha do tipo e do nome do documento; visualização apenas de PDF.
+- Nova aba **"Anexos"**, antes da aba "Avisos", com a lista de anexos (nome do documento, visualizar, baixar, mover para cima/baixo, excluir), um botão "Importar anexo" e o contador de anexos no rótulo. A aba também aparece no modo `anexoParecer`.
+- Importação de **PDF e DOCX**, com escolha do nome do documento; visualização apenas de PDF.
 - Integração com o host por **callbacks** na `LexmlEtaConfig`, como no `lexml-parecer`: upload (devolve o `idArquivo`), exclusão, obtenção do conteúdo e visualização; falha do host mostra um aviso e mantém o estado anterior.
-- Lista de **tipos de anexo** informada pelo host, com "Outro" sempre disponível.
+- **Tipo fixo `nao.informado`** em todo anexo adicionado; o campo de tipo (e a lista de tipos do host, `tiposAnexos`) permanece no componente, mas oculto na interface.
 - **Tamanho máximo do arquivo opcional**, configurável pelo host: só vale quando tem valor; sem valor (padrão), não há limite.
 - Os anexos são gravados no documento articulado em `lexedit:Anexos` (`DadosLexEdit`, montador e leitor tolerante), **somente os metadados** (`idArquivo`, `nomeArquivo`, `nomeDocumento`, `tipo`, `mimeType`) e na ordem de exibição. O conteúdo fica com o host, recuperado pelo `idArquivo`. Sem anexos, o grupo é omitido. A lista vem do arquivo aberto: o host não informa a lista.
 - **BREAKING**: o anexo atual é removido por completo (botão do editor, diálogo de PDF único, modelo `Anexo` com `base64`). `Proposicao.anexos` passa a usar o novo modelo, sem `base64`, e `tamanhoMaximoAnexo` deixa de ter 5 MB por padrão. Nenhuma aplicação usa o componente ainda, portanto não há migração.

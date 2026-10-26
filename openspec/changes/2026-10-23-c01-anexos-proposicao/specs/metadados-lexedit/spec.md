@@ -4,7 +4,7 @@
 O sistema SHALL gravar o grupo `Anexos` em `lexedit:Metadado` somente quando houver ao menos um anexo, com um `lexedit:Anexo` por anexo, na ordem de exibição, e os atributos `idArquivo`, `nomeArquivo`, `nomeDocumento`, `tipo` e `mimeType`. O conteúdo do arquivo anexado SHALL NOT ser gravado. Sem anexos, o grupo SHALL ser omitido, e o grupo SHALL NOT gerar pendência. O sistema SHALL gravar o grupo também no modo anexo de parecer.
 
 #### Scenario: Documento com dois anexos
-- **WHEN** o usuário salva um documento com dois anexos, o primeiro DOCX do tipo `substitutivo` e o segundo PDF do tipo `outro`
+- **WHEN** o usuário salva um documento com dois anexos, o primeiro DOCX do tipo `substitutivo` e o segundo PDF do tipo `nao.informado`
 - **THEN** o arquivo contém `lexedit:Anexos` com dois `lexedit:Anexo`, na mesma ordem, cada um com os cinco atributos
 
 #### Scenario: Conteúdo não é gravado
@@ -28,7 +28,7 @@ O sistema SHALL gravar o grupo `Anexos` em `lexedit:Metadado` somente quando hou
 - **THEN** o arquivo contém um único `MetadadoProprietario` com todos os grupos, e o conteúdo de cada um não é alterado pelos outros
 
 ### Requirement: Leitura tolerante dos anexos
-Ao abrir um documento, o sistema SHALL recuperar do grupo `Anexos` os anexos válidos, na ordem do arquivo, descartando o `Anexo` sem `idArquivo` ou sem `nomeArquivo` textuais não vazios, ou com `mimeType` diferente de PDF e DOCX, sem impedir a leitura dos demais anexos nem dos demais grupos. `nomeDocumento` ausente SHALL assumir o nome do arquivo sem extensão, e `tipo` ausente ou vazio SHALL assumir `outro`.
+Ao abrir um documento, o sistema SHALL recuperar do grupo `Anexos` os anexos válidos, na ordem do arquivo, descartando o `Anexo` sem `idArquivo` ou sem `nomeArquivo` textuais não vazios, ou com `mimeType` diferente de PDF e DOCX, sem impedir a leitura dos demais anexos nem dos demais grupos. `nomeDocumento` ausente SHALL assumir o nome do arquivo sem extensão, e `tipo` ausente ou vazio SHALL assumir `nao.informado`.
 
 #### Scenario: Arquivo com anexos válidos e inválidos
 - **WHEN** o usuário abre um arquivo cujo `Anexos` tem um anexo válido, um sem `idArquivo` e um com `mimeType` `image/png`
@@ -36,7 +36,7 @@ Ao abrir um documento, o sistema SHALL recuperar do grupo `Anexos` os anexos vá
 
 #### Scenario: Atributos opcionais ausentes
 - **WHEN** o usuário abre um arquivo com um anexo `parecer.pdf` sem `nomeDocumento` e sem `tipo`
-- **THEN** a aba mostra o nome do documento `parecer` e o tipo "Outro"
+- **THEN** a aba mostra o nome do documento `parecer` e o anexo tem o tipo `nao.informado`
 
 #### Scenario: Um único anexo
 - **WHEN** o usuário abre um arquivo cujo `Anexos` tem um único `Anexo`, entregue pelo conversor como objeto em vez de lista

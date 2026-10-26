@@ -38,12 +38,18 @@
 ## 6. Demo e teste E2E (Cypress)
 
 - [x] 6.1 Implementar no `demoview.ts` os callbacks com um `Map<idArquivo, Blob>` em memória e uma lista de tipos de exemplo, para a aba funcionar na demo
-- [x] 6.2 Avaliar a viabilidade do E2E à luz de `docs/guia-cypress.md` e do padrão de `abertura-outros-metadados.cy.ts`: importar PDF e DOCX com `cy.selectFile` no `input type=file` do diálogo (light DOM do `sl-dialog`), reordenar, excluir, salvar capturando o blob de `URL.createObjectURL` e reabrir pelo `#fileUpload`. Gerar o fixture `demo/doc/teste_anexos.json` por `criarDocumentoArticulado`. Se algum passo não for viável, registrar a decisão e manter a cobertura nos testes de componente (grupos 4 e 5), que exercitam o mesmo risco. **Decisão:** viável e executado. O `input type=file` do diálogo é light DOM, então `cy.selectFile` com `force` funciona; o tipo é escolhido pelo clique real no `sl-select` e no `sl-menu-item`. O E2E importa só PDF (o DOCX fica nos testes de componente, onde o `mimeType` é conferido). O fixture `demo/doc/teste_anexos.json` foi derivado de `teste_outros_metadados.json` por script, no formato que o montador grava (mesmo precedente de `abertura-outros-metadados.cy.ts`), e não chamando `criarDocumentoArticulado` diretamente; a ida e volta do formato já é coberta pela integração com o conversor real
+- [x] 6.2 Avaliar a viabilidade do E2E à luz de `docs/guia-cypress.md` e do padrão de `abertura-outros-metadados.cy.ts`: importar PDF e DOCX com `cy.selectFile` no `input type=file` do diálogo (light DOM do `sl-dialog`), reordenar, excluir, salvar capturando o blob de `URL.createObjectURL` e reabrir pelo `#fileUpload`. Gerar o fixture `demo/doc/teste_anexos.json` por `criarDocumentoArticulado`. Se algum passo não for viável, registrar a decisão e manter a cobertura nos testes de componente (grupos 4 e 5), que exercitam o mesmo risco. **Decisão:** viável e executado. O `input type=file` do diálogo é light DOM, então `cy.selectFile` com `force` funciona; o tipo era escolhido pelo clique real no `sl-select` e no `sl-menu-item` (removido no grupo 7, quando o tipo passou a ser fixo). O E2E importa só PDF (o DOCX fica nos testes de componente, onde o `mimeType` é conferido). O fixture `demo/doc/teste_anexos.json` foi derivado de `teste_outros_metadados.json` por script, no formato que o montador grava (mesmo precedente de `abertura-outros-metadados.cy.ts`), e não chamando `criarDocumentoArticulado` diretamente; a ida e volta do formato já é coberta pela integração com o conversor real
 - [x] 6.3 Escrever e executar `cypress/e2e/documento-articulado/anexos-proposicao.cy.ts`, cobrindo abrir um arquivo com anexos (ordem e tipos), importar, reordenar, excluir, salvar e reabrir
 
-## 7. Verificação final
+## 7. Ajuste: tipo fixo `nao.informado`
 
-- [ ] 7.1 Rodar a suíte completa (`npm test`), o lint (`npm run lint`) e `openspec validate 2026-10-23-c01-anexos-proposicao`, e conferir que nenhuma referência ao anexo antigo (`uploadAnexoDialog`, `base64` em anexo, `panel-anexo`) permanece (`grep`)
+- [x] 7.1 Trocar `TIPO_ANEXO_OUTRO` (`outro`) por `TIPO_ANEXO_NAO_INFORMADO` (`nao.informado`, "Não informado") em `tipoAnexo.ts`, no montador e no leitor; o `sl-select` passa a aceitar o valor porque `normalizarTiposAnexos` o inclui. Verificar com os testes unitários do modelo, do montador e do leitor
+- [x] 7.2 No componente, atribuir `nao.informado` a todo anexo adicionado, ocultar os campos de tipo (lista e diálogo, `display: none`), não exigir tipo para confirmar e deixar a linha com uma coluna. Verificar com os testes de componente (campo oculto, tipo fixo na importação, confirmar sem tipo, select que aceita o valor)
+- [x] 7.3 Atualizar a integração com o conversor real, o fixture `demo/doc/teste_anexos.json`, o E2E, `05-anexos.md`, os exemplos, a API e os artefatos da change (proposta, specs e design). Verificar com `npm run test:documento-articulado:xml` (26 passando) e o spec Cypress (6 passando)
+
+## 8. Verificação final
+
+- [ ] 8.1 Rodar a suíte completa (`npm test`), o lint (`npm run lint`) e `openspec validate 2026-10-23-c01-anexos-proposicao`, e conferir que nenhuma referência ao anexo antigo (`uploadAnexoDialog`, `base64` em anexo, `panel-anexo`) permanece (`grep`)
 
 ## Workflow follow-up
 

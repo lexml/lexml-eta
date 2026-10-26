@@ -1,6 +1,6 @@
 ## Purpose
 
-Definir o gerenciamento dos anexos da proposição na interface do editor: aba própria, importação de arquivos, tipos, ordem, visualização, limite opcional de tamanho e integração com o host, que armazena os arquivos.
+Definir o gerenciamento dos anexos da proposição na interface do editor: aba própria, importação de arquivos, tipo fixo, ordem, visualização, limite opcional de tamanho e integração com o host, que armazena os arquivos.
 
 ## ADDED Requirements
 
@@ -24,11 +24,11 @@ O sistema SHALL exibir a aba "Anexos" imediatamente antes da aba "Avisos", com o
 - **THEN** a barra de ferramentas do texto não tem o botão de anexo
 
 ### Requirement: Lista de anexos na ordem do documento
-A aba SHALL exibir os anexos na ordem em que estão no documento, e cada anexo SHALL mostrar o tipo, o nome do documento, o nome do arquivo e as ações de visualizar, baixar, mover para cima, mover para baixo e excluir. Sem anexos, a aba SHALL mostrar somente o botão "Importar anexo" e uma indicação de lista vazia.
+A aba SHALL exibir os anexos na ordem em que estão no documento, e cada anexo SHALL mostrar o nome do documento, o nome do arquivo e as ações de visualizar, baixar, mover para cima, mover para baixo e excluir. Sem anexos, a aba SHALL mostrar somente o botão "Importar anexo" e uma indicação de lista vazia.
 
 #### Scenario: Lista com dois anexos
 - **WHEN** o documento tem dois anexos
-- **THEN** a aba exibe os dois, na ordem do documento, cada um com tipo, nome e as cinco ações
+- **THEN** a aba exibe os dois, na ordem do documento, cada um com nome e as cinco ações
 
 #### Scenario: Lista vazia
 - **WHEN** o documento não tem anexos
@@ -39,11 +39,11 @@ A aba SHALL exibir os anexos na ordem em que estão no documento, e cada anexo S
 - **THEN** "mover para cima" do primeiro e "mover para baixo" do último estão desabilitados
 
 ### Requirement: Importação de anexos em PDF e DOCX
-O usuário SHALL poder importar um anexo escolhendo um arquivo PDF ou DOCX e informando o tipo; o nome do documento SHALL ser preenchido com o nome do arquivo sem extensão e SHALL poder ser alterado. O sistema SHALL recusar arquivo de outro formato com um aviso, sem alterar a lista. O anexo importado SHALL ser incluído no fim da lista.
+O usuário SHALL poder importar um anexo escolhendo um arquivo PDF ou DOCX, sem informar o tipo; o nome do documento SHALL ser preenchido com o nome do arquivo sem extensão e SHALL poder ser alterado. O sistema SHALL recusar arquivo de outro formato com um aviso, sem alterar a lista. O anexo importado SHALL ser incluído no fim da lista.
 
 #### Scenario: Importar um PDF
-- **WHEN** o usuário importa `parecer.pdf`, escolhe o tipo e confirma
-- **THEN** a lista ganha, no fim, um anexo com nome do arquivo `parecer.pdf`, nome do documento `parecer` e tipo de PDF
+- **WHEN** o usuário importa `parecer.pdf` e confirma
+- **THEN** a lista ganha, no fim, um anexo com nome do arquivo `parecer.pdf`, nome do documento `parecer`, tipo MIME de PDF e tipo `nao.informado`
 
 #### Scenario: Importar um DOCX
 - **WHEN** o usuário importa `emenda.docx` e confirma
@@ -53,9 +53,9 @@ O usuário SHALL poder importar um anexo escolhendo um arquivo PDF ou DOCX e inf
 - **WHEN** o usuário escolhe um arquivo `.xlsx`
 - **THEN** o sistema mostra o aviso de que só PDF e DOCX são aceitos, e a lista não muda
 
-#### Scenario: Tipo obrigatório
-- **WHEN** o usuário escolheu o arquivo e não escolheu o tipo
-- **THEN** o botão de confirmar permanece desabilitado
+#### Scenario: Confirmar sem escolher tipo
+- **WHEN** o usuário escolheu um arquivo PDF ou DOCX válido
+- **THEN** o botão de confirmar está habilitado, sem que o tipo seja solicitado
 
 ### Requirement: Nome de arquivo único na lista
 O sistema SHALL NOT manter dois anexos com o mesmo nome de arquivo, sem diferenciar maiúsculas de minúsculas: ao importar um arquivo cujo nome já existe, SHALL acrescentar ` (n)` ao nome, antes da extensão, com o menor `n` livre.
@@ -64,8 +64,8 @@ O sistema SHALL NOT manter dois anexos com o mesmo nome de arquivo, sem diferenc
 - **WHEN** a lista já tem `parecer.pdf` e o usuário importa outro arquivo `Parecer.pdf`
 - **THEN** o novo anexo tem o nome de arquivo `Parecer (1).pdf`
 
-### Requirement: Edição do tipo e do nome do documento
-O usuário SHALL poder alterar o tipo e o nome do documento de cada anexo na lista. O nome do arquivo SHALL NOT ser editável. Nome do documento vazio SHALL ser substituído pelo nome do arquivo sem extensão.
+### Requirement: Edição do nome do documento
+O usuário SHALL poder alterar o nome do documento de cada anexo na lista. O nome do arquivo SHALL NOT ser editável. Nome do documento vazio SHALL ser substituído pelo nome do arquivo sem extensão.
 
 #### Scenario: Alterar o nome do documento
 - **WHEN** o usuário altera o nome do documento de um anexo para "Parecer da CCJ"
@@ -75,20 +75,28 @@ O usuário SHALL poder alterar o tipo e o nome do documento de cada anexo na lis
 - **WHEN** o usuário apaga o nome do documento de `parecer.pdf`
 - **THEN** o nome do documento volta a ser `parecer`
 
-### Requirement: Tipos de anexo informados pelo host
-O sistema SHALL oferecer como tipos de anexo a lista informada pelo host (código e nome) mais o tipo "Outro" (código `outro`), sempre disponível e sem repetição. Entradas sem código ou nome, ou com código repetido, SHALL ser ignoradas. Um anexo cujo tipo não está na lista SHALL ser exibido com o tipo "Outro" e SHALL ser gravado com o código `outro`.
+### Requirement: Tipo fixo do anexo
+Todo anexo adicionado SHALL receber o tipo fixo `nao.informado`, e o campo de tipo SHALL permanecer no componente, mas não exibido. Os códigos aceitos pelo campo SHALL ser os da lista informada pelo host (código e nome; entradas sem código ou nome, ou com código repetido, ignoradas) mais `nao.informado`, sempre aceito. Um anexo cujo tipo não está entre esses códigos SHALL ser tratado e gravado como `nao.informado`.
 
-#### Scenario: Host sem tipos
+#### Scenario: Anexo adicionado
+- **WHEN** o usuário importa um anexo
+- **THEN** o anexo tem o tipo `nao.informado`
+
+#### Scenario: Campo de tipo não exibido
+- **WHEN** a aba exibe anexos e o diálogo de importação está aberto
+- **THEN** nenhum campo de tipo está visível
+
+#### Scenario: Campo aceita o valor fixo
 - **WHEN** o host não informa tipos
-- **THEN** o único tipo oferecido é "Outro"
+- **THEN** o campo de tipo de cada anexo aceita `nao.informado` como valor, e é o único código oferecido
 
 #### Scenario: Host com tipos
 - **WHEN** o host informa os tipos `substitutivo` e `emenda`
-- **THEN** são oferecidos "Substitutivo", "Emenda" e "Outro"
+- **THEN** o campo aceita `substitutivo`, `emenda` e `nao.informado`, e um anexo de tipo `emenda` mantém o tipo
 
 #### Scenario: Tipo desconhecido no arquivo
 - **WHEN** o usuário abre um arquivo com um anexo de tipo `parecer` que o host não informou
-- **THEN** o anexo é exibido com o tipo "Outro"
+- **THEN** o anexo é tratado e gravado como `nao.informado`
 
 ### Requirement: Reordenação dos anexos
 O usuário SHALL poder mover cada anexo uma posição para cima ou para baixo, e a nova ordem SHALL ser a ordem gravada no documento.
@@ -181,7 +189,7 @@ Ao abrir um documento articulado, o sistema SHALL exibir na aba somente os anexo
 - **THEN** a aba não lista nenhum anexo
 
 ### Requirement: Notificação de alteração dos anexos
-O sistema SHALL emitir o evento `onchange`, com `origemEvento` igual a `anexo`, quando o usuário importar, excluir, reordenar ou alterar o tipo ou o nome do documento de um anexo.
+O sistema SHALL emitir o evento `onchange`, com `origemEvento` igual a `anexo`, quando o usuário importar, excluir, reordenar ou alterar o nome do documento de um anexo.
 
 #### Scenario: Importar anexo
 - **WHEN** o usuário conclui a importação de um anexo
