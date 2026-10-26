@@ -46,7 +46,10 @@ describe('ETA — pena no editor', () => {
     await editor.aguardarCarregamentoDasLinhas();
   });
 
-  afterEach(() => document.body.querySelectorAll('sl-dialog').forEach(d => d.remove()));
+  // O diálogo da pena é anexado direto ao body; o do componente de anexos fica dentro do lexml-eta.
+  const dialogoDaPena = (): any => document.body.querySelector(':scope > sl-dialog');
+
+  afterEach(() => document.body.querySelectorAll(':scope > sl-dialog').forEach(d => d.remove()));
 
   it('exibe a pena do caput em linha própria, depois do artigo e antes do parágrafo', () => {
     const tipos = tiposDasLinhas(component);
@@ -84,13 +87,13 @@ describe('ETA — pena no editor', () => {
   it('clicar no rótulo da pena abre o modal de rótulo; no de outro dispositivo, não', async () => {
     (component.querySelector('.texto__rotulo--pena') as HTMLElement).click();
     await aguarda();
-    const dialog = document.body.querySelector('sl-dialog') as any;
+    const dialog = dialogoDaPena();
     expect(!!dialog && dialog.label === 'Alterar rótulo').to.be.true;
     dialog.remove();
 
     (component.querySelector('.texto__rotulo--paragrafo') as HTMLElement).click();
     await aguarda();
-    expect(!!document.body.querySelector('sl-dialog')).to.be.false;
+    expect(!!dialogoDaPena()).to.be.false;
   });
 
   it('o menu da linha da pena não oferece mover, transformar nem renumerar', () => {
