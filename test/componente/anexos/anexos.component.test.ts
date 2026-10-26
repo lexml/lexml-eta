@@ -567,6 +567,14 @@ describe('lexml-eta-anexos — exclusão, visualização e download', () => {
       expect(botao(item, 'btn-baixar').disabled).to.be.false;
     });
 
+    it('a dica do botão de visualizar explica que só PDF é visualizável', async () => {
+      const { el } = await montar([anexo('a', 'A.pdf'), anexo('b', 'B.docx')]);
+
+      const [pdf, docx] = linhas(el);
+      expect(botao(pdf, 'btn-visualizar').getAttribute('title')).to.equal('Visualizar');
+      expect(botao(docx, 'btn-visualizar').getAttribute('title')).to.equal('Visualização disponível apenas para PDF');
+    });
+
     it('clique na visualização de um DOCX não chama o host', async () => {
       let chamadas = 0;
       const { el } = await montar(

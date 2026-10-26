@@ -336,7 +336,7 @@ export class AnexosComponent extends LitElement {
             <sl-button
               class="btn-visualizar"
               size="small"
-              title="Visualizar"
+              title=${anexo.mimeType === MimeType.PDF ? 'Visualizar' : 'Visualização disponível apenas para PDF'}
               aria-label="Visualizar"
               .disabled=${anexo.mimeType !== MimeType.PDF}
               @click=${(): Promise<void> => this.visualizar(indice)}
