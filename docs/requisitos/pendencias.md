@@ -2,18 +2,10 @@
 
 ## Anotações
 
-- Registrar modelos de preâmbulo no vocabulário e associar aos tipos de documento
 - Fecho:
   - PL: Local "Sala das Sessões"
   - "Sala da comissão" em substitutivo de comissão (?)
   - MPV: Brasília, 25 de setembro de 2026; 205º da Independência e 138º da República
-- Verificar necessidade do complemento da epígrafe
-  - Exemplo:
-    PROJETO DE LEI DE CONVERSÃO Nº 10, DE 2026
-    (Medida Provisória nº 1.366, de 2026)
-
-- Adicionar ao tipo do documento no vocabulário: tipoRelacaoSubsitutivo ('aceita substitutivo', 'não aceita substitutivo', 'é substitutivo' ou 'é subemenda substitutiva')
-- Adicionar flag booleano 'ativo' (default true) ao tipo do documento no vocabulário. Tipos inativos (ex: PLS, PLC...) só são oferecidos para referenciar. Apenas uma entrada por sigla+autoridade deve estar ativa.
 - [backlog] Permitir parametrizar complemento do vocabulário
 
 ## Implementação lexml-eta e eta-backend-services
