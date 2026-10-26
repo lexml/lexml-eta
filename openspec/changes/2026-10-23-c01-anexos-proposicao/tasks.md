@@ -37,9 +37,9 @@
 
 ## 6. Demo e teste E2E (Cypress)
 
-- [ ] 6.1 Implementar no `demoview.ts` os callbacks com um `Map<idArquivo, Blob>` em memória e uma lista de tipos de exemplo, para a aba funcionar na demo
-- [ ] 6.2 Avaliar a viabilidade do E2E à luz de `docs/guia-cypress.md` e do padrão de `abertura-outros-metadados.cy.ts`: importar PDF e DOCX com `cy.selectFile` no `input type=file` do diálogo (light DOM do `sl-dialog`), reordenar, excluir, salvar capturando o blob de `URL.createObjectURL` e reabrir pelo `#fileUpload`. Gerar o fixture `demo/doc/teste_anexos.json` por `criarDocumentoArticulado`. Se algum passo não for viável, registrar a decisão e manter a cobertura nos testes de componente (grupos 4 e 5), que exercitam o mesmo risco
-- [ ] 6.3 Escrever e executar `cypress/e2e/documento-articulado/anexos-proposicao.cy.ts`, cobrindo abrir um arquivo com anexos (ordem e tipos), importar, reordenar, excluir, salvar e reabrir
+- [x] 6.1 Implementar no `demoview.ts` os callbacks com um `Map<idArquivo, Blob>` em memória e uma lista de tipos de exemplo, para a aba funcionar na demo
+- [x] 6.2 Avaliar a viabilidade do E2E à luz de `docs/guia-cypress.md` e do padrão de `abertura-outros-metadados.cy.ts`: importar PDF e DOCX com `cy.selectFile` no `input type=file` do diálogo (light DOM do `sl-dialog`), reordenar, excluir, salvar capturando o blob de `URL.createObjectURL` e reabrir pelo `#fileUpload`. Gerar o fixture `demo/doc/teste_anexos.json` por `criarDocumentoArticulado`. Se algum passo não for viável, registrar a decisão e manter a cobertura nos testes de componente (grupos 4 e 5), que exercitam o mesmo risco. **Decisão:** viável e executado. O `input type=file` do diálogo é light DOM, então `cy.selectFile` com `force` funciona; o tipo é escolhido pelo clique real no `sl-select` e no `sl-menu-item`. O E2E importa só PDF (o DOCX fica nos testes de componente, onde o `mimeType` é conferido). O fixture `demo/doc/teste_anexos.json` foi derivado de `teste_outros_metadados.json` por script, no formato que o montador grava (mesmo precedente de `abertura-outros-metadados.cy.ts`), e não chamando `criarDocumentoArticulado` diretamente; a ida e volta do formato já é coberta pela integração com o conversor real
+- [x] 6.3 Escrever e executar `cypress/e2e/documento-articulado/anexos-proposicao.cy.ts`, cobrindo abrir um arquivo com anexos (ordem e tipos), importar, reordenar, excluir, salvar e reabrir
 
 ## 7. Verificação final
 
