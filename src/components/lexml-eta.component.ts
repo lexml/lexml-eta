@@ -41,11 +41,12 @@ import { Comissao } from './destino/comissao';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
+import { AnexosComponent } from './anexos/anexos.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { isHtmlSemTexto } from '../util/string-util';
 import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
-import { Autoria, ColegiadoApreciador, Epigrafe, getRefProposicaoReduzida, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
+import { Anexo, Autoria, ColegiadoApreciador, Epigrafe, getRefProposicaoReduzida, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
 import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
@@ -130,6 +131,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @state()
   private anexoParecer = false;
 
+  @state()
+  private totalAnexos = 0;
+
   // Para forçar atualização da interface
   @state()
   private updateState: any;
@@ -152,6 +156,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   _lexmlData;
   @query('lexml-eta-opcoes-impressao')
   _lexmlOpcoesImpressao;
+  @query('lexml-eta-anexos')
+  _lexmlAnexos?: AnexosComponent;
   @query('#tabs-esquerda')
   _tabsEsquerda;
   @query('#tabs-direita')
@@ -246,6 +252,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       ...(this.anexoParecer ? {} : { colegiadoApreciador: this._lexmlDestino!.colegiadoApreciador }),
       opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao,
       outrosMetadados: this.outrosMetadados,
+      anexos: this._lexmlAnexos?.anexos,
     });
   }
 
@@ -271,6 +278,16 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.localDoArquivo = dados.local;
     this.destinoAoAbrir = { ...this._lexmlDestino!.colegiadoApreciador };
     this.outrosMetadados = dados.outrosMetadados ?? {};
+    this.aplicarAnexos(dados.anexos);
+  }
+
+  private aplicarAnexos(anexos: Anexo[] = []): void {
+    this._lexmlAnexos!.anexos = anexos;
+    this.atualizarTotalAnexos();
+  }
+
+  private atualizarTotalAnexos(): void {
+    this.totalAnexos = this._lexmlAnexos?.anexos.length ?? 0;
   }
 
   getProposicao(): Proposicao {
@@ -299,7 +316,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     proposicao.epigrafe = this.getEpigrafe(this.projetoNorma);
 
     proposicao.colegiadoApreciador = this._lexmlDestino!.colegiadoApreciador;
-    proposicao.anexos = this._lexmlEta!.getAnexos();
+    proposicao.anexos = this._lexmlAnexos?.anexos ?? [];
     proposicao.substitutivo = this.substitutivo;
     if (proposicao.colegiadoApreciador) proposicao.local = this.montarLocalFromColegiadoApreciador(proposicao.colegiadoApreciador);
 
@@ -522,7 +539,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this._lexmlJustificativa.setContent(proposicao.justificativa || '', proposicao.notasRodape || []);
     this._lexmlData.data = proposicao.dataUltimaModificacao;
     this._lexmlEta!.setRevisoes(proposicao.revisoes);
-    this._lexmlEta!.atualizaAnexos(proposicao.anexos || []);
+    this.aplicarAnexos(proposicao.anexos);
   }
 
   private resetaProposicao(params: LexmlEtaParametrosEdicao): void {
@@ -937,6 +954,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
             <sl-tab slot="nav" panel="lexml-eta-proposicao">Texto</sl-tab>
             ${!this.anexoParecer ? html`<sl-tab slot="nav" panel="justificativa">Justificação</sl-tab>` : ''}
             <sl-tab slot="nav" panel="autoria">Destino, Data, Autoria e Impressão</sl-tab>
+            <sl-tab slot="nav" panel="anexos">Anexos${this.totalAnexos > 0 ? ` (${this.totalAnexos})` : ''}</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
@@ -964,6 +982,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
                 </div>
                 <lexml-eta-opcoes-impressao></lexml-eta-opcoes-impressao>
               </div>
+            </sl-tab-panel>
+            <sl-tab-panel name="anexos" class="overflow-hidden">
+              <lexml-eta-anexos .lexmlEtaConfig=${this.lexmlEtaConfig} @onchange=${this.atualizarTotalAnexos}></lexml-eta-anexos>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
               <lexml-eta-alertas></lexml-eta-alertas>

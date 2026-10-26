@@ -160,13 +160,13 @@ Campos preenchidos: `projetoNorma`, `justificativa`, `notasRodape`, `autoria`, `
 
 ### 4.3 `getDocumentoArticulado(): DocumentoArticulado`
 
-Exporta o documento no formato de intercâmbio LexML (JSON Jsonix), incluindo os grupos de metadados do LexEdit já implementados: opções de impressão, local e data do fecho, autoria de parlamentares e remissões internas inválidas. Lança `Error('Inicialize um documento antes de salvar.')` se nada foi aberto.
+Exporta o documento no formato de intercâmbio LexML (JSON Jsonix), incluindo os grupos de metadados do LexEdit já implementados: opções de impressão, local e data do fecho, autoria de parlamentares, anexos (só os metadados, veja a seção 5.1) e remissões internas inválidas. Lança `Error('Inicialize um documento antes de salvar.')` se nada foi aberto.
 
 Diferença em relação a `getProposicao()`: aqui o resultado é **um arquivo LexML autocontido**, que o próprio editor sabe reabrir; `getProposicao()` é o modelo interno do editor (inclui revisões, notas de rodapé, justificação etc.), que não passa pelo formato LexML.
 
 ### 4.4 `abrirDocumentoArticulado(entrada): Promise<void>`
 
-Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, lança `Error` (por exemplo, URN sem ano e número, documento de outra casa legislativa, articulação ausente, ids repetidos) e o editor segue intacto. Depois da abertura, aplica ao formulário os metadados do arquivo (opções de impressão, data, local, autoria) e preenche `outrosMetadados`.
+Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, lança `Error` (por exemplo, URN sem ano e número, documento de outra casa legislativa, articulação ausente, ids repetidos) e o editor segue intacto. Depois da abertura, aplica ao formulário os metadados do arquivo (opções de impressão, data, local, autoria), preenche `outrosMetadados` e exibe na aba "Anexos" os anexos do arquivo.
 
 ```ts
 await editor.abrirDocumentoArticulado(await arquivo.text());
@@ -201,7 +201,9 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `urlPortalNormas` | `string` | `'https://normas.leg.br'` | Base dos links para abrir uma norma referenciada. |
 | `urlComissoes` | `string?` | — | Endpoint (GET `?siglaCasaLegislativa=`) de comissões. Se ausente, a lista de comissões fica vazia. |
 | `anexoParecer` | `boolean` | `false` | Modo "anexo de parecer": oculta as abas de justificação e de notas de rodapé, e a justificação não é exigida. Destino, data, autoria e impressão seguem disponíveis, e o fecho e as assinaturas são salvos como no modo normal. |
-| `tamanhoMaximoAnexo` | `number` | `5120` | Tamanho máximo de um anexo, em KB (5 MB). |
+| `tamanhoMaximoAnexo` | `number?` | — | Tamanho máximo de um anexo, em KB. Sem valor (ou não positivo), o tamanho não é limitado. Veja a seção 5.1. |
+| `tiposAnexos` | `{ codigo: string; nome: string }[]?` | — | Tipos que o campo de tipo do anexo aceita; "Não informado" (`nao.informado`) é sempre acrescentado. O campo está oculto por enquanto. Veja a seção 5.1. |
+| `onUploadAnexo`, `onDeleteAnexo`, `onObterAnexoBlob`, `onVisualizarAnexo` | funções? | — | Callbacks com os quais o host armazena e entrega os arquivos anexados. Veja a seção 5.1. |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
 
 O vocabulário da casa é (re)montado quando `lexmlEtaConfig` é atribuída com outra casa, portanto atribua a configuração **antes** de `inicializarEdicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). A casa restringe as siglas de proposição nova e as listas de tipos; URNs de normas citadas ou alteradas resolvem em qualquer autoridade (inclusive da outra casa), mas o documento em edição precisa ser da casa do editor (seção 4.1).
@@ -226,14 +228,42 @@ A lista é filtrada pela casa legislativa corrente (`CN` aceita ambas). Erros de
 
 **Autocomplete de normas** — `GET {urlAutocomplete}?query=<texto>`, resposta no formato consumido por `autocomplete-norma` (`src/components/autocomplete/autocomplete-norma.ts`).
 
+### 5.1 Anexos da proposição
+
+A aba "Anexos", antes de "Avisos" (também no modo `anexoParecer`), permite importar, visualizar, baixar, reordenar, renomear e excluir anexos em PDF ou DOCX. O editor **não guarda o conteúdo dos arquivos**: o host os armazena e o editor só registra os metadados (`idArquivo`, `nomeArquivo`, `nomeDocumento`, `tipo`, `mimeType`), na ordem de exibição. Os metadados vão no documento articulado (`getDocumentoArticulado()`) e são lidos por `abrirDocumentoArticulado()`; o host **não informa a lista de anexos**.
+
+| Callback | Assinatura | Quando é chamado |
+|---|---|---|
+| `onUploadAnexo` | `(file: File) => string \| Promise<string>` | Ao importar. O host guarda o arquivo e devolve o `idArquivo`; texto vazio ou erro cancela a importação. |
+| `onDeleteAnexo` | `(anexo: Anexo) => void \| Promise<void>` | Ao excluir. O anexo só sai da lista se o callback concluir sem erro. |
+| `onObterAnexoBlob` | `(anexo: Anexo) => { blob: Blob; contentType: string \| null } \| Promise<...>` | Ao baixar, e ao visualizar quando não há `onVisualizarAnexo`. |
+| `onVisualizarAnexo` | `(anexo: Anexo) => void \| Promise<void>` | Ao visualizar um PDF. Se ausente, o editor abre o conteúdo de `onObterAnexoBlob` em outra aba. |
+
+Sem o callback correspondente, a operação mostra um aviso de erro e a lista não muda.
+
+`onDeleteAnexo` é um **aviso de exclusão**, não uma ordem de apagar: ele é chamado na hora, antes de o documento ser salvo, e cabe ao host decidir se e quando remove o conteúdo. O documento salvo antes da exclusão ainda referencia o anexo, então o host pode, por exemplo, adiar a remoção física até o salvamento.
+
+`tiposAnexos` define os códigos que o campo de tipo aceita (entradas sem código ou nome, ou com código repetido, são ignoradas). **O campo de tipo está oculto por enquanto**: todo anexo adicionado recebe o tipo fixo `nao.informado`. Um anexo cujo tipo não está na lista (host + `nao.informado`) é exibido e gravado como `nao.informado`, então mantenha a lista estável entre as edições. `tamanhoMaximoAnexo` só vale quando tem valor; um arquivo maior é recusado antes do upload, com um aviso que informa o limite.
+
+```ts
+editor.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), {
+  tiposAnexos: [{ codigo: 'substitutivo', nome: 'Substitutivo' }],
+  tamanhoMaximoAnexo: 10240, // opcional: 10 MB
+  onUploadAnexo: async file => (await meuBackend.enviar(file)).id,
+  onDeleteAnexo: async anexo => meuBackend.marcarParaRemocao(anexo.idArquivo),
+  onObterAnexoBlob: async anexo => ({ blob: await meuBackend.baixar(anexo.idArquivo), contentType: null }),
+});
+```
+
 ## 6. Eventos
 
-Ambos são `CustomEvent` com `bubbles: true` e `composed: true`, emitidos no próprio `<lexml-eta>`.
+Todos são `CustomEvent` com `bubbles: true` e `composed: true`, emitidos no próprio `<lexml-eta>`.
 
 | Evento | `detail` | Quando |
 |---|---|---|
 | `onrevisao` | `{ emRevisao: boolean }` | O usuário ativa ou desativa o modo de marcas de revisão. |
 | `fatalError` | `{ err: any }` | `inicializarEdicao` falhou. |
+| `onchange` | `{ origemEvento: 'anexo' }` | O usuário importa, exclui, reordena ou altera o nome de um anexo. Alterar a lista ao abrir um arquivo não emite o evento. Outros formulários emitem `onchange` com outra `origemEvento`. |
 
 ## 7. Utilitários de arquivo
 
@@ -273,11 +303,19 @@ class Proposicao {
   opcoesImpressao: OpcoesImpressao;
   colegiadoApreciador: ColegiadoApreciador;
   revisoes: Revisao[];
-  anexos: { nomeArquivo: string; base64: string }[];
+  anexos: Anexo[];
   pendenciasPreenchimento: string[];
   substitutivo: boolean;
   local: string;
   // ... demais metadados (aplicacao, versaoAplicacao, metadados)
+}
+
+interface Anexo {
+  idArquivo: string;     // devolvido pelo host no upload; único elo para recuperar o conteúdo
+  nomeArquivo: string;   // nome do arquivo original, com extensão
+  nomeDocumento: string; // nome exibido; por padrão, o nome do arquivo sem extensão
+  tipo: string;          // código do tipo (`nao.informado` em todo anexo adicionado, por enquanto)
+  mimeType: MimeType;    // 'application/pdf' ou o tipo MIME do DOCX
 }
 
 class ColegiadoApreciador {
