@@ -1,12 +1,12 @@
 import {
   isRevisaoPrincipal,
+  findRevisaoById,
   getQuantidadeRevisoes,
   isRevisaoDeTransformacao,
   isRevisaoDeExclusao,
   isRevisaoComTextoAlterado,
   setCheckedElement,
 } from '../../redux/elemento/util/revisaoUtil';
-import { uploadAnexoDialog } from '../editor-texto-rico/uploadAnexoDialog';
 import { colarTextoArticuladoDialog, onChangeColarDialog } from './colarTextoArticuladoDialog';
 import { InfoTextoColado } from '../../redux/elemento/util/colarUtil';
 import { AdicionarAgrupadorArtigo } from '../../model/lexml/acao/adicionarAgrupadorArtigoAction';
@@ -95,7 +95,6 @@ import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
-import { Anexo } from '../../model/proposicao/proposicao';
 import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
 import { iconeRemissaoInterna } from '../../../assets/icons/icons';
 import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';
@@ -161,21 +160,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private _idSwitchRevisao = 'chk-em-revisao';
   private _idBadgeQuantidadeRevisao = 'badge-marca-alteracao';
 
-  @property({ type: Array }) anexos: Anexo[] = [];
-
   constructor() {
     super();
     this.tabIndex = -1;
   }
-
-  atualizaAnexo = (anexo: Anexo[]): void => {
-    this.anexos = [...anexo];
-  };
-
-  labelAnexo = (): string => {
-    const lengthAnexos = this.anexos?.length;
-    return lengthAnexos === 1 ? '1 anexo' : lengthAnexos > 1 ? `${lengthAnexos} anexos` : '';
-  };
 
   createRenderRoot(): LitElement {
     return this;
@@ -344,20 +332,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             this.navegarEntreElementosAlterados('anterior')}>
 
             <sl-icon name="arrow-up-circle"></sl-icon>
-          </button>
-
-          <button type="button" class="panel-anexo" title="Anexo"
-                  style="width: auto"
-                  @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo, this)}>
-            <span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="15px" height="15px" viewBox="0 0 35 35" data-name="Layer 2"
-                   id="Layer_2">
-                <path
-                  d="M18,34.75A11.32,11.32,0,0,1,6.69,23.45V8A7.78,7.78,0,0,1,22.25,8V22.49a4.58,4.58,0,1,1-9.15,0V9.29a1.25,1.25,0,0,1,2.5,0v13.2a2.08,2.08,0,1,0,4.15,0V8A5.28,5.28,0,0,0,9.19,8V23.45A8.82,8.82,0,0,0,18,32.25c4.6,0,7.81-3.62,7.81-8.8V9.66a1.25,1.25,0,0,1,2.5,0V23.45C28.31,30,24,34.75,18,34.75Z"
-                />
-              </svg>
-              ${this.labelAnexo()}
-            </span>
           </button>
 
           <button type="button" class="btn-remissao-interna" title="Adicionar remissão" ?disabled=${!this._temSelecao} @click=${this.abrirDialogoRemissao}>
@@ -2088,8 +2062,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       .forEach(e => mapElementos.set(e.uuid!, e));
 
     const elementos: Elemento[] = [...mapElementos.values()];
-    const uuidsElementosSemRevisao = elementos.filter(e => !e.revisao).map(e => e.uuid!);
-    const uuidsElementosComRevisao = elementos.filter(e => e.revisao && isRevisaoPrincipal(e.revisao)).map(e => e.uuid!);
+    // O elemento de RevisaoRejeitada carrega uma cópia da revisão que já saiu do estado; ela não mantém a marca.
+    const revisoesDoEstado = rootStore.getState().elementoReducer.revisoes;
+    const aindaEmRevisao = (e: Elemento): boolean => !!e.revisao && !!findRevisaoById(revisoesDoEstado, (e.revisao as RevisaoElemento).id);
+    const uuidsElementosSemRevisao = elementos.filter(e => !aindaEmRevisao(e)).map(e => e.uuid!);
+    const uuidsElementosComRevisao = elementos.filter(e => aindaEmRevisao(e) && isRevisaoPrincipal(e.revisao!)).map(e => e.uuid!);
 
     // Remove container de revisão de elementos que não estão mais em revisão
     uuidsElementosSemRevisao.forEach(uuid => {

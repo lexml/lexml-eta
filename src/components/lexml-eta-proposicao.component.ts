@@ -3,7 +3,6 @@ import { customElement, property, query } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
 
 import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css';
-import { Anexo } from '../model/proposicao/proposicao';
 import { aplicarRevisoesAction } from '../model/lexml/acao/aplicarRevisoes';
 import { openArticulacaoAction } from '../model/lexml/acao/openArticulacaoAction';
 import { buildJsonixFromProjetoNorma } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
@@ -18,7 +17,7 @@ import { EditorComponent } from './editor/editor.component';
 import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado, RevisaoArticulacaoLida } from '../model/lexml/documento/documentoArticulado';
 import { montaRevisoesArticulacao } from '../model/lexml/documento/conversor/revisaoArticulacao';
 import { reconstroiRevisoes } from '../model/lexml/documento/conversor/reconstroiRevisoes';
-import { aplicarSituacaoNaNormaVigente } from '../model/lexml/documento/conversor/situacaoNaNormaVigente';
+import { aplicarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from '../model/lexml/documento/conversor/situacaoNaNormaVigente';
 
 @customElement('lexml-eta-proposicao')
 export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) {
@@ -54,11 +53,11 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
   }
 
   /** Reaplica as revisões da hierarquia lidas do arquivo; valem sobre as revisões do host. */
-  async aplicarRevisoesDoArquivo(lidas: RevisaoArticulacaoLida[]): Promise<void> {
+  async aplicarRevisoesDoArquivo(lidas: RevisaoArticulacaoLida[], situacao?: SituacaoNaNormaVigente): Promise<void> {
     clearTimeout(this._timerLoadRevisoes);
     // O evento de revisão precisa encontrar as linhas; esperar o carregamento (e não um timer) não atrasa o resize agendado pela abertura.
     await this.editorComponent.aguardarCarregamentoDasLinhas();
-    const revisoes = reconstroiRevisoes(rootStore.getState().elementoReducer.articulacao!, lidas);
+    const revisoes = reconstroiRevisoes(rootStore.getState().elementoReducer.articulacao!, lidas, situacao);
     if (revisoes.length) {
       this.revisoes = revisoes;
       rootStore.dispatch(aplicarRevisoesAction.execute(revisoes));
@@ -86,14 +85,6 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     const remissoes = completarRegistroRemissoes(state.articulacao, state.remissoes ?? {}, externas);
     const revisoes = montaRevisoesArticulacao(state);
     return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas, revisoes ? { ...dados, revisoes } : dados);
-  }
-
-  getAnexos() {
-    return this.editorComponent.anexos;
-  }
-
-  atualizaAnexos(anexos: Anexo[]) {
-    this.editorComponent.atualizaAnexo(anexos);
   }
 
   private loadProjetoNorma(params?: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): void {

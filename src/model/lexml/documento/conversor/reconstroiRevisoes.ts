@@ -4,7 +4,13 @@ import { Elemento, Referencia } from '../../../elemento';
 import { createElemento, getElementos } from '../../../elemento/elementoUtil';
 import { RevisaoElemento } from '../../../revisao/revisao';
 import { StateType } from '../../../../redux/state';
-import { buildDescricaoRevisaoElemento, formatarOperacoesRevisao, getReferenciaDeOrigem, rotuloDoTipoPorNumero } from '../../../../redux/elemento/util/revisaoUtil';
+import {
+  buildDescricaoRevisaoElemento,
+  formatarOperacoesRevisao,
+  getReferenciaDeOrigem,
+  getUuidPaiEfetivoDoElemento,
+  rotuloDoTipoPorNumero,
+} from '../../../../redux/elemento/util/revisaoUtil';
 import { APLICAR_REVISOES } from '../../acao/aplicarRevisoes';
 import { criaDispositivo, createArticulacao } from '../../dispositivo/dispositivoLexmlFactory';
 import { buscaDispositivoById, getArticulacao, getDispositivoAndFilhosAsLista, getUltimoFilho, isDispositivoAlteracao } from '../../hierarquia/hierarquiaUtil';
@@ -14,6 +20,7 @@ import { buildId, updateIdDispositivoAndFilhos } from '../../util/idUtil';
 import { RevisaoArticulacaoLida } from '../documentoArticulado';
 import { buildDispositivoSoltoFromJsonix } from './buildProjetoNormaFromJsonix';
 import { calculaIdBase, criaHospedeiro, getDestinoDeCriacao } from './revisaoArticulacao';
+import type { SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 const clone = <T>(valor: T): T => JSON.parse(JSON.stringify(valor));
 
@@ -240,16 +247,22 @@ interface ExclusaoLida {
 const prefixa = (valor: string | undefined, idTemporario: string, base: string): string | undefined =>
   valor?.startsWith(idTemporario) ? base + valor.substring(idTemporario.length) : valor;
 
-const reconstroiRevisoesDeExclusao = (exclusao: ExclusaoLida, anterior: Referencia | undefined): RevisaoElemento[] => {
+const reconstroiRevisoesDeExclusao = (exclusao: ExclusaoLida, anterior: Referencia | undefined, situacaoPorId: Map<string, boolean>): RevisaoElemento[] => {
   const { lida, base, lugar } = exclusao;
   const temporaria = createArticulacao();
   const hospedeiro = criaHospedeiro(temporaria, lugar.pai);
   const raiz = buildDispositivoSoltoFromJsonix(getDestinoDeCriacao(hospedeiro, { tipo: lida.excluido!.name.localPart }), lida.excluido);
   updateIdDispositivoAndFilhos(temporaria);
   const idTemporario = buildId(raiz);
+  const idExcluido: string = lida.excluido!.value.id;
   const elementos = getElementos(raiz, false, false).map(e => {
     e.lexmlId = prefixa(e.lexmlId, idTemporario, base);
     e.hierarquia!.pai!.lexmlId = prefixa(e.hierarquia!.pai!.lexmlId, idTemporario, base);
+    // O id gravado no arquivo troca o prefixo `base` pelo id do excluído (`_<base>-exc<n>`).
+    const idNoArquivo = e.lexmlId?.startsWith(base) ? idExcluido + e.lexmlId.substring(base.length) : undefined;
+    if (idNoArquivo !== undefined && situacaoPorId.has(idNoArquivo)) {
+      e.existeNaNormaAlterada = situacaoPorId.get(idNoArquivo);
+    }
     return e;
   });
   elementos[0].hierarquia = { ...elementos[0].hierarquia, pai: referenciaDoPai(lugar.pai), posicao: lugar.posicao };
@@ -258,7 +271,7 @@ const reconstroiRevisoesDeExclusao = (exclusao: ExclusaoLida, anterior: Referenc
   const revisoes = elementos.map(e => novaRevisao(StateType.ElementoRemovido, lida, clone(e), { ...clone(e), acoesPossiveis: [] }));
   const porUuid = new Map<number | undefined, RevisaoElemento>(elementos.map((e, i) => [e.uuid, revisoes[i]]));
   revisoes.slice(1).forEach((revisao, i) => {
-    const pai = porUuid.get(elementos[i + 1].hierarquia?.pai?.uuid) ?? revisoes[0];
+    const pai = porUuid.get(getUuidPaiEfetivoDoElemento(elementos[i + 1])) ?? revisoes[0];
     revisao.idRevisaoElementoPai = pai.id;
     revisao.idRevisaoElementoPrincipal = revisoes[0].id;
   });
@@ -267,7 +280,7 @@ const reconstroiRevisoesDeExclusao = (exclusao: ExclusaoLida, anterior: Referenc
 
 const idSequencial = /^_(.+)-exc(\d+)$/;
 
-const reconstroiRevisoesDeExclusoes = (articulacao: Articulacao, lidas: RevisaoArticulacaoLida[]): RevisaoElemento[] => {
+const reconstroiRevisoesDeExclusoes = (articulacao: Articulacao, lidas: RevisaoArticulacaoLida[], situacaoPorId: Map<string, boolean>): RevisaoElemento[] => {
   const exclusoes: ExclusaoLida[] = [];
   lidas.forEach(lida => {
     const [, base, sequencial] = idSequencial.exec(lida.excluido?.value?.id ?? '') ?? [];
@@ -288,15 +301,20 @@ const reconstroiRevisoesDeExclusoes = (articulacao: Articulacao, lidas: RevisaoA
       : exclusao.lugar.ocupante
       ? createElemento(exclusao.lugar.ocupante, false, true).elementoAnteriorNaSequenciaDeLeitura
       : createElemento(getUltimoFilho(exclusao.lugar.pai), false, false);
-    return reconstroiRevisoesDeExclusao(exclusao, anterior);
+    return reconstroiRevisoesDeExclusao(exclusao, anterior, situacaoPorId);
   });
 };
 
 /**
  * Converte as revisões lidas do arquivo em `RevisaoElemento`, no formato que `aplicaRevisoes` espera, a partir da articulação já aberta.
  * Revisão que não se reconstrói (dispositivo inexistente, lugar não localizado) é ignorada, sem impedir as demais.
+ * `situacao` (listas do arquivo) devolve o Existente/Novo aos dispositivos de bloco de alteração dos excluídos, por id.
  */
-export const reconstroiRevisoes = (articulacao: Articulacao, lidas: RevisaoArticulacaoLida[]): RevisaoElemento[] => {
+export const reconstroiRevisoes = (articulacao: Articulacao, lidas: RevisaoArticulacaoLida[], situacao?: SituacaoNaNormaVigente): RevisaoElemento[] => {
+  const situacaoPorId = new Map<string, boolean>([
+    ...(situacao?.existentes ?? []).map((id): [string, boolean] => [id, true]),
+    ...(situacao?.novos ?? []).map((id): [string, boolean] => [id, false]),
+  ]);
   const tentar = <T>(fn: () => T[]): T[] => {
     try {
       return fn();
@@ -306,6 +324,6 @@ export const reconstroiRevisoes = (articulacao: Articulacao, lidas: RevisaoArtic
   };
   const naoExcluidas = lidas.filter(l => !l.excluido).flatMap(l => tentar(() => reconstroiRevisoesDeDispositivo(articulacao, l)));
   const excluidas = lidas.filter(l => l.excluido);
-  const reconstruidas = excluidas.length ? tentar(() => reconstroiRevisoesDeExclusoes(articulacao, excluidas)) : [];
+  const reconstruidas = excluidas.length ? tentar(() => reconstroiRevisoesDeExclusoes(articulacao, excluidas, situacaoPorId)) : [];
   return [...naoExcluidas, ...reconstruidas];
 };

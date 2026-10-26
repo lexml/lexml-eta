@@ -3,9 +3,10 @@ import { ProjetoNorma } from './projetoNorma';
 import { buildJsonixFromProjetoNorma } from './conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJsonix';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
-import { getAno, getNumero, getSigla } from './urnUtil';
-import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
+import { getAno, getNumero, getSigla, verificarUrnDaCasaDoEditor } from './urnUtil';
+import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
 import { Usuario } from '../../revisao/usuario';
+import type { SituacaoNaNormaVigente } from './conversor/situacaoNaNormaVigente';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -31,6 +32,10 @@ export interface MetadadoLexEdit {
   colegiadoApreciador?: { TYPE_NAME: string; siglaCasaLegislativa: string; tipoColegiado: string; siglaComissao?: string };
   // Ids separados por espaço; cada atributo é omitido quando vazio (especificação 13).
   situacaoNaNormaVigente?: { TYPE_NAME: string; refIdsDispositivosExistentes?: string; refIdsDispositivosNovos?: string };
+  // Pares chave/valor livres dos hosts; o valor é sempre texto.
+  outrosMetadados?: { TYPE_NAME: string; outroMetadado: Array<{ TYPE_NAME: string; chave: string; value: string }> };
+  // Só os metadados dos anexos, na ordem de exibição; o conteúdo fica com o host.
+  anexos?: { TYPE_NAME: string; anexo: Array<Anexo & { TYPE_NAME: string }> };
   revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
   usuarios?: RevisoesLexEdit['usuarios'];
 }
@@ -49,6 +54,8 @@ export interface RevisaoArticulacaoLexEdit {
 export interface RevisoesLexEdit {
   revisoesArticulacao: { TYPE_NAME: string; revisaoArticulacao: RevisaoArticulacaoLexEdit[] };
   usuarios: { TYPE_NAME: string; usuario: Array<{ TYPE_NAME: string; idUsuario: string; nome: string; sigla?: string }> };
+  // Situação dos dispositivos de bloco de alteração contidos nos excluídos, com os ids gravados na revisão (`_<id>-exc<n>...`).
+  situacaoDosExcluidos?: SituacaoNaNormaVigente;
 }
 
 /** Formato provisório gravado antes do conversor 2.0.0 (chave `lexedit`); só lido, nunca gravado. */
@@ -68,6 +75,8 @@ export interface DadosLexEdit {
   opcoesImpressao?: OpcoesImpressao;
   autoria?: Autoria;
   colegiadoApreciador?: ColegiadoApreciador;
+  outrosMetadados?: Record<string, string>;
+  anexos?: Anexo[];
   revisoes?: RevisoesLexEdit;
   // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
   revisoesLidas?: RevisaoArticulacaoLida[];
@@ -194,6 +203,7 @@ export const lerDocumentoArticulado = (entrada: unknown): DocumentoArticulado =>
     }
   }
   const validado = validarDocumentoArticulado(doc);
+  verificarUrnDaCasaDoEditor(validado.value.metadado.identificacao.urn);
   const copia = JSON.parse(JSON.stringify(validado)) as DocumentoArticulado;
   // Exercita o leitor antes de permitir que a interface substitua seu estado.
   try {

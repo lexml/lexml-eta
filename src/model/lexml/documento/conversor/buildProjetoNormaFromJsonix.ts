@@ -9,7 +9,8 @@ import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil'
 import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getPreambuloPadrao, getTipo, getTipoDocumentoUrn } from '../urnUtil';
-import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO } from '../../../proposicao/proposicao';
+import { Anexo, Autoria, ColegiadoApreciador, MimeType, OpcoesImpressao, Parlamentar, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO } from '../../../proposicao/proposicao';
+import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
 import { DadosLexEdit, RevisaoArticulacaoLida } from '../documentoArticulado';
 import { SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
@@ -196,6 +197,35 @@ export const lerColegiadoApreciador = (lido: any): ColegiadoApreciador | undefin
   return colegiado;
 };
 
+// Entrada sem chave, com chave vazia ou com valor não textual é descartada; em chave repetida vale a primeira (especificação 15).
+export const lerOutrosMetadados = (lido: any): Record<string, string> | undefined => {
+  if (!isObjeto(lido)) return undefined;
+  const outros: Record<string, string> = {};
+  for (const item of comoLista(lido.outroMetadado)) {
+    if (!isObjeto(item) || !textoNaoVazio(item.chave) || typeof item.value !== 'string' || Object.prototype.hasOwnProperty.call(outros, item.chave)) continue;
+    outros[item.chave] = item.value;
+  }
+  return Object.keys(outros).length > 0 ? outros : undefined;
+};
+
+// Anexo sem idArquivo ou nomeArquivo, ou de formato diferente de PDF/DOCX, é descartado; nomeDocumento e tipo ausentes assumem os padrões.
+export const lerAnexos = (lido: any): Anexo[] | undefined => {
+  if (!isObjeto(lido)) return undefined;
+  const formatos = Object.values(MimeType) as string[];
+  const anexos: Anexo[] = [];
+  for (const item of comoLista(lido.anexo)) {
+    if (!isObjeto(item) || !textoNaoVazio(item.idArquivo) || !textoNaoVazio(item.nomeArquivo) || !formatos.includes(item.mimeType)) continue;
+    anexos.push({
+      idArquivo: item.idArquivo,
+      nomeArquivo: item.nomeArquivo,
+      nomeDocumento: textoNaoVazio(item.nomeDocumento) ? item.nomeDocumento : item.nomeArquivo.replace(/\.[^.]*$/, ''),
+      tipo: textoNaoVazio(item.tipo) ? item.tipo : TIPO_ANEXO_NAO_INFORMADO.codigo,
+      mimeType: item.mimeType,
+    });
+  }
+  return anexos.length > 0 ? anexos : undefined;
+};
+
 /** Lê os grupos de formulário de `MetadadoProprietario/lexedit:Metadado`, ignorando grupos desconhecidos. */
 export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const lexedit = lerConteudoLexEdit(documento);
@@ -203,11 +233,15 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const autoria = lerAutoria(lexedit?.autoria);
   const colegiadoApreciador = lerColegiadoApreciador(lexedit?.colegiadoApreciador);
   const revisoesLidas = lerRevisoesArticulacao(lexedit);
+  const outrosMetadados = lerOutrosMetadados(lexedit?.outrosMetadados);
+  const anexos = lerAnexos(lexedit?.anexos);
   return {
     ...lerFecho(lexedit),
     ...(opcoesImpressao && { opcoesImpressao }),
     ...(autoria && { autoria }),
     ...(colegiadoApreciador && { colegiadoApreciador }),
+    ...(outrosMetadados && { outrosMetadados }),
+    ...(anexos && { anexos }),
     ...(revisoesLidas.length > 0 && { revisoesLidas }),
   };
 };

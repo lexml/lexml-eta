@@ -9,7 +9,12 @@ export interface SituacaoNaNormaVigente {
 }
 
 // O caput não tem id próprio no arquivo (o do artigo o representa) e a articulação da alteração não tem id.
-const temSituacaoSalvavel = (d: Dispositivo): boolean => !!d.id && !isCaput(d) && d.existeNaNormaAlterada !== undefined && isDispositivoAlteracao(d);
+export const temSituacaoSalvavel = (d: Dispositivo): boolean => !!d.id && !isCaput(d) && d.existeNaNormaAlterada !== undefined && isDispositivoAlteracao(d);
+
+export const mesclarSituacaoNaNormaVigente = (a: SituacaoNaNormaVigente, b?: SituacaoNaNormaVigente): SituacaoNaNormaVigente => ({
+  existentes: [...a.existentes, ...(b?.existentes ?? [])],
+  novos: [...a.novos, ...(b?.novos ?? [])],
+});
 
 /** Percorre na ordem da articulação, para a saída ser determinística. */
 export const coletarSituacaoNaNormaVigente = (articulacao: Articulacao | undefined): SituacaoNaNormaVigente => {

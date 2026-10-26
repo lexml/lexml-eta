@@ -77,13 +77,19 @@ export const existeRevisaoParaElementos = (revisoes: Revisao[] = [], elementos: 
   return elementos.some(e => revisoesElemento.some(r => r.elementoAposRevisao.uuid === e.uuid));
 };
 
+// No primeiro nível de um bloco de alteração o pai registrado é a articulação de alteração; o pai efetivo é o artigo hospedeiro.
+export const getUuidPaiEfetivoDoElemento = (elemento?: Partial<Elemento>): number | undefined => {
+  const pai = elemento?.hierarquia?.pai;
+  return pai?.tipo === TipoDispositivo.articulacao.tipo && pai.uuidAlteracao !== undefined ? pai.uuidAlteracao : pai?.uuid;
+};
+
 export const identificarRevisaoElementoPai = (state: State, revisoes: Revisao[]): Revisao[] => {
   const result: Revisao[] = [];
 
   revisoes?.forEach(r => {
     if (isRevisaoElemento(r)) {
       const rAux = r as RevisaoElemento;
-      const uuidPai = rAux.stateType === StateType.ElementoIncluido ? getUuidPaiElementoRevisado(state, rAux) : rAux.elementoAntesRevisao?.hierarquia?.pai?.uuid;
+      const uuidPai = rAux.stateType === StateType.ElementoIncluido ? getUuidPaiElementoRevisado(state, rAux) : getUuidPaiEfetivoDoElemento(rAux.elementoAntesRevisao);
       const rPai = uuidPai ? findRevisaoByElementoUuid(rAux.actionType === ADICIONAR_ELEMENTO ? state.revisoes : revisoes, uuidPai) : undefined;
       if (rPai && isRevisaoMesmoStateType(rAux, rPai)) {
         rAux.idRevisaoElementoPai = rPai.id;
@@ -97,7 +103,7 @@ export const identificarRevisaoElementoPai = (state: State, revisoes: Revisao[])
 };
 
 export const findRevisaoElementoPrincipal = (state: State, revisoes: Revisao[], rPai: RevisaoElemento): RevisaoElemento | undefined => {
-  const uuid = rPai.stateType === StateType.ElementoIncluido ? getUuidPaiElementoRevisado(state, rPai) : rPai.elementoAntesRevisao?.hierarquia?.pai?.uuid;
+  const uuid = rPai.stateType === StateType.ElementoIncluido ? getUuidPaiElementoRevisado(state, rPai) : getUuidPaiEfetivoDoElemento(rPai.elementoAntesRevisao);
   const rAux = rPai && findRevisaoByElementoUuid(revisoes, uuid);
   return rAux ? findRevisaoElementoPrincipal(state, revisoes, rAux) : rPai;
 };

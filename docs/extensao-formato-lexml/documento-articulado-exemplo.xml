@@ -20,6 +20,12 @@
             siglaCasaLegislativa='SF'
             tipoColegiado='Plenário'/>
 
+        <!-- Outros metadados (pares chave/valor do host) -->
+        <lexedit:OutrosMetadados>
+          <lexedit:OutroMetadado chave='tituloAntesDaEpigrafe'>COMISSÃO XPTO</lexedit:OutroMetadado>
+          <lexedit:OutroMetadado chave='jsonDadosComissao'>{"id":1,"ativa":true}</lexedit:OutroMetadado>
+        </lexedit:OutrosMetadados>
+
         <!-- Opções de impressão -->
         <lexedit:OpcoesImpressao
             imprimirBrasao='true'
@@ -57,7 +63,7 @@
               idArquivo='f669f339-4c8c-4853-806a-706d9fbe6de1'
               nomeArquivo='diretrizes.docx'
               nomeDocumento='Diretrizes do programa'
-              tipo='outro'
+              tipo='nao.informado'
               mimeType='application/vnd.openxmlformats-officedocument.wordprocessingml.document'/>
         </lexedit:Anexos>
 

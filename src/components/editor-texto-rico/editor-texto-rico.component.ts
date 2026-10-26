@@ -6,9 +6,7 @@ import { Observable } from '../../util/observable';
 import { rootStore } from '../../redux/store';
 import { atualizaQuantidadeRevisaoTextoRico, getQuantidadeRevisoes, getQuantidadeRevisoesJustificativa } from '../../redux/elemento/util/revisaoUtil';
 import { connect } from 'pwa-helpers';
-import { uploadAnexoDialog } from './uploadAnexoDialog';
 import { showMenuImagem } from './menu-imagem';
-import { Anexo } from '../../model/proposicao/proposicao';
 import { Modo } from '../../redux/elemento/enum/enumUtil';
 import { editorTextoRicoCss } from '../editor-texto-rico/editor-texto-rico.css';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';
@@ -39,7 +37,6 @@ const CLASS_BUTTON_REJEITAR_REVISAO = 'rejeitar-revisao';
 @customElement('lexml-eta-editor-texto-rico')
 export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   @property({ type: String }) texto = '';
-  @property({ type: Array }) anexos: Anexo[] = [];
   @property({ type: Array }) notasRodape: NotaRodape[] = [];
   @property({ type: String, attribute: 'registro-evento' }) registroEvento = '';
   @property({ type: Object }) lexmlEtaConfig: LexmlEtaConfig = new LexmlEtaConfig();
@@ -129,14 +126,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     }
   }
 
-  labelAnexo = (): string => {
-    const lengthAnexos = this.anexos?.length;
-    return lengthAnexos === 1 ? '1 anexo' : lengthAnexos > 1 ? `${lengthAnexos} anexos` : '';
-  };
-
   render(): TemplateResult {
     return html`
-      ${quillTableCss} ${editorTextoRicoCss} ${notaRodapeCss} ${this.renderBotaoAnexo()}
+      ${quillTableCss} ${editorTextoRicoCss} ${notaRodapeCss}
 
       <div class="panel-revisao">
         <lexml-eta-switch-revisao
@@ -172,29 +164,11 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     <polygon class="ql-fill ql-stroke" points="12 10 14 12 16 10 12 10"></polygon>
     <path class="ql-stroke" d="M9.91,13.91A4.6,4.6,0,0,1,9,14a5,5,0,1,1,5-5"></path>
     </svg>`;
-    //this.icons['anexo'] = anexo + ;
     this.icons['bold'] = negrito;
     this.icons['underline'] = sublinhado;
     this.icons['text-indent'] = iconeTextIndent;
     this.icons['margin-bottom'] = iconeMarginBottom;
     this.icons['lexml-eta-nota-rodape'] = iconeNotaDeRodape;
-  }
-
-  private renderBotaoAnexo(): TemplateResult {
-    return html`
-      <div class="panel-anexo">
-        <button type="button" style="width:auto" title="Anexo" @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo, this)}>
-          <span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="15px" height="15px" viewBox="0 0 35 35" data-name="Layer 2" id="Layer_2">
-              <path
-                d="M18,34.75A11.32,11.32,0,0,1,6.69,23.45V8A7.78,7.78,0,0,1,22.25,8V22.49a4.58,4.58,0,1,1-9.15,0V9.29a1.25,1.25,0,0,1,2.5,0v13.2a2.08,2.08,0,1,0,4.15,0V8A5.28,5.28,0,0,0,9.19,8V23.45A8.82,8.82,0,0,0,18,32.25c4.6,0,7.81-3.62,7.81-8.8V9.66a1.25,1.25,0,0,1,2.5,0V23.45C28.31,30,24,34.75,18,34.75Z"
-              />
-            </svg>
-            ${this.labelAnexo()}
-          </span>
-        </button>
-      </div>
-    `;
   }
 
   private timerAlerta?: any;
@@ -465,13 +439,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   addBotoesExtra = (): void => {
     const toolbarContainer = this.quill!.getModule('toolbar').container;
-    const elAnexo = this.querySelector('.panel-anexo');
     const elRevisao = this.querySelector('.panel-revisao')!;
-
-    if (elAnexo) {
-      elAnexo.parentNode!.removeChild(elAnexo);
-      toolbarContainer.appendChild(elAnexo);
-    }
 
     elRevisao.parentNode!.removeChild(elRevisao);
     toolbarContainer.appendChild(elRevisao);
@@ -616,10 +584,6 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       this.quill?.history.redo();
       this.atualizaStatusElementosRevisao();
     }
-  };
-
-  atualizaAnexo = (anexo: Anexo[]): void => {
-    this.anexos = [...anexo];
   };
 
   isEditorVazio = (): boolean => {

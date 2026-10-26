@@ -14,7 +14,17 @@ import { shoelaceLightThemeStyles } from '../assets/css/shoelace.theme.light.css
 
 import { adicionarAlerta } from '../model/alerta/acao/adicionarAlerta';
 import { removerAlerta } from '../model/alerta/acao/removerAlerta';
-import { ANO_PROVISORIO, NUMERO_PROVISORIO, buildUrnProposicao, getAno, getNumero, getSigla, normalizarDataFecho } from '../model/lexml/documento/urnUtil';
+import {
+  ANO_PROVISORIO,
+  NUMERO_PROVISORIO,
+  buildUrnProposicao,
+  getAno,
+  getNumero,
+  getSigla,
+  normalizarDataFecho,
+  verificarUrnDaCasaDoEditor,
+} from '../model/lexml/documento/urnUtil';
+import { inicializarVocabulario } from '../model/lexml/documento/vocabulario';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
 import { LexmlEtaProposicaoComponent } from './lexml-eta-proposicao.component';
@@ -26,16 +36,17 @@ import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativarRevisaoAction';
 import { StateEvent, StateType } from '../redux/state';
 import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
-import { buildContent, getUrn, lerMetadadoLexEdit } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { buildContent, getUrn, lerMetadadoLexEdit, lerSituacaoNaNormaVigente } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { Comissao } from './destino/comissao';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { DestinoComponent } from './destino/destino.component';
+import { AnexosComponent } from './anexos/anexos.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { isHtmlSemTexto } from '../util/string-util';
 import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
-import { Autoria, ColegiadoApreciador, Epigrafe, getRefProposicaoReduzida, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
+import { Anexo, Autoria, ColegiadoApreciador, Epigrafe, getRefProposicaoReduzida, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
 import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
@@ -84,7 +95,23 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
   @property({ type: Array }) comissoes: Comissao[] = [];
-  @property({ type: Object }) lexmlEtaConfig: LexmlEtaConfig = new LexmlEtaConfig();
+  // Pares chave/valor do host gravados no documento; ao abrir um arquivo, recebe os pares dele.
+  @property({ type: Object }) outrosMetadados: Record<string, string> = {};
+
+  private _lexmlEtaConfig = new LexmlEtaConfig();
+
+  // O vocabulário depende da casa do editor e precisa estar pronto antes de inicializarEdicao.
+  @property({ type: Object })
+  get lexmlEtaConfig(): LexmlEtaConfig {
+    return this._lexmlEtaConfig;
+  }
+
+  set lexmlEtaConfig(config: LexmlEtaConfig) {
+    const anterior = this._lexmlEtaConfig;
+    this._lexmlEtaConfig = config;
+    inicializarVocabulario(config?.casaLegislativaEditor);
+    this.requestUpdate('lexmlEtaConfig', anterior);
+  }
 
   private urn = '';
 
@@ -103,6 +130,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   @state()
   private anexoParecer = false;
+
+  @state()
+  private totalAnexos = 0;
 
   // Para forçar atualização da interface
   @state()
@@ -126,6 +156,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   _lexmlData;
   @query('lexml-eta-opcoes-impressao')
   _lexmlOpcoesImpressao;
+  @query('lexml-eta-anexos')
+  _lexmlAnexos?: AnexosComponent;
   @query('#tabs-esquerda')
   _tabsEsquerda;
   @query('#tabs-direita')
@@ -212,16 +244,16 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   /** Exporta somente os grupos implementados do documento LexML. */
   getDocumentoArticulado(): DocumentoArticulado {
     if (!this.urn) throw new Error('Inicialize um documento antes de salvar.');
-    // Anexo de parecer não tem fecho nem autoria, como em removerDadosNaoAplicaveisAoAnexoParecer.
-    const fechoEAutoria = this.anexoParecer
-      ? {}
-      : {
-          local: this.getLocalFecho(),
-          data: normalizarDataFecho(this._lexmlData.data),
-          autoria: this._lexmlAutoria.getAutoriaAtualizada(),
-          colegiadoApreciador: this._lexmlDestino!.colegiadoApreciador,
-        };
-    return this._lexmlEta!.getDocumentoArticulado({ ...fechoEAutoria, opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao });
+    // O colegiado apreciador não é gravado no anexo de parecer (spec metadados-lexedit).
+    return this._lexmlEta!.getDocumentoArticulado({
+      local: this.getLocalFecho(),
+      data: normalizarDataFecho(this._lexmlData.data),
+      autoria: this._lexmlAutoria.getAutoriaAtualizada(),
+      ...(this.anexoParecer ? {} : { colegiadoApreciador: this._lexmlDestino!.colegiadoApreciador }),
+      opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao,
+      outrosMetadados: this.outrosMetadados,
+      anexos: this._lexmlAnexos?.anexos,
+    });
   }
 
   /** Aceita o objeto Jsonix ou seu texto JSON e valida antes de alterar o editor. */
@@ -232,12 +264,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     params.projetoNorma = documento as any;
     await this.inicializarEdicao(params, true);
     // Sem o atraso de setRevisoes (1 s): o documento aberto já sai com as marcas e em modo de revisão.
-    if (dados.revisoesLidas?.length) await this._lexmlEta!.aplicarRevisoesDoArquivo(dados.revisoesLidas);
+    if (dados.revisoesLidas?.length) await this._lexmlEta!.aplicarRevisoesDoArquivo(dados.revisoesLidas, lerSituacaoNaNormaVigente(documento));
     // Depois de inicializarEdicao: resetaProposicao sobrescreve o formulário com os valores padrão.
     if (dados.opcoesImpressao) this._lexmlOpcoesImpressao.opcoesImpressao = dados.opcoesImpressao;
     // Dados do arquivo como gravados, sem consultar a lista de parlamentares do host.
     if (dados.autoria) this._lexmlAutoria.autoria = dados.autoria;
-    this._lexmlData.data = this.anexoParecer ? '' : dados.data ?? '';
+    this._lexmlData.data = dados.data ?? '';
     // A casa continua a do host: ela define a lista de comissões carregada.
     if (dados.colegiadoApreciador && !this.anexoParecer) {
       const { tipoColegiado, siglaComissao } = dados.colegiadoApreciador;
@@ -245,6 +277,17 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
     this.localDoArquivo = dados.local;
     this.destinoAoAbrir = { ...this._lexmlDestino!.colegiadoApreciador };
+    this.outrosMetadados = dados.outrosMetadados ?? {};
+    this.aplicarAnexos(dados.anexos);
+  }
+
+  private aplicarAnexos(anexos: Anexo[] = []): void {
+    this._lexmlAnexos!.anexos = anexos;
+    this.atualizarTotalAnexos();
+  }
+
+  private atualizarTotalAnexos(): void {
+    this.totalAnexos = this._lexmlAnexos?.anexos.length ?? 0;
   }
 
   getProposicao(): Proposicao {
@@ -259,9 +302,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.projetoNorma = this._lexmlEta?.getProjetoAtualizado();
 
     const proposicao = this.montarProposicaoPorUrn(this.urn);
-    if (!this.anexoParecer) {
-      proposicao.dataUltimaModificacao = this._lexmlData.data || undefined;
-    }
+    proposicao.dataUltimaModificacao = this._lexmlData.data || undefined;
     proposicao.projetoNorma = this.projetoNorma;
     proposicao.justificativa = this._lexmlJustificativa.texto;
     proposicao.notasRodape = this._lexmlJustificativa.notasRodape;
@@ -275,7 +316,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     proposicao.epigrafe = this.getEpigrafe(this.projetoNorma);
 
     proposicao.colegiadoApreciador = this._lexmlDestino!.colegiadoApreciador;
-    proposicao.anexos = this._lexmlEta!.getAnexos();
+    proposicao.anexos = this._lexmlAnexos?.anexos ?? [];
     proposicao.substitutivo = this.substitutivo;
     if (proposicao.colegiadoApreciador) proposicao.local = this.montarLocalFromColegiadoApreciador(proposicao.colegiadoApreciador);
 
@@ -290,8 +331,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     Reflect.deleteProperty(proposicao, 'justificativa');
     Reflect.deleteProperty(proposicao, 'justificativaAntesRevisao');
     Reflect.deleteProperty(proposicao, 'notasRodape');
-    Reflect.deleteProperty(proposicao, 'local');
-    Reflect.deleteProperty(proposicao, 'autoria');
   }
 
   getEpigrafe(projetoNorma: any): Epigrafe {
@@ -334,6 +373,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   async inicializarEdicao(params: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): Promise<void> {
     try {
+      // Antes de qualquer atribuição, para que o documento em edição continue como estava.
+      const urnRecebida = this.getUrnRecebida(params);
+      if (urnRecebida) verificarUrnDaCasaDoEditor(urnRecebida);
+
       this.localDoArquivo = undefined;
       this.destinoAoAbrir = undefined;
       this.anexoParecer = this.lexmlEtaConfig.anexoParecer ?? false;
@@ -413,10 +456,14 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
   }
 
+  private getUrnRecebida(params: LexmlEtaParametrosEdicao): string | undefined {
+    return getUrn(params.projetoNorma) || params.urn || params.proposicao?.urn;
+  }
+
   private inicializaProposicao(params: LexmlEtaParametrosEdicao): void {
     this.urn = '';
 
-    const urnRecebida = getUrn(this.projetoNorma) || params.urn || params.proposicao?.urn;
+    const urnRecebida = this.getUrnRecebida(params);
     if (urnRecebida) {
       this.urn = urnRecebida;
     } else if (params.proposicao) {
@@ -490,13 +537,15 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this._lexmlDestino!.proposicao = getRefProposicaoReduzida(proposicao);
     this.notasRodape = proposicao.notasRodape || [];
     this._lexmlJustificativa.setContent(proposicao.justificativa || '', proposicao.notasRodape || []);
-    this._lexmlData.data = this.anexoParecer ? '' : proposicao.dataUltimaModificacao;
+    this._lexmlData.data = proposicao.dataUltimaModificacao;
     this._lexmlEta!.setRevisoes(proposicao.revisoes);
-    this._lexmlEta!.atualizaAnexos(proposicao.anexos || []);
+    this.aplicarAnexos(proposicao.anexos);
   }
 
   private resetaProposicao(params: LexmlEtaParametrosEdicao): void {
     const proposicao = new Proposicao();
+    // Documento novo nasce com "Não informar"; o padrão do modelo é o instante atual.
+    proposicao.dataUltimaModificacao = '';
     proposicao.autoria = this.montarAutoriaPadrao(params);
     proposicao.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
     proposicao.colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
@@ -531,6 +580,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   constructor() {
     super();
+    inicializarVocabulario(this._lexmlEtaConfig.casaLegislativaEditor);
     this.addEventListener(NOTA_RODAPE_CHANGE_EVENT, this.onChangeNotasRodape);
     this.addEventListener(NOTA_RODAPE_REMOVE_EVENT, this.onChangeNotasRodape);
   }
@@ -903,7 +953,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           <sl-tab-group id="tabs-esquerda">
             <sl-tab slot="nav" panel="lexml-eta-proposicao">Texto</sl-tab>
             ${!this.anexoParecer ? html`<sl-tab slot="nav" panel="justificativa">Justificação</sl-tab>` : ''}
-            <sl-tab slot="nav" panel="autoria">${this.anexoParecer ? 'Destino e Impressão' : 'Destino, Data, Autoria e Impressão'}</sl-tab>
+            <sl-tab slot="nav" panel="autoria">Destino, Data, Autoria e Impressão</sl-tab>
+            <sl-tab slot="nav" panel="anexos">Anexos${this.totalAnexos > 0 ? ` (${this.totalAnexos})` : ''}</sl-tab>
             <sl-tab slot="nav" panel="avisos">
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
@@ -923,7 +974,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
             <sl-tab-panel name="autoria" class="overflow-hidden">
               <div class="tab-autoria__container">
                 <lexml-eta-destino .comissoes=${this.comissoes}></lexml-eta-destino>
-                <div style="display: ${this.anexoParecer ? 'none' : 'block'}">
+                <div>
                   <br />
                   <lexml-eta-data></lexml-eta-data>
                   <br />
@@ -931,6 +982,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
                 </div>
                 <lexml-eta-opcoes-impressao></lexml-eta-opcoes-impressao>
               </div>
+            </sl-tab-panel>
+            <sl-tab-panel name="anexos" class="overflow-hidden">
+              <lexml-eta-anexos .lexmlEtaConfig=${this.lexmlEtaConfig} @onchange=${this.atualizarTotalAnexos}></lexml-eta-anexos>
             </sl-tab-panel>
             <sl-tab-panel name="avisos" class="overflow-hidden">
               <lexml-eta-alertas></lexml-eta-alertas>

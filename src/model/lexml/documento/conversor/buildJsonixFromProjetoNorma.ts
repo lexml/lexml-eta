@@ -20,9 +20,10 @@ import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
-import { Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
+import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
+import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
 import { formatarLocalDataFecho } from '../urnUtil';
-import { coletarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
+import { coletarSituacaoNaNormaVigente, mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 export const PENDENCIA_REVISAO_ARTICULACAO = 'Resolver marcas de revisão na articulação.';
@@ -46,7 +47,14 @@ const garantirIdsRemissoesInvalidas = (remissoes?: Remissoes): string[] => {
 
 export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
   const idsRemissoesInvalidas = garantirIdsRemissoesInvalidas(remissoes);
-  const resultado = montaCabecalho(urn, montaMetadadoLexEdit(dados, idsRemissoesInvalidas, coletarSituacaoNaNormaVigente(projetoNorma.articulacao)));
+  const resultado = montaCabecalho(
+    urn,
+    montaMetadadoLexEdit(
+      dados,
+      idsRemissoesInvalidas,
+      mesclarSituacaoNaNormaVigente(coletarSituacaoNaNormaVigente(projetoNorma.articulacao), dados?.revisoes?.situacaoDosExcluidos)
+    )
+  );
   resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas, dados);
   return resultado;
 };
@@ -118,6 +126,33 @@ const montaSituacaoNaNormaVigente = (situacao: SituacaoNaNormaVigente): Metadado
   };
 };
 
+// Sem pares não há grupo; chave vazia ou valor não textual é descartado (o objeto vem do host).
+const montaOutrosMetadados = (outros?: Record<string, string>): MetadadoLexEdit['outrosMetadados'] => {
+  const pares = Object.entries(outros ?? {}).filter(([chave, valor]) => chave.trim() && typeof valor === 'string');
+  if (!pares.length) return undefined;
+  return {
+    TYPE_NAME: 'br_gov_lexml_lexedit__1.OutrosMetadados',
+    outroMetadado: pares.map(([chave, value]) => ({ TYPE_NAME: 'br_gov_lexml_lexedit__1.OutroMetadado', chave, value })),
+  };
+};
+
+// Sem anexos não há grupo; só os cinco atributos do XSD (o objeto vem do host) e, sem o conteúdo do arquivo, o idArquivo é o elo para recuperá-lo.
+const montaAnexos = (anexos?: Anexo[]): MetadadoLexEdit['anexos'] => {
+  const validos = (anexos ?? []).filter(a => typeof a?.idArquivo === 'string' && a.idArquivo.trim() && typeof a.nomeArquivo === 'string' && a.nomeArquivo.trim());
+  if (!validos.length) return undefined;
+  return {
+    TYPE_NAME: 'br_gov_lexml_lexedit__1.Anexos',
+    anexo: validos.map(a => ({
+      TYPE_NAME: 'br_gov_lexml_lexedit__1.Anexo',
+      idArquivo: a.idArquivo,
+      nomeArquivo: a.nomeArquivo,
+      nomeDocumento: a.nomeDocumento?.trim() || a.nomeArquivo,
+      tipo: a.tipo?.trim() || TIPO_ANEXO_NAO_INFORMADO.codigo,
+      mimeType: a.mimeType,
+    })),
+  };
+};
+
 // Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
 const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[], situacao: SituacaoNaNormaVigente): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
@@ -143,6 +178,10 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
   }
   const situacaoNaNormaVigente = montaSituacaoNaNormaVigente(situacao);
   if (situacaoNaNormaVigente) lexedit.situacaoNaNormaVigente = situacaoNaNormaVigente;
+  const outrosMetadados = montaOutrosMetadados(dados?.outrosMetadados);
+  if (outrosMetadados) lexedit.outrosMetadados = outrosMetadados;
+  const anexos = montaAnexos(dados?.anexos);
+  if (anexos) lexedit.anexos = anexos;
   if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
   // > 1 porque TYPE_NAME está sempre presente.
   return Object.keys(lexedit).length > 1 ? lexedit : undefined;

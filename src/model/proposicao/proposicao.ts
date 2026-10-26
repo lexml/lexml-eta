@@ -116,9 +116,18 @@ export class OpcoesImpressao {
   tamanhoFonte = 14;
 }
 
-export class Anexo {
-  nomeArquivo = '';
-  base64 = '';
+export enum MimeType {
+  PDF = 'application/pdf',
+  DOCX = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+}
+
+// Só os metadados: o conteúdo do arquivo fica com o host, que o recupera pelo idArquivo.
+export interface Anexo {
+  idArquivo: string;
+  nomeArquivo: string;
+  nomeDocumento: string;
+  tipo: string;
+  mimeType: MimeType;
 }
 
 // Substituição de termo -----------------------------

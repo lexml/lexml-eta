@@ -8,7 +8,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     expect(new LexmlEtaConfig().anexoParecer).to.be.false;
   });
 
-  it('não deveria devolver dados que não se aplicam ao anexo de parecer', () => {
+  it('não deveria devolver os dados de justificação no anexo de parecer, mas manter local e autoria', () => {
     const component = new LexmlEtaComponent() as any;
     const proposicao = new Proposicao();
     proposicao.justificativa = '<p>Justificativa</p>';
@@ -21,13 +21,13 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
 
     expect(proposicao).not.to.have.property('justificativa');
     expect(proposicao).not.to.have.property('justificativaAntesRevisao');
-    expect(proposicao).not.to.have.property('local');
-    expect(proposicao).not.to.have.property('autoria');
     expect(proposicao).not.to.have.property('notasRodape');
+    expect(proposicao).to.have.property('local');
+    expect(proposicao).to.have.property('autoria');
     expect(proposicao).to.have.property('dataUltimaModificacao');
   });
 
-  it('deveria ocultar justificação, notas, data e autoria no modo anexo de parecer', async () => {
+  it('deveria ocultar justificação e notas e exibir data e autoria no modo anexo de parecer', async () => {
     const component = await fixture<LexmlEtaComponent>(html`<lexml-eta></lexml-eta>`);
     (component as any).anexoParecer = true;
     await elementUpdated(component);
@@ -36,9 +36,9 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     expect(component.querySelector('sl-tab[panel="notas"]')).to.be.null;
     expect((component.querySelector('sl-tab-panel[name="justificativa"]') as HTMLElement).style.display).to.equal('none');
     expect(component.querySelector('sl-tab-panel[name="notas"]')).to.be.null;
-    expect(component.querySelector('sl-tab[panel="autoria"]')?.textContent?.trim()).to.equal('Destino e Impressão');
-    expect((component.querySelector('lexml-eta-data')?.parentElement as HTMLElement).style.display).to.equal('none');
-    expect((component.querySelector('lexml-eta-autoria')?.parentElement as HTMLElement).style.display).to.equal('none');
+    expect(component.querySelector('sl-tab[panel="autoria"]')?.textContent?.trim()).to.equal('Destino, Data, Autoria e Impressão');
+    expect((component.querySelector('lexml-eta-data')?.parentElement as HTMLElement).style.display).not.to.equal('none');
+    expect((component.querySelector('lexml-eta-autoria')?.parentElement as HTMLElement).style.display).not.to.equal('none');
     expect(component.querySelector('lexml-eta-destino')).not.to.be.null;
     expect(component.querySelector('lexml-eta-opcoes-impressao')).not.to.be.null;
   });
@@ -71,7 +71,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     expect(pendencias).not.to.include('Não foi informado um texto de justificação.');
   });
 
-  it('deveria montar o JSON sem os dados de apresentação e preservar destino, impressão e metadado de modificação', () => {
+  it('deveria montar o JSON sem os dados de justificação e preservar destino, impressão, local, autoria e data', () => {
     const component = new LexmlEtaComponent() as any;
     const colegiadoApreciador = { tipoColegiado: 'Plenário', siglaCasaLegislativa: 'CN' };
     const opcoesImpressao = { imprimirBrasao: true, textoCabecalho: 'Cabeçalho', tamanhoFonte: 14 };
@@ -84,7 +84,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     component.getRevisoes = (): any[] => [];
 
     Object.defineProperties(component, {
-      _lexmlEta: { value: { getProjetoAtualizado: (): any => ({}), getAnexos: (): any[] => [] } },
+      _lexmlEta: { value: { getProjetoAtualizado: (): any => ({}) } },
       _lexmlData: { value: { data: '2026-08-19' } },
       _lexmlJustificativa: {
         value: { texto: '<p>Justificativa</p>', notasRodape: [{ id: '1', numero: 1, texto: 'Nota' }], textoAntesRevisao: '<p>Anterior</p>' },
@@ -99,9 +99,9 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     expect(proposicao).not.to.have.property('justificativa');
     expect(proposicao).not.to.have.property('justificativaAntesRevisao');
     expect(proposicao).not.to.have.property('notasRodape');
-    expect(proposicao).not.to.have.property('local');
-    expect(proposicao).not.to.have.property('autoria');
-    expect(proposicao.dataUltimaModificacao).not.to.equal('2026-08-19');
+    expect(proposicao.local).to.equal('Sala das sessões');
+    expect(proposicao.autoria).to.deep.equal({ parlamentares: [{ identificacao: '1' }] });
+    expect(proposicao.dataUltimaModificacao).to.equal('2026-08-19');
     expect(proposicao.colegiadoApreciador).to.equal(colegiadoApreciador);
     expect(proposicao.opcoesImpressao).to.equal(opcoesImpressao);
   });
@@ -118,6 +118,6 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
 
     expect(() => (component as any).setProposicao(proposicao)).not.to.throw();
     expect((component as any)._lexmlJustificativa.texto).to.equal('');
-    expect((component as any)._lexmlData.data).to.equal('');
+    expect((component as any)._lexmlData.data).to.equal(proposicao.dataUltimaModificacao);
   });
 });
