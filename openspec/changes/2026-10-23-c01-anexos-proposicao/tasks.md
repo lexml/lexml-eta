@@ -49,7 +49,7 @@
 
 ## 8. Verificação final
 
-- [ ] 8.1 Rodar a suíte completa (`npm test`), o lint (`npm run lint`) e `openspec validate 2026-10-23-c01-anexos-proposicao`, e conferir que nenhuma referência ao anexo antigo (`uploadAnexoDialog`, `base64` em anexo, `panel-anexo`) permanece (`grep`)
+- [x] 8.1 Rodar a suíte completa (`npm test`), o lint (`npm run lint`) e `openspec validate 2026-10-23-c01-anexos-proposicao`, e conferir que nenhuma referência ao anexo antigo (`uploadAnexoDialog`, `base64` em anexo, `panel-anexo`) permanece (`grep`). **Resultado:** `npm test` passou (executado pelo usuário); o lint aponta 1950 erros, todos de `prettier/prettier` e de `no-require-imports` em 7 arquivos que esta change não tocou (`demo/doc/codigocivil-eta*.ts`, `demo/doc/pec_48_2023.ts`, `test/doc/exemplo-sem-agrupadores.ts`, `cypress.config.ts` e dois `.d.ts` do quill1-table), nenhum nos arquivos alterados; `openspec validate --strict` válido; o `grep` não acha resíduos do anexo antigo neste repositório
 
 ## Workflow follow-up
 
