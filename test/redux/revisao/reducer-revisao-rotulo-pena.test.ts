@@ -88,6 +88,16 @@ describe('Revisão da alteração do rótulo da pena', () => {
       expect(revisao().descricao).to.equal('Rótulo do dispositivo foi alterado');
     });
 
+    it('registra a troca como alterado, não como alteracaoRotulo (reservado à renumeração)', () => {
+      expect(revisao().revisao).to.equal('alterado');
+    });
+
+    it('refazer a troca continua registrando alterado, sem alteracaoRotulo', () => {
+      state = elementoReducer(state, { type: UNDO });
+      state = elementoReducer(state, { type: REDO });
+      expect(revisao().revisao).to.equal('alterado');
+    });
+
     it('guarda o rótulo antes e depois', () => {
       expect(revisao().elementoAntesRevisao?.rotulo).to.equal('Pena –');
       expect(revisao().elementoAposRevisao.rotulo).to.equal('Infração –');

@@ -233,4 +233,33 @@ describe('montaTextoDiff — rótulo', () => {
     const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 2º', '§ 1º', 'movido;2,alterado'));
     expect(diff.rotuloAtual).to.equal(undefined);
   });
+
+  it('alteracaoRotulo depois de outra operação informa os dois rótulos', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 4º', '§ 9º', 'movido;3,alteracaoRotulo;art1_par4'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal(['§ 4º', '§ 9º']);
+  });
+
+  it('o argumento de outra operação que contenha "alteracaoRotulo" não informa rótulo', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 2º', '§ 1º', 'transformado;alteracaoRotulo'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal([undefined, undefined]);
+  });
+
+  it('operação cujo nome só começa com "alteracaoRotulo" não informa rótulo', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 2º', '§ 1º', 'alteracaoRotuloX;art1_par2'));
+    expect(diff.rotuloAtual).to.equal(undefined);
+  });
+
+  it('revisão sem o atributo de operações não informa rótulo, exceto na pena', () => {
+    const paragrafo = elementoEmRevisao('Paragrafo', '§ 2º', '§ 1º', '');
+    (paragrafo.revisao as RevisaoElemento).revisao = undefined;
+    const pena = elementoEmRevisao('Pena', 'Pena –', 'Infração –', '');
+    (pena.revisao as RevisaoElemento).revisao = undefined;
+    expect(diffDe(paragrafo).rotuloAtual).to.equal(undefined);
+    expect([diffDe(pena).rotuloAntesRevisao, diffDe(pena).rotuloAtual]).to.deep.equal(['Pena –', 'Infração –']);
+  });
+
+  it('elemento sem revisão não informa rótulo nem marca a revisão', () => {
+    const diff = diffDe({ ...new Elemento(), tipo: 'Pena', rotulo: 'Pena –', conteudo: { texto: 'multa.' } });
+    expect([diff.comRevisao, diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal([false, undefined, undefined]);
+  });
 });

@@ -8,6 +8,9 @@ import {
   reconciliarOperacoesRevisao,
   buildDescricaoRevisaoElemento,
   isRevisaoComTextoAlterado,
+  mudouRotuloDaPena,
+  isMesmoTextoETitulo,
+  buildDescricaoRevisaoDeModificacao,
 } from '../../../src/redux/elemento/util/revisaoUtil';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { State, StateType } from '../../../src/redux/state';
@@ -100,6 +103,43 @@ describe('Operações de revisão da hierarquia (atributo "revisao")', () => {
       const antes = { tipo: 'Paragrafo', rotulo: '§ 4º-A.', lexmlId: 'par4-1', conteudo: { texto: 'a' } };
       const apos = { tipo: 'Paragrafo', rotulo: '§ 4º-A.', lexmlId: 'par4-1', conteudo: { texto: 'b' } };
       expect(derivarOperacoesRevisao(state, novaRevisao(StateType.ElementoModificado, antes, apos))).to.equal('alterado');
+    });
+
+    it('na pena, a troca de rótulo deriva alterado, nunca alteracaoRotulo', () => {
+      const antes = { tipo: 'Pena', rotulo: 'Pena –', lexmlId: 'art1_cpt_pena', conteudo: { texto: 'a' } };
+      const apos = { tipo: 'Pena', rotulo: 'Infração –', lexmlId: 'art1_cpt_pena', conteudo: { texto: 'a' } };
+      expect(derivarOperacoesRevisao(state, novaRevisao(StateType.ElementoModificado, antes, apos))).to.equal('alterado');
+    });
+
+    it('na pena, rótulo e texto trocados derivam um único alterado', () => {
+      const antes = { tipo: 'Pena', rotulo: 'Pena –', lexmlId: 'art1_cpt_pena', conteudo: { texto: 'a' } };
+      const apos = { tipo: 'Pena', rotulo: 'Infração –', lexmlId: 'art1_cpt_pena', conteudo: { texto: 'b' } };
+      expect(derivarOperacoesRevisao(state, novaRevisao(StateType.ElementoModificado, antes, apos))).to.equal('alterado');
+    });
+  });
+
+  describe('rótulo da pena como conteúdo revisável', () => {
+    const pena = (rotulo: string, texto = 'multa.'): any => ({ tipo: 'Pena', rotulo, conteudo: { texto } });
+    const paragrafo = (rotulo: string, texto = 'texto.'): any => ({ tipo: 'Paragrafo', rotulo, conteudo: { texto } });
+
+    it('mudouRotuloDaPena só considera pena dos dois lados com rótulos diferentes', () => {
+      expect(mudouRotuloDaPena(pena('Pena –'), pena('Infração –'))).to.be.true;
+      expect(mudouRotuloDaPena(pena('Pena –'), pena('Pena –'))).to.be.false;
+      expect(mudouRotuloDaPena(paragrafo('§ 1º'), paragrafo('§ 2º'))).to.be.false;
+      expect(mudouRotuloDaPena(undefined, pena('Infração –'))).to.be.false;
+    });
+
+    it('isMesmoTextoETitulo trata a troca de rótulo da pena como alteração, e a de outros dispositivos não', () => {
+      expect(isMesmoTextoETitulo(pena('Pena –'), pena('Infração –'))).to.be.false;
+      expect(isMesmoTextoETitulo(pena('Pena –'), pena('Pena –'))).to.be.true;
+      expect(isMesmoTextoETitulo(paragrafo('§ 1º'), paragrafo('§ 2º'))).to.be.true;
+    });
+
+    it('a descrição da modificação cita o rótulo só na pena', () => {
+      const descricao = (antes: any, apos: any): string => buildDescricaoRevisaoDeModificacao(novaRevisao(StateType.ElementoModificado, antes, apos));
+      expect(descricao(pena('Pena –'), pena('Infração –'))).to.equal('Rótulo do dispositivo foi alterado');
+      expect(descricao(pena('Pena –', 'a.'), pena('Infração –', 'b.'))).to.equal('Texto e rótulo do dispositivo foram alterados');
+      expect(descricao(paragrafo('§ 1º', 'a.'), paragrafo('§ 2º', 'b.'))).to.not.contain('rótulo');
     });
   });
 
