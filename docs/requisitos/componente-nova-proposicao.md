@@ -1,16 +1,16 @@
-# Caso de uso: Nova proposição
+# Componente: Nova proposição
 
 Origem: anotações em `pendencias.md` (seções "Casos de uso do LexEdit/Infoleg Editor" e "Componente de criação de novo documento"). Itens ainda sem resposta das equipes de negócio estão em [Pontos em aberto](#pontos-em-aberto).
 
 ## 1. Descrição
 
-O usuário cria uma nova proposição no editor. O caso de uso coleta a identificação do documento (tipo, se é substitutivo e a proposição referenciada) e define o texto inicial da edição: vazio, importado de um arquivo (DOCX, TXT ou LexML), copiado da proposição referenciada ou copiado de outra proposição.
+O usuário cria uma nova proposição no editor. O componente coleta a identificação do documento (tipo, se é substitutivo e a proposição referenciada) e define o texto inicial da edição: vazio, importado de um arquivo (DOCX, TXT ou LexML), copiado da proposição referenciada ou copiado de outra proposição.
 
 - **Ator:** usuário do LexEdit/Infoleg Editor.
 - **Gatilho:** ação "Nova proposição".
 - **Pré-condições:**
   - A aplicação host informa a casa legislativa do editor, que define as autoridades permitidas (ver [Casa legislativa e autoridades](#casa-legislativa-e-autoridades)).
-  - O vocabulário de tipos de documento está carregado (ver [Vocabulário](#6-vocabulário-de-tipos-de-documento)).
+  - O vocabulário de tipos de documento não precisa estar carregado: o componente o inicializa para a casa informada, ao ser criado e a cada nova configuração, como faz o `lexml-eta` (ver [Vocabulário](#6-vocabulário-de-tipos-de-documento)).
 - **Pós-condição (sucesso):** o editor abre com um documento novo, com a identificação (URN do documento e `urnDocumentoDeReferencia`, quando houver) definida e o texto inicial escolhido.
 
 ### Casa legislativa e autoridades
@@ -106,7 +106,7 @@ Botões:
 
 - **Continuar:** abre a edição com documento vazio.
 - **Voltar:** retorna à Tela 2.
-- **Cancelar:** encerra o caso de uso sem criar o documento.
+- **Cancelar:** fecha o componente sem criar o documento.
 
 ## 3. Fluxos alternativos
 
@@ -133,7 +133,7 @@ urn:lex:br:camara.deputados:substitutivo;sbt:2026;999999
 
 Sufixos de versão previstos: `@apresentacao.substitutivo`, `@aprovacao.substitutivo`, `@aprovacao.substitutivo.decisao.terminativa`.
 
-- **RN-11 — Versão do substitutivo.** A identificação de substitutivo por sufixo de versão vale apenas para o `SF`: um substitutivo novo é sempre criado com `@apresentacao.substitutivo`. Os demais sufixos não são atribuídos por este caso de uso.
+- **RN-11 — Versão do substitutivo.** A identificação de substitutivo por sufixo de versão vale apenas para o `SF`: um substitutivo novo é sempre criado com `@apresentacao.substitutivo`. Os demais sufixos não são atribuídos por este componente.
 - **RN-12 — Substitutivo na `CD`.** A `CD` não usa sufixo de versão: tem tipos de documento específicos para substitutivo (ex.: `sbt`, subemenda substitutiva), com `tipoRelacaoSubstitutivo` = `é substitutivo` / `é subemenda substitutiva`. Assim, na `CD` o indicativo de substitutivo aparece sempre selecionado e desabilitado nesses tipos, e a URN não leva sufixo.
 
 - **RN-13 — Substitutivo do `SF`.** A URN é a mesma do documento de referência, acrescida do sufixo `@apresentacao.substitutivo` (ex.: referência `...projeto.lei;pl:2026;12` → `...projeto.lei;pl:2026;12@apresentacao.substitutivo`).
@@ -149,7 +149,7 @@ Congresso e Senado **confirmados** pelas equipes de negócio; Câmara **a confir
 
 ## 6. Vocabulário de tipos de documento
 
-O caso de uso depende de novos atributos no tipo do documento (`vocabulario.ts`):
+O componente depende de novos atributos no tipo do documento (`vocabulario.ts`):
 
 - **`tipoRelacaoSubstitutivo`:** `aceita substitutivo` | `não aceita substitutivo` | `é substitutivo` | `é subemenda substitutiva` (base da RN-01).
 - **`ativo`** (booleano, padrão `true`): tipos inativos (ex.: PLS, PLC) são oferecidos apenas para referenciar uma proposição (campo sigla), nunca para criar um documento novo. Deve haver apenas uma entrada ativa por sigla + autoridade.
@@ -168,7 +168,7 @@ O número da epígrafe fica em branco (o documento nasce não numerado, RN-14) e
 | Subemenda substitutiva (`CD`) | `SUBEMENDA SUBSTITUTIVA <AO/À> <TIPO DA PROPOSIÇÃO> Nº <NÚMERO>, DE <ANO>` | SUBEMENDA SUBSTITUTIVA À PROPOSTA DE EMENDA À CONSTITUIÇÃO Nº 11, DE 2025 |
 | PLV | `PROJETO DE LEI DE CONVERSÃO Nº    , DE <ANO>` + linha `(Medida Provisória nº <número>, de <ano>)` | PROJETO DE LEI DE CONVERSÃO Nº    , DE 2026<br>(Medida Provisória nº 1.234, de 2026) |
 
-- **RN-16 — Complemento de texto livre.** Em qualquer caso, o usuário pode adicionar um texto livre complementar (opcional), apresentado abaixo da epígrafe. Ele **não é coletado neste caso de uso**: é informado depois, durante a edição da proposição (ex.: PROPOSTA DE EMENDA À CONSTITUIÇÃO Nº    , DE 2015 / TEXTO DESTACADO PARA RETORNAR À CÂMARA DOS DEPUTADOS COMO PROPOSIÇÃO AUTÔNOMA).
+- **RN-16 — Complemento de texto livre.** Em qualquer caso, o usuário pode adicionar um texto livre complementar (opcional), apresentado abaixo da epígrafe. Ele **não é coletado neste componente**: é informado depois, durante a edição da proposição (ex.: PROPOSTA DE EMENDA À CONSTITUIÇÃO Nº    , DE 2015 / TEXTO DESTACADO PARA RETORNAR À CÂMARA DOS DEPUTADOS COMO PROPOSIÇÃO AUTÔNOMA).
 - **RN-17 — Referência no substitutivo.** O tipo, o número e o ano da proposição citada na epígrafe vêm da proposição referenciada informada na Tela 1; no PLV, da Medida Provisória.
 
 ### 6.2 Modelos de preâmbulo

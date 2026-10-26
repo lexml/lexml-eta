@@ -13,6 +13,10 @@ O componente SHALL receber um objeto de configuração com a casa legislativa do
 - **WHEN** o usuário aciona **Continuar** na última tela aplicável
 - **THEN** o componente emite um evento cujo `detail` contém: `urn`, `urnDocumentoDeReferencia` (quando houver), `epigrafe`, `preambulo`, `colegiadoDestino` (quando substitutivo), `texto` (quando parte de documento existente) e `anexoParecer`
 
+#### Scenario: Vocabulário inicializado pelo componente
+- **WHEN** o componente é criado ou recebe uma nova configuração
+- **THEN** ele inicializa o vocabulário para a casa legislativa da configuração, como o `lexml-eta`, sem depender de inicialização prévia pelo host
+
 #### Scenario: Campos condicionais ausentes
 - **WHEN** o documento não é substitutivo, nem PLV, e o texto inicial é vazio
 - **THEN** o `detail` não contém `urnDocumentoDeReferencia`, `colegiadoDestino` nem `texto`

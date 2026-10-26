@@ -2,7 +2,7 @@
 
 ## Context
 
-O vocabulário (`src/model/lexml/documento/vocabulario/`, #1026) já oferece `ativo`, `tipoRelacaoSubstitutivo`, `tiposReferenciaveis`, preâmbulo padrão e as visões da casa e completa; `LexmlEtaConfig.casaLegislativaEditor` já informa a casa. O `DestinoComponent` já trata tipo de colegiado e sigla da comissão. O caso de uso completo está em `docs/requisitos/caso-de-uso-nova-proposicao.md`. Esta change só especifica; nenhum código é alterado.
+O vocabulário (`src/model/lexml/documento/vocabulario/`, #1026) já oferece `ativo`, `tipoRelacaoSubstitutivo`, `tiposReferenciaveis`, preâmbulo padrão e as visões da casa e completa; `LexmlEtaConfig.casaLegislativaEditor` já informa a casa. O `DestinoComponent` já trata tipo de colegiado e sigla da comissão. A descrição completa do componente está em `docs/requisitos/componente-nova-proposicao.md`. Esta change só especifica; nenhum código é alterado.
 
 ## Goals / Non-Goals
 
@@ -13,12 +13,13 @@ O vocabulário (`src/model/lexml/documento/vocabulario/`, #1026) já oferece `at
 **Non-Goals:**
 - Implementar o componente ou o parser de DOCX/TXT/LexML.
 - Trocar o tipo do documento (especificação própria).
-- Definir modelos de epígrafe e preâmbulo dos novos tipos da `CD` (seção 5 do caso de uso, ainda a confirmar).
+- Definir modelos de epígrafe e preâmbulo dos novos tipos da `CD` (seção 5 do documento de requisitos, ainda a confirmar).
 
 ## Decisions
 
 - **Componente sem efeito colateral.** Ele coleta e devolve um resultado por evento; quem cria o documento é o host (ou um orquestrador no `lexml-eta`). Alternativa: o componente chamar `inicializarEdicao` direto — descartada porque acopla a coleta ao ciclo de vida do editor e impede reuso no host.
 - **Configuração mínima:** `{ casaLegislativa: 'SF' | 'CD', urlVerificacaoProposicao: string, urlTextoEstruturado: string }`, com placeholders `{sigla}`, `{numero}` e `{ano}` nas duas URLs. A casa segue a mesma semântica de `casaLegislativaEditor`.
+- **Vocabulário inicializado pelo componente.** Como o `LexmlEtaComponent`, o componente chama `inicializarVocabulario(casa)` no construtor e a cada atribuição da configuração, então o host não precisa inicializá-lo antes. A visão da casa é global e reaproveitada quando a casa não muda, de modo que o componente e o editor na mesma página, com a mesma casa, não se interferem. Alternativa descartada: exigir o vocabulário carregado como pré-condição, o que obrigaria o host a conhecer um detalhe interno do `lexml-eta`.
 - **Contrato da verificação:** `200` com `{ ementa: string, textoEstruturadoDisponivel: boolean }`; `404` = inexistente; qualquer outro resultado é erro, tratado como não verificado e com nova tentativa permitida. O mesmo endpoint serve à Tela 1 e à opção "outra proposição" da Tela 2.
 - **Serviço do texto (RN-09a):** segundo endpoint, mesmos placeholders; `200` devolve o JSON do texto estruturado e `404` indica texto indisponível. O indicador da verificação antecipa o alerta; o `404` do texto o confirma no momento da obtenção.
 - **Evento de resultado:** `nova-proposicao-concluida` com `detail` = `{ urn, urnDocumentoDeReferencia?, epigrafe, preambulo, colegiadoDestino?, texto?, anexoParecer }`; e `nova-proposicao-cancelada` sem `detail`. O resultado já vem pronto para o host criar o documento, sem ele recalcular epígrafe ou preâmbulo.
