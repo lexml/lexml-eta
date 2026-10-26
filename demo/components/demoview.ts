@@ -4,6 +4,7 @@ import { PL_5008_2023 } from '../doc/pl_5008_2023';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import { LexmlEtaConfig, LexmlEtaComponent, LexmlEtaParametrosEdicao, Usuario } from '../../src';
+import type { Anexo, ObterAnexoBlobResult } from '../../src';
 import { RefProposicaoReduzida } from '../../src/model/proposicao/proposicao';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
@@ -116,6 +117,30 @@ export class DemoView extends LitElement {
     this.etaConfig.urlConsultaParlamentares = '/parlamentares';
     this.etaConfig.urlComissoes = '/comissoes';
     this.etaConfig.anexoParecer = this.anexoParecer;
+    this.configurarAnexos();
+  }
+
+  // O host da demo guarda os arquivos em memória, só durante a sessão da página.
+  private configurarAnexos(): void {
+    const arquivos = new Map<string, Blob>();
+    let sequencia = 0;
+    this.etaConfig.tiposAnexos = [
+      { codigo: 'substitutivo', nome: 'Substitutivo' },
+      { codigo: 'emenda', nome: 'Emenda' },
+    ];
+    this.etaConfig.onUploadAnexo = (file: File): string => {
+      const idArquivo = `demo-${++sequencia}`;
+      arquivos.set(idArquivo, file);
+      return idArquivo;
+    };
+    this.etaConfig.onDeleteAnexo = (anexo: Anexo): void => {
+      arquivos.delete(anexo.idArquivo);
+    };
+    this.etaConfig.onObterAnexoBlob = (anexo: Anexo): ObterAnexoBlobResult => {
+      const blob = arquivos.get(anexo.idArquivo);
+      if (!blob) throw new Error(`Arquivo ${anexo.idArquivo} não está disponível na demo.`);
+      return { blob, contentType: blob.type || null };
+    };
   }
 
   createRenderRoot(): LitElement {
