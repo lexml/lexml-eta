@@ -1746,6 +1746,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           const el = (elementoEmenta && this.quill.getLinha(elementoEmenta.uuid!)) || primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
           if (el?.blotConteudo) {
             this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, PrivateQuill.sources.SILENT);
+            this.quill.marcarLinhaAtual(el);
             this.focarQuillQuandoVisivel();
           }
         }, 0);
