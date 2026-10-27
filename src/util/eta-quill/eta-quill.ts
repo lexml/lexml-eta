@@ -370,9 +370,10 @@ export class EtaQuill extends PrivateQuill {
   }
 
   private scrollToElemento(uuid: number): void {
-    const el = this.getHtmlElement(EtaContainerTable.criarId(uuid));
     setTimeout(() => {
-      if (!this.isInEtaBoxViewport(el)) {
+      // O editor pode ter sido destruído antes do timer disparar.
+      const el = this.getHtmlElement(EtaContainerTable.criarId(uuid));
+      if (el && !this.isInEtaBoxViewport(el)) {
         this.scrollIntoEtaBox(el);
         // el.scrollIntoView({behavior: 'smooth', block: 'center'});
       }
