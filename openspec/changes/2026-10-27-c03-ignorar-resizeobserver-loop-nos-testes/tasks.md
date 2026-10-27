@@ -13,5 +13,5 @@
 
 ## 3. Validação e E2E
 
-- [ ] 3.1 Repetir 10 execuções dos dois arquivos de componente e rodar `npm test` completo, verificando 0 falhas por `ResizeObserver` e a contagem de testes igual à da execução anterior mais o teste novo
-- [ ] 3.2 E2E (Cypress), avaliado à luz de `docs/guia-cypress.md`: a mudança é restrita ao ambiente do `web-test-runner` e não afeta o comportamento exercitado pelo Cypress. Decisão: não criar spec novo; como alternativa, o teste de regressão da 2.2 cobre o risco (o aviso não derruba o teste e outros erros continuam falhando)
+- [x] 3.1 Repetir 10 execuções dos dois arquivos de componente e rodar `npm test` completo, verificando 0 falhas por `ResizeObserver` e a contagem de testes igual à da execução anterior mais o teste novo
+- [x] 3.2 E2E (Cypress), avaliado à luz de `docs/guia-cypress.md`: a mudança é restrita ao ambiente do `web-test-runner` e não afeta o comportamento exercitado pelo Cypress. Decisão: não criar spec novo; como alternativa, o teste de regressão da 2.2 cobre o risco (o aviso não derruba o teste e outros erros continuam falhando)
