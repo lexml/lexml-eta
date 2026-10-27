@@ -11,4 +11,4 @@
 
 ## 3. Teste E2E (Cypress)
 
-- [ ] 3.1 Adicionar teste E2E Cypress cobrindo a inicialização de nova proposição com a ementa marcada com `container__elemento--ativo`, garantindo digitação imediata e ausência de erros no console, e verificar com execução do Cypress
+- [x] 3.1 Adicionar teste E2E Cypress cobrindo a inicialização de nova proposição com a ementa marcada com `container__elemento--ativo`, garantindo digitação imediata e ausência de erros no console, e verificar com execução do Cypress
