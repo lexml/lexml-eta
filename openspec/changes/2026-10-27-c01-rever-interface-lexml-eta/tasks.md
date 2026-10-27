@@ -26,10 +26,10 @@
 
 ## 5. Métodos novos e remoção do antigo
 
-- [ ] 5.1 Implementar `novaProposicao(dados)` com validação dos obrigatórios e da autoridade antes de qualquer atribuição, e o aproveitamento só de articulação e ementa do modelo; verificar com testes de componente dos cenários da spec `interface-lexml-eta`.
-- [ ] 5.2 Reescrever `abrirDocumentoArticulado` para aplicar `anexoParecer` e `urnDocumentoReferenciado` do arquivo e tratar o tipo "não suportado" (sem destino e autoria, erro na aba de avisos, salvar permitido); verificar com testes de componente e com a spec `abrir-documento-articulado`.
-- [ ] 5.3 Tornar `inicializarEdicao` privado e remover `LexmlEtaParametrosEdicao` onde não for mais usado; verificar com a compilação e a suíte `npm test`.
-- [ ] 5.4 Atualizar demos, `README`/guias e o texto da spec `anexos-proposicao` que citam a inicialização antiga; verificar buscando ocorrências de `inicializarEdicao` e `lexmlEtaConfig.anexoParecer` fora do código interno.
+- [x] 5.1 Implementar `novaProposicao(dados)` com validação dos obrigatórios e da autoridade antes de qualquer atribuição, e o aproveitamento só de articulação e ementa do modelo; verificar com testes de componente dos cenários da spec `interface-lexml-eta`.
+- [x] 5.2 Reescrever `abrirDocumentoArticulado` para aplicar `anexoParecer` e `urnDocumentoReferenciado` do arquivo e tratar o tipo "não suportado" (sem destino e autoria, erro na aba de avisos, salvar permitido); verificar com testes de componente e com a spec `abrir-documento-articulado`.
+- [x] 5.3 Tornar `inicializarEdicao` privado e remover `LexmlEtaParametrosEdicao` onde não for mais usado; verificar com a compilação e a suíte `npm test`.
+- [x] 5.4 Atualizar demos, `README`/guias e o texto da spec `anexos-proposicao` que citam a inicialização antiga; verificar buscando ocorrências de `inicializarEdicao` e `lexmlEtaConfig.anexoParecer` fora do código interno.
 
 ## 6. E2E (Cypress)
 

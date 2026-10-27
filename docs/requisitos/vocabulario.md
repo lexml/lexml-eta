@@ -45,7 +45,7 @@ Os módulos por autoridade são mesclados em **duas visões**, ambas em variáve
 
 A casa vem só do host, nunca da URN (a sigla da URN depende do vocabulário). `congresso` e `federal` entram nas duas casas.
 
-**Documento da outra casa:** abrir para edição um documento cuja URN seja de autoridade fora da visão da casa é **recusado** (`verificarUrnDaCasaDoEditor`), com a mensagem "Documento de outra casa legislativa não é suportado neste editor", antes de qualquer alteração do editor — em `lerDocumentoArticulado` (abertura de arquivo) e no início de `inicializarEdicao` (URN recebida do host). Proposição nova pela sigla não é afetada (sempre gera URN da casa). A abertura de documento da outra casa fica fora do escopo atual e pode ser retomada oportunamente.
+**Documento da outra casa:** abrir para edição um documento cuja URN seja de autoridade fora da visão da casa é **recusado** (`verificarUrnDaCasaDoEditor`), com a mensagem "Documento de outra casa legislativa não é suportado neste editor", antes de qualquer alteração do editor — em `lerDocumentoArticulado` (abertura de arquivo) e em `novaProposicao` (URN recebida do host), que além disso só aceita proposição suportada (ver a spec `interface-lexml-eta`). A abertura de documento da outra casa fica fora do escopo atual e pode ser retomada oportunamente.
 
 ### 3.2 Autoridade
 
