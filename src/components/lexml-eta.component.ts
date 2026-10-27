@@ -36,6 +36,7 @@ import { Revisao, RevisaoElemento } from '../model/revisao/revisao';
 import { ativarDesativarRevisaoAction } from '../model/lexml/acao/ativarDesativarRevisaoAction';
 import { StateEvent, StateType } from '../redux/state';
 import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
+import { resetarDocumentoAction } from '../model/lexml/acao/resetarDocumentoAction';
 import { buildContent, getUrn, lerMetadadoLexEdit, lerSituacaoNaNormaVigente } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { Comissao } from './destino/comissao';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
@@ -118,6 +119,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   @state()
   private anexoParecer = false;
+
+  // Estado neutro: nenhum documento inicializado (ou após fecharDocumento).
+  @state()
+  private documentoInicializado = false;
 
   @state()
   private totalAnexos = 0;
@@ -367,8 +372,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       const urnRecebida = this.getUrnRecebida(params);
       if (urnRecebida) verificarUrnDaCasaDoEditor(urnRecebida);
 
-      this.localDoArquivo = undefined;
-      this.destinoAoAbrir = undefined;
+      this.descartarDocumentoAtual();
       this.anexoParecer = params.anexoParecer ?? false;
       this.projetoNorma = params.projetoNorma;
 
@@ -396,6 +400,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       // resetaProposicao/limparAlertas): documentos com remissão interna inválida persistida
       // populam alertas globais ao abrir (ABRIR_ARTICULACAO), que seriam apagados se essa chamada
       // viesse antes das limpezas.
+      this.documentoInicializado = true;
       this._lexmlEta!.inicializarEdicao(this.urn, params.projetoNorma, this.lexmlEtaConfig.configuracaoPaginacao, preservarTextoDocumento);
 
       setTimeout(this.handleResize, 0);
@@ -415,6 +420,34 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         rootStore.dispatch(errorInicializarEdicaoAction.execute(err));
       }, 0);
       throw err;
+    }
+  }
+
+  /** Encerra a edição do documento atual e volta ao estado neutro. A confirmação de perda de dados é do host. */
+  fecharDocumento(): void {
+    this.descartarDocumentoAtual();
+    this.documentoInicializado = false;
+    this.limparAlertas();
+    this.querySelector<HTMLElement>('lexml-eta-articulacao')?.style.setProperty('display', 'none');
+    this.updateComplete.then(() => this.sincronizarESelecionarAba(this._tabsEsquerda, 'lexml-eta-proposicao'));
+  }
+
+  // Descarta tudo o que é do documento (Redux e componentes); a configuração da sessão e o usuário ficam.
+  private descartarDocumentoAtual(): void {
+    rootStore.dispatch(resetarDocumentoAction.execute());
+    this.urn = '';
+    this.projetoNorma = undefined;
+    this.anexoParecer = false;
+    this.substitutivo = false;
+    this.localDoArquivo = undefined;
+    this.destinoAoAbrir = undefined;
+    this.outrosMetadados = {};
+    this.notasRodape = [];
+    // Antes da primeira renderização os formulários ainda não existem.
+    if (this._lexmlJustificativa) {
+      const vazia = new Proposicao();
+      vazia.dataUltimaModificacao = '';
+      this.setProposicao(vazia);
     }
   }
 
@@ -597,8 +630,14 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     } else if (window.innerWidth > this.MOBILE_WIDTH && (this.sizeMode !== 'desktop' || forceUpdate)) {
       this.sizeMode = 'desktop';
       this.slSplitPanel.position = this.splitPanelPosition;
-      this.slSplitPanel.removeAttribute('disabled');
+      // Sem documento o divisor também fica desabilitado.
+      if (this.documentoInicializado) this.slSplitPanel.removeAttribute('disabled');
+      else this.slSplitPanel.setAttribute('disabled', 'true');
     }
+  }
+
+  protected updated(changed: Map<string, unknown>): void {
+    if (changed.has('documentoInicializado')) this.updateLayoutSplitPanel(true);
   }
 
   // Documentação de tratamento de eventos no Lit
@@ -783,6 +822,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   render(): TemplateResult {
+    const neutro = !this.documentoInicializado;
     return html`
       ${shoelaceLightThemeStyles} ${quillSnowStyles} ${editorStyles}
       <style>
@@ -802,6 +842,21 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         }
         sl-tab-panel.overflow-hidden::part(base) {
           overflow-y: auto;
+        }
+        sl-tab.aba-neutra {
+          opacity: 0.5;
+        }
+        lexml-eta-proposicao.oculto {
+          display: none !important;
+        }
+        .aguardando-inicializacao {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: var(--height);
+          min-height: var(--min-height);
+          color: var(--sl-color-neutral-500);
+          font-family: var(--eta-font-sans);
         }
         sl-tab-panel.painel-anexo-parecer {
           display: none !important;
@@ -943,16 +998,23 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         <sl-icon slot="handle" name="grip-vertical"></sl-icon>
         <div slot="start">
           <sl-tab-group id="tabs-esquerda">
-            <sl-tab slot="nav" panel="lexml-eta-proposicao">Texto</sl-tab>
-            ${!this.anexoParecer ? html`<sl-tab slot="nav" panel="justificativa">Justificação</sl-tab>` : ''}
-            <sl-tab slot="nav" panel="autoria">Destino, Data, Autoria e Impressão</sl-tab>
-            <sl-tab slot="nav" panel="anexos">Anexos${this.totalAnexos > 0 ? ` (${this.totalAnexos})` : ''}</sl-tab>
-            <sl-tab slot="nav" panel="avisos">
+            <sl-tab slot="nav" panel="lexml-eta-proposicao" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>Texto</sl-tab>
+            ${!this.anexoParecer ? html`<sl-tab slot="nav" panel="justificativa" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>Justificação</sl-tab>` : ''}
+            <sl-tab slot="nav" panel="autoria" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>Destino, Data, Autoria e Impressão</sl-tab>
+            <sl-tab slot="nav" panel="anexos" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>Anexos${this.totalAnexos > 0 ? ` (${this.totalAnexos})` : ''}</sl-tab>
+            <sl-tab slot="nav" panel="avisos" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>
               Avisos
               <div class="badge-pulse" id="contadorAvisos">${this.totalAlertas > 0 ? html` <sl-badge variant="danger" pill pulse>${this.totalAlertas}</sl-badge> ` : ''}</div>
             </sl-tab>
             <sl-tab-panel name="lexml-eta-proposicao" class="overflow-hidden">
-              <lexml-eta-proposicao style="display: block}" id="lexmlEta" .lexmlEtaConfig=${this.lexmlEtaConfig} @onchange=${this.onChange}></lexml-eta-proposicao>
+              ${neutro ? html`<div class="aguardando-inicializacao">aguardando inicialização</div>` : ''}
+              <lexml-eta-proposicao
+                class=${neutro ? 'oculto' : ''}
+                style="display: block}"
+                id="lexmlEta"
+                .lexmlEtaConfig=${this.lexmlEtaConfig}
+                @onchange=${this.onChange}
+              ></lexml-eta-proposicao>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden ${this.anexoParecer ? 'painel-anexo-parecer' : ''}">
               <lexml-eta-editor-texto-rico
@@ -987,7 +1049,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           <sl-tab-group id="tabs-direita">
             ${this.tabIsVisible('comando')
               ? html`
-                  <sl-tab slot="nav" panel="comando">
+                  <sl-tab slot="nav" panel="comando" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>
                     <sl-icon name="code"></sl-icon>
                     Comando
                   </sl-tab>
@@ -995,7 +1057,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
               : ''}
             ${this.tabIsVisible('notas')
               ? html`
-                  <sl-tab slot="nav" panel="notas" title="Notas de rodapé">
+                  <sl-tab slot="nav" panel="notas" title="Notas de rodapé" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>
                     <sl-icon name="footnote"></sl-icon>
                     Notas
                   </sl-tab>
@@ -1003,7 +1065,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
               : ''}
             ${this.tabIsVisible('dicas')
               ? html`
-                  <sl-tab slot="nav" panel="dicas">
+                  <sl-tab slot="nav" panel="dicas" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>
                     <sl-icon name="lightbulb"></sl-icon>
                     Dicas
                   </sl-tab>
@@ -1011,7 +1073,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
               : ''}
             ${this.tabIsVisible('atalhos')
               ? html`
-                  <sl-tab slot="nav" panel="atalhos">
+                  <sl-tab slot="nav" panel="atalhos" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>
                     <sl-badge variant="primary" id="badgeAtalhos" pill>
                       <sl-icon name="keyboard"></sl-icon>
                       Atalhos

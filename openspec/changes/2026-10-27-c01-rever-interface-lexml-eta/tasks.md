@@ -20,9 +20,9 @@
 
 ## 4. Reset e estado neutro
 
-- [ ] 4.1 Inventariar o que sobrevive de um documento para o outro no componente e no `rootStore` (revisões, remissões, alertas, histórico, mensagens críticas, anexos, outros metadados) e registrar o resultado no `design.md`; verificar com a lista conferida contra o estado após abrir dois documentos em sequência.
-- [ ] 4.2 Implementar o reset completo preservando a configuração da sessão; verificar com teste de reducer/componente que abre dois documentos e compara o estado.
-- [ ] 4.3 Implementar o estado neutro no `render()` (abas e divisor desabilitados, mensagem centralizada) e `fecharDocumento()`; verificar com teste de componente do estado neutro, da saída do neutro e do retorno.
+- [x] 4.1 Inventariar o que sobrevive de um documento para o outro no componente e no `rootStore` (revisões, remissões, alertas, histórico, mensagens críticas, anexos, outros metadados) e registrar o resultado no `design.md`; verificar com a lista conferida contra o estado após abrir dois documentos em sequência.
+- [x] 4.2 Implementar o reset completo preservando a configuração da sessão; verificar com teste de reducer/componente que abre dois documentos e compara o estado.
+- [x] 4.3 Implementar o estado neutro no `render()` (abas e divisor desabilitados, mensagem centralizada) e `fecharDocumento()`; verificar com teste de componente do estado neutro, da saída do neutro e do retorno.
 
 ## 5. Métodos novos e remoção do antigo
 

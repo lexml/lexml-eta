@@ -29,6 +29,8 @@ import { VALIDAR_ELEMENTO } from '../../../model/lexml/acao/validarElementoActio
 import { ATUALIZAR_NOTA_ALTERACAO } from './../../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { REMOVER_ELEMENTO_SEM_TEXTO } from './../../../model/lexml/acao/removerElementoSemTextoAction';
 import { abreArticulacao } from './abreArticulacao';
+import { RESETAR_DOCUMENTO } from '../../../model/lexml/acao/resetarDocumentoAction';
+import { resetaDocumento } from './resetaDocumento';
 import { adicionaAlteracaoComAssistente } from './adicionaAlteracaoComAssistente';
 import { adicionaElemento } from './adicionaElemento';
 import { adicionarAlerta as adicionaAlerta } from './adicionarAlerta';
@@ -188,6 +190,9 @@ export const elementoReducer = (state = {}, action: any): any => {
     case ABRIR_ARTICULACAO:
       tempState = abreArticulacao(state, action);
       break;
+    case RESETAR_DOCUMENTO:
+      tempState = resetaDocumento(state);
+      break;
     case REDO:
       tempState = redo(state);
       break;
@@ -279,7 +284,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   }
 
   if (
-    ![ABRIR_ARTICULACAO, APLICAR_REVISOES, ACEITAR_REVISAO, REJEITAR_REVISAO].includes(actionType) &&
+    ![ABRIR_ARTICULACAO, RESETAR_DOCUMENTO, APLICAR_REVISOES, ACEITAR_REVISAO, REJEITAR_REVISAO].includes(actionType) &&
     !isRedoDeRevisaoAceita(actionType, tempState) &&
     !isRedoDeRevisaoRejeitada(actionType, tempState)
   ) {
@@ -287,20 +292,20 @@ export const elementoReducer = (state = {}, action: any): any => {
     tempState.numEventosPassadosAntesDaRevisao = emRevisao ? numEventosPassadosAntesDaRevisao : tempState.past?.length || 0;
   }
 
-  tempState.emRevisao = emRevisao;
+  tempState.emRevisao = actionType === RESETAR_DOCUMENTO ? false : emRevisao;
   tempState.usuario = usuario;
 
   // Preserva remissões quando o reducer não as gerencia explicitamente.
   // Em ABRIR_ARTICULACAO usa {} como fallback para evitar vazamento de remissões de sessão anterior.
   if (tempState.remissoes === undefined) {
-    tempState.remissoes = actionType === ABRIR_ARTICULACAO ? {} : remissoes;
+    tempState.remissoes = [ABRIR_ARTICULACAO, RESETAR_DOCUMENTO].includes(actionType) ? {} : remissoes;
   }
   if (tempState.remissoesExternas === undefined) {
-    tempState.remissoesExternas = actionType === ABRIR_ARTICULACAO ? {} : (state as State).remissoesExternas;
+    tempState.remissoesExternas = [ABRIR_ARTICULACAO, RESETAR_DOCUMENTO].includes(actionType) ? {} : (state as State).remissoesExternas;
   }
 
   // Garante que a paginação esteja presente no estado
-  if (![SELECIONAR_PAGINA_ARTICULACAO, ABRIR_ARTICULACAO, NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS].includes(actionType)) {
+  if (![SELECIONAR_PAGINA_ARTICULACAO, ABRIR_ARTICULACAO, RESETAR_DOCUMENTO, NAVEGAR_ENTRE_ELEMENTOS_ALTERADOS].includes(actionType)) {
     if (tempState.ui) {
       tempState.ui.paginacao = paginacao;
     } else {

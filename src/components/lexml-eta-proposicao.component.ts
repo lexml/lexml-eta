@@ -44,6 +44,8 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
   }
 
   setRevisoes(revisoes?: Revisao[]): void {
+    // Um carregamento agendado para o documento anterior não pode chegar ao novo.
+    clearTimeout(this._timerLoadRevisoes);
     this.revisoes = revisoes;
     // Sem essa guarda o dispatch roda sempre, e o reducer acaba marcando o 1º artigo como "adicionado"
     // (situação padrão de todo dispositivo recém-criado), deslocando o cursor da ementa ~1s após o carregamento.
