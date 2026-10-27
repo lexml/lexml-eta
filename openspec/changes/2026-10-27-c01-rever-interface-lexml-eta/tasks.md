@@ -2,10 +2,10 @@
 
 ## 1. Metadados do LexEdit: modo de anexo de parecer e documento referenciado
 
-- [ ] 1.1 Acrescentar `anexoParecer` e `urnDocumentoReferenciado` a `DadosLexEdit` e gravá-los em `montaMetadadoLexEdit` (`anexoParecer` sempre; a URN só com valor); verificar com testes unitários do montador, inclusive o caso sem referência.
-- [ ] 1.2 Ler os dois atributos em `lerMetadadoLexEdit` com leitor tolerante (ausente ou inválido assume `false` e sem referência); verificar com testes unitários de atributo ausente, inválido e válido.
-- [ ] 1.3 Cobrir a ida e volta pelo CLI real (`documentoArticulado.integration.ts`, validação com `schemas/lexedit.xsd`) e verificar com `npm run test:documento-articulado:xml`.
-- [ ] 1.4 Atualizar `docs/extensao-formato-lexml/13-outros-metadados-do-lexedit.md` (remover "o LexEdit ainda não o preenche nem o lê") e verificar relendo o documento contra a spec delta.
+- [x] 1.1 Acrescentar `anexoParecer` e `urnDocumentoReferenciado` a `DadosLexEdit` e gravá-los em `montaMetadadoLexEdit` (`anexoParecer` sempre; a URN só com valor); verificar com testes unitários do montador, inclusive o caso sem referência.
+- [x] 1.2 Ler os dois atributos em `lerMetadadoLexEdit` com leitor tolerante (ausente ou inválido assume `false` e sem referência); verificar com testes unitários de atributo ausente, inválido e válido.
+- [x] 1.3 Cobrir a ida e volta pelo CLI real (`documentoArticulado.integration.ts`, validação com `schemas/lexedit.xsd`) e verificar com `npm run test:documento-articulado:xml`.
+- [x] 1.4 Atualizar `docs/extensao-formato-lexml/13-outros-metadados-do-lexedit.md` (remover "o LexEdit ainda não o preenche nem o lê") e verificar relendo o documento contra a spec delta.
 
 ## 2. Autoridades, casa e tipo "outro"
 

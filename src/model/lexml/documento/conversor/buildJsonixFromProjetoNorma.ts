@@ -157,6 +157,9 @@ const montaAnexos = (anexos?: Anexo[]): MetadadoLexEdit['anexos'] => {
 const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[], situacao: SituacaoNaNormaVigente): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
   const pendencias: string[] = [];
+  // O editor sempre informa o modo; sem dados (chamadas diretas do conversor), o atributo é omitido.
+  if (typeof dados?.anexoParecer === 'boolean') lexedit.anexoParecer = dados.anexoParecer;
+  if (dados?.urnDocumentoReferenciado?.trim()) lexedit.urnDocumentoReferenciado = dados.urnDocumentoReferenciado.trim();
   // Sem local não há fecho; data não informada é omitida, pois xsd:date não aceita texto vazio.
   if (dados?.local) {
     lexedit.local = dados.local;

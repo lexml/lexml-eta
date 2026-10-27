@@ -19,7 +19,7 @@ Atributos do próprio elemento `lexedit:Metadado`.
 </lexedit:Metadado>
 ```
 
-`dataUltimaModificacao` é do tipo xsd:dateTime. `anexoParecer` é do tipo xsd:boolean. `urnDocumentoReferenciado` é do tipo xsd:string, opcional, e guarda a URN do documento ao qual a proposição se refere; está previsto no esquema, mas o LexEdit ainda não o preenche nem o lê.
+`dataUltimaModificacao` é do tipo xsd:dateTime. `anexoParecer` é do tipo xsd:boolean: o LexEdit sempre o grava (`true` no modo de anexo de parecer, `false` no modo normal) e, ao abrir, trata o atributo ausente ou inválido como `false`. `urnDocumentoReferenciado` é do tipo xsd:string, opcional, e guarda a URN do documento ao qual a proposição se refere; é gravado só quando há documento referenciado, e o valor vazio ou ausente significa que não há referência.
 
 ## Pendências
 
@@ -42,6 +42,8 @@ Lista de strings no elemento `lexedit:Pendencias`, cada uma em um elemento `lexe
     </lexedit:Pendencias>
 </lexedit:Metadado>
 ```
+
+Um documento de tipo não suportado (URN de autoridade diferente de `senado.federal`, `camara.deputados` e `congresso.nacional`, como uma medida provisória) recebe a pendência "Este tipo de documento não é completamente suportado pelo editor.". Ela é recalculada pela URN a cada salvamento e não é lida ao abrir.
 
 ## Situação dos dispositivos na norma vigente
 
