@@ -59,7 +59,7 @@ export class EtaKeyboard extends Keyboard {
         cancelarPropagacaoDoEvento(ev);
         return;
       } else if (
-        this.quill.linhaAtual.tipo === 'Omissis' &&
+        this.quill.linhaAtual?.tipo === 'Omissis' &&
         !['ArrowUp', 'ArrowDown'].includes(ev.key) &&
         (this.isTeclaQueAlteraTexto(ev) || ev.key === 'Enter' || ev.altKey || ev.metaKey) &&
         !ev.ctrlKey
@@ -80,12 +80,12 @@ export class EtaKeyboard extends Keyboard {
         }
         cancelarPropagacaoDoEvento(ev);
         return;
-      } else if (this.quill.linhaAtual.elemento.bloqueado && this.isNotTeclasDeNavegacao(ev)) {
+      } else if (this.quill.linhaAtual?.elemento?.bloqueado && this.isNotTeclasDeNavegacao(ev)) {
         cancelarPropagacaoDoEvento(ev);
       } else if (ev.ctrlKey) {
         // console.log('ev.ctrlKey');
         if (!ev.altKey && !ev.metaKey) {
-          if (['Delete', 'Backspace'].includes(ev.key) || (this.quill.linhaAtual.elemento.bloqueado && this.isNotTeclaAlteracaoExclusivaNoDispositivo(ev))) {
+          if (['Delete', 'Backspace'].includes(ev.key) || (this.quill.linhaAtual?.elemento?.bloqueado && this.isNotTeclaAlteracaoExclusivaNoDispositivo(ev))) {
             cancelarPropagacaoDoEvento(ev);
           } else if (ev.key === 'Home') {
             this.onTeclaHome(ev);
@@ -227,7 +227,7 @@ export class EtaKeyboard extends Keyboard {
   }
 
   private bloqueiaPropagacaoDispositivoBloqueado(ev: KeyboardEvent): void {
-    if (this.quill.linhaAtual.elemento.bloqueado) {
+    if (this.quill.linhaAtual?.elemento?.bloqueado) {
       ev.preventDefault();
       ev.stopPropagation();
     }
