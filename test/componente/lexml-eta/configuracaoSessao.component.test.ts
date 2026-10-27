@@ -1,12 +1,12 @@
 import { expect, fixture, html } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
+import { LexmlEtaComponent, LexmlEtaConfig } from '../../../src';
 import { Parlamentar } from '../../../src/model/proposicao/proposicao';
 
 const parlamentar = (identificacao: string, nome: string): Parlamentar => Object.assign(new Parlamentar(), { identificacao, nome, siglaCasaLegislativa: 'SF' });
 
 describe('LexmlEtaConfig — padrões da sessão', () => {
   let component: LexmlEtaComponent;
-  const params = (): LexmlEtaParametrosEdicao => Object.assign(new LexmlEtaParametrosEdicao(), { sigla: 'PL' });
+  const params = (): any => ({ substitutivo: false });
 
   beforeEach(async () => {
     component = await fixture<LexmlEtaComponent>(html`<lexml-eta></lexml-eta>`);
@@ -19,12 +19,6 @@ describe('LexmlEtaConfig — padrões da sessão', () => {
 
   it('a configuração não tem mais anexoParecer, que é do documento', () => {
     expect('anexoParecer' in new LexmlEtaConfig()).to.be.false;
-    expect(new LexmlEtaParametrosEdicao().anexoParecer).to.be.false;
-  });
-
-  it('os parâmetros do documento não carregam mais preferências da sessão', () => {
-    const p = new LexmlEtaParametrosEdicao() as any;
-    ['usuario', 'autoriaPadrao', 'opcoesImpressaoPadrao', 'configuracaoPaginacao'].forEach(campo => expect(campo in p, campo).to.be.false);
   });
 
   it('nova proposição usa a autoria e as opções de impressão padrão', () => {

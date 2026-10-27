@@ -1,6 +1,9 @@
 import { expect, fixture } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaParametrosEdicao } from '../../../src';
-import { Proposicao } from '../../../src/model/proposicao/proposicao';
+import '../../../src';
+import type { LexmlEtaComponent } from '../../../src';
+
+const URN_PL = 'urn:lex:br:senado.federal:projeto.lei;pl:2026;1';
+const novaProposicaoDados = (anexoParecer: boolean): any => ({ urn: URN_PL, epigrafe: 'PROJETO DE LEI', preambulo: '', anexoParecer });
 
 describe('Campo "Data" do documento', () => {
   const campoData = (component: LexmlEtaComponent): any => component.querySelector('lexml-eta-data');
@@ -25,11 +28,8 @@ describe('Campo "Data" do documento', () => {
   [false, true].forEach(anexoParecer => {
     it(`documento novo nasce com "Não informar" (anexoParecer=${anexoParecer})`, async () => {
       const component = await novoComponente();
-      const params = new LexmlEtaParametrosEdicao();
-      params.sigla = 'PL';
-      params.anexoParecer = anexoParecer;
 
-      await component.inicializarEdicao(params);
+      await component.novaProposicao(novaProposicaoDados(anexoParecer));
       await campoData(component).updateComplete;
 
       expect(campoData(component).data).to.equal('');
@@ -40,11 +40,8 @@ describe('Campo "Data" do documento', () => {
   [false, true].forEach(anexoParecer => {
     it(`a proposição de documento novo não traz data (anexoParecer=${anexoParecer})`, async () => {
       const component = await novoComponente();
-      const params = new LexmlEtaParametrosEdicao();
-      params.sigla = 'PL';
-      params.anexoParecer = anexoParecer;
 
-      await component.inicializarEdicao(params);
+      await component.novaProposicao(novaProposicaoDados(anexoParecer));
 
       expect(component.getProposicao().dataUltimaModificacao).to.equal(undefined);
     });
@@ -52,10 +49,7 @@ describe('Campo "Data" do documento', () => {
 
   it('no modo anexo de parecer a proposição traz a data escolhida e mantém local e autoria', async () => {
     const component = await novoComponente();
-    const params = new LexmlEtaParametrosEdicao();
-    params.sigla = 'PL';
-    params.anexoParecer = true;
-    await component.inicializarEdicao(params);
+    await component.novaProposicao(novaProposicaoDados(true));
 
     campoData(component).data = '2026-04-24';
     const proposicao = component.getProposicao();
@@ -63,22 +57,5 @@ describe('Campo "Data" do documento', () => {
     expect(proposicao.dataUltimaModificacao).to.equal('2026-04-24');
     expect(proposicao.local).to.equal('Sala das sessões');
     expect(!!proposicao.autoria).to.equal(true);
-  });
-
-  it('mantém a data de uma proposição recebida da aplicação consumidora', async () => {
-    const component = await novoComponente();
-    const proposicao = new Proposicao();
-    proposicao.sigla = 'PL';
-    proposicao.numero = '1';
-    proposicao.ano = '2026';
-    proposicao.dataUltimaModificacao = '2026-03-10';
-    const params = new LexmlEtaParametrosEdicao();
-    params.proposicao = proposicao;
-
-    await component.inicializarEdicao(params);
-    await campoData(component).updateComplete;
-
-    expect(campoData(component).data).to.equal('2026-03-10');
-    expect(campoData(component).shadowRoot.querySelector('#no-date').checked).to.equal(false);
   });
 });

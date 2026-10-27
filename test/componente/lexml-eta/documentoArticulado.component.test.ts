@@ -1,5 +1,6 @@
 import { expect, fixture } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaParametrosEdicao } from '../../../src';
+import '../../../src';
+import type { LexmlEtaComponent } from '../../../src';
 import { DOCUMENTO_PADRAO } from '../../../src/model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../../../src/redux/store';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
@@ -75,9 +76,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
   it('iniciar um novo documento não reutiliza o anterior nem altera o modelo padrão', async () => {
     const antes = JSON.stringify(DOCUMENTO_PADRAO);
-    const params = new LexmlEtaParametrosEdicao();
-    params.sigla = 'PL';
-    await component.inicializarEdicao(params);
+    await component.novaProposicao({ urn: 'urn:lex:br:senado.federal:projeto.lei;pl:9999;999999', epigrafe: 'PROJETO DE LEI', preambulo: '' });
     const novo = component.getDocumentoArticulado();
     expect(novo.value.metadado.identificacao.urn).to.include(':9999;999999');
     expect(novo.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis).to.have.length(1);
@@ -544,8 +543,8 @@ describe('ETA — salvar e abrir documento articulado', () => {
         local: 'Sala da comissão',
         data: '2026-04-24',
         opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...OPCOES },
-        // O arquivo provisório não tem destino: vale o padrão do editor.
-        colegiadoApreciador: { TYPE_NAME: 'br_gov_lexml_lexedit__1.ColegiadoApreciador', siglaCasaLegislativa: 'CN', tipoColegiado: 'Plenário' },
+        // O arquivo provisório não tem destino: vale o padrão do editor, com a casa derivada da URN.
+        colegiadoApreciador: { TYPE_NAME: 'br_gov_lexml_lexedit__1.ColegiadoApreciador', siglaCasaLegislativa: 'SF', tipoColegiado: 'Plenário' },
         remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idRemissao },
         pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: ['Corrigir remissões internas inválidas.'] },
       });

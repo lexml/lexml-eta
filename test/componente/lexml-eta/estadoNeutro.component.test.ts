@@ -1,5 +1,6 @@
 import { expect, fixture, html } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaParametrosEdicao } from '../../../src';
+import '../../../src';
+import type { LexmlEtaComponent } from '../../../src';
 import { rootStore } from '../../../src/redux/store';
 
 describe('LexmlEtaComponent — estado neutro', () => {
@@ -10,7 +11,7 @@ describe('LexmlEtaComponent — estado neutro', () => {
   const divisorDesabilitado = (): boolean => component.querySelector('sl-split-panel')!.hasAttribute('disabled');
   const inicializar = async (): Promise<void> => {
     (component as any).getParlamentares = async (): Promise<[]> => [];
-    await component.inicializarEdicao(Object.assign(new LexmlEtaParametrosEdicao(), { sigla: 'PL' }));
+    await component.novaProposicao({ urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;1', epigrafe: 'PROJETO DE LEI', preambulo: '' });
     await component.updateComplete;
   };
 

@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { expect, fixture } from '@open-wc/testing';
-import { AnexosComponent, LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
+import { AnexosComponent, LexmlEtaComponent, LexmlEtaConfig } from '../../../src';
 import { Anexo, MimeType } from '../../../src/model/proposicao/proposicao';
 import { lexeditSalvo, metadadoProprietarioLexEdit, novoDocumentoArticulado } from '../../doc/documentoArticulado';
 
+const URN_PL = 'urn:lex:br:senado.federal:projeto.lei;pl:2026;1';
 const TYPE_NAME_GRUPO = 'br_gov_lexml_lexedit__1.Anexos';
 const TYPE_NAME_ITEM = 'br_gov_lexml_lexedit__1.Anexo';
 
@@ -160,10 +161,8 @@ describe('ETA — aba e documento articulado com anexos', () => {
 
     it('um documento novo começa sem anexos', async () => {
       await component.abrirDocumentoArticulado(comAnexos(ANEXOS));
-      const params = new LexmlEtaParametrosEdicao();
-      params.sigla = 'PL';
 
-      await component.inicializarEdicao(params);
+      await component.novaProposicao({ urn: URN_PL, epigrafe: 'PROJETO DE LEI', preambulo: '' });
 
       expect(aba.anexos).to.deep.equal([]);
     });
@@ -183,18 +182,6 @@ describe('ETA — aba e documento articulado com anexos', () => {
       await component.abrirDocumentoArticulado(comAnexos(ANEXOS));
 
       expect(component.getProposicao().anexos.map(a => a.idArquivo)).to.deep.equal(['id-1', 'id-2']);
-    });
-
-    it('inicializar com uma proposição restaura os anexos na aba', async () => {
-      await component.abrirDocumentoArticulado(comAnexos(ANEXOS));
-      const proposicao = component.getProposicao();
-      const params = new LexmlEtaParametrosEdicao();
-      params.proposicao = proposicao;
-      params.projetoNorma = proposicao.projetoNorma;
-
-      await component.inicializarEdicao(params);
-
-      expect(aba.anexos.map(a => a.idArquivo)).to.deep.equal(['id-1', 'id-2']);
     });
   });
 });

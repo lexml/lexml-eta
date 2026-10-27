@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-expressions */
 import { elementUpdated, expect, fixture, html } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
+import { LexmlEtaComponent, LexmlEtaConfig } from '../../../src';
 import { Proposicao } from '../../../src/model/proposicao/proposicao';
 
 describe('LexmlEtaComponent - anexo de parecer', () => {
   it('deveria ter anexoParecer desativado por padrão', () => {
-    expect(new LexmlEtaParametrosEdicao().anexoParecer).to.be.false;
     expect('anexoParecer' in new LexmlEtaConfig()).to.be.false;
   });
 
