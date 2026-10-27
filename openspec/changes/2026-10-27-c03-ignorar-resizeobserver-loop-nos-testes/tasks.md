@@ -2,8 +2,8 @@
 
 ## 1. Investigar a origem do aviso
 
-- [ ] 1.1 Reproduzir a falha rodando `anexos.component.test.js` e `documentoArticulado.component.test.js` repetidamente (por exemplo 10 vezes) e registrar a taxa de falha antes da correção, verificando que o erro é sempre `ResizeObserver loop`
-- [ ] 1.2 Identificar qual interação dispara o aviso (remoção da aba "Justificação"/painel "notas" ao reabrir com `anexoParecer`) e se a causa é do `sl-tab-group` ou do app, registrando a conclusão e as evidências na seção Context do `design.md`
+- [x] 1.1 Reproduzir a falha rodando `anexos.component.test.js` e `documentoArticulado.component.test.js` repetidamente (por exemplo 10 vezes) e registrar a taxa de falha antes da correção, verificando que o erro é sempre `ResizeObserver loop`
+- [x] 1.2 Identificar qual interação dispara o aviso (remoção da aba "Justificação"/painel "notas" ao reabrir com `anexoParecer`) e se a causa é do `sl-tab-group` ou do app, registrando a conclusão e as evidências na seção Context do `design.md`
 
 ## 2. Tratamento central no ambiente de testes
 
