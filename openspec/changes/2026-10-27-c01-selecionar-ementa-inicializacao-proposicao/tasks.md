@@ -6,8 +6,8 @@
 
 ## 2. Seleção explícita da ementa na inicialização
 
-- [ ] 2.1 Invocar `this.quill.marcarLinhaAtual(el)` após `setSelection(..., SILENT)` na rotina assíncrona de foco inicial em `src/components/editor/editor.component.ts` e verificar com `npm run build`
-- [ ] 2.2 Adicionar teste unitário/componente verificando que a inicialização do editor define `quill.linhaAtual` na ementa e ativa sua borda, verificando com `npm test`
+- [x] 2.1 Invocar `this.quill.marcarLinhaAtual(el)` após `setSelection(..., SILENT)` na rotina assíncrona de foco inicial em `src/components/editor/editor.component.ts` e verificar com `npm run build`
+- [x] 2.2 Adicionar teste unitário/componente verificando que a inicialização do editor define `quill.linhaAtual` na ementa e ativa sua borda, verificando com `npm test`
 
 ## 3. Teste E2E (Cypress)
 
