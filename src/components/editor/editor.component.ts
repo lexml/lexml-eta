@@ -761,6 +761,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private elementoSelecionado(uuid: number): void {
+    if (!this._quill) return;
     const linha: EtaContainerTable = this.quill.linhaAtual;
     if (linha) {
       const elemento: Elemento = this.criarElemento(uuid, linha!.uuid2, linha.lexmlId, linha.tipo ?? '', '', linha.numero, linha.hierarquia);

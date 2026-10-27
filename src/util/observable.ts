@@ -31,7 +31,8 @@ export class Observable<T = void> {
     this.subscriptions.forEach((subscription: Subscription) => {
       if (!subscription.isCanceled()) {
         setTimeout(() => {
-          subscription.callback(data);
+          // O cancelamento pode ocorrer depois do agendamento (ex.: componente destruído).
+          !subscription.isCanceled() && subscription.callback(data);
         }, 1);
       }
     });
