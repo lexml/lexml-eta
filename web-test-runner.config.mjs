@@ -59,6 +59,16 @@ export default /** @type {import("@web/test-runner").TestRunnerConfig} */ ({
       <body>
         <script>window.process = { env: { NODE_ENV: "development", testMode: true } }</script>
         <script>
+          // Aviso benigno do navegador (callback de ResizeObserver, p. ex. no sl-tab-group do Shoelace, que altera o próprio layout); sem isso o Mocha o conta como falha do teste em execução.
+          // Captura em window roda antes do onerror do Mocha. Só esta mensagem é engolida: os demais erros seguem para o Mocha.
+          window.addEventListener('error', (event) => {
+            if (typeof event.message === 'string' && event.message.startsWith('ResizeObserver loop')) {
+              event.stopImmediatePropagation();
+              event.preventDefault();
+            }
+          }, true);
+        </script>
+        <script>
           // Mock global do Quill, definido antes de qualquer import que o use. É uma classe (não objeto) porque EtaQuill/EtaQuillBuffer fazem "class X extends Quill".
           const mockBlot = class {
             static blotName = 'mock-blot';
