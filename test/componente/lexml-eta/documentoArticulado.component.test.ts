@@ -540,6 +540,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(metadado).to.not.have.property('lexedit');
       expect(lexeditSalvo(salvo)).to.deep.equal({
         TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado',
+        anexoParecer: false,
         local: 'Sala da comissão',
         data: '2026-04-24',
         opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...OPCOES },
