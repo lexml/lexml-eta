@@ -25,6 +25,12 @@ const comAnexos = (anexos: Anexo[]): any => {
 
 const ANEXOS = [anexo('id-1', 'Parecer.pdf', 'substitutivo'), anexo('id-2', 'Emenda.docx')];
 
+const documentoAnexoParecer = (): any => {
+  const entrada = novoDocumentoArticulado();
+  entrada.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit({ anexoParecer: true })];
+  return entrada;
+};
+
 describe('ETA — aba e documento articulado com anexos', () => {
   let component: LexmlEtaComponent;
   let aba: AnexosComponent;
@@ -79,8 +85,7 @@ describe('ETA — aba e documento articulado com anexos', () => {
     });
 
     it('também aparece no modo anexo de parecer', async () => {
-      component.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), { anexoParecer: true });
-      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+      await component.abrirDocumentoArticulado(documentoAnexoParecer());
       await component.updateComplete;
 
       expect(component.querySelector('sl-tab[panel="anexos"]')).to.exist;
@@ -107,8 +112,7 @@ describe('ETA — aba e documento articulado com anexos', () => {
     });
 
     it('grava os anexos também no modo anexo de parecer', async () => {
-      component.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), { anexoParecer: true });
-      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+      await component.abrirDocumentoArticulado(documentoAnexoParecer());
       component.querySelector<AnexosComponent>('lexml-eta-anexos')!.anexos = [anexo('id-1', 'Parecer.pdf')];
 
       expect(lexeditSalvo(component.getDocumentoArticulado()).anexos.anexo).to.have.length(1);

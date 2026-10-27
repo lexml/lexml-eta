@@ -15,8 +15,8 @@
 
 ## 3. Configuração da sessão
 
-- [ ] 3.1 Mover `usuario`, `configuracaoPaginacao`, `autoriaPadrao` e `opcoesImpressaoPadrao` para `LexmlEtaConfig` e remover `anexoParecer` dela; verificar que o projeto compila e que os testes de configuração passam.
-- [ ] 3.2 Aplicar a autoria padrão e as opções de impressão padrão somente em `novaProposicao`; verificar com testes de componente dos três cenários (padrão, informado vence, não se aplica ao abrir).
+- [x] 3.1 Mover `usuario`, `configuracaoPaginacao`, `autoriaPadrao` e `opcoesImpressaoPadrao` para `LexmlEtaConfig` e remover `anexoParecer` dela; verificar que o projeto compila e que os testes de configuração passam.
+- [x] 3.2 Aplicar a autoria padrão e as opções de impressão padrão somente em `novaProposicao`; verificar com testes de componente dos três cenários (padrão, informado vence, não se aplica ao abrir).
 
 ## 4. Reset e estado neutro
 

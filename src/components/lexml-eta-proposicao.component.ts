@@ -12,7 +12,7 @@ import { DOCUMENTO_PADRAO } from '../model/lexml/documento/modelo/documentoPadra
 import { rootStore } from '../redux/store';
 import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
 import { Revisao } from '../model/revisao/revisao';
-import { LexmlEtaParametrosEdicao } from './lexml-eta.component';
+import type { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { EditorComponent } from './editor/editor.component';
 import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado, RevisaoArticulacaoLida } from '../model/lexml/documento/documentoArticulado';
 import { montaRevisoesArticulacao } from '../model/lexml/documento/conversor/revisaoArticulacao';
@@ -36,10 +36,10 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     return this;
   }
 
-  inicializarEdicao(urn: string, params?: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): void {
+  inicializarEdicao(urn: string, projetoNorma?: any, configuracaoPaginacao?: ConfiguracaoPaginacao, preservarTextoDocumento = false): void {
     this.urn = urn;
-    this.projetoNorma = params?.projetoNorma ? JSON.parse(JSON.stringify(params.projetoNorma)) : undefined;
-    this.loadProjetoNorma(params, preservarTextoDocumento);
+    this.projetoNorma = projetoNorma ? JSON.parse(JSON.stringify(projetoNorma)) : undefined;
+    this.loadProjetoNorma(configuracaoPaginacao, preservarTextoDocumento);
     document.querySelector('lexml-eta-articulacao')!['style'].display = 'block';
   }
 
@@ -87,7 +87,7 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas, revisoes ? { ...dados, revisoes } : dados);
   }
 
-  private loadProjetoNorma(params?: LexmlEtaParametrosEdicao, preservarTextoDocumento = false): void {
+  private loadProjetoNorma(configuracaoPaginacao?: ConfiguracaoPaginacao, preservarTextoDocumento = false): void {
     if (!this.projetoNorma || !this.projetoNorma.value) {
       this.projetoNorma = JSON.parse(JSON.stringify(DOCUMENTO_PADRAO));
       this.projetoNorma.value.metadado.identificacao.urn = this.urn;
@@ -100,7 +100,7 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     aplicarSituacaoNaNormaVigente(documento.articulacao, lerSituacaoNaNormaVigente(this.projetoNorma));
 
     document.querySelector('lexml-eta')?.querySelector('sl-tab')?.click();
-    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, 'edicao', params, idsRemissoesInvalidas));
+    rootStore.dispatch(openArticulacaoAction(documento.articulacao!, 'edicao', configuracaoPaginacao, idsRemissoesInvalidas));
   }
 
   private _timerLoadRevisoes = 0;

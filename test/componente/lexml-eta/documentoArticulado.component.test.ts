@@ -1,5 +1,5 @@
 import { expect, fixture } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
+import { LexmlEtaComponent, LexmlEtaParametrosEdicao } from '../../../src';
 import { DOCUMENTO_PADRAO } from '../../../src/model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../../../src/redux/store';
 import { Artigo } from '../../../src/model/dispositivo/dispositivo';
@@ -206,8 +206,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('no modo anexo de parecer aplica a data lida e preserva local e data ao salvar e reabrir', async () => {
-      component.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), { anexoParecer: true });
-      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da comissão', data: '2026-04-24' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ anexoParecer: true, local: 'Sala da comissão', data: '2026-04-24' }));
       await campoData().updateComplete;
 
       expect(campoData().data).to.equal('2026-04-24');

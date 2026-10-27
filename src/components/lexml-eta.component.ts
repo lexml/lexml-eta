@@ -44,7 +44,6 @@ import { DestinoComponent } from './destino/destino.component';
 import { AnexosComponent } from './anexos/anexos.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { isHtmlSemTexto } from '../util/string-util';
-import { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { Anexo, Autoria, ColegiadoApreciador, Epigrafe, getRefProposicaoReduzida, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
 import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
@@ -71,19 +70,8 @@ export class LexmlEtaParametrosEdicao {
   // Opcional para modo 'edicao'
   projetoNorma?: ProjetoNorma;
 
-  // Identificação do usuário para registro de marcas de revisão
-  usuario?: Usuario;
-
-  // Preferências de usuário ----
-
-  // Autoria padrão
-  autoriaPadrao?: { identificacao: string; siglaCasaLegislativa: 'SF' | 'CD' };
-
-  // Opções de impressão padrão
-  opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
-
-  // Configuração de paginação de dispositivos durante a edição da proposição
-  configuracaoPaginacao?: ConfiguracaoPaginacao;
+  // Modo de anexo de parecer: propriedade do documento (o arquivo aberto o define).
+  anexoParecer = false;
 
   // Casa legislativa resposavel pela apreciaçao da matéria
   casaLegislativa?: TipoCasaLegislativa;
@@ -246,6 +234,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     if (!this.urn) throw new Error('Inicialize um documento antes de salvar.');
     // O colegiado apreciador não é gravado no anexo de parecer (spec metadados-lexedit).
     return this._lexmlEta!.getDocumentoArticulado({
+      anexoParecer: this.anexoParecer,
       local: this.getLocalFecho(),
       data: normalizarDataFecho(this._lexmlData.data),
       autoria: this._lexmlAutoria.getAutoriaAtualizada(),
@@ -262,6 +251,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const dados = lerMetadadoLexEdit(documento);
     const params = new LexmlEtaParametrosEdicao();
     params.projetoNorma = documento as any;
+    params.anexoParecer = dados.anexoParecer ?? false;
     await this.inicializarEdicao(params, true);
     // Sem o atraso de setRevisoes (1 s): o documento aberto já sai com as marcas e em modo de revisão.
     if (dados.revisoesLidas?.length) await this._lexmlEta!.aplicarRevisoesDoArquivo(dados.revisoesLidas, lerSituacaoNaNormaVigente(documento));
@@ -379,12 +369,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
       this.localDoArquivo = undefined;
       this.destinoAoAbrir = undefined;
-      this.anexoParecer = this.lexmlEtaConfig.anexoParecer ?? false;
+      this.anexoParecer = params.anexoParecer ?? false;
       this.projetoNorma = params.projetoNorma;
 
       this.inicializaProposicao(params);
 
-      this.setUsuario(params.usuario ?? rootStore.getState().elementoReducer.usuario);
+      this.setUsuario(this.lexmlEtaConfig.usuario ?? rootStore.getState().elementoReducer.usuario);
 
       this.casaLegislativa = this.inicializaCasaLegislativa(getSigla(this.urn), params);
 
@@ -394,7 +384,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       if (params.proposicao) {
         this.setProposicao(params.proposicao);
       } else {
-        this.resetaProposicao(params);
+        // Abrir um documento (preservarTextoDocumento) não recebe os padrões da sessão.
+        this.resetaProposicao(params, !preservarTextoDocumento);
       }
 
       this.atualizaListaComissoes();
@@ -405,7 +396,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       // resetaProposicao/limparAlertas): documentos com remissão interna inválida persistida
       // populam alertas globais ao abrir (ABRIR_ARTICULACAO), que seriam apagados se essa chamada
       // viesse antes das limpezas.
-      this._lexmlEta!.inicializarEdicao(this.urn, params, preservarTextoDocumento);
+      this._lexmlEta!.inicializarEdicao(this.urn, params.projetoNorma, this.lexmlEtaConfig.configuracaoPaginacao, preservarTextoDocumento);
 
       setTimeout(this.handleResize, 0);
 
@@ -542,22 +533,22 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.aplicarAnexos(proposicao.anexos);
   }
 
-  private resetaProposicao(params: LexmlEtaParametrosEdicao): void {
+  private resetaProposicao(params: LexmlEtaParametrosEdicao, aplicarPadroes = true): void {
     const proposicao = new Proposicao();
     // Documento novo nasce com "Não informar"; o padrão do modelo é o instante atual.
     proposicao.dataUltimaModificacao = '';
-    proposicao.autoria = this.montarAutoriaPadrao(params);
-    proposicao.opcoesImpressao = this.montarOpcoesImpressaoPadrao(params);
+    proposicao.autoria = aplicarPadroes ? this.montarAutoriaPadrao() : new Autoria();
+    proposicao.opcoesImpressao = aplicarPadroes ? this.montarOpcoesImpressaoPadrao() : new OpcoesImpressao();
     proposicao.colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
     proposicao.substitutivo = params.substitutivo;
     this.setProposicao(proposicao);
     rootStore.dispatch(limparRevisaoAction.execute());
   }
 
-  private montarAutoriaPadrao(params: LexmlEtaParametrosEdicao): Autoria {
+  private montarAutoriaPadrao(): Autoria {
     const autoria = new Autoria();
-    if (params.autoriaPadrao?.identificacao) {
-      const autoriaPadrao = params.autoriaPadrao;
+    if (this.lexmlEtaConfig.autoriaPadrao?.identificacao) {
+      const autoriaPadrao = this.lexmlEtaConfig.autoriaPadrao;
       const parlamentarAutor = this.parlamentares.find(
         par => par.identificacao === autoriaPadrao!.identificacao && par.siglaCasaLegislativa === autoriaPadrao!.siglaCasaLegislativa
       );
@@ -568,12 +559,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return autoria;
   }
 
-  private montarOpcoesImpressaoPadrao(params: LexmlEtaParametrosEdicao): OpcoesImpressao {
+  private montarOpcoesImpressaoPadrao(): OpcoesImpressao {
     const opcoesImpressao = new OpcoesImpressao();
-    if (params.opcoesImpressaoPadrao) {
-      opcoesImpressao.imprimirBrasao = params.opcoesImpressaoPadrao.imprimirBrasao;
-      opcoesImpressao.textoCabecalho = params.opcoesImpressaoPadrao.textoCabecalho;
-      opcoesImpressao.tamanhoFonte = params.opcoesImpressaoPadrao.tamanhoFonte;
+    const padrao = this.lexmlEtaConfig.opcoesImpressaoPadrao;
+    if (padrao) {
+      opcoesImpressao.imprimirBrasao = padrao.imprimirBrasao;
+      opcoesImpressao.textoCabecalho = padrao.textoCabecalho;
+      opcoesImpressao.tamanhoFonte = padrao.tamanhoFonte;
     }
     return opcoesImpressao;
   }

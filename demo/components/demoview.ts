@@ -116,7 +116,6 @@ export class DemoView extends LitElement {
     this.etaConfig = new LexmlEtaConfig();
     this.etaConfig.urlConsultaParlamentares = '/parlamentares';
     this.etaConfig.urlComissoes = '/comissoes';
-    this.etaConfig.anexoParecer = this.anexoParecer;
     this.configurarAnexos();
   }
 
@@ -212,12 +211,13 @@ export class DemoView extends LitElement {
 
         if (this.elLexmlEta) {
           const params = new LexmlEtaParametrosEdicao();
-          params.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
+          params.anexoParecer = this.anexoParecer;
+          this.etaConfig.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
 
           if (this.projetoNorma && Object.keys(this.projetoNorma).length > 0) {
             params.projetoNorma = this.projetoNorma;
-            //params.autoriaPadrao = { identificacao: '6335', siglaCasaLegislativa: 'SF' };
-            //params.opcoesImpressaoPadrao = { imprimirBrasao: true, textoCabecalho: 'Texto Teste Dennys', tamanhoFonte: 14 };
+            //this.etaConfig.autoriaPadrao = { identificacao: '6335', siglaCasaLegislativa: 'SF' };
+            //this.etaConfig.opcoesImpressaoPadrao = { imprimirBrasao: true, textoCabecalho: 'Texto Teste Dennys', tamanhoFonte: 14 };
             console.log('projetoNormaArquivo', params.projetoNorma);
           } else {
             params.sigla = 'PL';
@@ -427,7 +427,6 @@ export class DemoView extends LitElement {
               .checked=${this.anexoParecer}
               @change=${(event: Event): void => {
                 this.anexoParecer = (event.target as HTMLInputElement).checked;
-                this.etaConfig.anexoParecer = this.anexoParecer;
               }}
             />
             Anexo de parecer</label
