@@ -43,7 +43,7 @@ Lista de strings no elemento `lexedit:Pendencias`, cada uma em um elemento `lexe
 </lexedit:Metadado>
 ```
 
-Um documento de tipo não suportado (URN de autoridade diferente de `senado.federal`, `camara.deputados` e `congresso.nacional`, como uma medida provisória) recebe a pendência "Este tipo de documento não é completamente suportado pelo editor.". Ela é recalculada pela URN a cada salvamento e não é lida ao abrir.
+Um documento de tipo não suportado (URN que não é de proposição de uma autoridade com casa responsável — `senado.federal`, `camara.deputados` ou `congresso.nacional` —, como uma medida provisória ou uma norma) recebe a pendência "Este tipo de documento não é completamente suportado pelo editor.". Ela é recalculada pela URN a cada salvamento e não é lida ao abrir.
 
 ## Situação dos dispositivos na norma vigente
 

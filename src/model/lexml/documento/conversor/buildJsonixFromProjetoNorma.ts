@@ -22,11 +22,12 @@ import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
 import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
 import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
-import { formatarLocalDataFecho } from '../urnUtil';
+import { formatarLocalDataFecho, isTipoDocumentoNaoSuportado } from '../urnUtil';
 import { coletarSituacaoNaNormaVigente, mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 export const PENDENCIA_REVISAO_ARTICULACAO = 'Resolver marcas de revisão na articulação.';
+export const PENDENCIA_DOCUMENTO_NAO_SUPORTADO = 'Este tipo de documento não é completamente suportado pelo editor.';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
@@ -50,6 +51,7 @@ export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: str
   const resultado = montaCabecalho(
     urn,
     montaMetadadoLexEdit(
+      urn,
       dados,
       idsRemissoesInvalidas,
       mesclarSituacaoNaNormaVigente(coletarSituacaoNaNormaVigente(projetoNorma.articulacao), dados?.revisoes?.situacaoDosExcluidos)
@@ -154,7 +156,7 @@ const montaAnexos = (anexos?: Anexo[]): MetadadoLexEdit['anexos'] => {
 };
 
 // Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
-const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[], situacao: SituacaoNaNormaVigente): MetadadoLexEdit | undefined => {
+const montaMetadadoLexEdit = (urn: string, dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[], situacao: SituacaoNaNormaVigente): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
   const pendencias: string[] = [];
   // O editor sempre informa o modo; sem dados (chamadas diretas do conversor), o atributo é omitido.
@@ -185,6 +187,8 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
   if (outrosMetadados) lexedit.outrosMetadados = outrosMetadados;
   const anexos = montaAnexos(dados?.anexos);
   if (anexos) lexedit.anexos = anexos;
+  // Recalculada pela URN a cada salvamento do editor (que sempre informa os dados); a pendência gravada nunca é lida.
+  if (dados && isTipoDocumentoNaoSuportado(urn)) pendencias.push(PENDENCIA_DOCUMENTO_NAO_SUPORTADO);
   if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
   // > 1 porque TYPE_NAME está sempre presente.
   return Object.keys(lexedit).length > 1 ? lexedit : undefined;
