@@ -14,4 +14,4 @@
 ## 3. Validação e E2E
 
 - [x] 3.1 Rodar `npm test` completo e verificar que o Lote 1 passa (sem "done() called multiple times" nem `ResizeObserver loop`); se algum persistir, registrá-lo como causa separada
-- [ ] 3.2 E2E (Cypress), avaliado à luz de `docs/guia-cypress.md`: o defeito só se manifesta em teardown rápido do componente, o que o Cypress não reproduz de forma determinística. Decisão: não criar spec novo; como alternativa, rodar o spec E2E da change anterior (seleção da ementa, `cypress/e2e/`) e verificar que continua passando, confirmando que o foco inicial não regrediu
+- [x] 3.2 E2E (Cypress), avaliado à luz de `docs/guia-cypress.md`: o defeito só se manifesta em teardown rápido do componente, o que o Cypress não reproduz de forma determinística. Decisão: não criar spec novo; como alternativa, rodar o spec E2E da change anterior (seleção da ementa, `cypress/e2e/`) e verificar que continua passando, confirmando que o foco inicial não regrediu
