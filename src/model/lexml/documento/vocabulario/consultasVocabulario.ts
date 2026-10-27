@@ -1,7 +1,7 @@
 import { getVocabularioDaCasa } from '.';
 import { TipoDocumento, TipoRelacaoSubstitutivo } from './tiposVocabulario';
 
-const proposicoes = (): TipoDocumento[] => getVocabularioDaCasa().tiposDocumento.filter(t => t.sigla);
+export const proposicoes = (): TipoDocumento[] => getVocabularioDaCasa().tiposDocumento.filter(t => t.sigla);
 
 export const getTiposDocumentoAtivos = (): TipoDocumento[] => getVocabularioDaCasa().tiposDocumentoAtivos;
 

@@ -49,14 +49,16 @@ A casa vem só do host, nunca da URN (a sigla da URN depende do vocabulário). `
 
 ### 3.2 Autoridade
 
-Quem emite o documento. Cada autoridade é um módulo (`vocabularioFederal.ts`, `vocabularioSenado.ts`, `vocabularioCamara.ts`, `vocabularioCongresso.ts`) cujos itens são carimbados com `urnAutoridade` na mesclagem.
+Quem emite o documento. Cada autoridade é um módulo (`vocabularioFederal.ts`, `vocabularioSenado.ts`, `vocabularioCamara.ts`, `vocabularioCongresso.ts`) cujos itens são carimbados com `urnAutoridade` na mesclagem. A `sigla` opcional é a casa responsável pelas proposições da autoridade (`getCasaLegislativaResponsavel`).
 
-| URN | Descrição | Uso típico |
-|---|---|---|
-| `federal` | Federal | MPV |
-| `senado.federal` | Senado Federal | Projetos do SF |
-| `camara.deputados` | Câmara dos Deputados | Projetos da CD |
-| `congresso.nacional` | Congresso Nacional | PDN, PRN, PLV |
+| URN | Descrição | Sigla | Uso típico |
+|---|---|---|---|
+| `federal` | Federal | — | MPV |
+| `senado.federal` | Senado Federal | `SF` | Projetos do SF |
+| `camara.deputados` | Câmara dos Deputados | `CD` | Projetos da CD |
+| `congresso.nacional` | Congresso Nacional | `CN` | PDN, PRN, PLV |
+
+**Proposição suportada:** URN cujo tipo resolvido é uma proposição (com sigla, ativa ou inativa) da visão da casa, de autoridade com sigla. É a única aceita na criação de proposição (`verificarUrnParaNovaProposicao`); as demais (MPV, normas) são do tipo "não suportado" (`isTipoDocumentoNaoSuportado`), abertas sem edição de destino e autoria e salvas com a pendência de documento não suportado.
 
 ### 3.3 Tipo de documento (`tiposDocumento`)
 

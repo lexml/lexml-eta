@@ -1,7 +1,7 @@
 import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tiposVocabulario';
 
 export const camara: VocabularioAutoridade = {
-  autoridade: { urn: 'camara.deputados', descricao: 'Câmara dos Deputados' },
+  autoridade: { urn: 'camara.deputados', descricao: 'Câmara dos Deputados', sigla: 'CD' },
   tiposDocumento: [
     { urnTipoDocumento: 'decreto.legislativo', descricao: 'Decreto Legislativo', genero: 'M' },
     { urnTipoDocumento: 'regimento.interno', descricao: 'Regimento Interno', genero: 'M' },

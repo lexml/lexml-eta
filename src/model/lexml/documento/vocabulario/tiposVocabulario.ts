@@ -1,6 +1,10 @@
+export type CasaLegislativa = 'SF' | 'CD' | 'CN';
+
 export interface AutoridadeItem {
   urn: string;
   descricao: string;
+  // Casa responsável pelas proposições da autoridade; sem sigla (ex.: `federal`), o editor não as suporta por completo.
+  sigla?: CasaLegislativa;
 }
 
 export enum TipoRelacaoSubstitutivo {
