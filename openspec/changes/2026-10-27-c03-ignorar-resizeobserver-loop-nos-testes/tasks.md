@@ -7,9 +7,9 @@
 
 ## 2. Tratamento central no ambiente de testes
 
-- [ ] 2.1 Em `web-test-runner.config.mjs`, adicionar ao `testRunnerHtml` um listener de `error` em fase de captura que ignora apenas mensagens com `ResizeObserver loop` e deixa os demais erros seguirem; verificar que um erro lançado de propósito em um teste ainda é reportado como falha
-- [ ] 2.2 Adicionar um teste de regressão em `test/` que provoca o aviso (por exemplo, um `ResizeObserver` cujo callback altera o tamanho do elemento observado) e confirma que o teste passa, e que um erro comum disparado em outro teste continua falhando; verificar com `wtr` no arquivo
-- [ ] 2.3 Reavaliar os contornos pontuais (`updateComplete` do `sl-tab-group` em `documentoArticulado.component.test.ts` e `exibirDiferencaDialog.test.ts`) e removê-los somente se os testes continuarem estáveis; caso contrário, registrar a decisão de mantê-los
+- [x] 2.1 Em `web-test-runner.config.mjs`, adicionar ao `testRunnerHtml` um listener de `error` em fase de captura que ignora apenas mensagens com `ResizeObserver loop` e deixa os demais erros seguirem; verificar que um erro lançado de propósito em um teste ainda é reportado como falha (verificado com um teste temporário, depois removido)
+- [x] 2.2 Adicionar um teste de regressão em `test/` que provoca o aviso (por exemplo, um `ResizeObserver` cujo callback altera o tamanho do elemento observado) e confirma que o teste passa, e que um erro comum disparado em outro teste continua falhando; verificar com `wtr` no arquivo (o teste passa com o filtro e falha sem ele; o erro comum não pode ficar como teste permanente porque falharia a suíte, então foi checado manualmente)
+- [x] 2.3 Reavaliar os contornos pontuais (`updateComplete` do `sl-tab-group` em `documentoArticulado.component.test.ts` e `exibirDiferencaDialog.test.ts`) e removê-los somente se os testes continuarem estáveis; caso contrário, registrar a decisão de mantê-los (decisão: mantidos; são inofensivos, garantem que o `sl-tab-group` renderize antes do teardown e removê-los não traz ganho)
 
 ## 3. Validação e E2E
 
