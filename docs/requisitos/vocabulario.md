@@ -62,7 +62,7 @@ Quem emite o documento. Cada autoridade é um módulo (`vocabularioFederal.ts`, 
 
 ### 3.3 Tipo de documento (`tiposDocumento`)
 
-Cadastro dos tipos de documento: **proposições** (têm sigla) e **normas** (`lei`, `decreto`, `constituicao`...; sem sigla, usadas para referenciar). Sigla, `ativo`, `tipoRelacaoSubstitutivo` e `tiposReferenciaveis` só se aplicam a proposições. **Chave** no vocabulário mesclado: `urnAutoridade` + `urnTipoDocumento` + `sigla` (sigla opcional). A URN do tipo (`projeto.lei;pl`) é **calculada**, nunca digitada: `urnTipoDocumento` + `;` + `sigla` em minúsculas.
+Cadastro dos tipos de documento: **proposições** (têm sigla) e **normas** (`lei`, `decreto`, `constituicao`...; sem sigla, usadas para referenciar). Sigla, `ativo`, e `tipoRelacaoSubstitutivo` só se aplicam a proposições. **Chave** no vocabulário mesclado: `urnAutoridade` + `urnTipoDocumento` + `sigla` (sigla opcional). A URN do tipo (`projeto.lei;pl`) é **calculada**, nunca digitada: `urnTipoDocumento` + `;` + `sigla` em minúsculas.
 
 | Atributo | Descrição |
 |---|---|
@@ -72,9 +72,8 @@ Cadastro dos tipos de documento: **proposições** (têm sigla) e **normas** (`l
 | `genero` | `M`/`F`, para concordância. |
 | `ativo` | Booleano, padrão `true` (proposições). Inativos (PLS, PLC...) só servem para referenciar, nunca para criar documento novo. |
 | `tipoRelacaoSubstitutivo` | `aceita substitutivo` \| `não aceita substitutivo` \| `é substitutivo` \| `é subemenda substitutiva`. |
-| `tiposReferenciaveis` | Chaves dos tipos que podem ser a referência do substitutivo (ver 3.5). |
 
-Invariantes: **sigla única entre os tipos ativos de cada casa** (na visão completa, PL, PLP e PEC ativos se repetem entre Senado e Câmara); sigla pode se repetir entre inativos; toda referência de `tiposReferenciaveis` aponta para um tipo existente.
+Invariantes: **sigla única entre os tipos ativos de cada casa** (na visão completa, PL, PLP e PEC ativos se repetem entre Senado e Câmara); sigla pode se repetir entre inativos.
 
 ### 3.4 Sigla
 
@@ -83,31 +82,11 @@ A sigla é atributo do tipo.
 - **Sigla → tipo** (nova proposição, C2): procura-se o tipo **ativo** com aquela sigla; a URN nova sai da autoridade e do tipo dele.
 - **URN → tipo/sigla** (C4): casa-se a autoridade e o segmento de tipo da URN. O segmento pode vir **com ou sem sigla** e as duas formas são válidas: `senado.federal:projeto.lei;pl` e `senado.federal:projeto.lei` resolvem para o mesmo tipo ativo (PL); `federal:medida.provisoria` e `federal:medida.provisoria;mpv`, para MPV. Com sigla, vale a entrada exata (inclusive inativa: `projeto.lei;pls`); sem sigla, e quando não for uma norma declarada, vale o tipo **ativo** com sigla da mesma autoridade. A autoridade continua obrigatória.
 
-### 3.5 Substitutivo e tipos de referência
+### 3.5 Substitutivo
 
-Só o tipo **ativo** é "selecionado" na criação; os tipos de referência podem ser ativos ou inativos.
+O documento é **substitutivo** quando o `tipoRelacaoSubstitutivo` do seu tipo é `é substitutivo` (CD, `sbt`), ou quando é `aceita substitutivo` e a URN apresenta um evento com `substitutivo = 's'` (ex.: `urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo`). Nos demais casos, inclusive `é subemenda substitutiva` (CD, `pep`) e `não aceita substitutivo`, não é. O evento é o trecho da URN após o `@`, até o primeiro `;`, comparado com a `urn` dos `eventos` do vocabulário comum. A consulta parte da URN (C3, visão completa); tipo não resolvido resulta em falso.
 
-| Tipo selecionado | Candidatos a referência | Fonte |
-|---|---|---|
-| `aceita substitutivo` (SF) | As siglas que ele pode substituir (ex.: PL → PL, PLS, PLC) | Lista declarada em `tiposReferenciaveis` (RN-00a) |
-| `aceita substitutivo` (CD) | Todos os tipos que aceitam substitutivo | Derivável |
-| `é substitutivo` (CD, `sbt`) | Tipos que aceitam substitutivo | RN-12 |
-| `é subemenda substitutiva` (CD, `pep`) | Tipos que são substitutivos | Seção 5 do caso de uso |
-| `não aceita substitutivo` | Nenhum | RN-01 |
-| PLV | MPV, fixa (RN-03) | Fora de C3 |
-
-Regra de modelagem proposta: `tiposReferenciaveis` é a fonte declarada no tipo; a lista derivável (CD) é calculada na consulta C3 e a mesclagem **valida** que toda referência existe e aceita substitutivo.
-
-### 3.6 Preâmbulo padrão (`preambulosPadrao`)
-
-Texto inicial do preâmbulo, escolhido por **tipo (sem sigla) + autoridade da URN**, URN fora da tabela fica sem texto padrão. Os textos e a distribuição por autoridade estão em `preambulosPadrao`, em cada `vocabularioXxx.ts`.
-
-### 3.7 Atalhos de URN (`atalhosUrn`) e eventos (`eventos`)
-
-- `atalhosUrn`: normas notórias com URN fixa e nome próprio (Constituição, ADCT, CLT, Regimento Interno do SF, Regimento Comum). Alimenta o nome por extenso e o autocomplete.
-- `eventos`: versão do texto no processo legislativo (`@apresentacao.substitutivo`...), com gênero.
-
-Ambos são do vocabulário **comum** (válidos nas duas casas).
+Os tipos de referência de um substitutivo não fazem parte do vocabulário (removidos na issue #1056).
 
 ## 4. Modelo-alvo e consultas
 
@@ -121,7 +100,6 @@ interface TipoDocumento {            // item de uma autoridade
   genero: string;
   ativo?: boolean;                   // padrão true
   tipoRelacaoSubstitutivo?: ...;
-  tiposReferenciaveis?: ChaveTipo[];
 }
 // Mesclado (visão da casa ou completa), calculado em mesclar():
 //   tiposDocumento:        TipoDocumento + urnAutoridade + urn
@@ -136,12 +114,12 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosU
 |---|---|---|---|---|
 | C1 | Listar tipos ativos (ou inativos) | da casa | filtro `ativo` | tipos de documento |
 | C2 | Identificar o tipo pela sigla | da casa | sigla | o tipo **ativo** com a sigla; vazio se não houver |
-| C3 | Tipos de referência do substitutivo | da casa | tipo ativo selecionado | tipos (ativos e inativos); vazio para `não aceita substitutivo` |
+| C3 | Identificar substitutivo pela URN (`isSubstitutivo`) | completa | URN | booleano (seção 3.5) |
 | C4 | Identificar o tipo pela URN | completa | URN | tipo (autoridade + segmento de tipo, incluindo inativos) |
 
 ## 5. Requisitos
 
-- **RV-01** O vocabulário SHALL ser declarado por autoridade e mesclado em duas visões: a **da casa** (`SF`, `CD`), que SHALL NOT conter tipos exclusivos da outra casa e atende às consultas sem autoridade (C1-C3), e a **completa**, com todas as autoridades, que atende às consultas por URN (C4, preâmbulo, nomes por extenso, `validaUrn`).
+- **RV-01** O vocabulário SHALL ser declarado por autoridade e mesclado em duas visões: a **da casa** (`SF`, `CD`), que SHALL NOT conter tipos exclusivos da outra casa e atende às consultas sem autoridade (C1-C2), e a **completa**, com todas as autoridades, que atende às consultas por URN (C3-C4, preâmbulo, nomes por extenso, `validaUrn`).
 - **RV-02** As visões SHALL ficar em variáveis estáticas: a da casa, inicializada com `casaLegislativaEditor` a cada atribuição de `lexmlEtaConfig` (sem remontar quando a casa não muda); a completa, montada uma vez. A casa SHALL vir só do host.
 - **RV-03** Todo tipo SHALL ter `urnAutoridade` após a mesclagem; a chave é `urnAutoridade` + `urnTipoDocumento` + `sigla` (opcional).
 - **RV-04** A URN do tipo SHALL ser calculada (`urnTipoDocumento;sigla` em minúsculas), nunca declarada.
@@ -149,8 +127,8 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosU
 - **RV-06** Cada tipo SHALL declarar `ativo` (padrão `true`); só tipos ativos criam documento novo (C2).
 - **RV-07** O vocabulário SHALL listar os tipos ativos e, separadamente, os inativos (C1).
 - **RV-08** O vocabulário SHALL identificar o tipo pela sigla (C2) e pela URN (C4), devolvendo o tipo e não só a URN.
-- **RV-09** Dado um tipo ativo, o vocabulário SHALL devolver os tipos (ativos e inativos) que podem ser a referência do substitutivo, segundo a tabela 3.5 (C3); a lista é vazia para `não aceita substitutivo`.
-- **RV-10** A mesclagem SHALL validar que toda referência de `tiposReferenciaveis` existe e aceita substitutivo.
+- **RV-09** O vocabulário SHALL informar, a partir da URN, se o documento é substitutivo (C3), segundo a seção 3.5; tipo não resolvido, subemenda substitutiva e tipo que não aceita substitutivo resultam em falso.
+- **RV-10** (removido na issue #1056) `tiposReferenciaveis` deixou de existir.
 - **RV-11** O preâmbulo padrão SHALL ser escolhido por tipo (sem sigla) + autoridade da URN; combinação fora da tabela não tem texto.
 - **RV-12** A nova proposição de MPV SHALL ter autoridade `federal` e a de PLV, `congresso.nacional`.
 - **RV-13** Os testes de vocabulário e de `urnUtil` SHALL rodar para as duas casas (SF e CD), reinicializando o vocabulário estático a cada caso.
@@ -173,7 +151,7 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosU
 - Norma citada ou alterada com autoridade da outra casa resolve pela visão completa; autoridade desconhecida fica sem resolver, sem tratamento especial.
 - Documento da outra casa é recusado ao abrir; a abertura para edição fica fora do escopo atual (exigiria definir a casa do documento, as listas de parlamentares e comissões e o tratamento da sigla).
 - A Câmara tem PRC (Projeto de Resolução, aceita substitutivo).
-- `tiposReferenciaveis` do SF estão preenchidos para PL (PL, PLS, PLC), PLP (PLP, PLS, PLC) e PDL (PDL) e PRS (PRS); os demais tipos que aceitam substitutivo e a marcação definitiva de `ativo` dependem do negócio.
+- A marcação definitiva de `ativo` dos tipos que aceitam substitutivo depende do negócio.
 
 **Fora do escopo:** concordância de gênero do preâmbulo da MPV e tipos sem texto padrão.
 ## 7. Referências

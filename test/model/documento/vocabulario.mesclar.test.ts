@@ -101,23 +101,6 @@ describe('mesclar', () => {
       expect(() => mesclar(comum, [autoridade('a', [pl, inativo])])).not.to.throw();
       expect(() => mesclar(comum, [autoridade('a', [{ ...pl, ativo: false }, inativo])])).not.to.throw();
     });
-
-    it('rejeita referência a tipo inexistente', () => {
-      const ref = { ...pl, tiposReferenciaveis: ['projeto.lei;pls'] };
-      expect(() => mesclar(comum, [autoridade('a', [ref])])).to.throw(/tipo inexistente 'projeto.lei;pls'/);
-    });
-
-    it('rejeita referência a tipo que não aceita substitutivo', () => {
-      const ref = { ...pl, tiposReferenciaveis: ['projeto.lei.complementar;plp'] };
-      const plp = { urnTipoDocumento: 'projeto.lei.complementar', sigla: 'PLP', descricao: 'PLP', genero: 'M' };
-      expect(() => mesclar(comum, [autoridade('a', [ref, plp])])).to.throw(/não aceita substitutivo/);
-    });
-
-    it('aceita referência a tipo inativo que aceita substitutivo', () => {
-      const pls = { ...pl, sigla: 'PLS', ativo: false };
-      const ref = { ...pl, tiposReferenciaveis: ['projeto.lei;pls'] };
-      expect(() => mesclar(comum, [autoridade('a', [ref, pls])])).not.to.throw();
-    });
   });
 });
 

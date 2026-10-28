@@ -10,7 +10,7 @@ O sistema SHALL organizar o vocabulário de URN em definições por autoridade (
 - a **visão completa**, com todas as autoridades, independente da casa do editor;
 - a **visão da casa**, com as autoridades da casa legislativa do editor: `SF` com `federal`, `senado.federal` e `congresso.nacional`; `CD` com `federal`, `camara.deputados` e `congresso.nacional`.
 
-A visão da casa SHALL NOT conter tipos exclusivos da outra casa. As consultas que partem de uma URN SHALL usar a visão completa; as consultas sem autoridade (tipo pela sigla, tipos ativos e inativos, tipos de referência do substitutivo) SHALL usar a visão da casa. Todo tipo de documento SHALL ter, após a mesclagem, a autoridade da definição de onde veio.
+A visão da casa SHALL NOT conter tipos exclusivos da outra casa. As consultas que partem de uma URN SHALL usar a visão completa; as consultas sem autoridade (tipo pela sigla, tipos ativos e inativos) SHALL usar a visão da casa. Todo tipo de documento SHALL ter, após a mesclagem, a autoridade da definição de onde veio.
 
 #### Scenario: Vocabulário do Senado
 - **WHEN** a visão da casa é montada para `SF`
@@ -56,7 +56,7 @@ O sistema SHALL selecionar a visão da casa pela propriedade `casaLegislativaEdi
 - **THEN** a visão da casa continua a de `SF` e a casa do documento não é alterada
 
 ### Requirement: Tipo de documento e sua chave
-O sistema SHALL representar cada tipo de documento com `urnTipoDocumento` (tipo sem sigla), `sigla` opcional em maiúsculas (só em proposições), `descricao`, `genero`, `ativo` (padrão `true`), `tipoRelacaoSubstitutivo` e `tiposReferenciaveis` (estes três, apenas em proposições). A chave do tipo no vocabulário mesclado SHALL ser `urnAutoridade + urnTipoDocumento + sigla`. A URN do tipo SHALL ser calculada como `urnTipoDocumento` seguido de `;` e a sigla em minúsculas, quando houver sigla, e SHALL NOT ser declarada nos dados.
+O sistema SHALL representar cada tipo de documento com `urnTipoDocumento` (tipo sem sigla), `sigla` opcional em maiúsculas (só em proposições), `descricao`, `genero`, `ativo` (padrão `true`) e `tipoRelacaoSubstitutivo` (estes dois, apenas em proposições). A chave do tipo no vocabulário mesclado SHALL ser `urnAutoridade + urnTipoDocumento + sigla`. A URN do tipo SHALL ser calculada como `urnTipoDocumento` seguido de `;` e a sigla em minúsculas, quando houver sigla, e SHALL NOT ser declarada nos dados.
 
 #### Scenario: URN do tipo calculada
 - **WHEN** o tipo `projeto.lei` com sigla `PL` é mesclado
@@ -69,25 +69,6 @@ O sistema SHALL representar cada tipo de documento com `urnTipoDocumento` (tipo 
 #### Scenario: Chaves distintas
 - **WHEN** dois tipos têm a mesma URN de tipo e autoridades diferentes
 - **THEN** são entradas distintas do vocabulário mesclado
-
-### Requirement: Validação do vocabulário mesclado
-A mesclagem SHALL falhar com erro descritivo quando: houver duas proposições **ativas** com a mesma sigla **na visão de uma mesma casa**; houver duas entradas com a mesma chave; `tiposReferenciaveis` referir um tipo inexistente em alguma visão de casa que contém o tipo que o declara; ou `tiposReferenciaveis` referir um tipo cujo `tipoRelacaoSubstitutivo` não seja `aceita substitutivo` ou `é substitutivo`. Siglas repetidas entre proposições inativas, entre uma ativa e uma inativa, ou entre ativas de casas diferentes (por exemplo, `PL` do Senado e `PL` da Câmara na visão completa), SHALL ser permitidas.
-
-#### Scenario: Sigla duplicada entre ativos
-- **WHEN** duas proposições ativas da visão de uma mesma casa declaram a sigla `PL`
-- **THEN** a mesclagem falha informando a sigla duplicada
-
-#### Scenario: Sigla repetida entre casas
-- **WHEN** `senado.federal` e `camara.deputados` declaram, cada um, uma proposição ativa com a sigla `PL`
-- **THEN** a mesclagem conclui sem erro
-
-#### Scenario: Sigla repetida com inativo
-- **WHEN** uma proposição ativa e uma inativa declaram a mesma sigla
-- **THEN** a mesclagem conclui sem erro
-
-#### Scenario: Referência inexistente
-- **WHEN** `tiposReferenciaveis` cita um tipo que não está no vocabulário
-- **THEN** a mesclagem falha informando a referência
 
 ### Requirement: Listagem de tipos ativos e inativos
 O sistema SHALL listar, a partir do vocabulário da casa, os tipos de proposição ativos (`tiposDocumentoAtivos`) e, separadamente, os inativos. Normas não entram em nenhuma das duas listas.
@@ -181,29 +162,6 @@ O sistema SHALL resolver o tipo de documento de uma URN casando a autoridade e o
 - **WHEN** a casa do editor é `SF` e o tipo é resolvido para `urn:lex:br:camara.deputados:projeto.lei;pl:2026;1`
 - **THEN** o resultado é a entrada ativa de `projeto.lei;pl` de `camara.deputados`
 
-### Requirement: Tipos de referência de um substitutivo
-O sistema SHALL devolver, para um tipo de proposição **ativo**, os tipos que podem ser a referência do substitutivo, ativos ou inativos, conforme o `tipoRelacaoSubstitutivo` do tipo selecionado: `aceita substitutivo` — os tipos listados em `tiposReferenciaveis` do tipo; `é substitutivo` — os tipos que aceitam substitutivo; `é subemenda substitutiva` — os tipos que são substitutivos; `não aceita substitutivo` — nenhum. Um tipo inativo selecionado SHALL resultar em lista vazia.
-
-#### Scenario: Tipo que aceita substitutivo
-- **WHEN** os tipos de referência são consultados para um tipo ativo que aceita substitutivo e cujo `tiposReferenciaveis` lista um tipo ativo e um inativo
-- **THEN** o resultado contém os dois tipos
-
-#### Scenario: Substitutivo da Câmara
-- **WHEN** os tipos de referência são consultados para `substitutivo;sbt` no vocabulário de `CD`
-- **THEN** o resultado contém os tipos de `CD` que aceitam substitutivo, ativos ou inativos
-
-#### Scenario: Subemenda substitutiva
-- **WHEN** os tipos de referência são consultados para `subemenda.substitutiva;pep` no vocabulário de `CD`
-- **THEN** o resultado contém os tipos que são substitutivos
-
-#### Scenario: Tipo que não aceita substitutivo
-- **WHEN** os tipos de referência são consultados para um tipo com `não aceita substitutivo`
-- **THEN** o resultado é vazio
-
-#### Scenario: Tipo inativo selecionado
-- **WHEN** os tipos de referência são consultados para um tipo inativo
-- **THEN** o resultado é vazio
-
 ### Requirement: Recusa de documento de outra casa
 Ao iniciar a edição de um documento já identificado por URN (recebida do host ou lida de arquivo), o sistema SHALL recusar a URN cuja autoridade não pertença à visão da casa do editor, com um erro de inicialização cuja mensagem informa que documento de outra casa legislativa não é suportado. A recusa SHALL acontecer antes de qualquer alteração do documento em edição, que permanece como estava. A criação de proposição nova pela sigla SHALL NOT ser afetada, porque sempre gera URN de autoridade da casa.
 
@@ -256,3 +214,49 @@ Uma URN SHALL ser de proposição suportada quando o seu tipo resolvido for uma 
 #### Scenario: Norma de autoridade com casa
 - **WHEN** o editor do Senado consulta uma URN `senado.federal:resolucao`
 - **THEN** a URN é de tipo não suportado
+
+### Requirement: Validação de siglas e chaves do vocabulário mesclado
+A mesclagem SHALL falhar com erro descritivo quando houver duas proposições **ativas** com a mesma sigla **na visão de uma mesma casa**, ou duas entradas com a mesma chave. Siglas repetidas entre proposições inativas, entre uma ativa e uma inativa, ou entre ativas de casas diferentes (por exemplo, `PL` do Senado e `PL` da Câmara na visão completa), SHALL ser permitidas.
+
+#### Scenario: Sigla duplicada entre ativos
+- **WHEN** duas proposições ativas da visão de uma mesma casa declaram a sigla `PL`
+- **THEN** a mesclagem falha informando a sigla duplicada
+
+#### Scenario: Sigla repetida entre casas
+- **WHEN** `senado.federal` e `camara.deputados` declaram, cada um, uma proposição ativa com a sigla `PL`
+- **THEN** a mesclagem conclui sem erro
+
+#### Scenario: Sigla repetida com inativo
+- **WHEN** uma proposição ativa e uma inativa declaram a mesma sigla
+- **THEN** a mesclagem conclui sem erro
+
+### Requirement: Identificação de substitutivo pela URN
+O sistema SHALL informar se uma URN é de um substitutivo, resolvendo o tipo na visão completa. A URN SHALL ser de substitutivo quando o `tipoRelacaoSubstitutivo` do seu tipo for `é substitutivo`, ou quando for `aceita substitutivo` e a URN apresentar um evento do vocabulário com `substitutivo` igual a `s`. Qualquer outro caso, inclusive `é subemenda substitutiva`, `não aceita substitutivo`, tipo não resolvido e URN sem evento, SHALL resultar em falso.
+
+#### Scenario: Tipo que é substitutivo
+- **WHEN** a URN é de `substitutivo;sbt` da `camara.deputados`
+- **THEN** a URN é de substitutivo, mesmo sem evento
+
+#### Scenario: Tipo que aceita substitutivo com evento de substitutivo
+- **WHEN** a URN é `urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo`
+- **THEN** a URN é de substitutivo
+
+#### Scenario: Tipo que aceita substitutivo com evento que não é de substitutivo
+- **WHEN** a URN é de um tipo que aceita substitutivo e o evento tem `substitutivo` diferente de `s`
+- **THEN** a URN não é de substitutivo
+
+#### Scenario: Tipo que aceita substitutivo sem evento
+- **WHEN** a URN é `urn:lex:br:senado.federal:projeto.lei;pl:2026;12`
+- **THEN** a URN não é de substitutivo
+
+#### Scenario: Tipo que não aceita substitutivo
+- **WHEN** a URN é de um tipo com `não aceita substitutivo`, ainda que com evento de substitutivo
+- **THEN** a URN não é de substitutivo
+
+#### Scenario: Subemenda substitutiva
+- **WHEN** a URN é de `subemenda.substitutiva;pep` da `camara.deputados`
+- **THEN** a URN não é de substitutivo
+
+#### Scenario: Tipo não resolvido
+- **WHEN** a URN tem uma autoridade ou um tipo que o vocabulário não conhece
+- **THEN** a URN não é de substitutivo

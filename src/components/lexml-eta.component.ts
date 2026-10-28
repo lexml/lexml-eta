@@ -74,8 +74,6 @@ export interface DadosNovaProposicao {
 class ParametrosEdicao {
   projetoNorma?: ProjetoNorma;
   anexoParecer = false;
-  // Indica se é texto substitutivo.
-  substitutivo = false;
 }
 
 @customElement('lexml-eta')
@@ -110,8 +108,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   private parlamentaresCarregados = false;
   private comissoesCarregadas = false;
-
-  private substitutivo = false;
 
   // O destino não é salvo: o local lido do arquivo vale enquanto o destino for o mesmo da abertura.
   private localDoArquivo?: string;
@@ -366,7 +362,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     proposicao.colegiadoApreciador = this._lexmlDestino!.colegiadoApreciador;
     proposicao.anexos = this._lexmlAnexos?.anexos ?? [];
-    proposicao.substitutivo = this.substitutivo;
     if (proposicao.colegiadoApreciador) proposicao.local = this.montarLocalFromColegiadoApreciador(proposicao.colegiadoApreciador);
 
     if (this.anexoParecer) {
@@ -493,7 +488,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.anexoParecer = false;
     this.urnDocumentoReferenciado = undefined;
     this.tipoNaoSuportado = false;
-    this.substitutivo = false;
     this.localDoArquivo = undefined;
     this.destinoAoAbrir = undefined;
     this.outrosMetadados = {};
@@ -560,7 +554,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   private setProposicao(proposicao: Proposicao): void {
     rootStore.dispatch(limparAlertas());
 
-    this.substitutivo = proposicao.substitutivo;
     this._lexmlAutoria.autoria = proposicao.autoria || new Autoria();
     this._lexmlAutoria.casaLegislativa = this.casaLegislativa;
     this._lexmlOpcoesImpressao.opcoesImpressao = proposicao.opcoesImpressao;
@@ -581,7 +574,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     proposicao.autoria = aplicarPadroes ? this.montarAutoriaPadrao() : new Autoria();
     proposicao.opcoesImpressao = aplicarPadroes ? this.montarOpcoesImpressaoPadrao() : new OpcoesImpressao();
     proposicao.colegiadoApreciador.siglaCasaLegislativa = this.casaLegislativa;
-    proposicao.substitutivo = params.substitutivo;
     this.setProposicao(proposicao);
     rootStore.dispatch(limparRevisaoAction.execute());
   }
