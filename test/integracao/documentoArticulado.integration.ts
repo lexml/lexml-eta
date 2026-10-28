@@ -106,6 +106,44 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
   });
 
+  it('modo de anexo de parecer e documento referenciado vão e voltam pelo CLI', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const urnDocumentoReferenciado = 'urn:lex:br:senado.federal:projeto.lei;pl:2025;10';
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { anexoParecer: true, urnDocumentoReferenciado });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.match(/<lexedit:Metadado[^>]*urnDocumentoReferenciado="urn:lex:br:senado.federal:projeto.lei;pl:2025;10"[^>]*anexoParecer="true"/);
+    const dados = lerMetadadoLexEdit(retorno.jsonix);
+    expect(dados).to.deep.equal({ anexoParecer: true, urnDocumentoReferenciado });
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+  });
+
+  it('documento de tipo não suportado grava a pendência de documento não suportado', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo = criarDocumentoArticulado(modelo, 'urn:lex:br:federal:medida.provisoria;mpv:2026;1', undefined, undefined, { anexoParecer: false });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('<lexedit:Pendencia>Este tipo de documento não é completamente suportado pelo editor.</lexedit:Pendencia>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+  });
+
+  it('modo normal grava anexoParecer="false" e omite o documento referenciado', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { anexoParecer: false });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('anexoParecer="false"');
+    expect(retorno.xml).not.to.include('urnDocumentoReferenciado');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+  });
+
   for (const [caso, data, texto] of [
     ['com data', '2026-04-24', 'Sala da comissão, 24 de abril de 2026.'],
     ['sem data', undefined, 'Sala da comissão,'],

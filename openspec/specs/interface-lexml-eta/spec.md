@@ -1,10 +1,10 @@
-# Spec Delta
+# interface-lexml-eta Specification
 
 ## Purpose
 
 Definir o contrato do componente `lexml-eta` com o aplicativo que o hospeda: os métodos que criam, abrem e encerram um documento, o estado neutro de espera, o reset entre documentos e a configuração da sessão.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Métodos de ciclo de vida do documento
 O componente SHALL expor `novaProposicao(dados)`, `abrirDocumentoArticulado(entrada)` e `fecharDocumento()` como únicas formas de iniciar, trocar ou encerrar a edição de um documento. O componente SHALL NOT expor `inicializarEdicao` como método público.
@@ -73,12 +73,16 @@ Quando `novaProposicao` recebe um documento articulado de modelo, o sistema SHAL
 - **WHEN** o modelo traz articulação e ementa
 - **THEN** o documento criado contém essa articulação e essa ementa
 
-### Requirement: Autoridades permitidas para criação
-`novaProposicao` SHALL aceitar apenas URN de autoridade `senado.federal`, `camara.deputados` ou `congresso.nacional`, e apenas de tipos reconhecidos pelo vocabulário da casa do editor. Qualquer outra URN SHALL rejeitar a chamada com erro descritivo, sem alterar o documento em edição.
+### Requirement: Tipos permitidos para criação
+`novaProposicao` SHALL aceitar apenas URN de proposição suportada pelo editor (ver `vocabulario-urn`): tipo com sigla, ativo ou inativo, da visão da casa do editor, de autoridade com sigla de casa (`senado.federal`, `camara.deputados` ou `congresso.nacional`). Qualquer outra URN SHALL rejeitar a chamada com erro descritivo, sem alterar o documento em edição. O alerta ou bloqueio de tipos inativos fica a cargo do host, antes da chamada.
 
-#### Scenario: Autoridade permitida
-- **WHEN** o editor do Senado recebe uma URN `senado.federal` de tipo reconhecido
+#### Scenario: Proposição permitida
+- **WHEN** o editor do Senado recebe uma URN `senado.federal` de proposição do vocabulário
 - **THEN** a proposição é criada
+
+#### Scenario: Norma
+- **WHEN** o host chama `novaProposicao` com URN `senado.federal:resolucao`
+- **THEN** a chamada é rejeitada
 
 #### Scenario: Medida provisória
 - **WHEN** o host chama `novaProposicao` com URN de autoridade `federal` (medida provisória)
@@ -89,7 +93,7 @@ Quando `novaProposicao` recebe um documento articulado de modelo, o sistema SHAL
 - **THEN** a chamada é rejeitada
 
 ### Requirement: Casa responsável derivada da URN
-A casa legislativa responsável pela apreciação SHALL derivar da autoridade da URN do documento: `senado.federal` para `SF`, `camara.deputados` para `CD` e `congresso.nacional` para `CN`. A casa SHALL NOT ser informada por parâmetro.
+A casa legislativa responsável pela apreciação SHALL ser a sigla de casa da autoridade da URN do documento no vocabulário (`senado.federal` para `SF`, `camara.deputados` para `CD` e `congresso.nacional` para `CN`). A casa SHALL NOT ser informada por parâmetro.
 
 #### Scenario: Congresso Nacional
 - **WHEN** o documento tem URN de autoridade `congresso.nacional`

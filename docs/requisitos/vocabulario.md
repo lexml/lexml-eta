@@ -45,18 +45,20 @@ Os módulos por autoridade são mesclados em **duas visões**, ambas em variáve
 
 A casa vem só do host, nunca da URN (a sigla da URN depende do vocabulário). `congresso` e `federal` entram nas duas casas.
 
-**Documento da outra casa:** abrir para edição um documento cuja URN seja de autoridade fora da visão da casa é **recusado** (`verificarUrnDaCasaDoEditor`), com a mensagem "Documento de outra casa legislativa não é suportado neste editor", antes de qualquer alteração do editor — em `lerDocumentoArticulado` (abertura de arquivo) e no início de `inicializarEdicao` (URN recebida do host). Proposição nova pela sigla não é afetada (sempre gera URN da casa). A abertura de documento da outra casa fica fora do escopo atual e pode ser retomada oportunamente.
+**Documento da outra casa:** abrir para edição um documento cuja URN seja de autoridade fora da visão da casa é **recusado** (`verificarUrnDaCasaDoEditor`), com a mensagem "Documento de outra casa legislativa não é suportado neste editor", antes de qualquer alteração do editor — em `lerDocumentoArticulado` (abertura de arquivo) e em `novaProposicao` (URN recebida do host), que além disso só aceita proposição suportada (ver a spec `interface-lexml-eta`). A abertura de documento da outra casa fica fora do escopo atual e pode ser retomada oportunamente.
 
 ### 3.2 Autoridade
 
-Quem emite o documento. Cada autoridade é um módulo (`vocabularioFederal.ts`, `vocabularioSenado.ts`, `vocabularioCamara.ts`, `vocabularioCongresso.ts`) cujos itens são carimbados com `urnAutoridade` na mesclagem.
+Quem emite o documento. Cada autoridade é um módulo (`vocabularioFederal.ts`, `vocabularioSenado.ts`, `vocabularioCamara.ts`, `vocabularioCongresso.ts`) cujos itens são carimbados com `urnAutoridade` na mesclagem. A `sigla` opcional é a casa responsável pelas proposições da autoridade (`getCasaLegislativaResponsavel`).
 
-| URN | Descrição | Uso típico |
-|---|---|---|
-| `federal` | Federal | MPV |
-| `senado.federal` | Senado Federal | Projetos do SF |
-| `camara.deputados` | Câmara dos Deputados | Projetos da CD |
-| `congresso.nacional` | Congresso Nacional | PDN, PRN, PLV |
+| URN | Descrição | Sigla | Uso típico |
+|---|---|---|---|
+| `federal` | Federal | — | MPV |
+| `senado.federal` | Senado Federal | `SF` | Projetos do SF |
+| `camara.deputados` | Câmara dos Deputados | `CD` | Projetos da CD |
+| `congresso.nacional` | Congresso Nacional | `CN` | PDN, PRN, PLV |
+
+**Proposição suportada:** URN cujo tipo resolvido é uma proposição (com sigla, ativa ou inativa) da visão da casa, de autoridade com sigla. É a única aceita na criação de proposição (`verificarUrnParaNovaProposicao`); as demais (MPV, normas) são do tipo "não suportado" (`isTipoDocumentoNaoSuportado`), abertas sem edição de destino e autoria e salvas com a pendência de documento não suportado.
 
 ### 3.3 Tipo de documento (`tiposDocumento`)
 
