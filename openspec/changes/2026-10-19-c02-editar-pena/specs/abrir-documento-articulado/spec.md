@@ -29,3 +29,7 @@ Ao abrir um documento com uma revisão `alterado` de uma pena cujo estado anteri
 #### Scenario: Estado anterior sem rótulo
 - **WHEN** o usuário abre um documento com uma revisão `alterado` de uma pena cujo estado anterior não tem `Rotulo`
 - **THEN** a revisão é tratada como alteração só do texto, com o rótulo anterior igual ao atual
+
+#### Scenario: Pena excluída em revisão reaberta
+- **WHEN** o usuário abre um documento com uma revisão `excluido` cujo dispositivo excluído é uma `Pena`, e rejeita a revisão
+- **THEN** a pena volta como último filho do dono, com o rótulo e o texto gravados

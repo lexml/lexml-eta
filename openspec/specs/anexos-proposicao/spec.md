@@ -18,7 +18,7 @@ O sistema SHALL exibir a aba "Anexos" imediatamente antes da aba "Avisos", com o
 - **THEN** o rótulo da aba indica 3 anexos; sem anexos, o rótulo não traz número
 
 #### Scenario: Modo anexo de parecer
-- **WHEN** o editor é inicializado com `anexoParecer` ativo
+- **WHEN** o editor é inicializado com um documento no modo anexo de parecer
 - **THEN** a aba "Anexos" é exibida
 
 #### Scenario: Sem botão na barra de ferramentas
@@ -187,7 +187,7 @@ Ao abrir um documento articulado, o sistema SHALL exibir na aba somente os anexo
 - **THEN** a aba não lista nenhum anexo
 
 #### Scenario: Documento novo
-- **WHEN** o editor é inicializado com uma proposição nova
+- **WHEN** o host cria uma proposição nova com `novaProposicao`
 - **THEN** a aba não lista nenhum anexo
 
 ### Requirement: Notificação de alteração dos anexos

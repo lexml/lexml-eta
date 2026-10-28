@@ -1,4 +1,5 @@
 import { SlButton, SlInput, SlTabGroup } from '@shoelace-style/shoelace';
+import { podeSerDestinoDeRemissaoInterna } from '../../model/remissao/destinoRemissao';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
 import { getElementos } from '../../model/elemento/elementoUtil';
 import { Articulacao } from '../../model/dispositivo/dispositivo';
@@ -27,21 +28,19 @@ interface DispositivoRemissao {
   texto?: string;
 }
 
-function buildListaDispositivos(articulacao: Articulacao): DispositivoRemissao[] {
+export function buildListaDispositivos(articulacao: Articulacao): DispositivoRemissao[] {
   const dispositivos: DispositivoRemissao[] = [];
   const elementos = getElementos(articulacao);
-  elementos
-    .filter(el => el.tipo !== 'Articulacao' && el.tipo !== 'Ementa' && el.tipo !== 'Preambulo')
-    .forEach(el => {
-      dispositivos.push({
-        uuid: el.uuid!,
-        lexmlId: el.lexmlId!,
-        rotulo: el.rotulo || el.tipo || '',
-        tipo: el.tipo || '',
-        nivel: el.nivel || 0,
-        texto: el.conteudo?.texto?.substring(0, 50) + (el.conteudo?.texto && el.conteudo.texto.length > 50 ? '...' : ''),
-      });
+  elementos.filter(podeSerDestinoDeRemissaoInterna).forEach(el => {
+    dispositivos.push({
+      uuid: el.uuid!,
+      lexmlId: el.lexmlId!,
+      rotulo: el.rotulo || el.tipo || '',
+      tipo: el.tipo || '',
+      nivel: el.nivel || 0,
+      texto: el.conteudo?.texto?.substring(0, 50) + (el.conteudo?.texto && el.conteudo.texto.length > 50 ? '...' : ''),
     });
+  });
   return dispositivos;
 }
 

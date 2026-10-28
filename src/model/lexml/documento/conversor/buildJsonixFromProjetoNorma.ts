@@ -8,7 +8,8 @@ import {
   findDispositivoByUuid,
 } from '../../hierarquia/hierarquiaUtil';
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isCaput, isOmissis } from '../../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isCaput, isOmissis, isPena } from '../../../dispositivo/tipo';
+import { normalizaRotuloPena } from '../../numeracao/rotuloPena';
 import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { buildHref, buildId, buildIdAlteracao } from '../../util/idUtil';
 import { isNorma, ProjetoNorma } from '../projetoNorma';
@@ -21,11 +22,12 @@ import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
 import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
 import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
-import { formatarLocalDataFecho } from '../urnUtil';
+import { formatarLocalDataFecho, isTipoDocumentoNaoSuportado } from '../urnUtil';
 import { coletarSituacaoNaNormaVigente, mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 export const PENDENCIA_REVISAO_ARTICULACAO = 'Resolver marcas de revisão na articulação.';
+export const PENDENCIA_DOCUMENTO_NAO_SUPORTADO = 'Este tipo de documento não é completamente suportado pelo editor.';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
@@ -49,6 +51,7 @@ export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: str
   const resultado = montaCabecalho(
     urn,
     montaMetadadoLexEdit(
+      urn,
       dados,
       idsRemissoesInvalidas,
       mesclarSituacaoNaNormaVigente(coletarSituacaoNaNormaVigente(projetoNorma.articulacao), dados?.revisoes?.situacaoDosExcluidos)
@@ -153,9 +156,12 @@ const montaAnexos = (anexos?: Anexo[]): MetadadoLexEdit['anexos'] => {
 };
 
 // Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
-const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[], situacao: SituacaoNaNormaVigente): MetadadoLexEdit | undefined => {
+const montaMetadadoLexEdit = (urn: string, dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[], situacao: SituacaoNaNormaVigente): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
   const pendencias: string[] = [];
+  // O editor sempre informa o modo; sem dados (chamadas diretas do conversor), o atributo é omitido.
+  if (typeof dados?.anexoParecer === 'boolean') lexedit.anexoParecer = dados.anexoParecer;
+  if (dados?.urnDocumentoReferenciado?.trim()) lexedit.urnDocumentoReferenciado = dados.urnDocumentoReferenciado.trim();
   // Sem local não há fecho; data não informada é omitida, pois xsd:date não aceita texto vazio.
   if (dados?.local) {
     lexedit.local = dados.local;
@@ -181,6 +187,8 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
   if (outrosMetadados) lexedit.outrosMetadados = outrosMetadados;
   const anexos = montaAnexos(dados?.anexos);
   if (anexos) lexedit.anexos = anexos;
+  // Recalculada pela URN a cada salvamento do editor (que sempre informa os dados); a pendência gravada nunca é lida.
+  if (dados && isTipoDocumentoNaoSuportado(urn)) pendencias.push(PENDENCIA_DOCUMENTO_NAO_SUPORTADO);
   if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
   // > 1 porque TYPE_NAME está sempre presente.
   return Object.keys(lexedit).length > 1 ? lexedit : undefined;
@@ -339,7 +347,16 @@ const buildTree = (dispositivo: Dispositivo, obj: any, remissoes?: Remissoes, re
 
     buildTree((dispositivo as Artigo).caput!, node.value, remissoes, remissoesExternas);
   } else {
-    buildFilhos(dispositivo.filhos, tree, remissoes, remissoesExternas);
+    const pena = dispositivo.filhos?.find(isPena);
+    buildFilhos(
+      dispositivo.filhos?.filter(f => f !== pena),
+      tree,
+      remissoes,
+      remissoesExternas
+    );
+    if (pena) {
+      obj.pena = buildNode(pena, remissoes, remissoesExternas).value;
+    }
   }
 
   if (obj.lXcontainersOmissis && obj.lXcontainersOmissis.length === 0) delete obj.lXcontainersOmissis;
@@ -406,7 +423,7 @@ const buildTypeName = (dispositivo: Dispositivo): string => {
 const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas): void => {
   value['id'] = buildId(dispositivo);
   if (!isCaput(dispositivo) && !isOmissis(dispositivo)) {
-    value.rotulo = dispositivo.rotulo;
+    value.rotulo = isPena(dispositivo) ? normalizaRotuloPena(dispositivo.rotulo) : dispositivo.rotulo;
   }
 
   if (isDispositivoAlteracao(dispositivo) && !isOmissis(dispositivo)) {
@@ -416,7 +433,8 @@ const buildDispositivo = (dispositivo: Dispositivo, value: any, remissoes?: Remi
       dispositivo.tipo === 'Inciso' ||
       dispositivo.tipo === 'Paragrafo' ||
       dispositivo.tipo === 'Alinea' ||
-      dispositivo.tipo === 'Item'
+      dispositivo.tipo === 'Item' ||
+      dispositivo.tipo === 'Pena'
     ) {
       // Para dispositivos em alteracoes, construir href completo incluindo todos os niveis
       let href = buildHref(dispositivo);
@@ -934,10 +952,13 @@ export const buildJsonixContentFromHtml = (html: string): any[] => buildStructur
 // Título vazio ou só com marcação não é gravado.
 const tituloTemTexto = (titulo?: string): boolean => isValidText(getTextoSemHtml((titulo ?? '').replace(/&nbsp;/g, ' ')));
 
-/** Valor jsonix, sem id nem rótulo, do estado anterior (texto e título) de um dispositivo de tipo `tipo` numa revisão `alterado`. */
-export const buildJsonixEstadoAnterior = (tipo: string, texto: string, titulo?: string): any => {
+/** Valor jsonix, sem id, do estado anterior (texto e título) de um dispositivo de tipo `tipo` numa revisão `alterado`; o rótulo só vai para a pena, e só quando mudou. */
+export const buildJsonixEstadoAnterior = (tipo: string, texto: string, titulo?: string, rotuloPena?: string): any => {
   const dispositivo = { tipo } as unknown as Dispositivo;
   const value: any = { TYPE_NAME: buildTypeName(dispositivo) };
+  if (rotuloPena) {
+    value.rotulo = normalizaRotuloPena(rotuloPena);
+  }
   if (tituloTemTexto(titulo)) {
     value.tituloDispositivo = { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: buildJsonixContentFromHtml(titulo!) };
   }

@@ -44,7 +44,15 @@ import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
 import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { getProximoAgrupadorAposArtigo } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
-import { adicionaAcoesDeExistenciaNaNorma, adicionaAcoesDeTitulo, MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
+import {
+  adicionaAcaoDePena,
+  adicionaAcoesDeExistenciaNaNorma,
+  adicionaAcoesDeTitulo,
+  MotivosOperacaoNaoPermitida,
+  existeFilhoDesbloqueado,
+  isBloqueado,
+  podeConverterEmOmissis,
+} from './regrasUtil';
 
 export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -109,6 +117,8 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
       adicionaAcoesDeExistenciaNaNorma(dispositivo, acoes);
 
       adicionaAcoesDeTitulo(dispositivo, acoes);
+
+      adicionaAcaoDePena(dispositivo, acoes);
 
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);

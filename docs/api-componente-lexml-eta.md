@@ -32,7 +32,8 @@ Depois de instalado como dependência `file:`, a importação é a de qualquer p
 
 ```ts
 import '@lexml/lexml-eta'; // registra <lexml-eta> e os componentes filhos
-import { LexmlEtaComponent, LexmlEtaParametrosEdicao, LexmlEtaConfig, Usuario, Proposicao } from '@lexml/lexml-eta';
+import { LexmlEtaComponent, LexmlEtaConfig, Usuario, Proposicao } from '@lexml/lexml-eta';
+import type { DadosNovaProposicao } from '@lexml/lexml-eta';
 ```
 
 Pontos de atenção:
@@ -52,23 +53,25 @@ Pontos de atenção:
 ```
 
 ```ts
-import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao, Usuario } from '@lexml/lexml-eta';
+import { LexmlEtaComponent, LexmlEtaConfig, Usuario } from '@lexml/lexml-eta';
 
 const editor = document.querySelector('#editor') as LexmlEtaComponent;
 
-// 1. Configuração (antes de inicializar a edição)
+// 1. Configuração da sessão (antes de iniciar um documento)
 const config = new LexmlEtaConfig();
 config.urlConsultaParlamentares = '/parlamentares';
 config.urlComissoes = '/comissoes';
+config.usuario = new Usuario('Maria da Silva', 123, 'MSILVA'); // usado nas marcas de revisão
 editor.lexmlEtaConfig = config;
 
-// 2. Usuário (usado nas marcas de revisão)
-editor.setUsuario(new Usuario('Maria da Silva', 123, 'MSILVA'));
-
-// 3. Abrir um texto novo (ou um existente)
-const params = new LexmlEtaParametrosEdicao();
-params.sigla = 'PL'; // texto novo: número e ano provisórios
-await editor.inicializarEdicao(params);
+// 2. Sem documento, o componente fica em estado neutro ("aguardando inicialização").
+//    Criar uma proposição nova...
+await editor.novaProposicao({
+  urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;123',
+  epigrafe: 'PROJETO DE LEI Nº 123, DE 2026',
+  preambulo: 'O CONGRESSO NACIONAL decreta:',
+});
+// ...ou abrir um documento salvo: await editor.abrirDocumentoArticulado(arquivoJson);
 
 // 4. Escutar eventos
 editor.addEventListener('onrevisao', e => console.log('em revisão?', (e as CustomEvent).detail.emRevisao));
@@ -84,8 +87,8 @@ Em Lit, a configuração pode ser passada por binding de propriedade: `<lexml-et
 
 | Propriedade | Tipo | Padrão | Descrição |
 |---|---|---|---|
-| `lexmlEtaConfig` | `LexmlEtaConfig` | `new LexmlEtaConfig()` | URLs de serviços e limites. Veja a seção 5. Renomeada de `lexmlEmendaConfig` — consumidores antigos precisam atualizar o binding, que falha em silêncio. |
-| `parlamentares` | `Parlamentar[]` | `[]` | Lista usada na autoria. É **preenchida pelo próprio componente** em `inicializarEdicao`, a partir de `urlConsultaParlamentares`. |
+| `lexmlEtaConfig` | `LexmlEtaConfig` | `new LexmlEtaConfig()` | URLs de serviços e limites. Veja a seção 5. |
+| `parlamentares` | `Parlamentar[]` | `[]` | Lista usada na autoria. É **preenchida pelo próprio componente** ao iniciar um documento, a partir de `urlConsultaParlamentares`. |
 | `comissoes` | `Comissao[]` | `[]` | Lista de comissões da casa legislativa. Também preenchida pelo componente, a partir de `urlComissoes`. |
 | `exibirAjuda` | `boolean` | `true` | Exibe o conteúdo de ajuda. |
 | `outrosMetadados` | `Record<string, string>` | `{}` | Pares chave/valor do host gravados no documento (`lexedit:OutrosMetadados`), também no modo `anexoParecer`. Os valores são sempre texto: para dados estruturados, grave um JSON serializado. `abrirDocumentoArticulado` substitui o valor pelos pares do arquivo (vazio se o arquivo não tiver o grupo), então o host deve lê-lo depois de abrir. |
@@ -93,60 +96,41 @@ Em Lit, a configuração pode ser passada por binding de propriedade: `<lexml-et
 
 ## 4. Métodos
 
-### 4.1 `inicializarEdicao(params, preservarTextoDocumento = false): Promise<void>`
+### 4.1 Ciclo de vida do documento: `novaProposicao`, `abrirDocumentoArticulado` e `fecharDocumento`
 
-Abre um documento para edição. Deve ser chamado depois de definir `lexmlEtaConfig` e antes de qualquer outro método de leitura. Em caso de falha, emite o evento `fatalError`, registra o erro no store e **relança a exceção**.
+São as **únicas** formas de iniciar, trocar ou encerrar a edição. Defina `lexmlEtaConfig` antes. Enquanto nenhum documento estiver iniciado, e depois de `fecharDocumento()`, o componente fica em **estado neutro**: todas as abas desabilitadas e a mensagem "aguardando inicialização".
 
-O segundo argumento é de uso interno (`abrirDocumentoArticulado` passa `true`); chamadores externos normalmente o omitem.
+Todo método valida a entrada **antes de alterar o editor**: entrada inválida emite o evento `fatalError`, lança o erro e deixa o documento em edição como estava. Ao iniciar um documento, o estado do anterior (revisões, remissões, anexos, outros metadados, justificação, notas, o store Redux) é descartado por inteiro; a configuração da sessão é preservada. O componente **não** rastreia alterações pendentes: confirmar a perda de dados é responsabilidade do host.
 
-A identificação do documento (a URN) é resolvida nesta ordem:
-
-1. a URN dentro de `params.projetoNorma`;
-2. `params.urn`;
-3. `params.proposicao.urn`;
-4. a URN montada a partir de `params.proposicao.{sigla,numero,ano}`;
-5. a URN montada a partir de `params.{sigla,numero,ano}`.
-
-Nos casos 1 a 3 (URN recebida), a autoridade da URN precisa ser da casa do editor (`casaLegislativaEditor`: `SF` aceita `senado.federal`, `congresso.nacional` e `federal`; `CD` aceita `camara.deputados`, `congresso.nacional` e `federal`). Documento de outra casa é recusado **antes de qualquer alteração do editor**, com `Error('Documento de outra casa legislativa não é suportado neste editor (autoridade \'...\').')`, pelo caminho de falha descrito acima (`fatalError` e exceção relançada). As URNs montadas pela sigla (casos 4 e 5) são sempre da casa do editor.
-
-No caso 5, `sigla` é obrigatória. Se `numero`/`ano` faltarem, assumem valores provisórios — **exceto** com `substitutivo = true`, caso em que ambos são obrigatórios (senão lança `Error`).
-
-Casa legislativa: para `MPV`, `PDN` e `PRN` é sempre `CN`; senão vale `proposicao.colegiadoApreciador.siglaCasaLegislativa` ou `params.casaLegislativa`, com `CN` por padrão.
-
-#### `LexmlEtaParametrosEdicao`
+#### `novaProposicao(dados: DadosNovaProposicao): Promise<void>`
 
 | Campo | Tipo | Descrição |
 |---|---|---|
-| `urn` | `string` | URN LexML da proposição. |
-| `sigla`, `numero`, `ano` | `string` | Identificação da proposição, usada quando não há URN. |
-| `proposicao` | `Proposicao` | Estado completo de uma edição anterior (veja `getProposicao()`). Restaura justificação, autoria, revisões, destino etc. |
-| `projetoNorma` | `ProjetoNorma` | Texto estruturado (JSON LexML/Jsonix) a editar. Opcional: sem ele, abre texto vazio. |
-| `substitutivo` | `boolean` | Indica texto substitutivo. Exige `sigla`, `numero` e `ano`. |
-| `usuario` | `Usuario` | Usuário das marcas de revisão. Se omitido, mantém o usuário atual do store. |
-| `autoriaPadrao` | `{ identificacao: string; siglaCasaLegislativa: 'SF' \| 'CD' }` | Parlamentar pré-selecionado na autoria. Só se aplica quando **não** se passa `proposicao`, e só funciona se o parlamentar existir na lista carregada. |
-| `opcoesImpressaoPadrao` | `{ imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number }` | Valores iniciais das opções de impressão (também só sem `proposicao`). |
-| `configuracaoPaginacao` | `ConfiguracaoPaginacao` | Paginação dos dispositivos em textos grandes: `{ maxItensPorPagina?: number; rangeArtigos?: { numInicial: number; numFinal: number }[] }`. **Opcional**: sem ela, o texto é paginado automaticamente em blocos de até **1250 dispositivos**. Detalhes na seção 9 ("Texto grande com paginação"). |
-| `casaLegislativa` | `'SF' \| 'CD' \| 'CN'` | Casa responsável pela apreciação. |
+| `urn` | `string` | **Obrigatório.** URN da nova proposição. Só proposições suportadas: tipo com sigla do vocabulário da casa do editor, de autoridade `senado.federal`, `camara.deputados` ou `congresso.nacional`. Normas, medidas provisórias (autoridade `federal`) e autoridade da outra casa são rejeitadas. Tipos inativos (PLS, PLC) são aceitos: o alerta fica a cargo do host. |
+| `epigrafe` | `string` | **Obrigatório.** Texto da epígrafe. |
+| `preambulo` | `string` | **Obrigatório** (pode ser vazio; então vale o texto padrão do tipo, se houver). |
+| `urnDocumentoReferenciado` | `string?` | URN do documento referenciado (substitutivo, PLV); gravada em `lexedit:Metadado@urnDocumentoReferenciado`. |
+| `colegiadoApreciador` | `ColegiadoApreciador?` | Destino. Padrão: Plenário. Ignorado no modo anexo de parecer. |
+| `autoria` | `Autoria?` | Padrão: `lexmlEtaConfig.autoriaPadrao`, se houver. |
+| `opcoesImpressao` | `OpcoesImpressao?` | Padrão: `lexmlEtaConfig.opcoesImpressaoPadrao`, se houver. |
+| `outrosMetadados` | `Record<string, string>?` | Pares gravados no documento. |
+| `documentoModelo` | `DocumentoArticulado?` | Documento de modelo: dele só a articulação e a ementa são aproveitadas. URN, epígrafe, preâmbulo e demais dados vêm dos parâmetros ou do padrão; anexos, revisões, situação na norma vigente, fecho, autoria, impressão, destino e outros metadados do modelo são descartados. |
+| `anexoParecer` | `boolean?` | Modo de anexo de parecer (propriedade do documento; veja a seção 9). Padrão: `false`. |
 
-Exemplos:
+A casa responsável pela apreciação deriva da autoridade da URN (`senado.federal` → `SF`, `camara.deputados` → `CD`, `congresso.nacional` → `CN`) e não é um parâmetro.
 
 ```ts
-// Texto novo
-const p = new LexmlEtaParametrosEdicao();
-p.sigla = 'PL';
-await editor.inicializarEdicao(p);
-
-// Texto existente (JSON LexML)
-const p2 = new LexmlEtaParametrosEdicao();
-p2.projetoNorma = jsonDoTexto;
-await editor.inicializarEdicao(p2);
-
-// Retomar uma edição salva anteriormente com getProposicao()
-const p3 = new LexmlEtaParametrosEdicao();
-p3.proposicao = proposicaoSalva;
-p3.projetoNorma = proposicaoSalva.projetoNorma;
-await editor.inicializarEdicao(p3);
+await editor.novaProposicao({
+  urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;123',
+  epigrafe: 'PROJETO DE LEI Nº 123, DE 2026',
+  preambulo: 'O CONGRESSO NACIONAL decreta:',
+  documentoModelo: modeloJson, // opcional
+});
 ```
+
+#### `fecharDocumento(): void`
+
+Descarta o documento atual e volta ao estado neutro.
 
 ### 4.2 `getProposicao(): Proposicao`
 
@@ -166,7 +150,9 @@ Diferença em relação a `getProposicao()`: aqui o resultado é **um arquivo Le
 
 ### 4.4 `abrirDocumentoArticulado(entrada): Promise<void>`
 
-Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, lança `Error` (por exemplo, URN sem ano e número, documento de outra casa legislativa, articulação ausente, ids repetidos) e o editor segue intacto. Depois da abertura, aplica ao formulário os metadados do arquivo (opções de impressão, data, local, autoria), preenche `outrosMetadados` e exibe na aba "Anexos" os anexos do arquivo.
+Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, emite `fatalError`, lança `Error` (por exemplo, URN sem ano e número, documento de outra casa legislativa, articulação ausente, ids repetidos) e o editor segue intacto. Documento de outra casa legislativa é recusado com `Error("Documento de outra casa legislativa não é suportado neste editor (autoridade '...').")`; as autoridades aceitas por casa são as do vocabulário (`SF` aceita `senado.federal`, `congresso.nacional` e `federal`; `CD`, `camara.deputados`, `congresso.nacional` e `federal`). Depois da abertura, aplica ao formulário os metadados do arquivo (modo de anexo de parecer, URN do documento referenciado, opções de impressão, data, local, destino, autoria), preenche `outrosMetadados` e exibe na aba "Anexos" os anexos do arquivo. Os padrões da sessão (`autoriaPadrao`, `opcoesImpressaoPadrao`) **não** se aplicam: valem os valores do arquivo.
+
+**Tipo "não suportado".** Se a URN não for de proposição suportada (por exemplo, uma medida provisória ou uma norma), o documento abre normalmente, mas sem os formulários de destino e de autoria (os valores do arquivo são ignorados e gravados vazios ao salvar), com um erro na aba de avisos ("Este tipo de documento não é completamente suportado pelo editor.") e a pendência correspondente em `lexedit:Pendencias`. O erro não impede a edição nem o salvamento.
 
 ```ts
 await editor.abrirDocumentoArticulado(await arquivo.text());
@@ -200,15 +186,18 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `urlAutocomplete` | `string` | `'api/autocomplete-norma'` | Endpoint (GET `?query=`) de busca de normas, usado nos diálogos de alteração de norma e de remissão externa. |
 | `urlPortalNormas` | `string` | `'https://normas.leg.br'` | Base dos links para abrir uma norma referenciada. |
 | `urlComissoes` | `string?` | — | Endpoint (GET `?siglaCasaLegislativa=`) de comissões. Se ausente, a lista de comissões fica vazia. |
-| `anexoParecer` | `boolean` | `false` | Modo "anexo de parecer": oculta as abas de justificação e de notas de rodapé, e a justificação não é exigida. Destino, data, autoria e impressão seguem disponíveis, e o fecho e as assinaturas são salvos como no modo normal. |
+| `usuario` | `Usuario?` | — | Usuário das marcas de revisão. Se omitido, mantém o usuário atual do store. |
+| `configuracaoPaginacao` | `ConfiguracaoPaginacao?` | — | Paginação dos dispositivos em textos grandes: `{ maxItensPorPagina?: number; rangeArtigos?: { numInicial: number; numFinal: number }[] }`. **Opcional**: sem ela, o texto é paginado automaticamente em blocos de até **1250 dispositivos**. Veja a seção 9. |
+| `autoriaPadrao` | `{ identificacao: string; siglaCasaLegislativa: 'SF' \| 'CD' }?` | — | Parlamentar pré-selecionado na autoria de uma **nova proposição** (só funciona se o parlamentar existir na lista carregada; o dado `autoria` de `novaProposicao` vence). Não se aplica ao abrir. |
+| `opcoesImpressaoPadrao` | `{ imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number }?` | — | Valores iniciais das opções de impressão de uma **nova proposição**; não se aplica ao abrir. |
 | `tamanhoMaximoAnexo` | `number?` | — | Tamanho máximo de um anexo, em KB. Sem valor (ou não positivo), o tamanho não é limitado. Veja a seção 5.1. |
 | `tiposAnexos` | `{ codigo: string; nome: string }[]?` | — | Tipos que o campo de tipo do anexo aceita; "Não informado" (`nao.informado`) é sempre acrescentado. O campo está oculto por enquanto. Veja a seção 5.1. |
 | `onUploadAnexo`, `onDeleteAnexo`, `onObterAnexoBlob`, `onVisualizarAnexo` | funções? | — | Callbacks com os quais o host armazena e entrega os arquivos anexados. Veja a seção 5.1. |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
 
-O vocabulário da casa é (re)montado quando `lexmlEtaConfig` é atribuída com outra casa, portanto atribua a configuração **antes** de `inicializarEdicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). A casa restringe as siglas de proposição nova e as listas de tipos; URNs de normas citadas ou alteradas resolvem em qualquer autoridade (inclusive da outra casa), mas o documento em edição precisa ser da casa do editor (seção 4.1).
+O vocabulário da casa é (re)montado quando `lexmlEtaConfig` é atribuída com outra casa, portanto atribua a configuração **antes** de `novaProposicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). A casa restringe as siglas de proposição nova e as listas de tipos; URNs de normas citadas ou alteradas resolvem em qualquer autoridade (inclusive da outra casa), mas o documento em edição precisa ser da casa do editor (seção 4.1).
 
-O valor de `anexoParecer` é lido a cada `inicializarEdicao`. Para trocar de modo, altere a config e chame `inicializarEdicao` de novo.
+O usuário, a paginação e os padrões ficam na configuração da sessão e **sobrevivem** à troca de documento. O modo de anexo de parecer, ao contrário, é do **documento** (seção 9).
 
 ### Serviços esperados
 
@@ -262,7 +251,7 @@ Todos são `CustomEvent` com `bubbles: true` e `composed: true`, emitidos no pr�
 | Evento | `detail` | Quando |
 |---|---|---|
 | `onrevisao` | `{ emRevisao: boolean }` | O usuário ativa ou desativa o modo de marcas de revisão. |
-| `fatalError` | `{ err: any }` | `inicializarEdicao` falhou. |
+| `fatalError` | `{ err: any }` | `novaProposicao` ou `abrirDocumentoArticulado` rejeitou a entrada ou falhou. |
 | `onchange` | `{ origemEvento: 'anexo' }` | O usuário importa, exclui, reordena ou altera o nome de um anexo. Alterar a lista ao abrir um arquivo não emite o evento. Outros formulários emitem `onchange` com outra `origemEvento`. |
 
 ## 7. Utilitários de arquivo
@@ -347,32 +336,28 @@ Fonte: `src/model/proposicao/proposicao.ts`.
 
 ## 9. Receitas
 
-### Salvar no backend do host e retomar depois
+### Salvar e retomar depois
 
 ```ts
-// Salvar
-const proposicao = editor.getProposicao();
-if (proposicao.pendenciasPreenchimento.length) {
-  alert(proposicao.pendenciasPreenchimento.join('\n'));
-}
-await fetch('/minhas-edicoes', { method: 'POST', body: JSON.stringify(proposicao) });
+// Salvar: o arquivo LexML é autocontido (texto, revisões, anexos, destino, autoria...).
+const documento = editor.getDocumentoArticulado();
+await fetch('/minhas-edicoes', { method: 'POST', body: JSON.stringify(documento) });
 
 // Retomar
-const salva: Proposicao = await (await fetch('/minhas-edicoes/1')).json();
-const p = new LexmlEtaParametrosEdicao();
-p.proposicao = salva;
-p.projetoNorma = salva.projetoNorma;
-await editor.inicializarEdicao(p);
+await editor.abrirDocumentoArticulado(await (await fetch('/minhas-edicoes/1')).text());
 ```
+
+`getProposicao()` serve para consultar o estado (por exemplo, `pendenciasPreenchimento`); o editor é reiniciado a partir do arquivo, não de uma `Proposicao`.
 
 ### Modo anexo de parecer
 
+O modo é do documento: defina-o na criação ou deixe que o arquivo aberto o traga (`lexedit:Metadado@anexoParecer`).
+
 ```ts
-editor.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), { anexoParecer: true });
-await editor.inicializarEdicao(params);
+await editor.novaProposicao({ urn, epigrafe, preambulo, anexoParecer: true });
 ```
 
-Nesse modo só as abas de justificação e de notas de rodapé ficam ocultas. O campo "Data" e a autoria continuam disponíveis, e `getDocumentoArticulado()` grava local, data e assinaturas como no modo normal.
+Nesse modo só as abas de justificação e de notas de rodapé ficam ocultas. O campo "Data" e a autoria continuam disponíveis, e `getDocumentoArticulado()` grava local, data e assinaturas como no modo normal. Arquivo sem o atributo abre no modo normal.
 
 ### Texto grande com paginação
 
@@ -386,9 +371,9 @@ A paginação é sempre aplicada, mesmo sem `configuracaoPaginacao`. Regras (`sr
 - Texto sem artigos ou emenda "onde couber" resulta em uma única página vazia, "Página única".
 
 ```ts
-params.configuracaoPaginacao = { maxItensPorPagina: 200 };
+config.configuracaoPaginacao = { maxItensPorPagina: 200 };
 // ou por faixas de artigos:
-params.configuracaoPaginacao = { rangeArtigos: [{ numInicial: 1, numFinal: 100 }, { numInicial: 101, numFinal: 250 }] };
+config.configuracaoPaginacao = { rangeArtigos: [{ numInicial: 1, numFinal: 100 }, { numInicial: 101, numFinal: 250 }] };
 ```
 
 ### Detecção de remissões
@@ -397,11 +382,11 @@ Remissões internas e externas são detectadas quando o usuário **sai** do disp
 
 ## 10. Armadilhas conhecidas
 
-- Chamar `getDocumentoArticulado()` antes de `inicializarEdicao()` lança erro.
-- Chamar `inicializarEdicao()` antes de o elemento estar no DOM e renderizado falha (os filhos internos ainda não existem). Aguarde `await editor.updateComplete` se acabou de criá-lo.
-- `autoriaPadrao` e `opcoesImpressaoPadrao` são ignorados quando `proposicao` é informada.
+- Chamar `getDocumentoArticulado()` sem documento iniciado (ou depois de `fecharDocumento()`) lança erro.
+- Chamar `novaProposicao()`/`abrirDocumentoArticulado()` antes de o elemento estar no DOM e renderizado falha (os filhos internos ainda não existem). Aguarde `await editor.updateComplete` se acabou de criá-lo.
+- `autoriaPadrao` e `opcoesImpressaoPadrao` só valem em `novaProposicao`; ao abrir um arquivo valem os valores gravados nele.
 - Um parlamentar vindo de um arquivo aberto e que não esteja mais na lista do host pode ser removido da autoria se o usuário entrar e sair do campo do nome.
-- O estado do store Redux é global ao pacote: reutilize a mesma instância ao trocar de documento, chamando `inicializarEdicao` novamente, em vez de criar outra.
+- O estado do store Redux é global ao pacote: reutilize a mesma instância ao trocar de documento, chamando `novaProposicao`/`abrirDocumentoArticulado` novamente, em vez de criar outra.
 
 ## 11. Referências
 

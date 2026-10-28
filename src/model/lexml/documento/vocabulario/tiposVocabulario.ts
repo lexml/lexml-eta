@@ -1,6 +1,10 @@
+export type CasaLegislativa = 'SF' | 'CD' | 'CN';
+
 export interface AutoridadeItem {
   urn: string;
   descricao: string;
+  // Casa responsável pelas proposições da autoridade; sem sigla (ex.: `federal`), o editor não as suporta por completo.
+  sigla?: CasaLegislativa;
 }
 
 export enum TipoRelacaoSubstitutivo {
@@ -31,8 +35,6 @@ export interface TipoDocumentoItem {
   ativo?: boolean;
   // Padrão `não aceita substitutivo`.
   tipoRelacaoSubstitutivo?: TipoRelacaoSubstitutivo;
-  // URNs de tipo com sigla (`projeto.lei;pls`) que podem ser a referência do substitutivo.
-  tiposReferenciaveis?: string[];
 }
 
 // `urnTipoDocumento` é o tipo da URN sem o `;sigla`.

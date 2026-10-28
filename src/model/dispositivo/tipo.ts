@@ -63,6 +63,10 @@ export const isOmissis = (dispositivo: Dispositivo): boolean => {
   return dispositivo.tipo === TipoDispositivo.omissis.tipo;
 };
 
+export const isPena = (dispositivo: Dispositivo): boolean => {
+  return dispositivo.tipo === TipoDispositivo.pena.tipo;
+};
+
 export const isLivro = (dispositivo: Dispositivo): boolean => {
   return dispositivo.tipo === TipoDispositivo.livro.tipo;
 };

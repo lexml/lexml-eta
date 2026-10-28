@@ -34,7 +34,6 @@ export const ALTERA_NORMA_TRAVA_EDITOR = {
   numero: '1',
   ano: '2026',
   ementa: '',
-  substitutivo: false,
   projetoNorma: {
     name: {
       namespaceURI: 'http://www.lexml.gov.br/1.0',

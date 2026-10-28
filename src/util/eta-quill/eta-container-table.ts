@@ -317,8 +317,23 @@ export class EtaContainerTable extends EtaContainer {
     this.blotRotulo?.atualizarAtributos(elemento);
     this.blotExistencia?.atualizarAtributos(elemento);
     this.blotConteudo?.atualizarAtributos(elemento);
+    this.criarBlotsDeFechamentoSeNecessario(elemento);
     this.blotFechaAspas?.atualizarAtributos(elemento);
     this.blotNotaAlteracao?.atualizarAtributos(elemento);
+  }
+
+  // Os blots só nascem com a linha: quem passa a ser o último da alteração depois de criado precisa recebê-los.
+  private criarBlotsDeFechamentoSeNecessario(elemento: Elemento): void {
+    const tdTexto = this.blotConteudo?.parent;
+    if (!elemento.fechaAspas || !tdTexto) {
+      return;
+    }
+    if (!this.blotFechaAspas) {
+      new EtaBlotFechaAspas(elemento).insertInto(tdTexto);
+    }
+    if (!this.blotNotaAlteracao) {
+      new EtaBlotNotaAlteracao(elemento).insertInto(tdTexto);
+    }
   }
 
   atualizarElemento(elemento: Elemento): void {

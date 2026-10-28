@@ -1,7 +1,7 @@
 import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tiposVocabulario';
 
 export const senado: VocabularioAutoridade = {
-  autoridade: { urn: 'senado.federal', descricao: 'Senado Federal' },
+  autoridade: { urn: 'senado.federal', descricao: 'Senado Federal', sigla: 'SF' },
   tiposDocumento: [
     { urnTipoDocumento: 'decreto.legislativo', descricao: 'Decreto Legislativo', genero: 'M' },
     { urnTipoDocumento: 'regimento.interno', descricao: 'Regimento Interno', genero: 'M' },
@@ -13,7 +13,6 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Lei',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
-      tiposReferenciaveis: ['projeto.lei;pl', 'projeto.lei;pls', 'projeto.lei;plc'],
     },
     {
       urnTipoDocumento: 'projeto.lei',
@@ -37,7 +36,6 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Lei Complementar',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
-      tiposReferenciaveis: ['projeto.lei.complementar;plp', 'projeto.lei.complementar;pls', 'projeto.lei.complementar;plc'],
     },
     {
       urnTipoDocumento: 'projeto.lei.complementar',
@@ -61,7 +59,6 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Resolução do Senado',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
-      tiposReferenciaveis: ['projeto.resolucao;prs'],
     },
     {
       urnTipoDocumento: 'projeto.decreto.legislativo',
@@ -77,7 +74,6 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Decreto Legislativo',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
-      tiposReferenciaveis: ['projeto.decreto.legislativo;pdl'],
     },
   ],
   preambulosPadrao: [

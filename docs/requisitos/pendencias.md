@@ -10,7 +10,7 @@
 
 ## Implementação lexml-eta e eta-backend-services
 
-- Implementar edição de pena
+- ~~Implementar edição de pena~~ (concluído, issue #1019)
 - Rever colar dispositivos após implementação do tratamento de título de dispositivo e pena.
 - Marcas de revisão na hierarquia de dispositivos
 - Rever marcas de revisão na hierarquia de dispositivos após implementação de título de dispositivo e pena.

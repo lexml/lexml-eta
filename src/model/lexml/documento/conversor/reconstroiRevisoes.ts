@@ -60,11 +60,14 @@ const comTexto = (elemento: Elemento, texto?: string): Elemento => {
   return copia;
 };
 
-// Título anterior: null no arquivo é "não havia título"; sem informação, o título atual vale.
+// Título anterior: null no arquivo é "não havia título"; sem informação, o título atual vale (idem o rótulo da pena).
 const comEstadoAnterior = (elemento: Elemento, lida: RevisaoArticulacaoLida): Elemento => {
   const copia = comTexto(elemento, lida.textoAnterior);
   if (lida.tituloAnterior !== undefined) {
     copia.tituloDispositivo = lida.tituloAnterior ?? undefined;
+  }
+  if (lida.rotuloAnterior !== undefined) {
+    copia.rotulo = lida.rotuloAnterior;
   }
   return copia;
 };

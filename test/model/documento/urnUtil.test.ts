@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { buildHtmlLink, formataNumero, getDataPorExtenso, getNomeExtensoComDataExtenso, getNumero, getTipo } from '../../../src/model/lexml/documento/urnUtil';
+import { buildHtmlLink, formataNumero, getDataPorExtenso, getNomeExtensoComDataExtenso, getNumero, getTipo, isSubstitutivo } from '../../../src/model/lexml/documento/urnUtil';
 
 describe('formataNumero', () => {
   it('formata número simples com separador de milhar', () => {
@@ -36,5 +36,39 @@ describe('Nome da norma com número composto', () => {
 
   it('mantém o separador de milhar em número simples', () => {
     expect(getNomeExtensoComDataExtenso('urn:lex:br:federal:lei:2021-04-01;14133')).to.contain('Lei nº 14.133');
+  });
+});
+
+describe('isSubstitutivo', () => {
+  it('tipo que é substitutivo vale mesmo sem evento', () => {
+    expect(isSubstitutivo('urn:lex:br:camara.deputados:substitutivo;sbt:2026;1')).to.equal(true);
+  });
+
+  it('tipo que aceita substitutivo com evento de substitutivo', () => {
+    expect(isSubstitutivo('urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo')).to.equal(true);
+    expect(isSubstitutivo('urn:lex:br:senado.federal:projeto.lei;pl:2026;12@aprovacao.substitutivo')).to.equal(true);
+    expect(isSubstitutivo('urn:lex:br:senado.federal:projeto.lei;pl:2026;12@aprovacao.substitutivo.decisao.terminativa')).to.equal(true);
+    expect(isSubstitutivo('urn:lex:br:camara.deputados:projeto.lei;pl:2026;12@apresentacao.substitutivo')).to.equal(true);
+  });
+
+  it('tipo que aceita substitutivo sem evento ou com evento que não é de substitutivo', () => {
+    expect(isSubstitutivo('urn:lex:br:senado.federal:projeto.lei;pl:2026;12')).to.equal(false);
+    expect(isSubstitutivo('urn:lex:br:senado.federal:projeto.lei;pl:2026;12@leitura')).to.equal(false);
+    expect(isSubstitutivo('urn:lex:br:senado.federal:projeto.lei;pl:2026;12@data.evento;leitura;2026-03-19t14.00')).to.equal(false);
+  });
+
+  it('tipo que não aceita substitutivo, ainda que com evento de substitutivo', () => {
+    expect(isSubstitutivo('urn:lex:br:federal:medida.provisoria;mpv:2026;1@apresentacao.substitutivo')).to.equal(false);
+    expect(isSubstitutivo('urn:lex:br:federal:lei:2021-04-01;14133')).to.equal(false);
+  });
+
+  it('subemenda substitutiva não é substitutivo', () => {
+    expect(isSubstitutivo('urn:lex:br:camara.deputados:subemenda.substitutiva;pep:2026;1')).to.equal(false);
+  });
+
+  it('tipo ou autoridade não resolvidos', () => {
+    expect(isSubstitutivo('urn:lex:br:senado.federal:inexistente;xx:2026;1@apresentacao.substitutivo')).to.equal(false);
+    expect(isSubstitutivo('urn:lex:br:outra.autoridade:projeto.lei;pl:2026;1@apresentacao.substitutivo')).to.equal(false);
+    expect(isSubstitutivo('')).to.equal(false);
   });
 });

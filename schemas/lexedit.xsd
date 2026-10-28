@@ -190,8 +190,8 @@
                 <xsd:element ref="lexml:Inciso" />
                 <xsd:element ref="lexml:Alinea" />
                 <xsd:element ref="lexml:Item" />
-                <xsd:element ref="lexml:DispositivoGenerico" />
                 <xsd:element ref="lexml:Pena" />
+                <xsd:element ref="lexml:DispositivoGenerico" />
                 <xsd:element ref="lexml:p" />
             </xsd:choice>
             <xsd:attribute type="xsd:string" name="refIdDispositivo" />

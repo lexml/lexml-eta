@@ -216,6 +216,10 @@ Com o modo de revisão ativo, adicionar e remover uma pena SHALL gerar as revis�
 - **WHEN** o modo de revisão está ativo e o usuário adiciona uma pena
 - **THEN** a pena recebe a marca de dispositivo adicionado, e rejeitá-la remove a pena
 
+#### Scenario: Pena excluída em revisão
+- **WHEN** o modo de revisão está ativo e o usuário exclui uma pena com o rótulo "Penalidade –"
+- **THEN** a linha excluída exibe "Penalidade –", e não a descrição do tipo, e rejeitar a exclusão devolve a pena com o mesmo rótulo
+
 ### Requirement: Pena não é destino de remissão interna
 O sistema SHALL NOT oferecer a pena como destino no diálogo de remissão interna nem a criar como destino por detecção automática. Remissões internas e externas no texto da pena SHALL funcionar como nos demais dispositivos.
 

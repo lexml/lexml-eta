@@ -16,6 +16,9 @@ export interface MetadadoLexEdit {
   // Local e data do fecho são atributos do próprio lexedit:Metadado (especificação 03); `data` é xsd:date.
   local?: string;
   data?: string;
+  // Ausente nos arquivos antigos: equivale a false (modo normal).
+  anexoParecer?: boolean;
+  urnDocumentoReferenciado?: string;
   // Atributos opcionais no arquivo: a ausência significa o padrão da aplicação (especificação 02).
   opcoesImpressao?: Partial<OpcoesImpressao> & { TYPE_NAME?: string };
   // Só autoria de parlamentares por enquanto (especificação 04).
@@ -69,6 +72,8 @@ export interface MetadadoLexEditProvisorio {
 
 /** Dados de formulário do editor gravados em `lexedit` — um campo por grupo de metadados. */
 export interface DadosLexEdit {
+  anexoParecer?: boolean;
+  urnDocumentoReferenciado?: string;
   local?: string;
   // 'AAAA-MM-DD'; ausente ou vazia significa data não informada.
   data?: string;
@@ -93,6 +98,8 @@ export interface RevisaoArticulacaoLida {
   textoAnterior?: string;
   // Título anterior: ausente = o arquivo não informa (`p` solto); null = o dispositivo não tinha título.
   tituloAnterior?: string | null;
+  // Rótulo anterior da pena: ausente = igual ao atual.
+  rotuloAnterior?: string;
   // Dispositivo excluído (nó jsonix `{ name, value }`), quando a revisão é de exclusão.
   excluido?: { name: { namespaceURI: string; localPart: string }; value: any };
 }
