@@ -87,7 +87,7 @@ Em Lit, a configuração pode ser passada por binding de propriedade: `<lexml-et
 
 | Propriedade | Tipo | Padrão | Descrição |
 |---|---|---|---|
-| `lexmlEtaConfig` | `LexmlEtaConfig` | `new LexmlEtaConfig()` | URLs de serviços e limites. Veja a seção 5. Renomeada de `lexmlEmendaConfig` — consumidores antigos precisam atualizar o binding, que falha em silêncio. |
+| `lexmlEtaConfig` | `LexmlEtaConfig` | `new LexmlEtaConfig()` | URLs de serviços e limites. Veja a seção 5. |
 | `parlamentares` | `Parlamentar[]` | `[]` | Lista usada na autoria. É **preenchida pelo próprio componente** ao iniciar um documento, a partir de `urlConsultaParlamentares`. |
 | `comissoes` | `Comissao[]` | `[]` | Lista de comissões da casa legislativa. Também preenchida pelo componente, a partir de `urlComissoes`. |
 | `exibirAjuda` | `boolean` | `true` | Exibe o conteúdo de ajuda. |
@@ -98,7 +98,7 @@ Em Lit, a configuração pode ser passada por binding de propriedade: `<lexml-et
 
 ### 4.1 Ciclo de vida do documento: `novaProposicao`, `abrirDocumentoArticulado` e `fecharDocumento`
 
-São as **únicas** formas de iniciar, trocar ou encerrar a edição (`inicializarEdicao` deixou de ser público). Defina `lexmlEtaConfig` antes. Enquanto nenhum documento estiver iniciado, e depois de `fecharDocumento()`, o componente fica em **estado neutro**: todas as abas desabilitadas e a mensagem "aguardando inicialização".
+São as **únicas** formas de iniciar, trocar ou encerrar a edição. Defina `lexmlEtaConfig` antes. Enquanto nenhum documento estiver iniciado, e depois de `fecharDocumento()`, o componente fica em **estado neutro**: todas as abas desabilitadas e a mensagem "aguardando inicialização".
 
 Todo método valida a entrada **antes de alterar o editor**: entrada inválida emite o evento `fatalError`, lança o erro e deixa o documento em edição como estava. Ao iniciar um documento, o estado do anterior (revisões, remissões, anexos, outros metadados, justificação, notas, o store Redux) é descartado por inteiro; a configuração da sessão é preservada. O componente **não** rastreia alterações pendentes: confirmar a perda de dados é responsabilidade do host.
 
@@ -197,7 +197,7 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 
 O vocabulário da casa é (re)montado quando `lexmlEtaConfig` é atribuída com outra casa, portanto atribua a configuração **antes** de `novaProposicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). A casa restringe as siglas de proposição nova e as listas de tipos; URNs de normas citadas ou alteradas resolvem em qualquer autoridade (inclusive da outra casa), mas o documento em edição precisa ser da casa do editor (seção 4.1).
 
-O usuário, a paginação e os padrões ficam na configuração da sessão e **sobrevivem** à troca de documento. O modo de anexo de parecer, ao contrário, é do **documento**: não existe mais `lexmlEtaConfig.anexoParecer` (**BREAKING**; um binding antigo falha em silêncio).
+O usuário, a paginação e os padrões ficam na configuração da sessão e **sobrevivem** à troca de documento. O modo de anexo de parecer, ao contrário, é do **documento** (seção 9).
 
 ### Serviços esperados
 
@@ -347,7 +347,7 @@ await fetch('/minhas-edicoes', { method: 'POST', body: JSON.stringify(documento)
 await editor.abrirDocumentoArticulado(await (await fetch('/minhas-edicoes/1')).text());
 ```
 
-`getProposicao()` continua disponível para consultar o estado (por exemplo, `pendenciasPreenchimento`), mas já não há como reiniciar o editor a partir de uma `Proposicao`.
+`getProposicao()` serve para consultar o estado (por exemplo, `pendenciasPreenchimento`); o editor é reiniciado a partir do arquivo, não de uma `Proposicao`.
 
 ### Modo anexo de parecer
 
@@ -357,7 +357,7 @@ O modo é do documento: defina-o na criação ou deixe que o arquivo aberto o tr
 await editor.novaProposicao({ urn, epigrafe, preambulo, anexoParecer: true });
 ```
 
-Nesse modo só as abas de justificação e de notas de rodapé ficam ocultas. O campo "Data" e a autoria continuam disponíveis, e `getDocumentoArticulado()` grava local, data e assinaturas como no modo normal. Arquivos antigos, sem o atributo, abrem no modo normal.
+Nesse modo só as abas de justificação e de notas de rodapé ficam ocultas. O campo "Data" e a autoria continuam disponíveis, e `getDocumentoArticulado()` grava local, data e assinaturas como no modo normal. Arquivo sem o atributo abre no modo normal.
 
 ### Texto grande com paginação
 
