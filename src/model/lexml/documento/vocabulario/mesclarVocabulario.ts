@@ -12,9 +12,6 @@ const completarTipo = (t: ComAutoridade<TipoDocumentoItem>): TipoDocumento => {
 
 const descreve = (t: TipoDocumento): string => `${t.urnAutoridade}:${t.urn}`;
 
-const aceitaComoReferencia = (t: TipoDocumento): boolean =>
-  t.tipoRelacaoSubstitutivo === TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO || t.tipoRelacaoSubstitutivo === TipoRelacaoSubstitutivo.E_SUBSTITUTIVO;
-
 // Falha na montagem: vocabulário inválido é erro de dados, não de uso.
 const validar = (tipos: TipoDocumento[], siglaAtivaUnica: boolean): void => {
   const chaves = new Set<string>();
@@ -35,18 +32,6 @@ const validar = (tipos: TipoDocumento[], siglaAtivaUnica: boolean): void => {
       }
       siglasAtivas.set(sigla, t);
     }
-  });
-
-  tipos.forEach(t => {
-    (t.tiposReferenciaveis ?? []).forEach(urn => {
-      const alvos = tipos.filter(a => a.urn === urn);
-      if (!alvos.length) {
-        throw new Error(`Vocabulário inválido: '${descreve(t)}' referencia o tipo inexistente '${urn}'.`);
-      }
-      if (!alvos.some(aceitaComoReferencia)) {
-        throw new Error(`Vocabulário inválido: '${descreve(t)}' referencia '${urn}', que não aceita substitutivo.`);
-      }
-    });
   });
 };
 
