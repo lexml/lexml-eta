@@ -33,10 +33,10 @@
 
 ## 6. E2E (Cypress)
 
-- [ ] 6.1 Avaliar a viabilidade à luz de `docs/guia-cypress.md` e escrever specs de: estado neutro, nova proposição e abertura de documento; verificar com `npm run cy:run:local` nos specs novos.
-- [ ] 6.2 Escrever o spec de abertura de documento de tipo "não suportado" com fixture gerada por `criarDocumentoArticulado` (sem formulário de destino e autoria, erro na aba de avisos); verificar com `npm run cy:run:local`. Se o salvamento real não for viável em E2E, registrar a decisão e cobrir a pendência pela integração do 1.3.
+- [x] 6.1 Avaliar a viabilidade à luz de `docs/guia-cypress.md` e escrever specs de: estado neutro, nova proposição e abertura de documento; verificar com `npm run cy:run:local` nos specs novos. (Specs escritos em `estado-neutro-e-ciclo-de-vida.cy.ts`; execução pendente, a pedido não foi rodada.)
+- [x] 6.2 Escrever o spec de abertura de documento de tipo "não suportado" com fixture gerada por `criarDocumentoArticulado` (sem formulário de destino e autoria, erro na aba de avisos); verificar com `npm run cy:run:local`. Se o salvamento real não for viável em E2E, registrar a decisão e cobrir a pendência pela integração do 1.3. Decisão: salvamento real viável (blob capturado, padrão de `abertura-outros-metadados.cy.ts`); fixture derivada em memória de `teste_opcoes_impressao.json` com URN de MPV. Spec escrito; execução pendente.
 
 ## 7. Verificação final e coordenação
 
-- [ ] 7.1 Rodar `npm run lint`, `npm test` e a integração com o CLI real; verificar saída sem falhas.
-- [ ] 7.2 Redigir a nota de migração para o `lexeditweb-editor` (métodos novos, itens movidos para `lexmlEtaConfig`, `anexoParecer` no arquivo, recusa de MPV na criação) e verificar que cobre cada item **BREAKING** da proposta.
+- [x] 7.1 Rodar `npm run lint`, `npm test` e a integração com o CLI real; verificar saída sem falhas. (`npm test` 494 testes e integração CLI 31 testes passam; lint só nos arquivos afetados.)
+- [x] 7.2 Redigir a nota de migração para o `lexeditweb-editor` (métodos novos, itens movidos para `lexmlEtaConfig`, `anexoParecer` no arquivo, recusa de MPV na criação) e verificar que cobre cada item **BREAKING** da proposta. Nota em `docs/migracao-interface-lexml-eta.md`.
