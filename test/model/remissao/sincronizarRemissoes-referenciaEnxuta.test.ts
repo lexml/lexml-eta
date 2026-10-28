@@ -583,4 +583,78 @@ describe('sincronizarRemissoesComEstadoAtual — D4: referência enxuta não gan
       expect(textoResultante(articulacao, registro, origem.uuid!)).to.equal('parágrafo único');
     });
   });
+
+  // ---------------------------------------------------------------------------------------------
+  // Issue #1032: destino que muda de tipo (TAB/SHIFT_TAB) recebe a cadeia completa, porque o texto
+  // enxuto deixa de descrever o alvo. A transformação preserva o uuid; aqui é simulada criando o
+  // dispositivo do novo tipo com o uuid do antigo.
+  // ---------------------------------------------------------------------------------------------
+  describe('Destino que muda de tipo (issue #1032)', () => {
+    const transforma = (antigo: Dispositivo, novo: Dispositivo): void => {
+      antigo.pai!.removeFilho(antigo);
+      novo.uuid = antigo.uuid;
+    };
+
+    const renumeraTudo = (articulacao: any, ...pais: Dispositivo[]): void => {
+      articulacao.renumeraFilhos();
+      pais.forEach(p => p.renumeraFilhos());
+      updateIdDispositivoAndFilhos(articulacao);
+    };
+
+    it('Origem no art. 3º, texto "art. 2º", art. 2º vira parágrafo único do art. 1º: "parágrafo único do art. 1º"', () => {
+      const articulacao = createArticulacao();
+      const art1 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      const art2 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      const art3 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      renumeraTudo(articulacao);
+      const registro = detectaRemissao(art3.caput!, art2, 'art. 2º');
+
+      transforma(art2, criaDispositivo(art1, 'Paragrafo'));
+      renumeraTudo(articulacao, art1);
+
+      expect(textoResultante(articulacao, registro, art3.caput!.uuid!)).to.equal('parágrafo único do art. 1º');
+    });
+
+    it('Origem no caput do art. 1º, mesmo TAB: "parágrafo único do art. 1º" (cadeia completa mesmo no mesmo artigo)', () => {
+      const articulacao = createArticulacao();
+      const art1 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      const art2 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      renumeraTudo(articulacao);
+      const registro = detectaRemissao(art1.caput!, art2, 'art. 2º');
+
+      transforma(art2, criaDispositivo(art1, 'Paragrafo'));
+      renumeraTudo(articulacao, art1);
+
+      expect(textoResultante(articulacao, registro, art1.caput!.uuid!)).to.equal('parágrafo único do art. 1º');
+    });
+
+    it('Origem no inciso III, texto "inciso II", inciso II vira alínea a) do inciso I: cadeia completa', () => {
+      const articulacao = createArticulacao();
+      const art1 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      const inc1 = criaDispositivo(art1.caput!, 'Inciso');
+      const inc2 = criaDispositivo(art1.caput!, 'Inciso');
+      const origem = criaDispositivo(art1.caput!, 'Inciso');
+      renumeraTudo(articulacao, art1.caput!);
+      const registro = detectaRemissao(origem, inc2, 'inciso II');
+
+      transforma(inc2, criaDispositivo(inc1, 'Alinea'));
+      renumeraTudo(articulacao, art1.caput!, inc1);
+
+      expect(textoResultante(articulacao, registro, origem.uuid!)).to.equal('alínea a) do inciso I do art. 1º');
+    });
+
+    it('Origem no art. 3º, texto "parágrafo único", parágrafo único do art. 1º volta a ser o art. 2º: "art. 2º"', () => {
+      const articulacao = createArticulacao();
+      const art1 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      const par = criaDispositivo(art1, 'Paragrafo');
+      const art3 = criaDispositivo(articulacao, 'Artigo') as Artigo;
+      renumeraTudo(articulacao, art1);
+      const registro = detectaRemissao(art3.caput!, par, 'parágrafo único');
+
+      transforma(par, criaDispositivo(articulacao, 'Artigo', art1));
+      renumeraTudo(articulacao, art1);
+
+      expect(textoResultante(articulacao, registro, art3.caput!.uuid!)).to.equal('art. 2º');
+    });
+  });
 });
