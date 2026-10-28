@@ -1,7 +1,7 @@
 import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tiposVocabulario';
 
 export const congresso: VocabularioAutoridade = {
-  autoridade: { urn: 'congresso.nacional', descricao: 'Congresso Nacional' },
+  autoridade: { urn: 'congresso.nacional', descricao: 'Congresso Nacional', sigla: 'CN' },
   tiposDocumento: [
     { urnTipoDocumento: 'decreto.legislativo', descricao: 'Decreto Legislativo', genero: 'M' },
     { urnTipoDocumento: 'resolucao', descricao: 'Resolução', genero: 'F' },

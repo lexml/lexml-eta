@@ -1,5 +1,5 @@
 import { expect, fixture, html } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
+import { LexmlEtaComponent, LexmlEtaConfig } from '../../../src';
 import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
 import { getTipoPorSigla } from '../../../src/model/lexml/documento/vocabulario/consultasVocabulario';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
@@ -67,7 +67,7 @@ describe('LexmlEtaComponent - documento de outra casa', () => {
     return component;
   };
 
-  const comUrn = (urn: string): LexmlEtaParametrosEdicao => Object.assign(new LexmlEtaParametrosEdicao(), { urn });
+  const dadosNova = (urn: string): any => ({ urn, epigrafe: 'PROJETO DE LEI', preambulo: '' });
 
   it('SF: recusa a URN da Câmara sem alterar o documento em edição', async () => {
     const component = await criar('SF');
@@ -78,7 +78,7 @@ describe('LexmlEtaComponent - documento de outra casa', () => {
     console.error = (): void => undefined;
     let mensagem = '';
     try {
-      await component.inicializarEdicao(comUrn('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1'));
+      await component.novaProposicao(dadosNova('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1'));
     } catch (e) {
       mensagem = (e as Error).message;
     } finally {
@@ -103,16 +103,18 @@ describe('LexmlEtaComponent - documento de outra casa', () => {
   });
 
   ['urn:lex:br:federal:medida.provisoria;mpv:2026;1', 'urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;1'].forEach(urn => {
-    it(`CD: inicia normalmente com ${urn}`, async () => {
+    it(`CD: abre normalmente o arquivo com ${urn}`, async () => {
       const component = await criar('CD');
-      await component.inicializarEdicao(comUrn(urn));
+      const entrada = novoDocumentoArticulado();
+      entrada.value.metadado.identificacao.urn = urn;
+      await component.abrirDocumentoArticulado(entrada);
       expect((component as any).urn).to.equal(urn);
     });
   });
 
-  it('CD: proposição nova pela sigla gera URN da Câmara', async () => {
+  it('CD: nova proposição com URN da Câmara', async () => {
     const component = await criar('CD');
-    await component.inicializarEdicao(Object.assign(new LexmlEtaParametrosEdicao(), { sigla: 'PL' }));
+    await component.novaProposicao(dadosNova('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1'));
     expect((component as any).urn).to.match(/^urn:lex:br:camara\.deputados:projeto\.lei;pl:/);
   });
 });

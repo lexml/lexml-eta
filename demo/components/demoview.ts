@@ -3,7 +3,7 @@ import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.j
 import { PL_5008_2023 } from '../doc/pl_5008_2023';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
-import { LexmlEtaConfig, LexmlEtaComponent, LexmlEtaParametrosEdicao, Usuario } from '../../src';
+import { LexmlEtaConfig, LexmlEtaComponent, Usuario } from '../../src';
 import type { Anexo, ObterAnexoBlobResult } from '../../src';
 import { RefProposicaoReduzida } from '../../src/model/proposicao/proposicao';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
@@ -116,7 +116,6 @@ export class DemoView extends LitElement {
     this.etaConfig = new LexmlEtaConfig();
     this.etaConfig.urlConsultaParlamentares = '/parlamentares';
     this.etaConfig.urlComissoes = '/comissoes';
-    this.etaConfig.anexoParecer = this.anexoParecer;
     this.configurarAnexos();
   }
 
@@ -187,10 +186,7 @@ export class DemoView extends LitElement {
   limparTela(): void {
     this.elLexmlEta.style.display = 'none';
     this.projetoNorma = {};
-
-    const params = new LexmlEtaParametrosEdicao();
-    params.projetoNorma = this.projetoNorma;
-    this.elLexmlEta.inicializarEdicao(params);
+    this.elLexmlEta.fecharDocumento();
 
     this.proposicaoCorrente.sigla = '';
     this.proposicaoCorrente.numero = '';
@@ -211,19 +207,19 @@ export class DemoView extends LitElement {
         this.projetoNorma = this.elDocumento.value.indexOf('sem_texto') >= 0 ? null : { ...mapProjetosNormas[this.elDocumento.value] };
 
         if (this.elLexmlEta) {
-          const params = new LexmlEtaParametrosEdicao();
-          params.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
+          this.etaConfig.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
 
-          if (this.projetoNorma && Object.keys(this.projetoNorma).length > 0) {
-            params.projetoNorma = this.projetoNorma;
-            //params.autoriaPadrao = { identificacao: '6335', siglaCasaLegislativa: 'SF' };
-            //params.opcoesImpressaoPadrao = { imprimirBrasao: true, textoCabecalho: 'Texto Teste Dennys', tamanhoFonte: 14 };
-            console.log('projetoNormaArquivo', params.projetoNorma);
-          } else {
-            params.sigla = 'PL';
-          }
-          // params.casaLegislativa = 'SF';
-          this.elLexmlEta.inicializarEdicao(params);
+          // O modo de anexo de parecer faz parte do documento: o checkbox só vale para a nova proposição.
+          const iniciar =
+            this.projetoNorma && Object.keys(this.projetoNorma).length > 0
+              ? this.elLexmlEta.abrirDocumentoArticulado(this.projetoNorma)
+              : this.elLexmlEta.novaProposicao({
+                  urn: 'urn:lex:br:senado.federal:projeto.lei;pl:9999;999999',
+                  epigrafe: 'PROJETO DE LEI Nº 999999, DE 9999',
+                  preambulo: 'O CONGRESSO NACIONAL decreta:',
+                  anexoParecer: this.anexoParecer,
+                });
+          iniciar.catch(erro => window.alert((erro as Error).message || 'Não foi possível iniciar o documento.'));
 
           this.atualizarProposicaoCorrente(this.projetoNorma);
           this.elLexmlEta.style.display = 'block';
@@ -427,7 +423,6 @@ export class DemoView extends LitElement {
               .checked=${this.anexoParecer}
               @change=${(event: Event): void => {
                 this.anexoParecer = (event.target as HTMLInputElement).checked;
-                this.etaConfig.anexoParecer = this.anexoParecer;
               }}
             />
             Anexo de parecer</label

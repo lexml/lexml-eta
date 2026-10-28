@@ -1,5 +1,5 @@
+import { ConfiguracaoPaginacao } from '../../../model/paginacao/paginacao';
 import { configurarPaginacao } from '../util/paginacaoUtil';
-import { LexmlEtaParametrosEdicao } from '../../../components/lexml-eta.component';
 import { Articulacao, Dispositivo } from '../../../model/dispositivo/dispositivo';
 import { isArtigo, isCaput, isParagrafo } from '../../../model/dispositivo/tipo';
 import { createElementoValidadoComExtras, getElementos } from '../../../model/elemento/elementoUtil';
@@ -11,7 +11,7 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { gerarRefId } from '../../../model/remissao/refId';
 import { MENSAGEM_REMISSAO_INVALIDA, RemissaoInternaValue } from '../../../model/remissao/remissao';
 
-export const load = (articulacao: Articulacao, modo?: string, params?: LexmlEtaParametrosEdicao, idsRemissoesInvalidas?: string[]): State => {
+export const load = (articulacao: Articulacao, modo?: string, configuracaoPaginacao?: ConfiguracaoPaginacao, idsRemissoesInvalidas?: string[]): State => {
   const elementos = getElementos(articulacao);
 
   const { remissoes, alertas, eventosValidacao } = detectarRemissoesInvalidasAoCarregar(articulacao, idsRemissoesInvalidas);
@@ -25,7 +25,7 @@ export const load = (articulacao: Articulacao, modo?: string, params?: LexmlEtaP
     ui: {
       events: [{ stateType: StateType.DocumentoCarregado, elementos }, ...eventosValidacao],
       alertas,
-      paginacao: configurarPaginacao(articulacao, params?.configuracaoPaginacao),
+      paginacao: configurarPaginacao(articulacao, configuracaoPaginacao),
     },
     remissoes: Object.keys(remissoes).length > 0 ? remissoes : undefined,
     revisoes: [],

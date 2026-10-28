@@ -77,7 +77,7 @@ describe('Paginação com pena', () => {
   });
 
   describe('pena adicionada no último artigo de uma página', () => {
-    const abre = (maxItensPorPagina: number): any => elementoReducer(undefined, openArticulacaoAction(monta(), undefined, { configuracaoPaginacao: { maxItensPorPagina } } as any));
+    const abre = (maxItensPorPagina: number): any => elementoReducer(undefined, openArticulacaoAction(monta(), undefined, { maxItensPorPagina }));
     const paginasDe = (state: any): PaginaArticulacao[] => (state.ui.paginacao as Paginacao).paginasArticulacao!;
     const ultimoArtigoDaPrimeiraPagina = (state: any): Artigo =>
       paginasDe(state)[0]

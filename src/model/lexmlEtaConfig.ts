@@ -1,5 +1,7 @@
 import type { Anexo } from './proposicao/proposicao';
 import type { TipoAnexo } from './proposicao/tipoAnexo';
+import type { ConfiguracaoPaginacao } from './paginacao/paginacao';
+import type { Usuario } from './revisao/usuario';
 
 export interface ObterAnexoBlobResult {
   blob: Blob;
@@ -19,7 +21,13 @@ export class LexmlEtaConfig {
   urlAutocomplete = 'api/autocomplete-norma';
   urlPortalNormas = 'https://normas.leg.br';
   urlComissoes?: string;
-  anexoParecer = false;
+  // Identificação do usuário para registro de marcas de revisão.
+  usuario?: Usuario;
+  // Paginação de dispositivos durante a edição.
+  configuracaoPaginacao?: ConfiguracaoPaginacao;
+  // Valores iniciais de uma nova proposição; não se aplicam ao abrir um documento.
+  autoriaPadrao?: { identificacao: string; siglaCasaLegislativa: 'SF' | 'CD' };
+  opcoesImpressaoPadrao?: { imprimirBrasao: boolean; textoCabecalho: string; tamanhoFonte: number };
   // Em KB; sem valor (ou não positivo), o tamanho do anexo não é limitado.
   tamanhoMaximoAnexo?: number;
   tiposAnexos?: TipoAnexo[];

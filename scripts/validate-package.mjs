@@ -11,6 +11,7 @@ const publicRuntimeValues = [
   'AlertasComponent',
   'AlterarLarguraImagemModalComponent',
   'AlterarLarguraTabelaColunaModalComponent',
+  'AnexosComponent',
   'ArticulacaoComponent',
   'AtalhosModalComponent',
   'AutoriaComponent',
@@ -27,6 +28,7 @@ const publicRuntimeValues = [
   'lerArquivoDocumentoArticulado',
   'lerDocumentoArticulado',
   'LexmlEtaProposicaoComponent',
+  'MimeType',
   'nomeArquivoDocumentoArticulado',
   'OpcoesImpressaoComponent',
   'Proposicao',
@@ -38,7 +40,7 @@ const publicRuntimeValues = [
   'SwitchRevisaoComponent',
   'Usuario',
 ];
-const publicTypes = ['DocumentoArticulado'];
+const publicTypes = ['Anexo', 'DeleteAnexoCallback', 'DocumentoArticulado', 'ObterAnexoBlobCallback', 'ObterAnexoBlobResult', 'TipoAnexo', 'UploadAnexoCallback', 'VisualizarAnexoCallback'];
 const registeredCustomElements = [
   'lexml-eta-ajuda',
   'lexml-eta-ajuda-modal',

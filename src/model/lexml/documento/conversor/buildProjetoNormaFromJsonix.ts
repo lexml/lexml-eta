@@ -236,6 +236,8 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const outrosMetadados = lerOutrosMetadados(lexedit?.outrosMetadados);
   const anexos = lerAnexos(lexedit?.anexos);
   return {
+    ...(lexedit?.anexoParecer === true && { anexoParecer: true }),
+    ...(textoNaoVazio(lexedit?.urnDocumentoReferenciado) && { urnDocumentoReferenciado: lexedit.urnDocumentoReferenciado.trim() }),
     ...lerFecho(lexedit),
     ...(opcoesImpressao && { opcoesImpressao }),
     ...(autoria && { autoria }),

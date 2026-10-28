@@ -5,6 +5,8 @@ import { buildListaDispositivos } from '../../../model/lexml/hierarquia/hierarqu
 import { State, StateType } from '../../state';
 
 export const validaArticulacao = (state: any): State => {
+  // A validação agendada pelo editor pode chegar depois de o documento ser fechado.
+  if (!state.articulacao) return state;
   const elementos: Elemento[] = [];
   buildListaDispositivos(state.articulacao, []).forEach(d => {
     const mensagens = validaDispositivo(d);

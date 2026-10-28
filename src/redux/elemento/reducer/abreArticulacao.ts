@@ -8,7 +8,7 @@ export const abreArticulacao = (state: any, action: any): State => {
   // de texto (href, data-ref-id) sejam refletidas nos Elementos criados por getElementos().
   const remissoesValidas = inicializaRemissoesAoAbrir(action.articulacao!, action.idsRemissoesInvalidas);
   const remissoesExternas = inicializaRemissoesExternasAoAbrir(action.articulacao!);
-  const newState = load(action.articulacao!, action.classificacao, action.params, action.idsRemissoesInvalidas);
+  const newState = load(action.articulacao!, action.classificacao, action.configuracaoPaginacao, action.idsRemissoesInvalidas);
 
   // Mescla entradas inválidas (detectadas por load) com entradas válidas (inicializaRemissoesAoAbrir).
   // Sem o merge, as inválidas seriam descartadas pela atribuição direta.

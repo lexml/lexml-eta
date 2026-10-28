@@ -2,8 +2,8 @@
 
 ## ADDED Requirements
 
-### Requirement: Abertura de documento de tipo outro
-Ao abrir um documento cuja URN tenha autoridade fora de `senado.federal`, `camara.deputados` e `congresso.nacional` (por exemplo, `federal`), o sistema SHALL abrir o documento como tipo "outro": SHALL NOT exibir a edição do colegiado de destino nem a da autoria, SHALL ignorar os valores de destino e autoria do arquivo, e SHALL gravar ambos vazios ao salvar. A aba de avisos SHALL exibir uma mensagem de erro informando que esse tipo de documento não é completamente suportado pelo editor. O erro SHALL NOT impedir a edição do texto nem o salvamento.
+### Requirement: Abertura de documento de tipo não suportado
+Ao abrir um documento cuja URN não seja de proposição suportada pelo editor (ver `vocabulario-urn`; por exemplo, uma medida provisória, de autoridade `federal`, ou uma norma), o sistema SHALL abrir o documento como tipo "não suportado": SHALL NOT exibir a edição do colegiado de destino nem a da autoria, SHALL ignorar os valores de destino e autoria do arquivo, e SHALL gravar ambos vazios ao salvar. A aba de avisos SHALL exibir uma mensagem de erro informando que esse tipo de documento não é completamente suportado pelo editor. O erro SHALL NOT impedir a edição do texto nem o salvamento.
 
 #### Scenario: Formulários ausentes
 - **WHEN** o usuário abre um documento de autoridade `federal`
@@ -13,9 +13,17 @@ Ao abrir um documento cuja URN tenha autoridade fora de `senado.federal`, `camar
 - **WHEN** o usuário abre um documento de autoridade `federal`
 - **THEN** a aba de avisos exibe um erro informando que o tipo de documento não é completamente suportado
 
-#### Scenario: Salvar documento de tipo outro
-- **WHEN** o usuário edita o texto de um documento de tipo outro e o salva
+#### Scenario: Salvar documento de tipo não suportado
+- **WHEN** o usuário edita o texto de um documento de tipo não suportado e o salva
 - **THEN** o salvamento ocorre, o arquivo não contém destino nem autoria preenchidos, e `lexedit:Pendencias` traz a pendência de documento não suportado
+
+#### Scenario: Norma de autoridade com casa
+- **WHEN** o editor do Senado abre um documento de URN `senado.federal:resolucao`
+- **THEN** o documento abre como tipo não suportado, sem os formulários de destino e de autoria
+
+#### Scenario: Proposição inativa
+- **WHEN** o editor do Senado abre um documento de URN `senado.federal:projeto.lei;pls`
+- **THEN** o documento abre como tipo suportado, com os formulários de destino e de autoria
 
 #### Scenario: Documento da casa oposta continua recusado
 - **WHEN** o editor do Senado abre um documento de autoridade `camara.deputados`
@@ -35,7 +43,7 @@ Ao abrir um documento, o sistema SHALL aplicar o modo de anexo de parecer e a UR
 ## MODIFIED Requirements
 
 ### Requirement: Destino aplicado ao abrir
-Ao abrir um documento de tipo suportado, o sistema SHALL preencher o formulário de destino com o `lexedit:ColegiadoApreciador` registrado. Atributo ausente ou inválido SHALL assumir o valor padrão do formulário, sem invalidar os demais, e sem o elemento o destino SHALL permanecer o padrão. A regra do local do fecho SHALL ser mantida: o local lido do arquivo só vale enquanto o destino não for alterado pelo usuário em relação ao destino aplicado ao abrir. Em documento de tipo outro, o destino lido SHALL ser ignorado.
+Ao abrir um documento de tipo suportado, o sistema SHALL preencher o formulário de destino com o `lexedit:ColegiadoApreciador` registrado. Atributo ausente ou inválido SHALL assumir o valor padrão do formulário, sem invalidar os demais, e sem o elemento o destino SHALL permanecer o padrão. A regra do local do fecho SHALL ser mantida: o local lido do arquivo só vale enquanto o destino não for alterado pelo usuário em relação ao destino aplicado ao abrir. Em documento de tipo não suportado, o destino lido SHALL ser ignorado.
 
 #### Scenario: Destino restaurado
 - **WHEN** o usuário abre um arquivo com `ColegiadoApreciador` de `tipoColegiado="Comissão"` e uma `siglaComissao`
@@ -54,6 +62,6 @@ Ao abrir um documento de tipo suportado, o sistema SHALL preencher o formulário
 - **WHEN** o arquivo traz `tipoColegiado` fora dos valores conhecidos
 - **THEN** o formulário assume o tipo padrão e os demais atributos válidos são aplicados
 
-#### Scenario: Destino ignorado em tipo outro
-- **WHEN** o usuário abre um arquivo de autoridade `federal` com `tipoColegiado="Comissão"`
+#### Scenario: Destino ignorado em tipo não suportado
+- **WHEN** o usuário abre um arquivo de tipo não suportado com `tipoColegiado="Comissão"`
 - **THEN** o destino lido é ignorado e nenhum formulário de destino é exibido

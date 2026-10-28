@@ -51,14 +51,18 @@ O sistema SHALL gravar `anexoParecer` (booleano) em `lexedit:Metadado` ao salvar
 - **THEN** o documento abre no modo normal e os demais metadados válidos são aplicados
 
 ### Requirement: Pendência de documento não suportado
-Ao salvar um documento de tipo "outro" (URN de autoridade fora de `senado.federal`, `camara.deputados` e `congresso.nacional`), o sistema SHALL incluir em `lexedit:Pendencias` a pendência "Este tipo de documento não é completamente suportado pelo editor.". A pendência SHALL ser recalculada pela URN a cada salvamento, e a pendência gravada em arquivo SHALL NOT ser lida ao abrir.
+Ao salvar um documento de tipo "não suportado" (URN que não é de proposição suportada pelo editor; ver `vocabulario-urn`), o sistema SHALL incluir em `lexedit:Pendencias` a pendência "Este tipo de documento não é completamente suportado pelo editor.". A pendência SHALL ser recalculada pela URN a cada salvamento, e a pendência gravada em arquivo SHALL NOT ser lida ao abrir.
 
-#### Scenario: Salvar documento de tipo outro
+#### Scenario: Salvar documento de tipo não suportado
 - **WHEN** o usuário salva um documento de autoridade `federal`
 - **THEN** `lexedit:Pendencias` contém a pendência de documento não suportado
 
+#### Scenario: Salvar norma de autoridade com casa
+- **WHEN** o usuário salva um documento de URN `senado.federal:resolucao`
+- **THEN** `lexedit:Pendencias` contém a pendência de documento não suportado
+
 #### Scenario: Salvar documento de tipo suportado
-- **WHEN** o usuário salva um documento de autoridade `senado.federal`
+- **WHEN** o usuário salva uma proposição de autoridade `senado.federal`
 - **THEN** `lexedit:Pendencias` não contém a pendência de documento não suportado
 
 #### Scenario: Pendência gravada não é lida

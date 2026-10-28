@@ -1,7 +1,7 @@
 import { TextoPreambuloPadrao, TipoRelacaoSubstitutivo, VocabularioAutoridade } from './tiposVocabulario';
 
 export const senado: VocabularioAutoridade = {
-  autoridade: { urn: 'senado.federal', descricao: 'Senado Federal' },
+  autoridade: { urn: 'senado.federal', descricao: 'Senado Federal', sigla: 'SF' },
   tiposDocumento: [
     { urnTipoDocumento: 'decreto.legislativo', descricao: 'Decreto Legislativo', genero: 'M' },
     { urnTipoDocumento: 'regimento.interno', descricao: 'Regimento Interno', genero: 'M' },

@@ -5,6 +5,9 @@ import { State, StateType } from '../../state';
 import { findRevisaoByElementoUuid } from '../util/revisaoUtil';
 
 export const selecionaElemento = (state: any, action: any): State => {
+  // Seleção tardia da linha de um documento já fechado (resetarDocumento): não há articulação para consultar.
+  if (!state.articulacao) return state;
+
   const atual = getDispositivoFromElemento(state.articulacao, action.atual, true);
   if (atual === undefined) {
     const revisao = findRevisaoByElementoUuid(state.revisoes, action.atual.uuid);
