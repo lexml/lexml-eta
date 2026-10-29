@@ -192,6 +192,54 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, { justificacao: lida })).to.deep.equal(salvo);
   });
 
+  it('as marcas de revisão de texto da justificação vão e voltam pelo CLI e validam no XSD', async () => {
+    const ID_INS = 'a1b2c3d4-0000-4000-8000-000000000001';
+    const ID_SUB = 'a1b2c3d4-0000-4000-8000-000000000002';
+    const ID_EXC = 'a1b2c3d4-0000-4000-8000-000000000003';
+    const marca = (tag: 'ins' | 'del', idRevisao: string, conteudo: string, idUsuario = 'sf:fulano'): string =>
+      `<${tag} usuario="Fulano de Tal" date="2026-05-11 15:51:00 " id-revisao="${idRevisao}" id-usuario="${idUsuario}" sigla-usuario="FT">${conteudo}</${tag}>`;
+    // Inclusão, substituição (del e ins com o mesmo id-revisao) e exclusão que atravessa negrito, com nota no trecho excluído.
+    const justificacao =
+      `<p>Texto ${marca('ins', ID_INS, 'incluído')} e ${marca('del', ID_SUB, 'antigo')}${marca('ins', ID_SUB, 'novo')}.</p>` +
+      `<p>${marca('del', ID_EXC, 'excluído ')}<strong>${marca('del', ID_EXC, `em negrito${nota('nr1', '<p>Da exclusão.</p>')}`)}</strong> fim.</p>`;
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { justificacao });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    // A validação com lexedit.xsd confere também a unicidade dos `id` (xsd:ID).
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    const ids = [`_rt${ID_INS}_1`, `_rt${ID_SUB}_1`, `_rt${ID_SUB}_2`, `_rt${ID_EXC}_1`, `_rt${ID_EXC}_2`];
+    expect(retorno.xml).to.include(`<ins id="${ids[0]}">incluído</ins>`);
+    expect(retorno.xml).to.include(`<del id="${ids[1]}">antigo</del><ins id="${ids[2]}">novo</ins>`);
+    expect(retorno.xml).to.include(`<b><del id="${ids[4]}">em negrito<NotaDeRodape>Da exclusão.</NotaDeRodape></del></b>`);
+    ids.forEach(id =>
+      expect(retorno.xml).to.match(new RegExp(`<lexedit:RevisaoTextual refIdRevisao="${id}" refIdUsuario="sf:fulano" data="2026-05-11T15:51:00[+-]\\d{2}:\\d{2}"/>`))
+    );
+    expect(retorno.xml).to.include('<lexedit:Usuario idUsuario="sf:fulano" nome="Fulano de Tal" sigla="FT"/>');
+    expect(retorno.xml).to.include('<lexedit:Pendencia>Resolver marcas de revisão de texto.</lexedit:Pendencia>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(retorno.jsonix.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
+
+    const dados = lerMetadadoLexEdit(retorno.jsonix);
+    const lida = lerJustificacao(retorno.jsonix, dados.revisoesTextuais);
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, { justificacao: lida })).to.deep.equal(salvo);
+  });
+
+  it('o XSD rejeita ids repetidos em ins/del da justificação', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const marca = (tag: string): string => `<${tag} usuario="Fulano" date="2026-05-11 15:51:00 " id-revisao="r1">x</${tag}>`;
+    const salvo: any = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { justificacao: `<p>${marca('del')}${marca('ins')}</p>` });
+    const [del, ins] = salvo.value.projetoNorma.justificacao[0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento[0].value.content;
+    ins.value.id = del.value.id;
+
+    const retorno = await executeServerCommand<{ valido: boolean; erro: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido).to.equal(false);
+    expect(retorno.erro).to.include('_rtr1_1');
+  });
+
   for (const imprimirPartidoUF of [true, false]) {
     it(`valida e reabre um documento com autoria de parlamentares (imprimirPartidoUF ${imprimirPartidoUF})`, async () => {
       const parlamentares: any[] = [
