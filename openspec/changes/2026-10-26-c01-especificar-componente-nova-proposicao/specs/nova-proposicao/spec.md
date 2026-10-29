@@ -7,23 +7,27 @@ Define o comportamento e o contrato do componente de nova proposição: a coleta
 ## ADDED Requirements
 
 ### Requirement: Configuração e resultado do componente
-O componente SHALL receber um objeto de configuração com a casa legislativa do editor (`SF` ou `CD`), a URL de verificação de proposição, a URL do texto estruturado e a URL de listagem das comissões, e SHALL devolver ao host, por evento, um objeto de resultado com as informações coletadas. O componente MUST NOT criar o documento nem abrir a edição por conta própria.
+O componente SHALL receber um objeto de configuração com a casa legislativa do editor (`casaLegislativaEditor`: `SF` ou `CD`), a URL de verificação de proposição, a URL do texto estruturado e a URL de listagem das comissões, e SHALL devolver ao host, por evento, um objeto de resultado com as informações coletadas. O componente MUST NOT criar o documento nem abrir a edição por conta própria.
 
 #### Scenario: Conclusão do fluxo
 - **WHEN** o usuário aciona **Continuar** na última tela aplicável
-- **THEN** o componente emite um evento cujo `detail` contém: `urn`, `urnDocumentoDeReferencia` (quando houver), `epigrafe`, `preambulo`, `colegiadoDestino`, `texto` (quando parte de documento existente) e `anexoParecer`
+- **THEN** o componente emite um evento cujo `detail` contém: `urn`, `urnDocumentoReferenciado` (quando houver), `epigrafe`, `preambulo`, `colegiadoDestino`, `texto` (quando parte de documento existente) e `anexoParecer`
 
 #### Scenario: Vocabulário inicializado pelo componente
 - **WHEN** o componente é criado ou recebe uma nova configuração
-- **THEN** ele inicializa o vocabulário para a casa legislativa da configuração, como o `lexml-eta`, sem depender de inicialização prévia pelo host
+- **THEN** ele inicializa o vocabulário para a casa legislativa da configuração, como o `lexml-eta`, sem depender de inicialização prévia pelo host, e usa em todo o fluxo apenas o vocabulário da casa (`getVocabularioDaCasa()`), que inclui a autoridade `federal` e não inclui os tipos específicos da outra casa
+
+#### Scenario: Coerência de casa com o lexml-eta
+- **WHEN** o componente e o `lexml-eta` coexistem na mesma página
+- **THEN** manter a mesma casa nos dois é responsabilidade do editor (host); o componente não valida essa coerência
 
 #### Scenario: Campos condicionais ausentes
 - **WHEN** o documento não é substitutivo, subemenda substitutiva nem PLV, e o texto inicial é vazio
-- **THEN** o `detail` não contém `urnDocumentoDeReferencia` nem `texto`
+- **THEN** o `detail` não contém `urnDocumentoReferenciado` nem `texto`
 
 #### Scenario: Cancelamento
 - **WHEN** o usuário aciona **Cancelar** em qualquer tela
-- **THEN** o componente emite um evento de cancelamento, sem resultado, e descarta os dados informados
+- **THEN** o componente emite o evento próprio `nova-proposicao-cancelada`, sem `detail`, e descarta os dados informados
 
 #### Scenario: Casa legislativa ausente
 - **WHEN** a configuração não informa a casa legislativa
@@ -42,26 +46,42 @@ O componente SHALL receber um objeto de configuração com a casa legislativa do
 - **THEN** a inicialização do componente falha com erro que identifica a URL ausente, e nenhuma tela é exibida
 
 ### Requirement: Conteúdo do resultado
-O `detail` do evento de conclusão SHALL conter: `urn` (URN do novo documento); `urnDocumentoDeReferencia` (URN do documento referenciado, em substitutivo, subemenda substitutiva e PLV; no substitutivo do `SF` é a URN do documento referenciado sem o sufixo de versão do substitutivo); `epigrafe`, montada pelo serviço do vocabulário a partir de `urn` e `urnDocumentoDeReferencia`; `preambulo`, obtido do vocabulário; `colegiadoDestino` (tipo e, em Comissão, a sigla da comissão), sempre presente; `texto`, o documento articulado, apenas quando o texto inicial vem de documento existente (importação, documento referenciado ou outra proposição); e `anexoParecer`, booleano.
+O `detail` do evento de conclusão SHALL conter: `urn` (URN do novo documento); `urnDocumentoReferenciado` (URN do documento referenciado, em substitutivo, subemenda substitutiva e PLV; no substitutivo do `SF` é a URN do documento referenciado sem o sufixo de versão do substitutivo); `epigrafe`, montada pelo serviço do vocabulário a partir de `urn` e `urnDocumentoReferenciado`; `preambulo`, obtido do vocabulário; `colegiadoDestino` (tipo e, em Comissão, a sigla da comissão), sempre presente; `texto`, o documento articulado, apenas quando o texto inicial vem de documento existente (importação, documento referenciado ou outra proposição); e `anexoParecer`, booleano.
 
 #### Scenario: Substitutivo da CD a partir do texto referenciado
 - **WHEN** o usuário conclui um substitutivo da `CD` com a opção do documento referenciado
-- **THEN** o `detail` contém `urn`, `urnDocumentoDeReferencia`, `epigrafe`, `preambulo`, `colegiadoDestino`, `texto` e `anexoParecer`
+- **THEN** o `detail` contém `urn`, `urnDocumentoReferenciado`, `epigrafe`, `preambulo`, `colegiadoDestino`, `texto` e `anexoParecer`
 
 #### Scenario: Texto importado
 - **WHEN** o usuário conclui com a opção de importação e o parser tem sucesso
 - **THEN** `texto` contém o documento articulado resultante do parser
 
 ### Requirement: Epígrafe e preâmbulo fornecidos pelo vocabulário
-O componente SHALL obter `epigrafe` e `preambulo` do vocabulário, sem montá-los por conta própria. A montagem da epígrafe a partir de `urn` e `urnDocumentoDeReferencia` é um serviço do vocabulário, especificado em outra issue, e o componente MUST depender apenas dessa interface.
+O componente SHALL obter `preambulo` do vocabulário e `epigrafe` do serviço de epígrafe do vocabulário (issue #1053), a partir de `urn`, `urnDocumentoReferenciado` e um sufixo opcional, e MUST depender apenas dessa interface. No `SF`, o componente SHALL informar o sufixo `- PLEN` quando o destino é Plenário e `- <sigla da comissão>` quando é Comissão; na `CD`, MUST NOT informar sufixo. Enquanto o serviço não estiver implementado, o componente SHALL gerar a epígrafe do caso padrão, sem sufixo, (`<TIPO DO DOCUMENTO POR EXTENSO EM MAIÚSCULAS> Nº   , DE <ANO>`, número em branco e ano corrente), sem alterar o contrato do evento.
 
 #### Scenario: Epígrafe de substitutivo
 - **WHEN** o fluxo é concluído para um substitutivo
 - **THEN** a `epigrafe` do `detail` é a devolvida pelo serviço do vocabulário para as duas URNs
 
+#### Scenario: Sufixo no SF com destino Plenário
+- **WHEN** a casa é `SF` e o destino é Plenário
+- **THEN** o componente chama o serviço de epígrafe com o sufixo `- PLEN`
+
+#### Scenario: Sufixo no SF com destino Comissão
+- **WHEN** a casa é `SF` e o destino é a comissão de sigla `CCJ`
+- **THEN** o componente chama o serviço de epígrafe com o sufixo `- CCJ`
+
+#### Scenario: Sem sufixo na CD
+- **WHEN** a casa é `CD`
+- **THEN** o componente chama o serviço de epígrafe sem sufixo
+
+#### Scenario: Serviço de epígrafe ainda não implementado
+- **WHEN** o fluxo é concluído e o serviço de epígrafe do vocabulário não está disponível
+- **THEN** a `epigrafe` do `detail` é a do caso padrão, com o tipo por extenso em maiúsculas, número em branco e o ano corrente
+
 #### Scenario: Preâmbulo sem modelo
 - **WHEN** o tipo do documento não tem preâmbulo padrão no vocabulário
-- **THEN** `preambulo` é vazio
+- **THEN** `getPreambuloPadrao` registra um log de erro de preâmbulo não encontrado para a URN e devolve `O CONGRESSO NACIONAL decreta:`, que vai em `preambulo`; essa regra MUST ser implementada em `getPreambuloPadrao`, não no componente
 
 ### Requirement: Espécie do documento
 A Tela 1 SHALL oferecer, em seleção única, a espécie do documento: Proposição (padrão), Substitutivo e Subemenda substitutiva. A Subemenda substitutiva SHALL ser oferecida apenas na `CD`. A espécie MUST definir quais grupos de campos são exibidos e os padrões de destino e de forma de apresentação.
@@ -87,12 +107,12 @@ Na `CD`, quando a espécie é Substitutivo ou Subemenda substitutiva, a Tela 1 S
 
 ### Requirement: Identificação da proposição
 A Tela 1 SHALL exibir o grupo de identificação da proposição com sigla, número e ano, cujo uso depende da espécie:
-- **Proposição:** a lista de siglas SHALL conter os tipos das autoridades da casa (`senado.federal` no `SF`; `camara.deputados` na `CD`) e de `congresso.nacional` que não são substitutivos nem subemendas substitutivas, com os inativos ao final, em cinza. A MPV (autoridade `federal`) MUST NOT constar. O número SHALL ser `s/n` (não editável), o ano editável com padrão no ano corrente, e **Verificar** e ementa MUST NOT ser exibidos.
-- **Substitutivo ou Subemenda substitutiva:** o grupo identifica a proposição que recebe o documento. A lista de siglas SHALL conter todos os tipos, ativos e inativos, com `tipoRelacaoSubstitutivo` igual a `aceita substitutivo`, nas duas casas. Número e ano SHALL ser editáveis (ano com padrão no ano corrente), e **Verificar** e a ementa SHALL ser exibidos.
+- **Proposição:** a lista de siglas SHALL conter os tipos das autoridades da casa (`senado.federal` no `SF`; `camara.deputados` na `CD`) e de `congresso.nacional` que não são substitutivos nem subemendas substitutivas, com os ativos antes dos inativos e cada grupo em ordem alfabética da sigla; os inativos aparecem em cinza. A MPV (autoridade `federal`) MUST NOT constar. O número SHALL ser `s/n` (não editável), o ano editável com padrão no ano corrente, e **Verificar** e ementa MUST NOT ser exibidos.
+- **Substitutivo ou Subemenda substitutiva:** o grupo identifica a proposição que recebe o documento. A lista de siglas SHALL conter todos os tipos, ativos e inativos, do vocabulário da casa com `tipoRelacaoSubstitutivo` igual a `aceita substitutivo`, com a mesma ordenação (ativos antes dos inativos, cada grupo em ordem alfabética) e o mesmo destaque (inativos em cinza). A URN da proposição referenciada SHALL usar a autoridade do tipo escolhido. Número e ano SHALL ser editáveis (ano com padrão no ano corrente), e **Verificar** e a ementa SHALL ser exibidos.
 
 #### Scenario: Nova proposição no SF
 - **WHEN** a casa é `SF` e a espécie é Proposição
-- **THEN** a lista contém tipos de `senado.federal` e de `congresso.nacional` que não são substitutivos, ativos antes dos inativos, e nenhum de `camara.deputados` nem a MPV
+- **THEN** a lista contém tipos de `senado.federal` e de `congresso.nacional` que não são substitutivos, ativos antes dos inativos (cada grupo em ordem alfabética), e nenhum de `camara.deputados` nem a MPV
 
 #### Scenario: Nova proposição, número e verificação
 - **WHEN** a espécie é Proposição
@@ -100,7 +120,7 @@ A Tela 1 SHALL exibir o grupo de identificação da proposição com sigla, núm
 
 #### Scenario: Subemenda substitutiva referencia a proposição original
 - **WHEN** a espécie é Subemenda substitutiva (`CD`)
-- **THEN** o grupo de identificação da proposição identifica a proposição original, e é ela que vai em `urnDocumentoDeReferencia`; a referência ao substitutivo é implícita e não é coletada
+- **THEN** o grupo de identificação da proposição identifica a proposição original, e é ela que vai em `urnDocumentoReferenciado`; a referência ao substitutivo é implícita e não é coletada
 
 #### Scenario: Substitutivo, siglas referenciáveis
 - **WHEN** a espécie é Substitutivo ou Subemenda substitutiva
@@ -118,7 +138,7 @@ Quando a espécie é Proposição e a sigla escolhida é de um tipo inativo, a T
 - **THEN** o alerta não é exibido
 
 ### Requirement: Medida provisória do PLV
-Quando a espécie é Proposição e a sigla é PLV, a Tela 1 SHALL exibir o grupo de identificação da medida provisória, com sigla MPV fixa, número e ano editáveis (ano com padrão no ano corrente), **Verificar** e a ementa. O grupo MUST NOT ser exibido para as demais siglas e espécies, e seus dados SHALL ir em `urnDocumentoDeReferencia`.
+Quando a espécie é Proposição e a sigla é PLV, a Tela 1 SHALL exibir o grupo de identificação da medida provisória, com sigla MPV fixa, número e ano editáveis (ano com padrão no ano corrente), **Verificar** e a ementa. O grupo MUST NOT ser exibido para as demais siglas e espécies, e seus dados SHALL ir em `urnDocumentoReferenciado`.
 
 #### Scenario: PLV
 - **WHEN** o usuário escolhe a sigla PLV
@@ -152,7 +172,7 @@ O botão **Verificar** (grupos da proposição referenciada e da medida provisó
 - **THEN** o usuário é informado do erro, o documento não fica verificado, **Continuar** permanece desabilitado e **Verificar** continua habilitado para nova tentativa
 
 ### Requirement: Destino do documento
-A Tela 1 SHALL exibir sempre o colegiado de destino, com as opções Plenário e Comissão (sem "Plenário via comissão"). O padrão SHALL ser Comissão em Substitutivo e Subemenda substitutiva e Plenário nos demais casos. Em Comissão, a comissão SHALL ser informada, escolhida de uma lista obtida da URL de comissões da configuração, cujo placeholder de casa é preenchido pela autoridade da URN do novo documento: `SF` para `senado.federal`, `CD` para `camara.deputados` e `CN` para `congresso.nacional`. A resposta da URL SHALL ter o mesmo formato da usada pelo componente de destino atual: lista JSON de objetos com `siglaCasaLegislativa`, `sigla` e `nome`, da qual só são usados os itens cuja `siglaCasaLegislativa` é igual à casa pedida. O resultado SHALL informar o tipo do colegiado e, em Comissão, a sigla da comissão. A sigla da comissão alimenta a epígrafe do substitutivo do `SF`.
+A Tela 1 SHALL exibir sempre o colegiado de destino, com as opções Plenário e Comissão (sem "Plenário via comissão"). O padrão SHALL ser Comissão em Substitutivo e Subemenda substitutiva e Plenário nos demais casos. Em Comissão, a comissão SHALL ser informada, escolhida de uma lista obtida da URL de comissões da configuração, cujo placeholder de casa é preenchido pela autoridade da URN do novo documento: `SF` para `senado.federal`, `CD` para `camara.deputados` e `CN` para `congresso.nacional`. A resposta da URL SHALL ter o mesmo formato da usada pelo componente de destino atual: lista JSON de objetos com `siglaCasaLegislativa`, `sigla` e `nome`, da qual só são usados os itens cuja `siglaCasaLegislativa` é igual à casa pedida. O resultado SHALL informar o tipo do colegiado e, em Comissão, a sigla da comissão. No `SF`, o destino alimenta o sufixo opcional do serviço de epígrafe.
 
 #### Scenario: Padrão em substitutivo
 - **WHEN** a espécie é Substitutivo ou Subemenda substitutiva
@@ -243,7 +263,11 @@ Quando o texto da proposição escolhida (opção do documento referenciado ou d
 - **THEN** **Continuar** é habilitado
 
 ### Requirement: Importação de arquivo
-A opção de importação SHALL aceitar arquivos DOCX, TXT ou LexML de até 5 MB. Arquivo acima do limite ou de outro formato MUST ser recusado com mensagem ao usuário, sem executar o parser. Falha do parser SHALL levar à Tela 3.
+A opção de importação SHALL aceitar arquivos DOCX, TXT ou LexML de até 5 MB; o LexML SHALL poder estar em XML ou em JSON (formato JSONIX, o mesmo usado pelo componente ao abrir um documento). Arquivo acima do limite ou de outro formato MUST ser recusado com mensagem ao usuário, sem executar o parser. Falha do parser SHALL levar à Tela 3.
+
+#### Scenario: LexML em XML ou JSON
+- **WHEN** o usuário seleciona um arquivo LexML em XML ou em JSON (JSONIX)
+- **THEN** o arquivo é aceito e entregue ao parser, e em caso de sucesso `texto` contém o documento articulado resultante
 
 #### Scenario: Arquivo acima do limite
 - **WHEN** o usuário seleciona um arquivo maior que 5 MB
@@ -268,15 +292,15 @@ O cabeçalho das Telas 2 e 3 SHALL identificar o documento por: nome do tipo, qu
 - **THEN** o cabeçalho exibe "Substitutivo ao Projeto de Lei nº 12 de 2026"
 
 ### Requirement: URN do novo documento
-A URN do novo documento SHALL ser composta por autoridade, tipo, ano, número e versão. Substitutivo do `SF` SHALL usar a URN da proposição identificada acrescida de `@apresentacao.substitutivo`. Na `CD`, substitutivo e subemenda substitutiva SHALL usar o tipo e o ano do grupo de identificação do substitutivo e o número `999999`, sem versão. Os demais documentos, inclusive PLV, SHALL usar a sigla e o ano da proposição, o número `999999` e nenhuma versão. Em substitutivo e subemenda substitutiva (`SF` e `CD`) e no PLV, o documento referenciado SHALL ir em `urnDocumentoDeReferencia` (na subemenda substitutiva, a proposição original, não o substitutivo); no substitutivo do `SF` ela é a URN do documento referenciado sem o sufixo de versão. A URN de substitutivo, nas duas casas, SHALL ser reconhecida por `isSubstitutivo`, e a de subemenda substitutiva MUST NOT.
+A URN do novo documento SHALL ser composta por autoridade, tipo, ano, número e versão. Substitutivo do `SF` SHALL usar a URN da proposição identificada acrescida de `@apresentacao.substitutivo`. Na `CD`, substitutivo e subemenda substitutiva SHALL usar o tipo e o ano do grupo de identificação do substitutivo e o número `999999`, sem versão. Os demais documentos, inclusive PLV, SHALL usar a sigla e o ano da proposição, o número `999999` e nenhuma versão. Em substitutivo e subemenda substitutiva (`SF` e `CD`) e no PLV, o documento referenciado SHALL ir em `urnDocumentoReferenciado` (na subemenda substitutiva, a proposição original, não o substitutivo); no substitutivo do `SF` ela é a URN do documento referenciado sem o sufixo de versão. A URN de substitutivo, nas duas casas, SHALL ser reconhecida por `isSubstitutivo`, e a de subemenda substitutiva MUST NOT.
 
 #### Scenario: Substitutivo do SF
 - **WHEN** o substitutivo referencia `urn:lex:br:senado.federal:projeto.lei;pl:2026;12`
-- **THEN** a URN do novo documento é `urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo`, `urnDocumentoDeReferencia` é `urn:lex:br:senado.federal:projeto.lei;pl:2026;12` e `isSubstitutivo(urn)` é verdadeiro
+- **THEN** a URN do novo documento é `urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo`, `urnDocumentoReferenciado` é `urn:lex:br:senado.federal:projeto.lei;pl:2026;12` e `isSubstitutivo(urn)` é verdadeiro
 
 #### Scenario: Substitutivo da CD
 - **WHEN** é criado, em 2026, um substitutivo da `CD` de sigla SBT referenciando `urn:lex:br:camara.deputados:projeto.lei;pl:2026;12`
-- **THEN** a URN é `urn:lex:br:camara.deputados:substitutivo;sbt:2026;999999`, `urnDocumentoDeReferencia` é a do PL e `isSubstitutivo(urn)` é verdadeiro
+- **THEN** a URN é `urn:lex:br:camara.deputados:substitutivo;sbt:2026;999999`, `urnDocumentoReferenciado` é a do PL e `isSubstitutivo(urn)` é verdadeiro
 
 #### Scenario: Subemenda substitutiva da CD
 - **WHEN** é criada uma subemenda substitutiva da `CD`
@@ -288,4 +312,4 @@ A URN do novo documento SHALL ser composta por autoridade, tipo, ano, número e 
 
 #### Scenario: PLV
 - **WHEN** é criado um PLV referenciando a MPV nº 4321 de 2026
-- **THEN** a URN é `urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;999999` e `urnDocumentoDeReferencia` é `urn:lex:br:federal:medida.provisoria;mpv:2026;4321`
+- **THEN** a URN é `urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;999999` e `urnDocumentoReferenciado` é `urn:lex:br:federal:medida.provisoria;mpv:2026;4321`

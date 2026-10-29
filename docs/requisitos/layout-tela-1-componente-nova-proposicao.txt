@@ -27,7 +27,7 @@ ___V<g3.sigla> nº ____<g3.numero>, de _____<g3.ano> [Verificar]<g3.verificar>
 Ementa: Nono nono nono noono nono nono nono.<g3.ementa>
 
 Obs:
-- <g3> grupo para identificar: sigla e ano da nova proposição quando for o caso de nova proposição ("Proposição" selecionado em <g1>); ou sigla número e ano da proposição que está recebendo um substitutivo ou subemenda substitutiva. Para o Senado: no caso de proposição, utilizado para montar a urn; no caso de substitutivo monta a urn e a urnDocumentoDeReferencia sendo que a urn recebe a versão @apresentacao.substitutivo; Para a Câmara: no caso de proposição, utilizado para montar a urn; no caso de substitutivo ou subemenda, utilizado para montar a urnDocumentoDeReferencia. 
+- <g3> grupo para identificar: sigla e ano da nova proposição quando for o caso de nova proposição ("Proposição" selecionado em <g1>); ou sigla número e ano da proposição que está recebendo um substitutivo ou subemenda substitutiva. Para o Senado: no caso de proposição, utilizado para montar a urn; no caso de substitutivo monta a urn e a urnDocumentoReferenciado sendo que a urn recebe a versão @apresentacao.substitutivo; Para a Câmara: no caso de proposição, utilizado para montar a urn; no caso de substitutivo ou subemenda, utilizado para montar a urnDocumentoReferenciado. 
 - <g3.sigla> no caso de nova proposição, listar todas as siglas da (CD ou SF)+CN que não são substitutivos e não são subemendas substitutivas, com as siglas inativas no final em cinza; no caso de substitutivo ou subemenda substitutiva, listar todas as siglas que aceitam substitutivo.
 - <g3.numero> edição do número da proposição no caso de substitutivo ou subemenda substitutiva; no caso de nova proposição apresentar 's/n' (sem número)
 - <g3.ano> edição do ano, default ano atual
@@ -42,7 +42,7 @@ MPV nº ____<g4.numero>, de ____<g4.ano> [Verificar]<g4.verificar>
 Ementa: Nono nonono nono nono non ono.<g4.ementa>
 
 Obs:
-- <g4> grupo para identificar a medida provisória no caso de PLV, preenchendo a urnDocumentoDeReferencia. Só aparece quando <g3.sigla>=PLV.
+- <g4> grupo para identificar a medida provisória no caso de PLV, preenchendo a urnDocumentoReferenciado. Só aparece quando <g3.sigla>=PLV.
 - <g4.numero> edição do número da medida provisória.
 - <g4.ano> edição do ano da medida provisória, default ano atual
 - <g4.verificar> botão para verificar a existência da medida provisória e trazer a ementa caso exista. Caso não exista, informar medida provisória inexistente e bloquear continuidade do processo. 
