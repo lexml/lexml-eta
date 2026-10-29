@@ -369,6 +369,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           class="revisao-container"
           .nomeSwitch="${this._idSwitchRevisao}"
           .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
+          .contaRevisoesArticulacao=${true}
           modo="${this.modo}"
           >
           </lexml-eta-switch-revisao>
