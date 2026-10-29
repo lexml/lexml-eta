@@ -1,9 +1,9 @@
 import { generoFromLetra } from '../../dispositivo/genero';
 import { Autoridade } from '../../documento/autoridade';
-import { Genero, generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
+import { Genero } from './../../dispositivo/genero';
 import { getVocabularioCompleto, getVocabularioDaCasa } from './vocabulario';
 import { getTipoPorSigla, proposicoes } from './vocabulario/consultasVocabulario';
-import { CasaLegislativa } from './vocabulario/tiposVocabulario';
+import { CasaLegislativa, TipoRelacaoSubstitutivo } from './vocabulario/tiposVocabulario';
 
 export const getAutoridade = (urn: string): Autoridade | undefined => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
@@ -54,6 +54,17 @@ export const getTipo = (urn: string): any => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
   const tipos = getVocabularioCompleto().tiposDocumento.filter(t => t.urnAutoridade === partes[0]);
   return tipos.find(t => t.urn === partes[1]) ?? tipos.find(t => t.ativo && t.sigla && t.urnTipoDocumento === partes[1]);
+};
+
+// Evento é o trecho após o `@`, até o primeiro `;` (ex.: `apresentacao.substitutivo`).
+const getEvento = (urn: string): string | undefined => /@([^;@]+)/.exec(urn)?.[1];
+
+export const isSubstitutivo = (urn: string): boolean => {
+  const relacao = getTipo(urn ?? '')?.tipoRelacaoSubstitutivo;
+  if (relacao === TipoRelacaoSubstitutivo.E_SUBSTITUTIVO) return true;
+  if (relacao !== TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO) return false;
+  const evento = getEvento(urn);
+  return !!evento && getVocabularioCompleto().eventos.some(e => e.urn === evento && e.substitutivo === 's');
 };
 
 export const getNumero = (urn: string): string => {
@@ -211,33 +222,6 @@ export const buildHtmlLink = (urn: string): string => {
 
 const getDataExtenso = (data: Date) => {
   return data ? data.getDate() + ' de ' + data.toLocaleDateString('pt-BR', { month: 'long' }) + ' de ' + data.getFullYear() : undefined;
-};
-
-export const getRefGenericaProjeto = (urn: string): NomeComGenero => {
-  const tipo = getTipo(urn);
-  let genero = generoFromLetra(tipo.genero);
-  // TODO - Implementar UrnService.isSubstitutivo
-  const substitutivo = false;
-
-  let nome = 'Projeto';
-  if (genero === generoFeminino) {
-    if (tipo.urn.startsWith('medida.provisoria')) {
-      nome = 'Medida Provisória';
-    } else {
-      nome = 'Proposta';
-    }
-  }
-
-  if (substitutivo) {
-    if (genero === generoFeminino) {
-      nome = 'Substitutivo à ' + nome;
-    } else {
-      nome = 'Substitutivo ao ' + nome;
-    }
-    genero = generoMasculino;
-  }
-
-  return new NomeComGenero(nome, genero);
 };
 
 export const getGeneroUrnNorma = (urn: string): Genero => {

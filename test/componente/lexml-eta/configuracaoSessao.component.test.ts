@@ -6,7 +6,7 @@ const parlamentar = (identificacao: string, nome: string): Parlamentar => Object
 
 describe('LexmlEtaConfig — padrões da sessão', () => {
   let component: LexmlEtaComponent;
-  const params = (): any => ({ substitutivo: false });
+  const params = (): any => ({});
 
   beforeEach(async () => {
     component = await fixture<LexmlEtaComponent>(html`<lexml-eta></lexml-eta>`);

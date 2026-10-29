@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { buildFakeUrn, getAutoridade, getSigla, getTipo, getTipoDocumentoUrn } from '../../../src/model/lexml/documento/urnUtil';
-import { getTipoPorSigla, getTiposDocumentoAtivos, getTiposDocumentoInativos, getTiposReferenciaveis } from '../../../src/model/lexml/documento/vocabulario/consultasVocabulario';
+import { getTipoPorSigla, getTiposDocumentoAtivos, getTiposDocumentoInativos } from '../../../src/model/lexml/documento/vocabulario/consultasVocabulario';
 import { getVocabularioDaCasa, inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
 describe('vocabulário estático e consultas', () => {
@@ -91,34 +91,6 @@ describe('vocabulário estático e consultas', () => {
       expect(getTiposDocumentoAtivos().some(t => t.urnAutoridade === 'camara.deputados')).to.equal(false);
       expect(getTiposDocumentoInativos().some(t => t.urnAutoridade === 'camara.deputados')).to.equal(false);
     });
-
-    it('PL referencia PL (ativo) e PLS e PLC (inativos)', () => {
-      const referencias = getTiposReferenciaveis(getTipoPorSigla('PL'));
-      expect(referencias.map(t => t.urn)).to.deep.equal(['projeto.lei;pl', 'projeto.lei;pls', 'projeto.lei;plc']);
-      expect(referencias.map(t => t.ativo)).to.deep.equal([true, false, false]);
-    });
-
-    it('PLP referencia PLP (ativo) e PLS e PLC (inativos)', () => {
-      expect(getTiposReferenciaveis(getTipoPorSigla('PLP')).map(t => t.urn)).to.deep.equal([
-        'projeto.lei.complementar;plp',
-        'projeto.lei.complementar;pls',
-        'projeto.lei.complementar;plc',
-      ]);
-    });
-
-    it('PDL referencia só PDL', () => {
-      expect(getTiposReferenciaveis(getTipoPorSigla('PDL')).map(t => t.urn)).to.deep.equal(['projeto.decreto.legislativo;pdl']);
-    });
-
-    it('PRS referencia só PRS', () => {
-      expect(getTiposReferenciaveis(getTipoPorSigla('PRS')).map(t => t.urn)).to.deep.equal(['projeto.resolucao;prs']);
-    });
-
-    it('tipo que não aceita substitutivo, inativo ou indefinido devolve vazio', () => {
-      expect(getTiposReferenciaveis(getTipoPorSigla('MPV'))).to.deep.equal([]);
-      expect(getTiposReferenciaveis(getTipo('urn:lex:br:senado.federal:projeto.lei;pls:2026;1'))).to.deep.equal([]);
-      expect(getTiposReferenciaveis(undefined)).to.deep.equal([]);
-    });
   });
 
   describe('CD', () => {
@@ -140,18 +112,6 @@ describe('vocabulário estático e consultas', () => {
     it('listagens não trazem tipos do Senado', () => {
       expect(getTiposDocumentoAtivos().some(t => t.urnAutoridade === 'senado.federal')).to.equal(false);
       expect(getTiposDocumentoInativos().some(t => t.urnAutoridade === 'senado.federal')).to.equal(false);
-    });
-
-    it('substitutivo referencia os tipos que aceitam substitutivo', () => {
-      const referencias = getTiposReferenciaveis(getTipoPorSigla('SBT'));
-      expect(referencias.length).to.be.greaterThan(0);
-      expect(referencias.every(t => t.tipoRelacaoSubstitutivo === 'aceita substitutivo')).to.equal(true);
-      expect(referencias.map(t => t.sigla)).to.include('PL');
-      expect(referencias.some(t => t.urnAutoridade === 'senado.federal')).to.equal(false);
-    });
-
-    it('subemenda substitutiva referencia os tipos que são substitutivos', () => {
-      expect(getTiposReferenciaveis(getTipoPorSigla('PEP')).map(t => t.sigla)).to.deep.equal(['SBT']);
     });
   });
 });

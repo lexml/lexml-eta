@@ -1,0 +1,69 @@
+------
+Nova proposição
+------
+
+<g1>
+Espécie de documento:
+
+0 Proposição<default>
+0 Substitutivo
+0 Subemenda substitutiva<apenas CD>
+
+<g2>
+Identificação do substitutivo<ou subemenda>:
+
+___V<g2.sigla> nº s/n, de _____<g2.ano>
+
+Obs:
+- <g2> o grupo para montagem da urn de substitutivo ou subemenda substitutiva. Utilizado apenas para a CD no caso de substitutivo ou subemenda substitutiva.
+- <g2.sigla> listar siglas de documentos 'é substitutivo' ou 'é subemenda substitutiva' de acordo com a seleção em <g1>
+- <g2.ano> edição do ano, default ano atual
+
+<g3>
+Identificação da proposição:
+
+___V<g3.sigla> nº ____<g3.numero>, de _____<g3.ano> [Verificar]<g3.verificar>
+
+Ementa: Nono nono nono noono nono nono nono.<g3.ementa>
+
+Obs:
+- <g3> grupo para identificar: sigla e ano da nova proposição quando for o caso de nova proposição ("Proposição" selecionado em <g1>); ou sigla número e ano da proposição que está recebendo um substitutivo ou subemenda substitutiva. Para o Senado: no caso de proposição, utilizado para montar a urn; no caso de substitutivo monta a urn e a urnDocumentoReferenciado sendo que a urn recebe a versão @apresentacao.substitutivo; Para a Câmara: no caso de proposição, utilizado para montar a urn; no caso de substitutivo ou subemenda, utilizado para montar a urnDocumentoReferenciado. 
+- <g3.sigla> no caso de nova proposição, listar todas as siglas da (CD ou SF)+CN que não são substitutivos e não são subemendas substitutivas, com as siglas inativas no final em cinza; no caso de substitutivo ou subemenda substitutiva, listar todas as siglas que aceitam substitutivo.
+- <g3.numero> edição do número da proposição no caso de substitutivo ou subemenda substitutiva; no caso de nova proposição apresentar 's/n' (sem número)
+- <g3.ano> edição do ano, default ano atual
+- <g3.verificar> botão para verificar a existência da proposição e trazer a ementa caso a proposição exista. Caso não exista, informar proposição inexistente e bloquear continuidade do processo. aparece apenas no caso de substitutivo ou subemenda substitutiva. 
+- <g3.ementa> apresentação do texto da ementa da proposição após verificação.
+
+<g4>
+Identificação da medida provisória:
+
+MPV nº ____<g4.numero>, de ____<g4.ano> [Verificar]<g4.verificar>
+
+Ementa: Nono nonono nono nono non ono.<g4.ementa>
+
+Obs:
+- <g4> grupo para identificar a medida provisória no caso de PLV, preenchendo a urnDocumentoReferenciado. Só aparece quando <g3.sigla>=PLV.
+- <g4.numero> edição do número da medida provisória.
+- <g4.ano> edição do ano da medida provisória, default ano atual
+- <g4.verificar> botão para verificar a existência da medida provisória e trazer a ementa caso exista. Caso não exista, informar medida provisória inexistente e bloquear continuidade do processo. 
+- <g3.ementa> apresentação do texto da ementa da medida provisória após verificação.
+
+<g5>
+Destino
+
+O Plenário
+O Comissão
+
+Comissão
+______________________V
+
+Obs:
+- <g5> componente de colegiado de destino. Default "Comissão" no caso de subsitutivo ou subemenda, e "Plenário" caso contrário. Se o destino fo "Comissão", a comissão deve ser informada. A url para listagem das comissões será informada na configuração do componente e terá um placeholder para a sigla da casa, que será identificada pela autoridade da urn. O componente não terá mais a opção de "Plenário via comissão".
+
+<g6>
+Forma de apresentação
+
+X Este documento será apresentado em parecer<g6.anexoParecer>
+
+Obs:
+- Identificador de que o documento será apresentado dentro de um parecer. Default marcado no caso de substitutivo ou subemenda e desmarcado no caso de nova proposição.

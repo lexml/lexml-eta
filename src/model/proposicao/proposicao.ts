@@ -26,7 +26,6 @@ export class Proposicao {
   numero = '';
   ano = '';
   ementa = '';
-  substitutivo = false;
 }
 
 export const getRefProposicaoReduzida = (proposicao: Proposicao): RefProposicaoReduzida => {

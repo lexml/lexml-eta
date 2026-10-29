@@ -2,55 +2,14 @@ import { expect, fixture, html } from '@open-wc/testing';
 import '../../../src';
 import type { LexmlEtaComponent } from '../../../src';
 import { removerAlerta } from '../../../src/model/alerta/acao/removerAlerta';
-import { Proposicao } from '../../../src/model/proposicao/proposicao';
 import { rootStore } from '../../../src/redux/store';
 
 let component: LexmlEtaComponent;
 
-describe('LexmlEtaComponent - atributo substitutivo', () => {
+describe('LexmlEtaComponent', () => {
   beforeEach(async () => {
     component = await fixture<LexmlEtaComponent>(html`<lexml-eta></lexml-eta>`);
     rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
-  });
-
-  describe('Cenário: Criar nova proposição (resetaProposicao)', () => {
-    it('deve ter substitutivo=false ao criar nova proposição sem informar substitutivo', () => {
-      (component as any).resetaProposicao({ substitutivo: false });
-      expect((component as any).substitutivo).to.be.false;
-    });
-
-    it('deve ter substitutivo=true ao criar nova proposição com substitutivo=true', () => {
-      (component as any).resetaProposicao({ substitutivo: true });
-      expect((component as any).substitutivo).to.be.true;
-    });
-  });
-
-  describe('Cenário: Carregar proposição de arquivo (setProposicao)', () => {
-    it('deve ter substitutivo=false ao carregar proposição com substitutivo=false', () => {
-      const proposicao = new Proposicao();
-      proposicao.substitutivo = false;
-      (component as any).setProposicao(proposicao);
-      expect((component as any).substitutivo).to.be.false;
-    });
-
-    it('deve ter substitutivo=true ao carregar proposição com substitutivo=true', () => {
-      const proposicao = new Proposicao();
-      proposicao.substitutivo = true;
-      (component as any).setProposicao(proposicao);
-      expect((component as any).substitutivo).to.be.true;
-    });
-
-    it('deve sobrescrever substitutivo anterior ao carregar nova proposição', () => {
-      const proposicaoSubstitutiva = new Proposicao();
-      proposicaoSubstitutiva.substitutivo = true;
-      (component as any).setProposicao(proposicaoSubstitutiva);
-      expect((component as any).substitutivo).to.be.true;
-
-      const proposicaoNormal = new Proposicao();
-      proposicaoNormal.substitutivo = false;
-      (component as any).setProposicao(proposicaoNormal);
-      expect((component as any).substitutivo).to.be.false;
-    });
   });
 
   describe('Validação de justificação', () => {

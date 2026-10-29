@@ -35,8 +35,6 @@ export interface TipoDocumentoItem {
   ativo?: boolean;
   // Padrão `não aceita substitutivo`.
   tipoRelacaoSubstitutivo?: TipoRelacaoSubstitutivo;
-  // URNs de tipo com sigla (`projeto.lei;pls`) que podem ser a referência do substitutivo.
-  tiposReferenciaveis?: string[];
 }
 
 // `urnTipoDocumento` é o tipo da URN sem o `;sigla`.
