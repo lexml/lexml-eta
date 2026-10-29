@@ -74,9 +74,15 @@ describe('Documento articulado — especificações 00 e 01', () => {
 
   it('preserva a URN definitiva completa, incluindo evento', () => {
     const entrada = novoDocumentoArticulado();
-    entrada.value.metadado.identificacao.urn = 'urn:lex:br:camara.deputados:projeto.lei;pl:2026;123@data.evento;leitura;2026-03-19t14.00';
+    entrada.value.metadado.identificacao.urn = 'urn:lex:br:senado.federal:projeto.lei;pl:2026;123@data.evento;leitura;2026-03-19t14.00';
     const modelo = buildProjetoNormaFromJsonix(lerDocumentoArticulado(entrada));
     expect(criarDocumentoArticulado(modelo, modelo.urn!).value.metadado.identificacao.urn).to.equal(entrada.value.metadado.identificacao.urn);
+  });
+
+  it('recusa documento de outra casa legislativa', () => {
+    const entrada = novoDocumentoArticulado();
+    entrada.value.metadado.identificacao.urn = 'urn:lex:br:camara.deputados:projeto.lei;pl:2026;1';
+    expect(() => lerDocumentoArticulado(entrada)).to.throw(/Documento de outra casa legislativa não é suportado/);
   });
 
   it('não compartilha objetos com o arquivo recebido', () => {

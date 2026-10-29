@@ -1,7 +1,7 @@
 import { isOmissis } from './../../dispositivo/tipo';
 import { Dispositivo } from '../../dispositivo/dispositivo';
 import { Hierarquia } from '../../dispositivo/hierarquia';
-import { isCaput, isInciso } from '../../dispositivo/tipo';
+import { isCaput, isInciso, isPena } from '../../dispositivo/tipo';
 import { calculaNumeracao } from '../numeracao/numeracaoUtil';
 import { buildId } from '../util/idUtil';
 import { podeRenumerarFilhosAutomaticamente } from './hierarquiaUtil';
@@ -30,20 +30,20 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     addFilhoOnPosition(filho: Dispositivo, posicao: number): void {
-      if (isInciso(filho)) {
+      if (isInciso(filho) || isPena(filho)) {
         this.caput!.addFilhoOnPosition(filho, posicao);
       } else {
         filho.pai = this as unknown as Dispositivo;
-        this.paragrafos.splice(posicao - this.getIncisosCaput().length, 0, filho);
+        this.paragrafos.splice(Math.max(posicao - this.getIncisosCaput().length, 0), 0, filho);
       }
     }
 
     addFilho(filho: Dispositivo, referencia?: Dispositivo): void {
-      isCaput(filho) ? (this.caput = filho) : isInciso(filho) ? this.addIncisoCaput(filho, referencia) : this.addParagrafo(filho, referencia);
+      isCaput(filho) ? (this.caput = filho) : isInciso(filho) || isPena(filho) ? this.addIncisoCaput(filho, referencia) : this.addParagrafo(filho, referencia);
     }
 
     removeFilho(filho: Dispositivo): void {
-      isInciso(filho) ? this.caput?.removeFilho(filho) : this.removeParagrafo(filho);
+      isInciso(filho) || isPena(filho) ? this.caput?.removeFilho(filho) : this.removeParagrafo(filho);
     }
 
     private addIncisoCaput(filho: Dispositivo, referencia?: Dispositivo): void {
@@ -68,7 +68,7 @@ export function HierarquiaArtigo<TBase extends Constructor>(Base: TBase): any {
     }
 
     indexOf(filho: Dispositivo): number {
-      return isInciso(filho) ? this.caput!.indexOf(filho) : this.filhos.indexOf(filho);
+      return isInciso(filho) || isPena(filho) ? this.caput!.indexOf(filho) : this.filhos.indexOf(filho);
     }
 
     private renumeraIncisos(): void {

@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isAgrupador, isOmissis } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isOmissis, isPena } from '../../../model/dispositivo/tipo';
 import { getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { isAcaoPermitida } from '../../../model/lexml/acao/acaoUtil';
 import { InformarExistenciaDoElementoNaNorma } from '../../../model/lexml/acao/informarExistenciaDoElementoNaNormaAction';
@@ -152,7 +152,7 @@ const existeSubordinadoComStatusExistente = (dispositivos: Dispositivo[]): boole
 };
 
 const existeDispositivoSemNumeroNaoOmissis = (dispositivos: Dispositivo[]): boolean => {
-  return dispositivos.some(d => (d.mensagens?.some(m => m.descricao?.toLowerCase().includes('numere o dispositivo')) || d.numero === undefined) && !isOmissis(d));
+  return dispositivos.some(d => (d.mensagens?.some(m => m.descricao?.toLowerCase().includes('numere o dispositivo')) || d.numero === undefined) && !isOmissis(d) && !isPena(d));
 };
 
 const existeOmissis = (dispositivo: Dispositivo): boolean => {

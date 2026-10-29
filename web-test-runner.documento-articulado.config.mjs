@@ -7,7 +7,7 @@ import { join, resolve } from 'node:path';
 
 const executar = promisify(execFile);
 const cli = process.env.JSONIX_LEXML_CLI;
-if (!cli) throw new Error('Defina JSONIX_LEXML_CLI com o caminho do conversor jsonix-lexml 2.1.0.');
+if (!cli) throw new Error('Defina JSONIX_LEXML_CLI com o caminho do conversor jsonix-lexml.');
 
 // O CLI sai com código 0 mesmo quando a conversão falha: a falha só aparece na ausência do arquivo de saída.
 const converter = async (comando, entrada, saida) => {
@@ -46,6 +46,10 @@ export default {
     {
       name: 'validar-documento-articulado',
       async executeCommand({ command, payload }) {
+        if (command === 'versao-jsonix-lexml') {
+          const { stdout } = await executar(resolve(cli), ['-V'], { timeout: 30000 });
+          return stdout.trim();
+        }
         if (command === 'validar-documento-lexml') {
           const diretorio = await mkdtemp(join(tmpdir(), 'eta-documento-'));
           try {

@@ -1,5 +1,6 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../dispositivo/dispositivo';
-import { isOmissis } from '../../../dispositivo/tipo';
+import { isOmissis, isPena } from '../../../dispositivo/tipo';
+import { normalizaRotuloPena } from '../../numeracao/rotuloPena';
 import { Metadado, ParteInicial, TextoArticulado } from '../../../documento';
 import { ClassificacaoDocumento } from '../../../documento/classificacao';
 import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
@@ -8,7 +9,8 @@ import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil'
 import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getPreambuloPadrao, getTipo, getTipoDocumentoUrn } from '../urnUtil';
-import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO } from '../../../proposicao/proposicao';
+import { Anexo, Autoria, ColegiadoApreciador, MimeType, OpcoesImpressao, Parlamentar, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO } from '../../../proposicao/proposicao';
+import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
 import { DadosLexEdit, RevisaoArticulacaoLida, RevisaoTextualLida } from '../documentoArticulado';
 import { SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
@@ -195,6 +197,35 @@ export const lerColegiadoApreciador = (lido: any): ColegiadoApreciador | undefin
   return colegiado;
 };
 
+// Entrada sem chave, com chave vazia ou com valor não textual é descartada; em chave repetida vale a primeira (especificação 15).
+export const lerOutrosMetadados = (lido: any): Record<string, string> | undefined => {
+  if (!isObjeto(lido)) return undefined;
+  const outros: Record<string, string> = {};
+  for (const item of comoLista(lido.outroMetadado)) {
+    if (!isObjeto(item) || !textoNaoVazio(item.chave) || typeof item.value !== 'string' || Object.prototype.hasOwnProperty.call(outros, item.chave)) continue;
+    outros[item.chave] = item.value;
+  }
+  return Object.keys(outros).length > 0 ? outros : undefined;
+};
+
+// Anexo sem idArquivo ou nomeArquivo, ou de formato diferente de PDF/DOCX, é descartado; nomeDocumento e tipo ausentes assumem os padrões.
+export const lerAnexos = (lido: any): Anexo[] | undefined => {
+  if (!isObjeto(lido)) return undefined;
+  const formatos = Object.values(MimeType) as string[];
+  const anexos: Anexo[] = [];
+  for (const item of comoLista(lido.anexo)) {
+    if (!isObjeto(item) || !textoNaoVazio(item.idArquivo) || !textoNaoVazio(item.nomeArquivo) || !formatos.includes(item.mimeType)) continue;
+    anexos.push({
+      idArquivo: item.idArquivo,
+      nomeArquivo: item.nomeArquivo,
+      nomeDocumento: textoNaoVazio(item.nomeDocumento) ? item.nomeDocumento : item.nomeArquivo.replace(/\.[^.]*$/, ''),
+      tipo: textoNaoVazio(item.tipo) ? item.tipo : TIPO_ANEXO_NAO_INFORMADO.codigo,
+      mimeType: item.mimeType,
+    });
+  }
+  return anexos.length > 0 ? anexos : undefined;
+};
+
 /** Lê os grupos de formulário de `MetadadoProprietario/lexedit:Metadado`, ignorando grupos desconhecidos. */
 export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const lexedit = lerConteudoLexEdit(documento);
@@ -203,11 +234,17 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const colegiadoApreciador = lerColegiadoApreciador(lexedit?.colegiadoApreciador);
   const revisoesLidas = lerRevisoesArticulacao(lexedit);
   const revisoesTextuais = lerRevisoesTextuais(lexedit);
+  const outrosMetadados = lerOutrosMetadados(lexedit?.outrosMetadados);
+  const anexos = lerAnexos(lexedit?.anexos);
   return {
+    ...(lexedit?.anexoParecer === true && { anexoParecer: true }),
+    ...(textoNaoVazio(lexedit?.urnDocumentoReferenciado) && { urnDocumentoReferenciado: lexedit.urnDocumentoReferenciado.trim() }),
     ...lerFecho(lexedit),
     ...(opcoesImpressao && { opcoesImpressao }),
     ...(autoria && { autoria }),
     ...(colegiadoApreciador && { colegiadoApreciador }),
+    ...(outrosMetadados && { outrosMetadados }),
+    ...(anexos && { anexos }),
     ...(revisoesLidas.length > 0 && { revisoesLidas }),
     ...(Object.keys(revisoesTextuais).length > 0 && { revisoesTextuais }),
   };
@@ -231,6 +268,7 @@ const NOMES_DISPOSITIVO_NA_REVISAO = [
   'inciso',
   'alinea',
   'item',
+  'pena',
   'dispositivoGenerico',
 ];
 
@@ -249,7 +287,7 @@ const lerOperacoesRevisao = (revisao: unknown): LidaOperacao[] =>
 type LidaOperacao = RevisaoArticulacaoLida['operacoes'][number];
 
 // Estado anterior de uma revisão não excluída: dispositivo sem id (sem título = não havia) ou, por tolerância, `p` solto (título não informado).
-const lerEstadoAnterior = (lida: any): Pick<RevisaoArticulacaoLida, 'textoAnterior' | 'tituloAnterior'> => {
+const lerEstadoAnterior = (lida: any): Pick<RevisaoArticulacaoLida, 'textoAnterior' | 'tituloAnterior' | 'rotuloAnterior'> => {
   const nome = NOMES_DISPOSITIVO_NA_REVISAO.find(n => isObjeto(lida[n]));
   const dispositivo = nome && lida[nome];
   const caput = dispositivo && comoLista(dispositivo.lXcontainersOmissis).find(n => n?.name?.localPart === 'Caput');
@@ -258,7 +296,12 @@ const lerEstadoAnterior = (lida: any): Pick<RevisaoArticulacaoLida, 'textoAnteri
   const textoAnterior = isObjeto(nomeAgrupador) ? buildContent(escaparTextoJsonix(nomeAgrupador.content)) : isObjeto(p) ? buildContent(escaparTextoJsonix(p.content)) : undefined;
   const titulo = dispositivo?.tituloDispositivo;
   const tituloAnterior = dispositivo ? (isObjeto(titulo) ? buildContent(escaparTextoJsonix(titulo.content)) : null) : undefined;
-  return { ...(textoAnterior !== undefined && { textoAnterior }), ...(tituloAnterior !== undefined && { tituloAnterior }) };
+  const rotuloAnterior = nome === 'pena' && textoNaoVazio(dispositivo.rotulo) ? normalizaRotuloPena(dispositivo.rotulo) : undefined;
+  return {
+    ...(textoAnterior !== undefined && { textoAnterior }),
+    ...(tituloAnterior !== undefined && { tituloAnterior }),
+    ...(rotuloAnterior !== undefined && { rotuloAnterior }),
+  };
 };
 
 export const lerUsuarios = (lido: any): Map<string, Usuario> =>
@@ -424,6 +467,7 @@ const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[
       (pai as Artigo).caput!.id = el.value?.id;
       buildAlteracao(pai, el.value?.alteracao, cabecasAlteracao, preservarTexto);
       buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
+      buildPena((pai as Artigo).caput!, el.value, cabecasAlteracao, preservarTexto);
     } else if (el.name?.localPart === 'alteracao') {
       buildAlteracao(pai, el, cabecasAlteracao, preservarTexto);
       buildTree((pai as Artigo).caput!, el.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
@@ -435,6 +479,7 @@ const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[
         if (!pai.alteracoes) {
           dispositivo = buildDispositivo(pai, el, cabecasAlteracao, preservarTexto);
           buildTree(dispositivo, el.value?.lXhier ?? el.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
+          buildPena(dispositivo, el.value, cabecasAlteracao, preservarTexto);
         }
       }
     }
@@ -445,7 +490,16 @@ const buildTree = (pai: Dispositivo, filhos: any, cabecasAlteracao: Dispositivo[
 export const buildDispositivoSoltoFromJsonix = (pai: Dispositivo, no: any): Dispositivo => {
   const dispositivo = buildDispositivo(pai, no, [], true);
   buildTree(dispositivo, no.value?.lXhier ?? no.value?.lXcontainersOmissis, [], true);
+  buildPena(dispositivo, no.value, [], true);
   return dispositivo;
+};
+
+// A pena vem em value.pena (irmã de lXcontainersOmissis) e é sempre o último filho.
+const buildPena = (pai: Dispositivo, value: any, cabecasAlteracao: Dispositivo[], preservarTexto: boolean): void => {
+  if (!value?.pena) {
+    return;
+  }
+  buildDispositivo(pai, { name: { localPart: 'Pena' }, value: value.pena }, cabecasAlteracao, preservarTexto);
 };
 
 const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo[], preservarTexto: boolean): void => {
@@ -461,6 +515,7 @@ const buildAlteracao = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositivo
         d.isDispositivoAlteracao = true;
         d.rotulo = c.value?.rotulo;
         buildTree(d!, c.value?.lXhier ?? c.value?.lXcontainersOmissis, cabecasAlteracao, preservarTexto);
+        buildPena(d!, c.value, cabecasAlteracao, preservarTexto);
       }
     });
   }
@@ -492,6 +547,10 @@ const buildDispositivo = (pai: Dispositivo, el: any, cabecasAlteracao: Dispositi
       dispositivo.rotulo = el.value?.rotulo;
     }
     dispositivo.createNumeroFromRotulo(dispositivo.rotulo!);
+  }
+
+  if (isPena(dispositivo)) {
+    dispositivo.rotulo = normalizaRotuloPena(el.value?.rotulo);
   }
 
   dispositivo.href = el.value?.href;

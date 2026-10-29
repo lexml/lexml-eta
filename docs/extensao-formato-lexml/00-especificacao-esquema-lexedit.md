@@ -12,7 +12,7 @@ Quando um metadado do LexEdit se refere a um trecho específico do documento, o 
 
 Um documento produzido segundo esta especificação é, sempre, um documento LexML válido e legível por qualquer consumidor do padrão. As informações específicas do LexEdit ficam isoladas em `MetadadoProprietario` e podem ser ignoradas por quem não as conhece.
 
-O LexEdit precisa preservar informações necessárias à edição, revisão e apresentação de uma proposição legislativa estruturada em LexML. Este documento não define um XSD do LexML: registra, por meio de exemplos XML, como o LexEdit pretende ocupar os pontos de extensão identificados, para orientar a implementação do editor. O esquema auxiliar que formaliza esses exemplos já existe em [`schemas/lexedit.xsd`](../../schemas/lexedit.xsd) (plano de criação em [plano-xsd-lexedit.md](plano-xsd-lexedit.md)).
+O LexEdit precisa preservar informações necessárias à edição, revisão e apresentação de uma proposição legislativa estruturada em LexML. Este documento não define um XSD do LexML: registra, por meio de exemplos XML, como o LexEdit pretende ocupar os pontos de extensão identificados, para orientar a implementação do editor. O esquema auxiliar que formaliza esses exemplos já existe em [`schemas/lexedit.xsd`](../../schemas/lexedit.xsd) (ver [Esquema auxiliar](#esquema-auxiliar-lexeditxsd)).
 
 A estrutura normativa, os dispositivos e as demais estruturas já previstas pelo LexML continuam sendo representadas exclusivamente pelos elementos LexML existentes; os pontos de extensão armazenam apenas as informações complementares que o padrão não contempla.
 
@@ -63,24 +63,38 @@ Datas e horas devem ser serializadas em ISO 8601, utilizando os tipos xsd:date o
 
 ## Especificações por grupo de elementos
 
-| Grupo | Definição específica |
-| --- | --- |
-| Identificação provisória e URN | [01-identificacao-provisoria-e-urn.md](01-identificacao-provisoria-e-urn.md) |
-| Opções de impressão | [02-opcoes-de-impressao.md](02-opcoes-de-impressao.md) |
-| Fecho com local e data | [03-fecho-local-e-data.md](03-fecho-local-e-data.md) |
-| Assinaturas | [04-assinaturas.md](04-assinaturas.md) |
-| Anexos | [05-anexos.md](05-anexos.md) |
-| Justificação e conteúdo rico | [06-justificacao-e-conteudo-rico.md](06-justificacao-e-conteudo-rico.md) |
-| Notas de rodapé | [07-notas-de-rodape.md](07-notas-de-rodape.md) |
-| Comentários | [08-comentarios.md](08-comentarios.md) |
-| Revisão de texto | [09-revisao-de-texto.md](09-revisao-de-texto.md) |
-| Remissões internas | [10-remissoes-internas.md](10-remissoes-internas.md) |
-| Revisão da hierarquia | [11-revisao-da-hierarquia.md](11-revisao-da-hierarquia.md) |
-| Registro de usuários | [12-registro-usuarios.md](12-registro-usuarios.md) |
-| Outros metadados do LexEdit | [13-outros-metadados-do-lexedit.md](13-outros-metadados-do-lexedit.md) |
-| Colegiado apreciador | [14-colegiado-apreciador.md](14-colegiado-apreciador.md) |
-| Exemplo completo | [99-exemplo-completo.md](99-exemplo-completo.md) |
+| Grupo | Definição específica | Salvar e abrir no editor |
+| --- | --- | --- |
+| Identificação provisória e URN | [01-identificacao-provisoria-e-urn.md](01-identificacao-provisoria-e-urn.md) | Implementado |
+| Opções de impressão | [02-opcoes-de-impressao.md](02-opcoes-de-impressao.md) | Implementado |
+| Fecho com local e data | [03-fecho-local-e-data.md](03-fecho-local-e-data.md) | Implementado, com `ParteFinal/LocalDataFecho` |
+| Assinaturas | [04-assinaturas.md](04-assinaturas.md) | Implementado para parlamentares, com `ParteFinal/AssinaturaTexto`; comissão (`ColegiadoAutor`) pendente |
+| Anexos | [05-anexos.md](05-anexos.md) | Não implementado |
+| Justificação e conteúdo rico | [06-justificacao-e-conteudo-rico.md](06-justificacao-e-conteudo-rico.md) | Implementado (#991); largura de tabela e coluna não volta ao editor |
+| Notas de rodapé | [07-notas-de-rodape.md](07-notas-de-rodape.md) | Implementado (#993); parágrafos da nota unidos num só |
+| Comentários | [08-comentarios.md](08-comentarios.md) | Não implementado |
+| Revisão de texto | [09-revisao-de-texto.md](09-revisao-de-texto.md) | Implementado (#994) na justificação, com id `_rt<id-revisao>_<n>` e um `RevisaoTextual` por elemento |
+| Remissões internas | [10-remissoes-internas.md](10-remissoes-internas.md) | Implementado |
+| Revisão da hierarquia | [11-revisao-da-hierarquia.md](11-revisao-da-hierarquia.md) | Implementado |
+| Registro de usuários | [12-registro-usuarios.md](12-registro-usuarios.md) | Implementado para os usuários das revisões da hierarquia e das revisões de texto |
+| Outros metadados do LexEdit | [13-outros-metadados-do-lexedit.md](13-outros-metadados-do-lexedit.md) | Parcial: `Pendencias` e `SituacaoNaNormaVigente`; os atributos de `lexedit:Metadado` deste grupo não são gravados |
+| Colegiado apreciador | [14-colegiado-apreciador.md](14-colegiado-apreciador.md) | Implementado |
+| Metadados genéricos dos hosts | [15-outros-metadados-dos-hosts.md](15-outros-metadados-dos-hosts.md) | Implementado |
+| Exemplo completo | [99-exemplo-completo.md](99-exemplo-completo.md) | — |
 
-Cada arquivo descreve a necessidade informacional, a representação adotada e as decisões ainda necessárias para aquele grupo. As convenções deste documento aplicam-se a todos eles.
+Cada arquivo descreve a necessidade informacional, a representação adotada e as decisões ainda necessárias para aquele grupo. As convenções deste documento aplicam-se a todos eles. Ao concluir um grupo, atualize a coluna "Salvar e abrir no editor".
+
+## Esquema auxiliar (`lexedit.xsd`)
+
+[`schemas/lexedit.xsd`](../../schemas/lexedit.xsd) cobre o namespace `http://www.lexml.gov.br/lexedit/1.0` para todos os grupos, inclusive os ainda não implementados. O original é o deste projeto: ele é copiado para o conversor `jsonix-lexml`, que gera dele os mapeamentos do CLI, e os dois arquivos devem ser iguais (ver [`schemas/README.md`](../../schemas/README.md)). Ele serve sobretudo de contrato para a conversão jsonix, e não de validador rígido: regras que o XSD expressa mal ficam para o código.
+
+- Os elementos LexML são referenciados por `xs:import` de `lexml-simples.xsd`, sem cópia nem `xsd:any`.
+- `lexedit:RevisaoArticulacao` aceita um único elemento entre os dispositivos dos grupos `LXhier` e `LXcontainers`, `Pena` e `p`. Ele serve tanto ao dispositivo excluído quanto ao estado anterior de um dispositivo alterado.
+- `revisao` é `xsd:string`, sem `xsd:pattern`. A gramática das operações está em [11-revisao-da-hierarquia.md](11-revisao-da-hierarquia.md).
+- `idUsuario`/`refIdUsuario` são `xsd:string`, não `xsd:ID`/`xsd:IDREF`, e por isso aceitam `sf:fulano`.
+- `lexedit:Autoria` escolhe entre `Parlamentares` e `ColegiadoAutor` sem amarrar a escolha ao valor de `@tipo`.
+- Enumerações: `sexo` (`M`, `F`), `Autoria/@tipo` (`Parlamentar`, `Comissão`), `siglaCasaLegislativa` (`SF`, `CD`, `CN`). `Anexo/@tipo` é texto livre e `Metadado/@data` é `xsd:date`.
+
+As fixtures de `scripts/fixtures-lexedit/` (uma por grupo) e o fragmento `lexedit:Metadado` de [documento-articulado-exemplo.xml](documento-articulado-exemplo.xml) são validados contra o esquema por `npm run verify:xsd-lexedit`.
 
 

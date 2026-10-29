@@ -1,7 +1,8 @@
 import { containsTags, converteIndicadorParaTexto, endsWithPunctuation, getTextoSemHtml, isValidHTML } from '../../../util/string-util';
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo, isEmenta } from '../../dispositivo/tipo';
+import { isAgrupador, isArticulacao, isArtigo, isDispositivoDeArtigo, isOmissis, isParagrafo, isPena, isEmenta } from '../../dispositivo/tipo';
 import {
+  antecedePena,
   getDispositivoCabecaAlteracao,
   getDispositivoPosterior,
   getDispositivoPosteriorNaSequenciaDeLeitura,
@@ -88,11 +89,21 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
     !hasFilhos(dispositivo) &&
+    !antecedePena(dispositivo) &&
     !isUltimaEnumeracao(dispositivo) &&
     dispositivo.INDICADOR_SEQUENCIA !== undefined &&
     !hasIndicativoContinuacaoSequencia(dispositivo)
   ) {
     addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ponto e vírgula.`);
+  }
+
+  // A pena não segue as regras de pontuação do texto; só a inicial minúscula, ignorando formatação e espaços.
+  if (isPena(dispositivo) && dispositivo.texto && /^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto).trim()) && dispositivo.texto.indexOf('R$') !== 0) {
+    addMensagem(
+      mensagens,
+      TipoMensagem.WARNING,
+      `${dispositivo.descricao} deveria iniciar com letra minúscula, a não ser que se trate de uma situação especial, como nome próprio.`
+    );
   }
 
   //
@@ -107,6 +118,18 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !/^[A-ZÀ-Ú]/.test(getTextoSemHtml(dispositivo.texto))
   ) {
     addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria iniciar com letra maiúscula.`);
+  }
+
+  // O dispositivo imediatamente anterior à pena termina com dois-pontos; omissis não se aplica. Mesma mensagem da regra de desdobramento, que as deduplica.
+  if (
+    dispositivo.texto &&
+    !isOmissis(dispositivo) &&
+    dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
+    !/^[.]+$/.test(dispositivo.texto) &&
+    !hasIndicativoDesdobramento(dispositivo) &&
+    antecedePena(dispositivo)
+  ) {
+    addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`);
   }
 
   //
@@ -134,6 +157,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
+    !antecedePena(dispositivo) &&
     isUltimaEnumeracao(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo)
   ) {
@@ -235,6 +259,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     dispositivo.texto.indexOf(TEXTO_OMISSIS) === -1 &&
     !/^[.]+$/.test(dispositivo.texto) &&
     hasIndicativoDesdobramento(dispositivo) &&
+    !antecedePena(dispositivo) &&
     ((isArtigo(dispositivo) && !hasFilhos((dispositivo as Artigo).caput!)) || !hasFilhos(dispositivo))
   ) {
     addMensagem(mensagens, TipoMensagem.ERROR, `${dispositivo.descricao} não deveria terminar com ${converteIndicadorParaTexto(dispositivo.INDICADOR_DESDOBRAMENTO!)}.`);
@@ -275,6 +300,7 @@ export const validaTextoDispositivo = (dispositivo: Dispositivo): Mensagem[] => 
     !isOmissis(dispositivo) &&
     !hasFilhoGenerico(dispositivo.pai!) &&
     !hasFilhos(dispositivo) &&
+    !antecedePena(dispositivo) &&
     !hasIndicativoFinalSequencia(dispositivo) &&
     //isUltimaAlteracao(dispositivo) &&
     isUltimaEnumeracao(dispositivo) &&

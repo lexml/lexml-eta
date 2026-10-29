@@ -5,7 +5,10 @@ import '@shoelace-style/shoelace/dist/components/dialog/dialog';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
-import { TextoDiff, exibirDiferencasDialog } from '../../../src/components/editor/exibirDiferencaDialog';
+import { Elemento } from '../../../src/model/elemento';
+import { RevisaoElemento } from '../../../src/model/revisao/revisao';
+import { StateType } from '../../../src/redux/state';
+import { TextoDiff, exibirDiferencasDialog, montaTextoDiff } from '../../../src/components/editor/exibirDiferencaDialog';
 
 const quillFalso = { blur: (): void => undefined, focus: (): void => undefined };
 
@@ -164,5 +167,99 @@ describe('exibirDiferencasDialog', () => {
       cards('modificado').forEach(card => expect(card.querySelector('.titulo-diff')).to.equal(null));
       cards('modificadoRevisao').forEach(card => expect(card.querySelector('.titulo-diff')).to.not.equal(null));
     });
+  });
+  describe('rótulo da pena', () => {
+    const base = { comRevisao: true, textoAntesRevisao: 'reclusão.', textoOriginal: 'reclusão.', textoAtual: 'reclusão.' };
+    const rotulo = (card: HTMLElement): string | undefined => card.querySelector('.rotulo-diff')?.innerHTML;
+
+    it('rótulo alterado: o anterior no card antes, o atual no card atual e a comparação no card Diferença', () => {
+      abre({ ...base, rotuloAntesRevisao: 'Pena –', rotuloAtual: 'Infração –' });
+
+      const [antes, diferenca, atual] = cards('modificadoRevisao');
+      expect(rotulo(antes)).to.equal('Pena –');
+      expect(rotulo(atual)).to.equal('Infração –');
+      expect(rotulo(diferenca)).to.contain('<del>').and.to.contain('<ins>');
+    });
+
+    it('rótulo igual nos dois lados não é marcado na comparação', () => {
+      abre({ ...base, rotuloAntesRevisao: 'Pena –', rotuloAtual: 'Pena –' });
+
+      expect(rotulo(cards('modificadoRevisao')[1])).to.equal('Pena –');
+    });
+
+    it('sem rótulo informado nenhum card ganha a linha', () => {
+      abre(base);
+
+      expect(cards('modificadoRevisao').every(c => c.querySelector('.rotulo-diff') === null)).to.equal(true);
+    });
+  });
+});
+
+describe('montaTextoDiff — rótulo', () => {
+  const elementoEmRevisao = (tipo: string, rotuloAntes: string, rotuloAtual: string, operacoes: string, textoAntes = 'texto.', textoAtual = 'texto.'): Elemento => {
+    const antes = { rotulo: rotuloAntes, conteudo: { texto: textoAntes } } as Partial<Elemento>;
+    const revisao = new RevisaoElemento('', StateType.ElementoModificado, 'Descrição', { nome: 'X' } as any, '', antes, {});
+    revisao.revisao = operacoes;
+    return { ...new Elemento(), tipo, rotulo: rotuloAtual, conteudo: { texto: textoAtual }, revisao };
+  };
+  const diffDe = (e: Elemento): TextoDiff => montaTextoDiff(e, quillFalso as any);
+
+  it('pena com o rótulo trocado informa os dois rótulos', () => {
+    const diff = diffDe(elementoEmRevisao('Pena', 'Pena –', 'Infração –', 'alterado'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal(['Pena –', 'Infração –']);
+  });
+
+  it('pena com só o texto alterado informa o mesmo rótulo nos dois lados', () => {
+    const diff = diffDe(elementoEmRevisao('Pena', 'Pena –', 'Pena –', 'alterado', 'a.', 'b.'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal(['Pena –', 'Pena –']);
+  });
+
+  it('renumeração manual (alteracaoRotulo) informa os dois rótulos', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 4º', '§ 9º', 'alteracaoRotulo;art1_par4'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal(['§ 4º', '§ 9º']);
+  });
+
+  it('alteracaoRotulo combinada com alterado informa os rótulos', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 4º', '§ 9º', 'alteracaoRotulo;art1_par4,alterado'));
+    expect(diff.rotuloAtual).to.equal('§ 9º');
+  });
+
+  it('renumeração automática (só alterado) não informa rótulo', () => {
+    const diff = diffDe(elementoEmRevisao('Artigo', 'Art. 3º', 'Art. 4º', 'alterado', 'a.', 'b.'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal([undefined, undefined]);
+  });
+
+  it('dispositivo movido não informa rótulo', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 2º', '§ 1º', 'movido;2,alterado'));
+    expect(diff.rotuloAtual).to.equal(undefined);
+  });
+
+  it('alteracaoRotulo depois de outra operação informa os dois rótulos', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 4º', '§ 9º', 'movido;3,alteracaoRotulo;art1_par4'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal(['§ 4º', '§ 9º']);
+  });
+
+  it('o argumento de outra operação que contenha "alteracaoRotulo" não informa rótulo', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 2º', '§ 1º', 'transformado;alteracaoRotulo'));
+    expect([diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal([undefined, undefined]);
+  });
+
+  it('operação cujo nome só começa com "alteracaoRotulo" não informa rótulo', () => {
+    const diff = diffDe(elementoEmRevisao('Paragrafo', '§ 2º', '§ 1º', 'alteracaoRotuloX;art1_par2'));
+    expect(diff.rotuloAtual).to.equal(undefined);
+  });
+
+  it('revisão sem o atributo de operações não informa rótulo, exceto na pena', () => {
+    const paragrafo = elementoEmRevisao('Paragrafo', '§ 2º', '§ 1º', '');
+    (paragrafo.revisao as RevisaoElemento).revisao = undefined;
+    const pena = elementoEmRevisao('Pena', 'Pena –', 'Infração –', '');
+    (pena.revisao as RevisaoElemento).revisao = undefined;
+    expect(diffDe(paragrafo).rotuloAtual).to.equal(undefined);
+    expect([diffDe(pena).rotuloAntesRevisao, diffDe(pena).rotuloAtual]).to.deep.equal(['Pena –', 'Infração –']);
+  });
+
+  it('elemento sem revisão não informa rótulo nem marca a revisão', () => {
+    const diff = diffDe({ ...new Elemento(), tipo: 'Pena', rotulo: 'Pena –', conteudo: { texto: 'multa.' } });
+    expect([diff.comRevisao, diff.rotuloAntesRevisao, diff.rotuloAtual]).to.deep.equal([false, undefined, undefined]);
   });
 });

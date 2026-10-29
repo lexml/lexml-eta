@@ -12,7 +12,7 @@ export const MPV_930_2020 = {
       TYPE_NAME: 'br_gov_lexml__1.Metadado',
       identificacao: {
         TYPE_NAME: 'br_gov_lexml__1.Identificacao',
-        urn: 'urn:lex:br:congresso.nacional:medida.provisoria;mpv:2020;930',
+        urn: 'urn:lex:br:federal:medida.provisoria;mpv:2020;930',
       },
     },
     projetoNorma: {

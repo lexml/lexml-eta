@@ -12,7 +12,7 @@ export const PLP_68_2024 = {
       TYPE_NAME: 'br_gov_lexml__1.Metadado',
       identificacao: {
         TYPE_NAME: 'br_gov_lexml__1.Identificacao',
-        urn: 'urn:lex:br:camara.deputados:projeto.lei.complementar;plp:2024-04-25;68',
+        urn: 'urn:lex:br:senado.federal:projeto.lei.complementar;plp:2024-04-25;68',
       },
     },
     projetoNorma: {

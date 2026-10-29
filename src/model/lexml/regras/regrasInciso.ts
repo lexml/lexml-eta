@@ -35,7 +35,15 @@ import {
 } from '../hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../tipo/tipoDispositivo';
 import { Regras } from './regras';
-import { adicionaAcoesDeExistenciaNaNorma, adicionaAcoesDeTitulo, MotivosOperacaoNaoPermitida, existeFilhoDesbloqueado, isBloqueado, podeConverterEmOmissis } from './regrasUtil';
+import {
+  adicionaAcaoDePena,
+  adicionaAcoesDeExistenciaNaNorma,
+  adicionaAcoesDeTitulo,
+  MotivosOperacaoNaoPermitida,
+  existeFilhoDesbloqueado,
+  isBloqueado,
+  podeConverterEmOmissis,
+} from './regrasUtil';
 
 export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
   return class extends Base implements Regras {
@@ -108,6 +116,8 @@ export function RegrasInciso<TBase extends Constructor>(Base: TBase): any {
       adicionaAcoesDeExistenciaNaNorma(dispositivo, acoes);
 
       adicionaAcoesDeTitulo(dispositivo, acoes);
+
+      adicionaAcaoDePena(dispositivo, acoes);
 
       if (podeEditarNotaAlteracao(dispositivo)) {
         acoes.push(atualizarNotaAlteracaoAction);

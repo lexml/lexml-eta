@@ -1,117 +1,17 @@
 import { expect, fixture, html } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
+import { LexmlEtaConfig } from '../../../src';
+import type { LexmlEtaComponent } from '../../../src';
 import { removerAlerta } from '../../../src/model/alerta/acao/removerAlerta';
-import { Proposicao } from '../../../src/model/proposicao/proposicao';
 import { TipoMensagem } from '../../../src/model/lexml/util/mensagem';
+import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
 import { rootStore } from '../../../src/redux/store';
 
 let component: LexmlEtaComponent;
 
-describe('LexmlEtaParametrosEdicao - atributo substitutivo', () => {
-  it('deve ter valor padrão false', () => {
-    const params = new LexmlEtaParametrosEdicao();
-    expect(params.substitutivo).to.be.false;
-  });
-});
-
-describe('LexmlEtaComponent - atributo substitutivo', () => {
+describe('LexmlEtaComponent', () => {
   beforeEach(async () => {
     component = await fixture<LexmlEtaComponent>(html`<lexml-eta></lexml-eta>`);
     rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
-  });
-
-  describe('Validação dos parâmetros de inicialização', () => {
-    it('deve lançar erro quando sigla não informada', () => {
-      const params = new LexmlEtaParametrosEdicao();
-      expect(() => (component as any).validarParametrosIdentificacaoProposicao(params)).to.throw('"sigla" é obrigatório');
-    });
-
-    it('deve lançar erro quando substitutivo=true e numero não informado', () => {
-      const params = new LexmlEtaParametrosEdicao();
-      params.sigla = 'PL';
-      params.ano = '2025';
-      params.substitutivo = true;
-      expect(() => (component as any).validarParametrosIdentificacaoProposicao(params)).to.throw('"numero" é obrigatório para texto substitutivo');
-    });
-
-    it('deve lançar erro quando substitutivo=true e ano não informado', () => {
-      const params = new LexmlEtaParametrosEdicao();
-      params.sigla = 'PL';
-      params.numero = '1';
-      params.substitutivo = true;
-      expect(() => (component as any).validarParametrosIdentificacaoProposicao(params)).to.throw('"ano" é obrigatório para texto substitutivo');
-    });
-
-    it('deve preencher numero com "999999" quando substitutivo=false e numero não informado', () => {
-      const params = new LexmlEtaParametrosEdicao();
-      params.sigla = 'PL';
-      (component as any).validarParametrosIdentificacaoProposicao(params);
-      expect(params.numero).to.equal('999999');
-    });
-
-    it('deve preencher ano com "9999" quando substitutivo=false e ano não informado', () => {
-      const params = new LexmlEtaParametrosEdicao();
-      params.sigla = 'PL';
-      (component as any).validarParametrosIdentificacaoProposicao(params);
-      expect(params.ano).to.equal('9999');
-    });
-
-    it('não deve alterar numero e ano quando ambos já informados e substitutivo=false', () => {
-      const params = new LexmlEtaParametrosEdicao();
-      params.sigla = 'PL';
-      params.numero = '42';
-      params.ano = '2020';
-      (component as any).validarParametrosIdentificacaoProposicao(params);
-      expect(params.numero).to.equal('42');
-      expect(params.ano).to.equal('2020');
-    });
-  });
-
-  describe('Cenário: Criar nova proposição (resetaProposicao)', () => {
-    it('deve ter substitutivo=false ao criar nova proposição sem informar substitutivo', () => {
-      const params = new LexmlEtaParametrosEdicao();
-      params.sigla = 'PL';
-      (component as any).resetaProposicao(params);
-      expect((component as any).substitutivo).to.be.false;
-    });
-
-    it('deve ter substitutivo=true ao criar nova proposição com substitutivo=true', () => {
-      const params = new LexmlEtaParametrosEdicao();
-      params.sigla = 'PL';
-      params.numero = '1';
-      params.ano = '2025';
-      params.substitutivo = true;
-      (component as any).resetaProposicao(params);
-      expect((component as any).substitutivo).to.be.true;
-    });
-  });
-
-  describe('Cenário: Carregar proposição de arquivo (setProposicao)', () => {
-    it('deve ter substitutivo=false ao carregar proposição com substitutivo=false', () => {
-      const proposicao = new Proposicao();
-      proposicao.substitutivo = false;
-      (component as any).setProposicao(proposicao);
-      expect((component as any).substitutivo).to.be.false;
-    });
-
-    it('deve ter substitutivo=true ao carregar proposição com substitutivo=true', () => {
-      const proposicao = new Proposicao();
-      proposicao.substitutivo = true;
-      (component as any).setProposicao(proposicao);
-      expect((component as any).substitutivo).to.be.true;
-    });
-
-    it('deve sobrescrever substitutivo anterior ao carregar nova proposição', () => {
-      const proposicaoSubstitutiva = new Proposicao();
-      proposicaoSubstitutiva.substitutivo = true;
-      (component as any).setProposicao(proposicaoSubstitutiva);
-      expect((component as any).substitutivo).to.be.true;
-
-      const proposicaoNormal = new Proposicao();
-      proposicaoNormal.substitutivo = false;
-      (component as any).setProposicao(proposicaoNormal);
-      expect((component as any).substitutivo).to.be.false;
-    });
   });
 
   describe('Validação de justificação', () => {
@@ -216,16 +116,7 @@ describe('LexmlEtaComponent - alerta de justificação não informada', () => {
 describe('LexmlEtaComponent - alerta de justificação ao iniciar a edição', () => {
   const getAlertasJustificativa = (): any[] => (rootStore.getState().elementoReducer.ui?.alertas || []).filter(a => a.id === 'alerta-global-justificativa');
 
-  const paramsComJustificativa = (justificativa?: string): LexmlEtaParametrosEdicao => {
-    const params = new LexmlEtaParametrosEdicao();
-    params.sigla = 'PL';
-    if (justificativa !== undefined) {
-      params.proposicao = new Proposicao();
-      params.proposicao.sigla = 'PL';
-      params.proposicao.justificativa = justificativa;
-    }
-    return params;
-  };
+  const URN = 'urn:lex:br:senado.federal:projeto.lei;pl:9999;999999';
 
   beforeEach(async () => {
     component = await fixture<LexmlEtaComponent>(html`<lexml-eta></lexml-eta>`);
@@ -234,25 +125,27 @@ describe('LexmlEtaComponent - alerta de justificação ao iniciar a edição', (
   });
 
   it('exibe o alerta ao iniciar uma proposição nova', async () => {
-    await component.inicializarEdicao(paramsComJustificativa());
+    await component.novaProposicao({ urn: URN, epigrafe: 'PROJETO DE LEI', preambulo: '' });
     expect(getAlertasJustificativa()).to.have.length(1);
   });
 
-  it('exibe o alerta ao iniciar com uma proposição sem justificação', async () => {
-    await component.inicializarEdicao(paramsComJustificativa(''));
+  it('exibe o alerta ao abrir um documento sem justificação', async () => {
+    await component.abrirDocumentoArticulado(novoDocumentoArticulado());
     expect(getAlertasJustificativa()).to.have.length(1);
   });
 
-  it('não exibe o alerta ao iniciar com uma proposição com justificação', async () => {
-    await component.inicializarEdicao(paramsComJustificativa('<p>Justificação.</p>'));
+  it('não exibe o alerta ao abrir um documento com justificação', async () => {
+    await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+    (component as any)._lexmlJustificativa.setContent('<p>Justificação.</p>');
+    (component as any)._lexmlJustificativa.updateApenasTexto();
+    const salvo = component.getDocumentoArticulado();
+
+    await component.abrirDocumentoArticulado(salvo);
     expect(getAlertasJustificativa()).to.be.empty;
   });
 
   it('não exibe o alerta ao iniciar no modo anexo de parecer', async () => {
-    const config = new LexmlEtaConfig();
-    config.anexoParecer = true;
-    component.lexmlEtaConfig = config;
-    await component.inicializarEdicao(paramsComJustificativa(''));
+    await component.novaProposicao({ urn: URN, epigrafe: 'PROJETO DE LEI', preambulo: '', anexoParecer: true });
     expect(getAlertasJustificativa()).to.be.empty;
   });
 });

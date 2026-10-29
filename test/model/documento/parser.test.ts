@@ -15,7 +15,7 @@ describe('Parser de medida provisória sem alteração e sem agrupador', () => {
     expect(documento?.classificacao).equals(ClassificacaoDocumento.NORMA);
   });
   it('Deveria apresentar medida provisória como tipo da norma', () => {
-    expect(documento?.tipo?.urn).equals('medida.provisoria');
+    expect(documento?.tipo?.urn).equals('medida.provisoria;mpv');
   });
   it('Deveria apresentar epigrafe', () => {
     expect(documento?.epigrafe).equals('MEDIDA PROVISÓRIA Nº 905, DE 11 DE NOVEMBRO DE 2019');
@@ -38,7 +38,7 @@ describe('Parser de medida provisória com alteração e sem agrupador', () => {
     expect(documento?.classificacao).equals(ClassificacaoDocumento.NORMA);
   });
   it('Deveria apresentar medida provisória como tipo da norma', () => {
-    expect(documento?.tipo?.urn).equals('medida.provisoria');
+    expect(documento?.tipo?.urn).equals('medida.provisoria;mpv');
   });
   it('Deveria apresentar epigrafe', () => {
     expect(documento?.epigrafe).equals('MEDIDA PROVISÓRIA Nº 885, DE 17 DE JUNHO DE 2019');

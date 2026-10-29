@@ -1,7 +1,7 @@
 import { isDispositivoCabecaAlteracao } from './../hierarquia/hierarquiaUtil';
 /* eslint-disable indent */
 import { Artigo, Dispositivo } from '../../dispositivo/dispositivo';
-import { isArtigo, isCaput, isParagrafo } from '../../dispositivo/tipo';
+import { isArtigo, isCaput, isParagrafo, isPena } from '../../dispositivo/tipo';
 import { hasIndicativoFimAlteracao, normalizaSeForOmissis } from '../conteudo/conteudoUtil';
 import {
   getArtigo,
@@ -17,22 +17,27 @@ import { criaDispositivo } from './dispositivoLexmlFactory';
 import { validaDispositivo } from './dispositivoValidator';
 
 const converteFilhos = (atual: Dispositivo, destino: Dispositivo): void => {
-  if (destino.tipoProvavelFilho! === undefined) {
-    return;
-  }
   atual.filhos.forEach((filho, index) => {
-    const novo = criaDispositivo(
-      isArtigo(destino) && TipoDispositivo.inciso.name === destino.tipoProvavelFilho! ? (destino as Artigo).caput! : destino,
-      destino.tipoProvavelFilho!,
-      undefined,
-      undefined,
-      filho.uuid
-    );
-    novo.texto = filho.texto ?? '';
-    novo.mensagens = validaDispositivo(novo);
-    novo.createRotulo(novo);
-    if (filho.filhos) {
-      converteFilhos(filho, novo);
+    if (isPena(filho)) {
+      // A pena acompanha o dono sem mudar de tipo, mesmo quando o destino não tem tipo provável de filho (ex.: Item).
+      const pena = criaDispositivo(destino, TipoDispositivo.pena.tipo, undefined, undefined, filho.uuid);
+      pena.rotulo = filho.rotulo;
+      pena.texto = filho.texto ?? '';
+      pena.mensagens = validaDispositivo(pena);
+    } else if (destino.tipoProvavelFilho! !== undefined) {
+      const novo = criaDispositivo(
+        isArtigo(destino) && TipoDispositivo.inciso.name === destino.tipoProvavelFilho! ? (destino as Artigo).caput! : destino,
+        destino.tipoProvavelFilho!,
+        undefined,
+        undefined,
+        filho.uuid
+      );
+      novo.texto = filho.texto ?? '';
+      novo.mensagens = validaDispositivo(novo);
+      novo.createRotulo(novo);
+      if (filho.filhos) {
+        converteFilhos(filho, novo);
+      }
     }
     if (index === atual.filhos.length - 1) {
       destino.renumeraFilhos();

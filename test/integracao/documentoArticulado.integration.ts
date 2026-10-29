@@ -15,7 +15,7 @@ import { MPV_885_2019 } from '../assets/mpv_885_2019';
 import { lerJustificacao } from '../../src/model/lexml/documento/conversor/justificacao';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
 import { encodeHtml } from '../../src/util/string-util';
-import { Autoria, ColegiadoApreciador } from '../../src/model/proposicao/proposicao';
+import { Autoria, ColegiadoApreciador, MimeType } from '../../src/model/proposicao/proposicao';
 import { MPV_905_2019 } from '../doc/mpv_905_2019';
 import { MPV_1234_2024 } from '../doc/mpv_1234_2024';
 import { RENUMERAR_ELEMENTO } from '../../src/model/lexml/acao/renumerarElementoAction';
@@ -24,7 +24,7 @@ import { Elemento } from '../../src/model/elemento';
 import { createElemento } from '../../src/model/elemento/elementoUtil';
 import { RevisaoElemento } from '../../src/model/revisao/revisao';
 import { isRevisaoPrincipal } from '../../src/redux/elemento/util/revisaoUtil';
-import { buscaDispositivoById } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
+import { buscaDispositivoById, getDispositivoAndFilhosAsLista } from '../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { elementoReducer } from '../../src/redux/elemento/reducer/elementoReducer';
 import { ClassificacaoDocumento } from '../../src/model/documento/classificacao';
 import { buildJsonixArticulacaoFromProjetoNorma } from '../../src/model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
@@ -40,6 +40,8 @@ import { ATUALIZAR_TEXTO_ELEMENTO } from '../../src/model/lexml/acao/atualizarTe
 import { MOVER_ELEMENTO_ABAIXO } from '../../src/model/lexml/acao/moverElementoAbaixoAction';
 import { TAB } from '../../src/model/lexml/acao/tabAction';
 import { REJEITAR_REVISAO } from '../../src/model/lexml/acao/rejeitarRevisaoAction';
+import { alterarRotuloPenaAction } from '../../src/model/lexml/acao/penaAction';
+import { LEXML_COM_PENAS } from '../doc/pena/lexml-com-penas';
 import { adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction } from '../../src/model/lexml/acao/atualizarTituloDispositivoAction';
 
 describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
@@ -117,6 +119,44 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(dados).to.deep.equal({ opcoesImpressao });
     const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+  });
+
+  it('modo de anexo de parecer e documento referenciado vão e voltam pelo CLI', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const urnDocumentoReferenciado = 'urn:lex:br:senado.federal:projeto.lei;pl:2025;10';
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { anexoParecer: true, urnDocumentoReferenciado });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.match(/<lexedit:Metadado[^>]*urnDocumentoReferenciado="urn:lex:br:senado.federal:projeto.lei;pl:2025;10"[^>]*anexoParecer="true"/);
+    const dados = lerMetadadoLexEdit(retorno.jsonix);
+    expect(dados).to.deep.equal({ anexoParecer: true, urnDocumentoReferenciado });
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+  });
+
+  it('documento de tipo não suportado grava a pendência de documento não suportado', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo = criarDocumentoArticulado(modelo, 'urn:lex:br:federal:medida.provisoria;mpv:2026;1', undefined, undefined, { anexoParecer: false });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('<lexedit:Pendencia>Este tipo de documento não é completamente suportado pelo editor.</lexedit:Pendencia>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+  });
+
+  it('modo normal grava anexoParecer="false" e omite o documento referenciado', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { anexoParecer: false });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('anexoParecer="false"');
+    expect(retorno.xml).not.to.include('urnDocumentoReferenciado');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
   });
 
   for (const [caso, data, texto] of [
@@ -307,6 +347,68 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     const reaberto: any = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
     aplicarSituacaoNaNormaVigente(reaberto.articulacao, lerSituacaoNaNormaVigente(retorno.jsonix));
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+  });
+
+  it('valida e reabre um documento com outros metadados', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const outrosMetadados = { tituloAntesDaEpigrafe: 'COMISSÃO XPTO', jsonDadosComissao: '{"id":1,"nome":"A & B <C> \\"d\\""}', vazio: '' };
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { outrosMetadados });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('<lexedit:OutroMetadado chave="tituloAntesDaEpigrafe">COMISSÃO XPTO</lexedit:OutroMetadado>');
+    expect(retorno.xml).to.include('A &amp; B &lt;C>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    const dados = lerMetadadoLexEdit(retorno.jsonix);
+    expect(dados.outrosMetadados).to.deep.equal(outrosMetadados);
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+  });
+
+  it('valida e reabre um documento com anexos', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const anexos = [
+      { idArquivo: 'f669f339-4c8c', nomeArquivo: 'Parecer da Comissão.pdf', nomeDocumento: 'Parecer "da" Comissão', tipo: 'substitutivo', mimeType: MimeType.PDF },
+      { idArquivo: 'id-2', nomeArquivo: 'Emenda Nº 4 & CCJ.docx', nomeDocumento: 'Emenda Nº 4 & CCJ <final>', tipo: 'nao.informado', mimeType: MimeType.DOCX },
+      { idArquivo: 'id-3', nomeArquivo: 'Relatório.pdf', nomeDocumento: "Relatório d'água", tipo: 'emenda', mimeType: MimeType.PDF },
+    ];
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { anexos });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('<lexedit:Anexo idArquivo="id-2" nomeArquivo="Emenda Nº 4 &amp; CCJ.docx" nomeDocumento="Emenda Nº 4 &amp; CCJ &lt;final>"');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    const dados = lerMetadadoLexEdit(retorno.jsonix);
+    expect(dados.anexos).to.deep.equal(anexos);
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+  });
+
+  it('o XSD exige os cinco atributos de lexedit:Anexo', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, {
+      anexos: [{ idArquivo: 'id-1', nomeArquivo: 'A.pdf', nomeDocumento: 'A', tipo: 'nao.informado', mimeType: MimeType.PDF }],
+    });
+    delete (salvo.value.metadado.metadadoProprietario![0].any[0].value.anexos as any).anexo[0].mimeType;
+
+    const retorno = await executeServerCommand<{ valido: boolean; erro: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido).to.equal(false);
+    expect(retorno.erro).to.include('mimeType');
+  });
+
+  it('o XSD rejeita chave repetida em lexedit:OutrosMetadados', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { outrosMetadados: { a: '1', b: '2' } });
+    const pares = (salvo.value.metadado.metadadoProprietario![0].any[0].value.outrosMetadados as any).outroMetadado;
+    pares[1].chave = 'a';
+
+    const retorno = await executeServerCommand<{ valido: boolean; erro: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido).to.equal(false);
+    expect(retorno.erro).to.include('chaveOutroMetadadoUnica');
   });
 
   // Com lexml-simples.xsd sozinho este valor passaria: o conteúdo do xsd:any lax não seria checado.
@@ -572,5 +674,61 @@ describe('Documento articulado — revisões da hierarquia pelo CLI real e XSD',
       const rejeitado = elementoReducer(reaberto, { type: REJEITAR_REVISAO });
       [...Object.values(INCISOS), ARTIGO].forEach(id => expect(titulo(rejeitado, id), id).to.equal(antes[id]));
     });
+  });
+});
+
+describe('Documento articulado — penas pelo CLI real e XSD', () => {
+  const URN = 'urn:lex:br:senado.federal:projeto.lei:2026;1';
+  type Resultado = { valido: boolean; xml: string; jsonix: any; erro?: string };
+
+  const penasDe = (s: State): { id?: string; rotulo?: string; texto?: string }[] =>
+    getDispositivoAndFilhosAsLista(s.articulacao!)
+      .filter(d => d.tipo === 'Pena')
+      .map(d => ({ id: d.id, rotulo: d.rotulo, texto: d.texto }));
+
+  const abre = (documento: unknown): State => {
+    const projetoNorma = buildProjetoNormaFromJsonix(documento, true);
+    return elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
+  };
+
+  it('as penas do caput, do parágrafo, do inciso e do bloco de alteração vão e voltam pelo CLI, idênticas', async () => {
+    const modelo = buildProjetoNormaFromJsonix(LEXML_COM_PENAS, true);
+    const salvo = criarDocumentoArticulado(modelo, URN);
+
+    const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    ['art1_cpt_pena', 'art1_par1_inc1_pena', 'art1_par1_pena', 'art2_cpt_alt1_art213_cpt_pena'].forEach(id => expect(retorno.xml).to.match(new RegExp(`<Pena[^>]* id="${id}"`)));
+    const reaberto = abre(lerDocumentoArticulado(retorno.jsonix));
+    expect(penasDe(reaberto)).to.deep.equal(penasDe(abre(salvo)));
+    expect(penasDe(reaberto)).to.have.length(4);
+    expect(criarDocumentoArticulado(reaberto.articulacao!.projetoNorma!, URN)).to.deep.equal(salvo);
+  });
+
+  // O jsonix-lexml 2.1.0 descarta, sem erro, a pena dentro de RevisaoArticulacao. O teste decide pela versão do CLI, não pelo
+  // resultado: a partir do 2.2.0 exige a ida e volta completa (uma regressão que volte a descartar a pena falha); abaixo, confirma o descarte.
+  it('a revisão da pena (rótulo alterado e pena excluída) é válida no XSD e depende do CLI 2.2.0 para voltar', async () => {
+    let s = abre(LEXML_COM_PENAS);
+    s = elementoReducer(s, { type: ATUALIZAR_USUARIO, usuario: { nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' } });
+    s = elementoReducer(s, { type: ATIVAR_DESATIVAR_REVISAO });
+    const pena = (id: string): Elemento => createElemento(buscaDispositivoById(s.articulacao!, id)!);
+    s = elementoReducer(s, alterarRotuloPenaAction.execute(pena('art1_cpt_pena'), 'Infração'));
+    s = elementoReducer(s, { type: REMOVER_ELEMENTO, atual: pena('art1_par1_inc1_pena') });
+    const salvo = criarDocumentoArticulado(s.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: montaRevisoesArticulacao(s)! });
+    const revisoesComPena = (doc: any): any[] => (doc.value.metadado.metadadoProprietario[0].any[0].value.revisoesArticulacao?.revisaoArticulacao ?? []).filter((r: any) => r.pena);
+    expect(revisoesComPena(salvo), 'o editor grava a pena em RevisaoArticulacao').to.have.length(2);
+
+    const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    const versao = await executeServerCommand<string, unknown>('versao-jsonix-lexml', null);
+    const [maior, menor] = (/\d+\.\d+\.\d+/.exec(versao)?.[0] ?? '0.0.0').split('.').map(Number);
+    if (maior > 2 || (maior === 2 && menor >= 2)) {
+      expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    } else {
+      expect(revisoesComPena(retorno.jsonix), `jsonix-lexml ${versao} deveria descartar a pena`).to.have.length(0);
+      // eslint-disable-next-line no-console
+      console.warn('jsonix-lexml anterior ao 2.2.0: a pena dentro de RevisaoArticulacao foi descartada (esperado até a atualização do CLI).');
+    }
   });
 });

@@ -3,8 +3,8 @@ import { ProjetoNorma } from './projetoNorma';
 import { buildJsonixFromProjetoNorma } from './conversor/buildJsonixFromProjetoNorma';
 import { buildProjetoNormaFromJsonix } from './conversor/buildProjetoNormaFromJsonix';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../remissao';
-import { getAno, getNumero, getSigla } from './urnUtil';
-import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
+import { getAno, getNumero, getSigla, verificarUrnDaCasaDoEditor } from './urnUtil';
+import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
 import { Usuario } from '../../revisao/usuario';
 import type { SituacaoNaNormaVigente } from './conversor/situacaoNaNormaVigente';
 
@@ -16,6 +16,9 @@ export interface MetadadoLexEdit {
   // Local e data do fecho são atributos do próprio lexedit:Metadado (especificação 03); `data` é xsd:date.
   local?: string;
   data?: string;
+  // Ausente nos arquivos antigos: equivale a false (modo normal).
+  anexoParecer?: boolean;
+  urnDocumentoReferenciado?: string;
   // Atributos opcionais no arquivo: a ausência significa o padrão da aplicação (especificação 02).
   opcoesImpressao?: Partial<OpcoesImpressao> & { TYPE_NAME?: string };
   // Só autoria de parlamentares por enquanto (especificação 04).
@@ -32,6 +35,10 @@ export interface MetadadoLexEdit {
   colegiadoApreciador?: { TYPE_NAME: string; siglaCasaLegislativa: string; tipoColegiado: string; siglaComissao?: string };
   // Ids separados por espaço; cada atributo é omitido quando vazio (especificação 13).
   situacaoNaNormaVigente?: { TYPE_NAME: string; refIdsDispositivosExistentes?: string; refIdsDispositivosNovos?: string };
+  // Pares chave/valor livres dos hosts; o valor é sempre texto.
+  outrosMetadados?: { TYPE_NAME: string; outroMetadado: Array<{ TYPE_NAME: string; chave: string; value: string }> };
+  // Só os metadados dos anexos, na ordem de exibição; o conteúdo fica com o host.
+  anexos?: { TYPE_NAME: string; anexo: Array<Anexo & { TYPE_NAME: string }> };
   revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
   usuarios?: RevisoesLexEdit['usuarios'];
   // Um RevisaoTextual por `ins`/`del` da justificação (especificação 09).
@@ -67,6 +74,8 @@ export interface MetadadoLexEditProvisorio {
 
 /** Dados de formulário do editor gravados em `lexedit` — um campo por grupo de metadados. */
 export interface DadosLexEdit {
+  anexoParecer?: boolean;
+  urnDocumentoReferenciado?: string;
   local?: string;
   // 'AAAA-MM-DD'; ausente ou vazia significa data não informada.
   data?: string;
@@ -77,6 +86,8 @@ export interface DadosLexEdit {
   justificacao?: string;
   autoria?: Autoria;
   colegiadoApreciador?: ColegiadoApreciador;
+  outrosMetadados?: Record<string, string>;
+  anexos?: Anexo[];
   revisoes?: RevisoesLexEdit;
   // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
   revisoesLidas?: RevisaoArticulacaoLida[];
@@ -101,6 +112,8 @@ export interface RevisaoArticulacaoLida {
   textoAnterior?: string;
   // Título anterior: ausente = o arquivo não informa (`p` solto); null = o dispositivo não tinha título.
   tituloAnterior?: string | null;
+  // Rótulo anterior da pena: ausente = igual ao atual.
+  rotuloAnterior?: string;
   // Dispositivo excluído (nó jsonix `{ name, value }`), quando a revisão é de exclusão.
   excluido?: { name: { namespaceURI: string; localPart: string }; value: any };
 }
@@ -209,6 +222,7 @@ export const lerDocumentoArticulado = (entrada: unknown): DocumentoArticulado =>
     }
   }
   const validado = validarDocumentoArticulado(doc);
+  verificarUrnDaCasaDoEditor(validado.value.metadado.identificacao.urn);
   const copia = JSON.parse(JSON.stringify(validado)) as DocumentoArticulado;
   // Exercita o leitor antes de permitir que a interface substitua seu estado.
   try {

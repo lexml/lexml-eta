@@ -1,5 +1,6 @@
 import { expect, fixture } from '@open-wc/testing';
-import { LexmlEtaComponent, LexmlEtaConfig, LexmlEtaParametrosEdicao } from '../../../src';
+import '../../../src';
+import type { LexmlEtaComponent } from '../../../src';
 import { DOCUMENTO_PADRAO } from '../../../src/model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../../../src/redux/store';
 import { encodeHtml } from '../../../src/util/string-util';
@@ -79,9 +80,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
   it('iniciar um novo documento não reutiliza o anterior nem altera o modelo padrão', async () => {
     const antes = JSON.stringify(DOCUMENTO_PADRAO);
-    const params = new LexmlEtaParametrosEdicao();
-    params.sigla = 'PL';
-    await component.inicializarEdicao(params);
+    await component.novaProposicao({ urn: 'urn:lex:br:senado.federal:projeto.lei;pl:9999;999999', epigrafe: 'PROJETO DE LEI', preambulo: '' });
     const novo = component.getDocumentoArticulado();
     expect(novo.value.metadado.identificacao.urn).to.include(':9999;999999');
     expect(novo.value.projetoNorma.norma.articulacao.lXhier[0].value.lXcontainersOmissis).to.have.length(1);
@@ -90,7 +89,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
   it('preserva a autoridade e o evento da URN recebida', async () => {
     const entrada = novoDocumentoArticulado();
-    const urn = 'urn:lex:br:camara.deputados:projeto.lei;pl:2026;123@data.evento;leitura;2026-03-19t14.00';
+    const urn = 'urn:lex:br:senado.federal:projeto.lei;pl:2026;123@data.evento;leitura;2026-03-19t14.00';
     entrada.value.metadado.identificacao.urn = urn;
     await component.abrirDocumentoArticulado(entrada);
     expect(component.getDocumentoArticulado().value.metadado.identificacao.urn).to.equal(urn);
@@ -210,8 +209,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('no modo anexo de parecer aplica a data lida e preserva local e data ao salvar e reabrir', async () => {
-      component.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), { anexoParecer: true });
-      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da comissão', data: '2026-04-24' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ anexoParecer: true, local: 'Sala da comissão', data: '2026-04-24' }));
       await campoData().updateComplete;
 
       expect(campoData().data).to.equal('2026-04-24');
@@ -266,6 +264,62 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
       expect((salvo.value.projetoNorma.norma as any).parteFinal.localDataFecho.p[0].content[0]).to.equal('Sala da comissão, 1º de maio de 2026.');
+    });
+  });
+
+  describe('outros metadados', () => {
+    const outros = { tituloAntesDaEpigrafe: 'COMISSÃO XPTO', jsonDadosComissao: '{"id":1}' };
+    const entradaComOutros = (pares: unknown): any => {
+      const entrada = novoDocumentoArticulado();
+      entrada.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit({ outrosMetadados: pares })];
+      return entrada;
+    };
+    const arquivoCom = (valores: Record<string, string>): any =>
+      entradaComOutros({
+        outroMetadado: Object.entries(valores).map(([chave, value]) => ({ TYPE_NAME: 'br_gov_lexml_lexedit__1.OutroMetadado', chave, value })),
+      });
+
+    it('começa vazia e não grava o grupo', () => {
+      expect(component.outrosMetadados).to.deep.equal({});
+      expect(lexeditSalvo(component.getDocumentoArticulado())).not.to.have.property('outrosMetadados');
+    });
+
+    it('salva os pares definidos pelo host', () => {
+      component.outrosMetadados = outros;
+
+      const pares = lexeditSalvo(component.getDocumentoArticulado()).outrosMetadados.outroMetadado;
+
+      expect(pares.map((p: any) => [p.chave, p.value])).to.deep.equal(Object.entries(outros));
+    });
+
+    it('no modo anexo de parecer também salva', () => {
+      (component as any).anexoParecer = true;
+      component.outrosMetadados = outros;
+
+      expect(lexeditSalvo(component.getDocumentoArticulado()).outrosMetadados.outroMetadado).to.have.length(2);
+    });
+
+    it('abrir um arquivo preenche a propriedade', async () => {
+      await component.abrirDocumentoArticulado(arquivoCom(outros));
+
+      expect(component.outrosMetadados).to.deep.equal(outros);
+    });
+
+    it('arquivo sem o grupo esvazia a propriedade, sem herdar a do documento anterior', async () => {
+      await component.abrirDocumentoArticulado(arquivoCom(outros));
+      await component.abrirDocumentoArticulado(novoDocumentoArticulado());
+
+      expect(component.outrosMetadados).to.deep.equal({});
+    });
+
+    it('salvar e reabrir preserva os pares', async () => {
+      component.outrosMetadados = outros;
+      const salvo = component.getDocumentoArticulado();
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(component.outrosMetadados).to.deep.equal(outros);
+      expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
     });
   });
 
@@ -489,11 +543,12 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(metadado).to.not.have.property('lexedit');
       expect(lexeditSalvo(salvo)).to.deep.equal({
         TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado',
+        anexoParecer: false,
         local: 'Sala da comissão',
         data: '2026-04-24',
         opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...OPCOES },
-        // O arquivo provisório não tem destino: vale o padrão do editor.
-        colegiadoApreciador: { TYPE_NAME: 'br_gov_lexml_lexedit__1.ColegiadoApreciador', siglaCasaLegislativa: 'CN', tipoColegiado: 'Plenário' },
+        // O arquivo provisório não tem destino: vale o padrão do editor, com a casa derivada da URN.
+        colegiadoApreciador: { TYPE_NAME: 'br_gov_lexml_lexedit__1.ColegiadoApreciador', siglaCasaLegislativa: 'SF', tipoColegiado: 'Plenário' },
         remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idRemissao },
         pendencias: { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: [JUSTIFICACAO, 'Corrigir remissões internas inválidas.'] },
       });
@@ -587,9 +642,8 @@ describe('ETA — salvar e abrir documento articulado', () => {
       (component as any).anexoParecer = true;
       expect(justificacaoSalva()).to.be.undefined;
 
-      const config = new LexmlEtaConfig();
-      config.anexoParecer = true;
-      component.lexmlEtaConfig = config;
+      // O modo vem do arquivo: um anexo de parecer com Justificacao não a carrega.
+      lexeditSalvo(comJustificacao).anexoParecer = true;
       carregar('');
       await component.abrirDocumentoArticulado(comJustificacao);
       expect(editor().texto).to.equal('');

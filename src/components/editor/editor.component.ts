@@ -7,7 +7,6 @@ import {
   isRevisaoComTextoAlterado,
   setCheckedElement,
 } from '../../redux/elemento/util/revisaoUtil';
-import { uploadAnexoDialog } from '../editor-texto-rico/uploadAnexoDialog';
 import { colarTextoArticuladoDialog, onChangeColarDialog } from './colarTextoArticuladoDialog';
 import { InfoTextoColado } from '../../redux/elemento/util/colarUtil';
 import { AdicionarAgrupadorArtigo } from '../../model/lexml/acao/adicionarAgrupadorArtigoAction';
@@ -73,6 +72,8 @@ import { atualizarNotaAlteracaoAction } from '../../model/lexml/acao/atualizarNo
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
 import { editarNotaAlteracaoDialog } from './editarNotaAlteracaoDialog';
 import { editarTituloDispositivoDialog } from './editarTituloDispositivoDialog';
+import { editarRotuloPenaDialog } from './editarRotuloPenaDialog';
+import { AdicionarPena, AlterarRotuloPena, adicionarPenaAction } from '../../model/lexml/acao/penaAction';
 import { nomeDispositivoComArtigo } from '../../model/lexml/dispositivo/dispositivoValidator';
 import { AtualizarTituloDispositivo, removerTituloDispositivoAction } from '../../model/lexml/acao/atualizarTituloDispositivoAction';
 import { informarNormaDialog } from './informarNormaDialog';
@@ -81,11 +82,11 @@ import { transformarAction } from '../../model/lexml/acao/transformarAction';
 import { LexmlEtaConfig } from '../../model/lexmlEtaConfig';
 import { aceitarRevisaoAction } from '../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../model/lexml/acao/rejeitarRevisaoAction';
-import { TextoDiff, exibirDiferencasDialog } from './exibirDiferencaDialog';
+import { exibirDiferencasDialog, montaTextoDiff } from './exibirDiferencaDialog';
 import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao';
-import { isCaput } from '../../model/dispositivo/tipo';
+import { isCaput, isPena } from '../../model/dispositivo/tipo';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
-import { findDispositivoByUuid } from '../../model/lexml/hierarquia/hierarquiaUtil';
+import { findDispositivoByUuid, getDispositivoAndFilhosAsLista } from '../../model/lexml/hierarquia/hierarquiaUtil';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
@@ -94,7 +95,6 @@ import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
-import { Anexo } from '../../model/proposicao/proposicao';
 import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
 import { iconeRemissaoInterna } from '../../../assets/icons/icons';
 import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';
@@ -160,21 +160,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private _idSwitchRevisao = 'chk-em-revisao';
   private _idBadgeQuantidadeRevisao = 'badge-marca-alteracao';
 
-  @property({ type: Array }) anexos: Anexo[] = [];
-
   constructor() {
     super();
     this.tabIndex = -1;
   }
-
-  atualizaAnexo = (anexo: Anexo[]): void => {
-    this.anexos = [...anexo];
-  };
-
-  labelAnexo = (): string => {
-    const lengthAnexos = this.anexos?.length;
-    return lengthAnexos === 1 ? '1 anexo' : lengthAnexos > 1 ? `${lengthAnexos} anexos` : '';
-  };
 
   createRenderRoot(): LitElement {
     return this;
@@ -345,20 +334,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             <sl-icon name="arrow-up-circle"></sl-icon>
           </button>
 
-          <button type="button" class="panel-anexo" title="Anexo"
-                  style="width: auto"
-                  @click=${(): any => uploadAnexoDialog(this.anexos, this.atualizaAnexo, this)}>
-            <span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="15px" height="15px" viewBox="0 0 35 35" data-name="Layer 2"
-                   id="Layer_2">
-                <path
-                  d="M18,34.75A11.32,11.32,0,0,1,6.69,23.45V8A7.78,7.78,0,0,1,22.25,8V22.49a4.58,4.58,0,1,1-9.15,0V9.29a1.25,1.25,0,0,1,2.5,0v13.2a2.08,2.08,0,1,0,4.15,0V8A5.28,5.28,0,0,0,9.19,8V23.45A8.82,8.82,0,0,0,18,32.25c4.6,0,7.81-3.62,7.81-8.8V9.66a1.25,1.25,0,0,1,2.5,0V23.45C28.31,30,24,34.75,18,34.75Z"
-                />
-              </svg>
-              ${this.labelAnexo()}
-            </span>
-          </button>
-
           <button type="button" class="btn-remissao-interna" title="Adicionar remissão" ?disabled=${!this._temSelecao} @click=${this.abrirDialogoRemissao}>
             ${unsafeHTML(iconeRemissaoInterna)}
           </button>
@@ -490,6 +465,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const indexInicio: number = this.quill.inicioConteudoAtual ?? 0;
     const indexFim: number = indexInicio + blotConteudo.tamanho;
+    // A pena não é desmembrada: Enter só vale com o cursor no fim do texto.
+    if (linha.tipo === TipoDispositivo.pena.tipo && range.index !== indexFim) {
+      return;
+    }
     let textoLinha = '';
     let textoNovaLinha = '';
     let posicao: string | undefined = undefined;
@@ -559,6 +538,16 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const dispositivo = getDispositivoFromElemento(rootStore.getState().elementoReducer.articulacao, elemento, true);
     if (dispositivo) {
       editarTituloDispositivoDialog(elemento, nomeDispositivoComArtigo(dispositivo), this.quill, rootStore);
+    }
+  }
+
+  // Com alguma pena no documento, a nova usa o rótulo da primeira; sem nenhuma, o usuário escolhe o rótulo.
+  private adicionarPena(elemento: Elemento): void {
+    const articulacao = rootStore.getState().elementoReducer.articulacao;
+    if (articulacao && getDispositivoAndFilhosAsLista(articulacao).some(isPena)) {
+      rootStore.dispatch(adicionarPenaAction.execute(elemento));
+    } else {
+      editarRotuloPenaDialog(elemento, this.quill, rootStore, true);
     }
   }
 
@@ -773,6 +762,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   private elementoSelecionado(uuid: number): void {
+    if (!this._quill) return;
     const linha: EtaContainerTable = this.quill.linhaAtual;
     if (linha) {
       const elemento: Elemento = this.criarElemento(uuid, linha!.uuid2, linha.lexmlId, linha.tipo ?? '', '', linha.numero, linha.hierarquia);
@@ -1040,6 +1030,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.editarNotaAlteracao(this.quill.linhaAtual.elemento);
     } else if (itemMenu instanceof AtualizarTituloDispositivo) {
       this.editarTituloDispositivo(this.quill.linhaAtual.elemento, itemMenu);
+    } else if (itemMenu instanceof AdicionarPena) {
+      this.adicionarPena(this.quill.linhaAtual.elemento);
+    } else if (itemMenu instanceof AlterarRotuloPena) {
+      editarRotuloPenaDialog(this.quill.linhaAtual.elemento, this.quill, rootStore);
     } else if (itemMenu instanceof AdicionarAgrupadorArtigo) {
       this.adicionarAgrupadorArtigo(this.quill.linhaAtual.elemento);
     } else if (itemMenu === removerElementoAction) {
@@ -1484,23 +1478,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   exibirDiferencas(elemento: Elemento): void {
-    const diff: TextoDiff = new TextoDiff();
-    diff.textoAtual = elemento.conteudo!.texto!;
-    diff.tituloAtual = elemento.tituloDispositivo;
-    diff.quill = this.quill;
-
-    const revisao = elemento.revisao as RevisaoElemento;
-
-    if (revisao) {
-      diff.comRevisao = true;
-      diff.textoAntesRevisao = revisao.elementoAntesRevisao!.conteudo!.texto!;
-      diff.tituloAntesRevisao = revisao.elementoAntesRevisao!.tituloDispositivo;
-      diff.textoOriginal = diff.textoAntesRevisao;
-      // Em proposição todo dispositivo nasce novo: não há texto de norma vigente para a aba "Texto original".
-      diff.adicionado = true;
-    }
-
-    exibirDiferencasDialog(diff);
+    exibirDiferencasDialog(montaTextoDiff(elemento, this.quill));
   }
 
   aceitarRevisao(elemento: Elemento): void {
@@ -1770,6 +1748,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           const el = (elementoEmenta && this.quill.getLinha(elementoEmenta.uuid!)) || primeiraLinhaDaPagina || this.quill.getLinha(elementos[1].uuid!);
           if (el?.blotConteudo) {
             this.quill.setSelection(this.quill.getIndex(el?.blotConteudo), 0, PrivateQuill.sources.SILENT);
+            this.quill.marcarLinhaAtual(el);
             this.focarQuillQuandoVisivel();
           }
         }, 0);
@@ -1910,6 +1889,11 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.editarTituloDispositivo(event.detail.elemento);
   };
 
+  private listenerRotuloPena = (event: any): void => {
+    event.stopImmediatePropagation();
+    editarRotuloPenaDialog(event.detail.elemento, this.quill, rootStore);
+  };
+
   private listenerToggleExistencia = (event: any): void => {
     event.stopImmediatePropagation();
     this.toggleExistenciaElemento(event.detail.elemento);
@@ -1968,6 +1952,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editorHtml.addEventListener('rotulo', this.listenerRotulo);
     editorHtml.addEventListener('nota-alteracao', this.listenerNotaAlteracao);
     editorHtml.addEventListener('titulo-dispositivo', this.listenerTituloDispositivo);
+    editorHtml.addEventListener('rotulo-pena', this.listenerRotuloPena);
     editorHtml.addEventListener('toggle-existencia', this.listenerToggleExistencia);
     editorHtml.addEventListener('mensagem', this.listenerMensagem);
     editorHtml.addEventListener('aceitar-revisao', this.listenerAceitarRevisao);
@@ -1980,6 +1965,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     editorHtml.removeEventListener('rotulo', this.listenerRotulo);
     editorHtml.removeEventListener('nota-alteracao', this.listenerNotaAlteracao);
     editorHtml.removeEventListener('titulo-dispositivo', this.listenerTituloDispositivo);
+    editorHtml.removeEventListener('rotulo-pena', this.listenerRotuloPena);
     editorHtml.removeEventListener('toggle-existencia', this.listenerToggleExistencia);
     editorHtml.removeEventListener('mensagem', this.listenerMensagem);
     editorHtml.removeEventListener('aceitar-revisao', this.listenerAceitarRevisao);

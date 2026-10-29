@@ -37,10 +37,10 @@ Quando houver mais de um grupo de metadados do LexEdit a serializar, o sistema S
 - **AND** ao abrir esse arquivo, o sistema reconstrói tanto as opções de impressão quanto o estado inválido das remissões
 
 ### Requirement: Formato do ponto de extensão compatível com o conversor LexML
-O sistema SHALL gravar o conteúdo do LexEdit, dentro de `MetadadoProprietario`, como o elemento nomeado `lexedit:Metadado` (namespace `http://www.lexml.gov.br/lexedit/1.0`), com os grupos tipados conforme `schemas/lexedit.xsd`, no mesmo formato de `docs/extensao-formato-lexml/documento-articulado-exemplo.json`. A lista de identificadores de remissões internas inválidas SHALL ser gravada como um único texto, com os identificadores separados por espaço. A lista de pendências SHALL ser gravada como uma sequência de elementos `Pendencia` dentro de `Pendencias`. O conversor `jsonix-lexml` 2.1.0 SHALL converter o arquivo salvo em XML sem erro e sem descartar nenhum grupo.
+O sistema SHALL gravar o conteúdo do LexEdit, dentro de `MetadadoProprietario`, como o elemento nomeado `lexedit:Metadado` (namespace `http://www.lexml.gov.br/lexedit/1.0`), com os grupos tipados conforme `schemas/lexedit.xsd`, no mesmo formato de `docs/extensao-formato-lexml/documento-articulado-exemplo.json`. A lista de identificadores de remissões internas inválidas SHALL ser gravada como um único texto, com os identificadores separados por espaço. A lista de pendências SHALL ser gravada como uma sequência de elementos `Pendencia` dentro de `Pendencias`. O conversor `jsonix-lexml`, na versão indicada em `schemas/README.md`, SHALL converter o arquivo salvo em XML sem erro e sem descartar nenhum grupo.
 
 #### Scenario: Conversão para XML preserva os grupos do LexEdit
-- **WHEN** o usuário salva um documento com local "Sala das sessões", data `2026-04-24` e opções de impressão, e o arquivo é convertido em XML pelo conversor `jsonix-lexml` 2.1.0
+- **WHEN** o usuário salva um documento com local "Sala das sessões", data `2026-04-24` e opções de impressão, e o arquivo é convertido em XML pelo conversor `jsonix-lexml`
 - **THEN** o XML contém `MetadadoProprietario` com um `lexedit:Metadado` que tem `local="Sala das sessões"`, `data="2026-04-24"` e o filho `lexedit:OpcoesImpressao` com os quatro atributos
 
 #### Scenario: Documento com mais de uma remissão interna inválida
@@ -54,6 +54,27 @@ O sistema SHALL gravar o conteúdo do LexEdit, dentro de `MetadadoProprietario`,
 #### Scenario: XML gerado é válido pelo esquema do LexEdit
 - **WHEN** o XML gerado pelo conversor a partir de um documento salvo pelo editor é validado com `schemas/lexedit.xsd`, que importa o esquema LexML
 - **THEN** a validação não aponta erro, nem na parte LexML nem no conteúdo de `lexedit:Metadado`
+
+### Requirement: Ida e volta dos metadados do LexEdit pelo conversor
+Ao converter em XML um documento salvo pelo editor e convertê-lo de volta em JSON pelo conversor `jsonix-lexml`, o sistema SHALL abrir o resultado com os mesmos valores de todos os grupos do LexEdit que suporta e com a mesma justificação, inclusive as notas de rodapé e as marcas de revisão de texto. Salvar de novo esse documento SHALL gerar um arquivo igual ao original. Exceção, enquanto o plugin de tabelas do editor não guardar largura: a largura de tabela e de coluna não volta ao editor, e o arquivo salvo de novo não a tem.
+
+#### Scenario: Opções de impressão, fecho e remissão inválida voltam do XML
+- **WHEN** um documento com opções de impressão alteradas, local e data do fecho e uma remissão interna inválida é salvo, convertido em XML, convertido de volta em JSON e aberto
+- **THEN** o formulário de opções de impressão, o campo "Data" e o local exibem os valores salvos, e a remissão é reconstruída como inválida
+- **AND** salvar esse documento aberto gera um arquivo igual ao salvo originalmente
+
+#### Scenario: Pendência de justificação na ida e volta com justificação vazia
+- **WHEN** um documento com a justificação obrigatória vazia é salvo, convertido em XML, convertido de volta em JSON e aberto
+- **THEN** salvar esse documento aberto gera um arquivo igual ao salvo originalmente, com a pendência "Não foi informado um texto de justificação."
+
+#### Scenario: Justificação preenchida na ida e volta
+- **WHEN** um documento com a justificação preenchida, com texto formatado, lista, link, tabela sem largura, imagem com largura e notas de rodapé, é salvo, convertido em XML, convertido de volta em JSON e aberto
+- **THEN** salvar esse documento aberto gera um arquivo igual ao salvo originalmente, com os mesmos `NotaDeRodape` e sem a pendência "Não foi informado um texto de justificação."
+
+#### Scenario: Revisões de texto na ida e volta
+- **WHEN** um documento com marcas de revisão de texto na justificação, uma delas com nota de rodapé no trecho excluído, é salvo, convertido em XML, convertido de volta em JSON e aberto
+- **THEN** o editor exibe as mesmas marcas, com o mesmo autor e a mesma data
+- **AND** salvar esse documento aberto gera um arquivo igual ao salvo originalmente, com os mesmos `ins`, `del`, `RevisoesTextuais`, `Usuarios` e a pendência "Resolver marcas de revisão de texto."
 
 ### Requirement: Leitura do formato provisório dos metadados do LexEdit
 Ao abrir um documento salvo antes da adoção do conversor `jsonix-lexml` 2.0.0, com os metadados do LexEdit no formato provisório (a chave `lexedit` diretamente em `MetadadoProprietario`, com `refIdsRemissoesInternas` como lista e `pendencias` como lista de textos), o sistema SHALL recuperar os mesmos grupos que recupera do formato novo. O próximo salvamento SHALL gravar somente o formato novo.
@@ -90,7 +111,7 @@ O sistema SHALL gravar o grupo `Usuarios` em `lexedit:Metadado` somente quando h
 - **THEN** o arquivo salvo contém `Usuarios` com o autor da marca, e não contém `RevisoesArticulacao`
 
 ### Requirement: Revisões da hierarquia compatíveis com o conversor LexML
-O sistema SHALL gravar `RevisoesArticulacao` no formato tipado do conversor `jsonix-lexml` 2.1.0, conforme `schemas/lexedit.xsd`, incluindo o conteúdo filho de cada `RevisaoArticulacao` (dispositivo com o estado anterior, com o texto e o título anteriores, ou dispositivo excluído com sua hierarquia). O conversor SHALL converter o arquivo em XML sem erro e sem descartar nenhum atributo ou conteúdo das revisões.
+O sistema SHALL gravar `RevisoesArticulacao` no formato tipado do conversor `jsonix-lexml`, conforme `schemas/lexedit.xsd`, incluindo o conteúdo filho de cada `RevisaoArticulacao` (dispositivo com o estado anterior, com o texto e o título anteriores, ou dispositivo excluído com sua hierarquia). O conversor SHALL converter o arquivo em XML sem erro e sem descartar nenhum atributo ou conteúdo das revisões.
 
 #### Scenario: Conversão para XML preserva as revisões
 - **WHEN** o usuário salva um documento com revisões de adição, exclusão, alteração, movimentação e transformação, e o arquivo é convertido em XML pelo conversor
@@ -118,21 +139,6 @@ O sistema SHALL NOT gravar nem ler o atributo `substitutivo` em `lexedit:Metadad
 #### Scenario: Arquivo com o atributo substitutivo é aberto
 - **WHEN** o usuário abre um arquivo cujo `lexedit:Metadado` traz `substitutivo`
 - **THEN** o documento abre normalmente, sem erro, e o atributo é ignorado
-
-### Requirement: Documento referenciado previsto e não preenchido
-O esquema do LexEdit SHALL prever o atributo opcional `urnDocumentoReferenciado` (texto) em `lexedit:Metadado`. O sistema SHALL NOT gravar esse atributo ao salvar nem alterar o comportamento ao ler um arquivo que o contenha.
-
-#### Scenario: Salvar não grava a URN do documento referenciado
-- **WHEN** o usuário salva qualquer documento
-- **THEN** o `lexedit:Metadado` do arquivo salvo não contém `urnDocumentoReferenciado`
-
-#### Scenario: Arquivo com a URN do documento referenciado é aberto
-- **WHEN** o usuário abre um arquivo cujo `lexedit:Metadado` traz `urnDocumentoReferenciado`
-- **THEN** o documento abre normalmente, sem erro
-
-#### Scenario: Esquema aceita o atributo
-- **WHEN** um `lexedit:Metadado` com `urnDocumentoReferenciado` é validado com `schemas/lexedit.xsd`
-- **THEN** a validação não aponta erro
 
 ### Requirement: Situação dos dispositivos de alteração na norma vigente
 O sistema SHALL gravar, em `lexedit:SituacaoNaNormaVigente`, os identificadores dos dispositivos de bloco de alteração de norma que existem na norma vigente em `refIdsDispositivosExistentes` e os que são novos em `refIdsDispositivosNovos`, cada lista como texto com os identificadores separados por espaço. Dispositivos fora de bloco de alteração e dispositivos sem situação informada SHALL NOT constar em nenhuma das listas. O elemento SHALL ser omitido quando as duas listas estiverem vazias, e um atributo com lista vazia SHALL ser omitido.
@@ -176,36 +182,15 @@ O sistema SHALL gravar o destino da proposição em `lexedit:ColegiadoApreciador
 - **THEN** o `lexedit:ColegiadoApreciador` contém `tipoColegiado="Comissão"` e a `siglaComissao` escolhida
 
 ### Requirement: Novos grupos na ida e volta pelo conversor
-O conversor `jsonix-lexml` 2.1.0 SHALL converter para XML e de volta para JSON um documento com `lexedit:SituacaoNaNormaVigente` e `lexedit:ColegiadoApreciador` sem descartá-los, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`.
+O conversor `jsonix-lexml` SHALL converter para XML e de volta para JSON um documento com `lexedit:SituacaoNaNormaVigente` e `lexedit:ColegiadoApreciador` sem descartá-los, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`.
 
 #### Scenario: Ida e volta preserva situação e destino
 - **WHEN** um documento com bloco de alteração (dispositivos existentes e novos) e destino Comissão é salvo, convertido em XML, convertido de volta em JSON e aberto
 - **THEN** a situação dos dispositivos e o destino exibem os valores salvos
 - **AND** salvar esse documento aberto gera um arquivo igual ao salvo originalmente
 
-### Requirement: Ida e volta do documento salvo pelo conversor jsonix-lexml
-Ao converter em XML um documento salvo pelo editor e convertê-lo de volta em JSON pelo conversor `jsonix-lexml` 2.1.0, o sistema SHALL abrir o resultado com os mesmos valores de todos os grupos do LexEdit que suporta e com a mesma justificação, inclusive as notas de rodapé e as marcas de revisão de texto. Salvar de novo esse documento SHALL gerar um arquivo igual ao original. Exceção, enquanto o plugin de tabelas do editor não guardar largura: a largura de tabela e de coluna não volta ao editor, e o arquivo salvo de novo não a tem.
-
-#### Scenario: Opções de impressão, fecho e remissão inválida voltam do XML
-- **WHEN** um documento com opções de impressão alteradas, local e data do fecho e uma remissão interna inválida é salvo, convertido em XML, convertido de volta em JSON e aberto
-- **THEN** o formulário de opções de impressão, o campo "Data" e o local exibem os valores salvos, e a remissão é reconstruída como inválida
-- **AND** salvar esse documento aberto gera um arquivo igual ao salvo originalmente
-
-#### Scenario: Pendência de justificação na ida e volta com justificação vazia
-- **WHEN** um documento com a justificação obrigatória vazia é salvo, convertido em XML, convertido de volta em JSON e aberto
-- **THEN** salvar esse documento aberto gera um arquivo igual ao salvo originalmente, com a pendência "Não foi informado um texto de justificação."
-
-#### Scenario: Justificação preenchida na ida e volta
-- **WHEN** um documento com a justificação preenchida, com texto formatado, lista, link, tabela sem largura, imagem com largura e notas de rodapé, é salvo, convertido em XML, convertido de volta em JSON e aberto
-- **THEN** salvar esse documento aberto gera um arquivo igual ao salvo originalmente, com os mesmos `NotaDeRodape` e sem a pendência "Não foi informado um texto de justificação."
-
-#### Scenario: Revisões de texto na ida e volta
-- **WHEN** um documento com marcas de revisão de texto na justificação, uma delas com nota de rodapé no trecho excluído, é salvo, convertido em XML, convertido de volta em JSON e aberto
-- **THEN** o editor exibe as mesmas marcas, com o mesmo autor e a mesma data
-- **AND** salvar esse documento aberto gera um arquivo igual ao salvo originalmente, com os mesmos `ins`, `del`, `RevisoesTextuais`, `Usuarios` e a pendência "Resolver marcas de revisão de texto."
-
 ### Requirement: Revisões de texto compatíveis com o conversor LexML
-O sistema SHALL gravar `RevisoesTextuais` no formato tipado do conversor `jsonix-lexml` 2.1.0, conforme `schemas/lexedit.xsd`. O conversor SHALL converter o arquivo em XML sem erro e sem descartar nenhum `ins`, `del`, `RevisaoTextual` ou atributo deles, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`, inclusive quanto à unicidade dos `id` de `ins` e `del`.
+O sistema SHALL gravar `RevisoesTextuais` no formato tipado do conversor `jsonix-lexml`, conforme `schemas/lexedit.xsd`. O conversor SHALL converter o arquivo em XML sem erro e sem descartar nenhum `ins`, `del`, `RevisaoTextual` ou atributo deles, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`, inclusive quanto à unicidade dos `id` de `ins` e `del`.
 
 #### Scenario: Conversão para XML preserva as revisões de texto
 - **WHEN** o usuário salva um documento com marcas de inclusão, exclusão e substituição na justificação, e o arquivo é convertido em XML pelo conversor
@@ -214,3 +199,198 @@ O sistema SHALL gravar `RevisoesTextuais` no formato tipado do conversor `jsonix
 #### Scenario: XML válido pelo esquema do LexEdit
 - **WHEN** o XML gerado a partir de um documento com marcas de revisão de texto é validado com `schemas/lexedit.xsd`
 - **THEN** a validação não aponta erro, nem na parte LexML nem no conteúdo de `lexedit:Metadado`
+
+### Requirement: Grupo de outros metadados genéricos
+O sistema SHALL gravar o grupo `OutrosMetadados` em `lexedit:Metadado` somente quando houver ao menos um par chave/valor a registrar, com um `lexedit:OutroMetadado` por par: a chave no atributo `chave` e o valor como conteúdo de texto. Chave e valor SHALL ser gravados como informados, sem interpretação. Sem nenhum par, o grupo SHALL ser omitido, e o grupo SHALL NOT gerar pendência.
+
+#### Scenario: Documento com dois pares
+- **WHEN** o usuário salva um documento com os metadados `tituloAntesDaEpigrafe` = "COMISSÃO XPTO" e `jsonDadosComissao` = `{"id":1,"ativa":true}`
+- **THEN** o arquivo contém `lexedit:OutrosMetadados` com um `lexedit:OutroMetadado` para cada chave, e o valor do segundo é o texto JSON, sem alteração
+
+#### Scenario: Documento sem outros metadados
+- **WHEN** o usuário salva um documento sem nenhum par chave/valor
+- **THEN** o arquivo não contém `lexedit:OutrosMetadados`
+
+#### Scenario: Grupo não gera pendência
+- **WHEN** o usuário salva um documento apenas com outros metadados
+- **THEN** o arquivo não contém `lexedit:Pendencias` por causa do grupo
+
+#### Scenario: Convivência com os demais grupos
+- **WHEN** o usuário salva um documento com opções de impressão, autoria e outros metadados
+- **THEN** o arquivo contém um único `MetadadoProprietario` com todos os grupos, e o conteúdo de cada um não é alterado pelos outros
+
+### Requirement: Unicidade das chaves
+O esquema `schemas/lexedit.xsd` SHALL exigir que a `chave` seja única dentro de `lexedit:OutrosMetadados`. O sistema SHALL NOT gravar duas entradas com a mesma chave, e ao ler um arquivo com chaves repetidas SHALL manter a primeira ocorrência e ignorar as demais, sem invalidar o documento.
+
+#### Scenario: Esquema rejeita chave repetida
+- **WHEN** um `lexedit:Metadado` com duas entradas de mesma `chave` é validado com `schemas/lexedit.xsd`
+- **THEN** a validação aponta erro de unicidade
+
+#### Scenario: Arquivo com chave repetida é aberto
+- **WHEN** o usuário abre um arquivo cujo `OutrosMetadados` repete uma chave com valores diferentes
+- **THEN** o documento abre normalmente e a propriedade de outros metadados contém o valor da primeira ocorrência
+
+### Requirement: Leitura tolerante dos outros metadados
+Ao abrir um documento, o sistema SHALL recuperar do grupo `OutrosMetadados` todos os pares válidos, descartando as entradas sem `chave`, com `chave` vazia ou com valor que não seja texto, sem impedir a leitura dos demais pares nem dos demais grupos. Valor vazio SHALL ser aceito como texto vazio.
+
+#### Scenario: Arquivo com pares válidos e inválidos
+- **WHEN** o usuário abre um arquivo cujo `OutrosMetadados` tem um par válido, uma entrada sem `chave` e uma entrada com valor não textual
+- **THEN** o documento abre normalmente e os outros metadados contêm somente o par válido
+
+#### Scenario: Valor vazio
+- **WHEN** o usuário abre um arquivo com `<lexedit:OutroMetadado chave="x"></lexedit:OutroMetadado>`
+- **THEN** os outros metadados contêm a chave `x` com valor vazio
+
+#### Scenario: Convive com os demais grupos
+- **WHEN** o usuário abre um arquivo com `OutrosMetadados` inválido e opções de impressão válidas
+- **THEN** o formulário de opções de impressão exibe os valores do arquivo
+
+### Requirement: Propriedade pública para os outros metadados
+O componente `LexmlEtaComponent` SHALL expor a propriedade pública `outrosMetadados` (`Record<string, string>`). Ao salvar, o sistema SHALL gravar o valor corrente da propriedade, inclusive em anexo de parecer. Ao abrir um arquivo, o sistema SHALL substituir o valor da propriedade pelos pares lidos, e um arquivo sem o grupo SHALL deixá-la vazia.
+
+#### Scenario: Host define a propriedade e salva
+- **WHEN** o host define `outrosMetadados` com `{ tituloAntesDaEpigrafe: "COMISSÃO XPTO" }` e o usuário salva
+- **THEN** o arquivo salvo contém o par correspondente
+
+#### Scenario: Anexo de parecer
+- **WHEN** o host define `outrosMetadados` com um par e o documento é um anexo de parecer
+- **THEN** o arquivo salvo contém o grupo `OutrosMetadados`
+
+#### Scenario: Abrir arquivo com outros metadados
+- **WHEN** o usuário abre um arquivo com dois pares em `OutrosMetadados`
+- **THEN** a propriedade `outrosMetadados` do componente contém os dois pares
+
+#### Scenario: Abrir arquivo sem o grupo
+- **WHEN** o usuário abre um arquivo sem `OutrosMetadados` depois de ter aberto outro que o tinha
+- **THEN** a propriedade `outrosMetadados` fica vazia
+
+### Requirement: Outros metadados na ida e volta pelo conversor
+O conversor `jsonix-lexml` com o esquema atualizado SHALL converter para XML e de volta para JSON um documento com `lexedit:OutrosMetadados` sem descartá-lo, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`. Salvar de novo o documento aberto SHALL gerar um arquivo igual ao original.
+
+#### Scenario: Ida e volta preserva os pares
+- **WHEN** um documento com três pares, um deles com caracteres especiais de XML (`<`, `&`, aspas) e acentos, é salvo, convertido em XML, convertido de volta em JSON e aberto
+- **THEN** a propriedade `outrosMetadados` contém os três pares com os valores originais
+- **AND** salvar esse documento aberto gera um arquivo igual ao salvo originalmente
+
+#### Scenario: XML válido pelo esquema
+- **WHEN** o XML gerado a partir de um documento com outros metadados é validado com `schemas/lexedit.xsd`
+- **THEN** a validação não aponta erro
+
+### Requirement: Grupo de anexos no arquivo
+O sistema SHALL gravar o grupo `Anexos` em `lexedit:Metadado` somente quando houver ao menos um anexo, com um `lexedit:Anexo` por anexo, na ordem de exibição, e os atributos `idArquivo`, `nomeArquivo`, `nomeDocumento`, `tipo` e `mimeType`. O conteúdo do arquivo anexado SHALL NOT ser gravado. Sem anexos, o grupo SHALL ser omitido, e o grupo SHALL NOT gerar pendência. O sistema SHALL gravar o grupo também no modo anexo de parecer.
+
+#### Scenario: Documento com dois anexos
+- **WHEN** o usuário salva um documento com dois anexos, o primeiro DOCX do tipo `substitutivo` e o segundo PDF do tipo `nao.informado`
+- **THEN** o arquivo contém `lexedit:Anexos` com dois `lexedit:Anexo`, na mesma ordem, cada um com os cinco atributos
+
+#### Scenario: Conteúdo não é gravado
+- **WHEN** o usuário salva um documento com anexos
+- **THEN** o arquivo não contém o conteúdo dos arquivos anexados, apenas o `idArquivo` de cada um
+
+#### Scenario: Documento sem anexos
+- **WHEN** o usuário salva um documento sem anexos
+- **THEN** o arquivo não contém `lexedit:Anexos`
+
+#### Scenario: Grupo não gera pendência
+- **WHEN** o usuário salva um documento apenas com anexos
+- **THEN** o arquivo não contém `lexedit:Pendencias` por causa do grupo
+
+#### Scenario: Modo anexo de parecer
+- **WHEN** o usuário salva, no modo anexo de parecer, um documento com um anexo
+- **THEN** o arquivo contém o grupo `Anexos`
+
+#### Scenario: Convivência com os demais grupos
+- **WHEN** o usuário salva um documento com opções de impressão, autoria e anexos
+- **THEN** o arquivo contém um único `MetadadoProprietario` com todos os grupos, e o conteúdo de cada um não é alterado pelos outros
+
+### Requirement: Leitura tolerante dos anexos
+Ao abrir um documento, o sistema SHALL recuperar do grupo `Anexos` os anexos válidos, na ordem do arquivo, descartando o `Anexo` sem `idArquivo` ou sem `nomeArquivo` textuais não vazios, ou com `mimeType` diferente de PDF e DOCX, sem impedir a leitura dos demais anexos nem dos demais grupos. `nomeDocumento` ausente SHALL assumir o nome do arquivo sem extensão, e `tipo` ausente ou vazio SHALL assumir `nao.informado`.
+
+#### Scenario: Arquivo com anexos válidos e inválidos
+- **WHEN** o usuário abre um arquivo cujo `Anexos` tem um anexo válido, um sem `idArquivo` e um com `mimeType` `image/png`
+- **THEN** o documento abre normalmente e a aba lista somente o anexo válido
+
+#### Scenario: Atributos opcionais ausentes
+- **WHEN** o usuário abre um arquivo com um anexo `parecer.pdf` sem `nomeDocumento` e sem `tipo`
+- **THEN** a aba mostra o nome do documento `parecer` e o anexo tem o tipo `nao.informado`
+
+#### Scenario: Um único anexo
+- **WHEN** o usuário abre um arquivo cujo `Anexos` tem um único `Anexo`, entregue pelo conversor como objeto em vez de lista
+- **THEN** a aba lista esse anexo
+
+#### Scenario: Convive com os demais grupos
+- **WHEN** o usuário abre um arquivo com `Anexos` inválido e opções de impressão válidas
+- **THEN** o formulário de opções de impressão exibe os valores do arquivo
+
+### Requirement: Anexos na ida e volta pelo conversor
+O conversor `jsonix-lexml` SHALL converter para XML e de volta para JSON um documento com `lexedit:Anexos` sem descartá-lo, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`. Salvar de novo o documento aberto SHALL gerar um arquivo igual ao original.
+
+#### Scenario: Ida e volta preserva os anexos
+- **WHEN** um documento com três anexos, um deles com acentos e `&` no nome do documento, é salvo, convertido em XML, convertido de volta em JSON e aberto
+- **THEN** a aba lista os três anexos, na mesma ordem, com os mesmos valores
+- **AND** salvar esse documento aberto gera um arquivo igual ao salvo originalmente
+
+#### Scenario: XML válido pelo esquema
+- **WHEN** o XML gerado a partir de um documento com anexos é validado com `schemas/lexedit.xsd`
+- **THEN** a validação não aponta erro
+
+### Requirement: Documento referenciado gravado e lido
+O esquema do LexEdit SHALL prever o atributo opcional `urnDocumentoReferenciado` (texto) em `lexedit:Metadado`. O sistema SHALL gravar esse atributo ao salvar um documento que tenha documento referenciado, omiti-lo quando não houver, e lê-lo ao abrir. Valor vazio ou ausente SHALL ser tratado como sem documento referenciado.
+
+#### Scenario: Salvar grava a URN do documento referenciado
+- **WHEN** o usuário salva um documento com documento referenciado
+- **THEN** o `lexedit:Metadado` do arquivo salvo traz `urnDocumentoReferenciado` com a URN informada
+
+#### Scenario: Salvar sem documento referenciado
+- **WHEN** o usuário salva um documento sem documento referenciado
+- **THEN** o `lexedit:Metadado` do arquivo salvo não contém `urnDocumentoReferenciado`
+
+#### Scenario: Arquivo com a URN do documento referenciado é aberto
+- **WHEN** o usuário abre um arquivo cujo `lexedit:Metadado` traz `urnDocumentoReferenciado`
+- **THEN** o documento aberto mantém essa URN como documento referenciado
+
+#### Scenario: Ida e volta preserva a referência
+- **WHEN** o usuário salva um documento com documento referenciado, abre o arquivo e o salva novamente
+- **THEN** o segundo arquivo traz a mesma `urnDocumentoReferenciado`
+
+#### Scenario: Esquema aceita o atributo
+- **WHEN** um `lexedit:Metadado` com `urnDocumentoReferenciado` é validado com `schemas/lexedit.xsd`
+- **THEN** a validação não aponta erro
+
+### Requirement: Modo de anexo de parecer no arquivo
+O sistema SHALL gravar `anexoParecer` (booleano) em `lexedit:Metadado` ao salvar, com `true` no modo de anexo de parecer e `false` no modo normal, e SHALL lê-lo ao abrir. Atributo ausente ou inválido SHALL ser tratado como `false`, sem invalidar os demais metadados.
+
+#### Scenario: Salvar no modo de anexo de parecer
+- **WHEN** o usuário salva um documento no modo de anexo de parecer
+- **THEN** o `lexedit:Metadado` do arquivo salvo traz `anexoParecer="true"`
+
+#### Scenario: Salvar no modo normal
+- **WHEN** o usuário salva um documento no modo normal
+- **THEN** o `lexedit:Metadado` do arquivo salvo traz `anexoParecer="false"`
+
+#### Scenario: Arquivo sem o atributo
+- **WHEN** o usuário abre um arquivo salvo antes desta versão, sem `anexoParecer`
+- **THEN** o documento abre no modo normal, sem erro
+
+#### Scenario: Atributo inválido
+- **WHEN** o arquivo traz `anexoParecer` com valor que não é booleano
+- **THEN** o documento abre no modo normal e os demais metadados válidos são aplicados
+
+### Requirement: Pendência de documento não suportado
+Ao salvar um documento de tipo "não suportado" (URN que não é de proposição suportada pelo editor; ver `vocabulario-urn`), o sistema SHALL incluir em `lexedit:Pendencias` a pendência "Este tipo de documento não é completamente suportado pelo editor.". A pendência SHALL ser recalculada pela URN a cada salvamento, e a pendência gravada em arquivo SHALL NOT ser lida ao abrir.
+
+#### Scenario: Salvar documento de tipo não suportado
+- **WHEN** o usuário salva um documento de autoridade `federal`
+- **THEN** `lexedit:Pendencias` contém a pendência de documento não suportado
+
+#### Scenario: Salvar norma de autoridade com casa
+- **WHEN** o usuário salva um documento de URN `senado.federal:resolucao`
+- **THEN** `lexedit:Pendencias` contém a pendência de documento não suportado
+
+#### Scenario: Salvar documento de tipo suportado
+- **WHEN** o usuário salva uma proposição de autoridade `senado.federal`
+- **THEN** `lexedit:Pendencias` não contém a pendência de documento não suportado
+
+#### Scenario: Pendência gravada não é lida
+- **WHEN** o usuário abre um arquivo de tipo suportado cujo `lexedit:Pendencias` traz a pendência de documento não suportado
+- **THEN** nenhum alerta de documento não suportado é exibido

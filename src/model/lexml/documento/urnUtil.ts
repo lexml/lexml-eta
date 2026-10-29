@@ -1,31 +1,70 @@
 import { generoFromLetra } from '../../dispositivo/genero';
 import { Autoridade } from '../../documento/autoridade';
-import { Genero, generoFeminino, generoMasculino, NomeComGenero } from './../../dispositivo/genero';
-import { VOCABULARIO } from './vocabulario';
+import { Genero } from './../../dispositivo/genero';
+import { getVocabularioCompleto, getVocabularioDaCasa } from './vocabulario';
+import { getTipoPorSigla, proposicoes } from './vocabulario/consultasVocabulario';
+import { CasaLegislativa, TipoRelacaoSubstitutivo } from './vocabulario/tiposVocabulario';
 
 export const getAutoridade = (urn: string): Autoridade | undefined => {
   const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  return VOCABULARIO.autoridades.filter(t => t.urn === partes[0])[0];
+  return getVocabularioCompleto().autoridades.filter(t => t.urn === partes[0])[0];
 };
 
-// Casa pelo tipo da URN sem o `;sigla`; a entrada com autoridade, quando houver, tem precedência sobre a do tipo sozinho.
+// Casa pelo tipo da URN sem o `;sigla` e pela autoridade; combinação não declarada não tem texto padrão.
 export const getPreambuloPadrao = (urn: string): string | undefined => {
   const partes = (urn ?? '').replace('urn:lex:br:', '').split(':');
   const autoridade = partes[0];
   const tipo = partes[1]?.split(';')[0];
-  const doTipo = VOCABULARIO.preambulosPadrao.filter(p => p.urnTipoDocumento === tipo);
-  return (doTipo.find(p => p.urnAutoridade === autoridade) ?? doTipo.find(p => !p.urnAutoridade))?.texto;
+  return getVocabularioCompleto().preambulosPadrao.find(p => p.urnTipoDocumento === tipo && p.urnAutoridade === autoridade)?.texto;
 };
 
-export const getSigla = (urn: string): string => {
-  const tipo = getTipo(urn) ?? {};
-  const fnProcurarPorUrnTipoDocumento = (item: any): any => item.urnTipoDocumento === tipo.urn;
-  return VOCABULARIO.siglas.find(fnProcurarPorUrnTipoDocumento)?.sigla ?? VOCABULARIO.fakeUrns.find(fnProcurarPorUrnTipoDocumento)?.sigla ?? '';
+const getUrnAutoridade = (urn: string): string => (urn ?? '').replace('urn:lex:br:', '').split(':')[0];
+
+// Abrir documento da outra casa ainda não é suportado (#1026); a URN gerada pela sigla é sempre da casa.
+export const verificarUrnDaCasaDoEditor = (urn: string): void => {
+  const autoridade = getUrnAutoridade(urn);
+  if (!getVocabularioDaCasa().autoridades.some(a => a.urn === autoridade)) {
+    throw new Error(`Documento de outra casa legislativa não é suportado neste editor (autoridade '${autoridade}').`);
+  }
 };
 
+export const getCasaLegislativaResponsavel = (urn: string): CasaLegislativa | undefined => getVocabularioCompleto().autoridades.find(a => a.urn === getUrnAutoridade(urn))?.sigla;
+
+// Proposição da visão da casa (com sigla, ativa ou não) de autoridade que tem casa responsável.
+const isProposicaoSuportada = (urn: string): boolean => {
+  const tipo = getTipo(urn);
+  const autoridadesComCasa = getVocabularioDaCasa()
+    .autoridades.filter(a => a.sigla)
+    .map(a => a.urn);
+  return !!tipo && proposicoes().some(p => p.urn === tipo.urn && p.urnAutoridade === tipo.urnAutoridade && autoridadesComCasa.includes(p.urnAutoridade));
+};
+
+export const isTipoDocumentoNaoSuportado = (urn: string): boolean => !isProposicaoSuportada(urn);
+
+export const verificarUrnParaNovaProposicao = (urn: string): void => {
+  if (!isProposicaoSuportada(urn)) {
+    throw new Error(`Não é possível criar proposição deste tipo neste editor: '${urn}'.`);
+  }
+};
+
+export const getSigla = (urn: string): string => getTipo(urn)?.sigla ?? '';
+
+// Casa a autoridade e o tipo da URN na visão completa (qualquer casa), sem alternativa em outra autoridade. Tipo sem sigla que não é norma declarada vale o tipo ativo com sigla.
 export const getTipo = (urn: string): any => {
-  const tipo = urn.replace('urn:lex:br:', '')?.split(':');
-  return VOCABULARIO.tiposDocumento.filter(t => t.urn === tipo[1])[0];
+  const partes = urn.replace('urn:lex:br:', '')?.split(':');
+  const tipos = getVocabularioCompleto().tiposDocumento.filter(t => t.urnAutoridade === partes[0]);
+  return tipos.find(t => t.urn === partes[1]) ?? tipos.find(t => t.ativo && t.sigla && t.urnTipoDocumento === partes[1]);
+};
+
+// Evento é o trecho após o `@`, até o primeiro `;` (ex.: `apresentacao.substitutivo`).
+const getEvento = (urn: string): string | undefined => /@([^;@]+)/.exec(urn)?.[1];
+
+export const isSubstitutivo = (urn: string): boolean => {
+  const relacao = getTipo(urn ?? '')?.tipoRelacaoSubstitutivo;
+  if (relacao === TipoRelacaoSubstitutivo.E_SUBSTITUTIVO) return true;
+  if (relacao !== TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO) return false;
+  const evento = getEvento(urn);
+  return !!evento && getVocabularioCompleto().eventos.some(e => e.urn === evento && e.substitutivo === 's');
 };
 
 export const getNumero = (urn: string): string => {
@@ -132,9 +171,9 @@ export const buildUrn = (autoridade: string, tipo: string, numero: string, data:
 
 // Para inicialização de edição de proposição sem texto lexml
 export const buildFakeUrn = (sigla: string, numero: string, ano: string): string => {
-  const fake = VOCABULARIO.fakeUrns.find(f => f.sigla === sigla.toUpperCase());
-  if (fake) {
-    return buildUrn(fake.urnAutoridade, fake.urnTipoDocumento, numero, ano);
+  const tipo = getTipoPorSigla(sigla);
+  if (tipo) {
+    return buildUrn(tipo.urnAutoridade, tipo.urn, numero, ano);
   }
   throw `Sigla '${sigla}' não encontrada no vocabulário para montagem da urn.`;
 };
@@ -163,7 +202,7 @@ export const getNomeExtenso = (urn: string): string => {
 };
 
 export const getNomeExtensoComDataExtenso = (urn: string): string => {
-  const atalho = VOCABULARIO.atalhosUrn.find(a => a.urn === urn);
+  const atalho = getVocabularioCompleto().atalhosUrn.find(a => a.urn === urn);
   if (atalho) {
     return atalho.nome;
   }
@@ -185,33 +224,6 @@ const getDataExtenso = (data: Date) => {
   return data ? data.getDate() + ' de ' + data.toLocaleDateString('pt-BR', { month: 'long' }) + ' de ' + data.getFullYear() : undefined;
 };
 
-export const getRefGenericaProjeto = (urn: string): NomeComGenero => {
-  const tipo = getTipo(urn);
-  let genero = generoFromLetra(tipo.genero);
-  // TODO - Implementar UrnService.isSubstitutivo
-  const substitutivo = false;
-
-  let nome = 'Projeto';
-  if (genero === generoFeminino) {
-    if (tipo.urn.startsWith('medida.provisoria')) {
-      nome = 'Medida Provisória';
-    } else {
-      nome = 'Proposta';
-    }
-  }
-
-  if (substitutivo) {
-    if (genero === generoFeminino) {
-      nome = 'Substitutivo à ' + nome;
-    } else {
-      nome = 'Substitutivo ao ' + nome;
-    }
-    genero = generoMasculino;
-  }
-
-  return new NomeComGenero(nome, genero);
-};
-
 export const getGeneroUrnNorma = (urn: string): Genero => {
   const tipo = getTipo(urn);
   return generoFromLetra(tipo.genero);
@@ -219,6 +231,5 @@ export const getGeneroUrnNorma = (urn: string): Genero => {
 
 export const getTipoDocumentoUrn = (urn: string): any => {
   if (!urn) return undefined;
-  const partes = urn.replace('urn:lex:br:', '')?.split(':');
-  return VOCABULARIO.tiposDocumento.find(t => t.urn === partes[1]);
+  return getTipo(urn);
 };

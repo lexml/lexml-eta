@@ -5,7 +5,7 @@ import { Proposicao } from '../../../src/model/proposicao/proposicao';
 
 describe('LexmlEtaComponent - anexo de parecer', () => {
   it('deveria ter anexoParecer desativado por padrão', () => {
-    expect(new LexmlEtaConfig().anexoParecer).to.be.false;
+    expect('anexoParecer' in new LexmlEtaConfig()).to.be.false;
   });
 
   it('não deveria devolver os dados de justificação no anexo de parecer, mas manter local e autoria', () => {
@@ -84,7 +84,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     component.getRevisoes = (): any[] => [];
 
     Object.defineProperties(component, {
-      _lexmlEta: { value: { getProjetoAtualizado: (): any => ({}), getAnexos: (): any[] => [] } },
+      _lexmlEta: { value: { getProjetoAtualizado: (): any => ({}) } },
       _lexmlData: { value: { data: '2026-08-19' } },
       _lexmlJustificativa: {
         value: { texto: '<p>Justificativa</p>', notasRodape: [{ id: '1', numero: 1, texto: 'Nota' }], textoAntesRevisao: '<p>Anterior</p>' },

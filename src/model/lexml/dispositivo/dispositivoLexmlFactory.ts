@@ -3,7 +3,7 @@ import { generateUUID } from '../../../util/uuid';
 import { Alteracoes } from '../../dispositivo/blocoAlteracao';
 import { Articulacao, Artigo, Dispositivo } from '../../dispositivo/dispositivo';
 import { GeneroFeminino, GeneroIndefinido, GeneroMasculino } from '../../dispositivo/genero';
-import { isAgrupador, isArtigo, isEmenta, isInciso, isIncisoCaput, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArtigo, isEmenta, isInciso, isIncisoCaput, isOmissis, isParagrafo, isPena } from '../../dispositivo/tipo';
 import { ValidacaoDispositivo } from '../../dispositivo/validacao';
 import { FINALIZAR_BLOCO, INICIAR_BLOCO } from '../acao/blocoAlteracaoAction';
 import { BlocoAlteracaoNaoPermitido } from '../alteracao/blocoAlteracaoNaoPermitido';
@@ -30,6 +30,7 @@ import { NumeracaoInciso } from '../numeracao/numeracaoInciso';
 import { NumeracaoIndisponivel } from '../numeracao/numeracaoIndisponivel';
 import { NumeracaoItem } from '../numeracao/numeracaoItem';
 import { NumeracaoParagrafo } from '../numeracao/numeracaoParagrafo';
+import { NumeracaoPena } from '../numeracao/numeracaoPena';
 import { RegrasAgrupadores } from '../regras/regrasAgrupadores';
 import { RegrasAlinea } from '../regras/regrasAlinea';
 import { RegrasArtigo } from '../regras/regrasArtigo';
@@ -40,6 +41,7 @@ import { RegrasInciso } from '../regras/regrasInciso';
 import { RegrasItem } from '../regras/regrasItem';
 import { RegrasOmissis } from '../regras/regrasOmissis';
 import { RegrasParagrafo } from '../regras/regrasParagrafo';
+import { RegrasPena } from '../regras/regrasPena';
 import { RegrasPreambulo } from '../regras/regrasPreambulo';
 import { AcoesDispositivo } from '../acao/acoesDispositivo';
 import { TipoArticulacao } from '../tipo/tipoArticulacao';
@@ -67,6 +69,9 @@ const ItemLexml = AcoesDispositivo(
 );
 const ParagrafoLexml = AcoesDispositivo(
   RegrasParagrafo(ValidacaoDispositivo(GeneroMasculino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoParagrafo(HierarquiaDispositivo(TipoLexml)))))))
+);
+const PenaLexml = AcoesDispositivo(
+  RegrasPena(ValidacaoDispositivo(GeneroFeminino(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoPena(HierarquiaDispositivo(TipoLexml)))))))
 );
 const ArticulacaoLexml = AcoesDispositivo(
   RegrasAgrupadores(ValidacaoDispositivo(GeneroIndefinido(BlocoAlteracaoNaoPermitido(ConteudoDispositivo(NumeracaoAgrupador(HierarquiaAgrupador(TipoArticulacao)))))))
@@ -154,6 +159,9 @@ const create = (name: string, parent: Dispositivo, uuidPreservado?: number): Dis
     case 'ementa':
       dispositivo = new EmentaLexml(name.toLowerCase());
       break;
+    case 'pena':
+      dispositivo = new PenaLexml(name.toLowerCase());
+      break;
     case 'preambulo':
       dispositivo = new PreambuloLexml(name.toLowerCase());
       break;
@@ -167,7 +175,7 @@ const create = (name: string, parent: Dispositivo, uuidPreservado?: number): Dis
   dispositivo.uuid = uuidPreservado ?? Counter.next();
   dispositivo.uuid2 = generateUUID();
   dispositivo.name = name;
-  dispositivo.pai = isInciso(dispositivo) && isArtigo(parent) ? (parent as Artigo).caput : parent;
+  dispositivo.pai = (isInciso(dispositivo) || isPena(dispositivo)) && isArtigo(parent) ? (parent as Artigo).caput : parent;
   dispositivo.isDispositivoAlteracao = isDispositivoAlteracao(dispositivo);
 
   desativaRotuloAutomaticoSeDispositivoAlteracao(dispositivo);

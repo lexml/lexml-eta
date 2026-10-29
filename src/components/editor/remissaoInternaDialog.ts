@@ -1,4 +1,5 @@
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
+import { podeSerDestinoDeRemissaoInterna } from '../../model/remissao/destinoRemissao';
 import { RemissaoInternaValue } from '../../model/remissao';
 import { getElementos } from '../../model/elemento/elementoUtil';
 import { Articulacao } from '../../model/dispositivo/dispositivo';
@@ -15,12 +16,11 @@ export interface DispositivoRemissao {
   texto?: string;
 }
 
-function buildListaDispositivos(articulacao: Articulacao): DispositivoRemissao[] {
+export function buildListaDispositivos(articulacao: Articulacao): DispositivoRemissao[] {
   const dispositivos: DispositivoRemissao[] = [];
   const elementos = getElementos(articulacao);
 
-  // Filtra dispositivos relevantes (exclui Articulacao e Ementa da lista principal)
-  const elementosFiltrados = elementos.filter(el => el.tipo !== 'Articulacao' && el.tipo !== 'Ementa' && el.tipo !== 'Preambulo');
+  const elementosFiltrados = elementos.filter(podeSerDestinoDeRemissaoInterna);
 
   elementosFiltrados.forEach(el => {
     dispositivos.push({
