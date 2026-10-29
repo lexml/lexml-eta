@@ -159,5 +159,5 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosU
 - `src/model/lexml/documento/vocabulario/` e `src/model/lexml/documento/urnUtil.ts`
 - `src/components/lexml-eta.component.ts` (`casaLegislativa`, `inicializaCasaLegislativa`; ponto de entrada de `casaLegislativaEditor`)
 - `openspec/changes/2026-10-19-c02-separar-vocabulario-por-autoridade/` e `openspec/changes/2026-10-22-c01-vocabulario-visao-completa-e-da-casa/`
-- `docs/requisitos/caso-de-uso-nova-proposicao.md` (seções 1, 4, 5 e 6) e `docs/requisitos/pendencias.md`
+- `docs/requisitos/componente-nova-proposicao.md` (seções 1, 4, 5 e 6) e `docs/requisitos/pendencias.md`
 - `docs/estrutura-lexml.md` (formato da URN LexML)
