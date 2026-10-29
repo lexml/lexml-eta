@@ -30,6 +30,7 @@ import { QuillUtil } from './quill-util';
 import { TipoMensagem } from '../../model/lexml/util/mensagem';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { limparArticulacaoAction } from '../../model/lexml/acao/limparArticulacao';
+import { Usuario } from '../../model/revisao/usuario';
 
 const Delta = Quill.import('delta');
 
@@ -124,7 +125,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       }
 
       if (events.some(ev => ev.stateType === StateType.AtualizaUsuario) && moduloRevisao) {
-        moduloRevisao.usuario = state.elementoReducer.usuario?.nome || 'Anônimo';
+        moduloRevisao.setUsuario(state.elementoReducer.usuario ?? new Usuario());
       }
     }
   }
@@ -243,7 +244,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
             cellSelectionOnClick: false,
           },
           revisao: {
-            usuario: rootStore.getState().elementoReducer.usuario?.nome || 'Anônimo',
+            usuario: rootStore.getState().elementoReducer.usuario ?? new Usuario(),
             emRevisao: false,
             gerenciarKeydown: true,
             tableModule: TableModule,

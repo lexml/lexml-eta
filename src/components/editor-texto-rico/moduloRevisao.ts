@@ -24,11 +24,18 @@ class RevisaoUtil {
     domNode.setAttribute('date', partes[1]);
     domNode.setAttribute('title', 'Revisão de ' + partes[0] + ' em ' + this.formatDDMMYYYYAndTime(new Date(partes[1])));
     domNode.setAttribute('id-revisao', partes[2]);
+    RevisaoUtil.setAtributoOpcional(domNode, 'id-usuario', partes[3]);
+    RevisaoUtil.setAtributoOpcional(domNode, 'sigla-usuario', partes[4]);
+  }
+
+  // Marca anterior à #994 não tem id nem sigla do usuário.
+  static setAtributoOpcional(domNode, nome: string, valor?: string) {
+    valor ? domNode.setAttribute(nome, valor) : domNode.removeAttribute(nome);
   }
 
   static formats(domNode) {
     if (domNode?.hasAttribute('usuario') && domNode?.hasAttribute('date')) {
-      return [domNode.getAttribute('usuario'), domNode.getAttribute('date'), domNode.getAttribute('id-revisao')].join('|');
+      return ['usuario', 'date', 'id-revisao', 'id-usuario', 'sigla-usuario'].map(nome => domNode.getAttribute(nome) ?? '').join('|');
     }
   }
 
@@ -572,7 +579,8 @@ class ModuloRevisao extends Module {
   }
 
   buildAttributes(id = '') {
-    return this.usuario + '|' + RevisaoUtil.formatDate(new Date()) + ' |' + id;
+    const usuario = typeof this.usuario === 'string' ? { nome: this.usuario } : this.usuario;
+    return [usuario?.nome || 'Anônimo', RevisaoUtil.formatDate(new Date()) + ' ', id, usuario?.id ?? '', usuario?.sigla ?? ''].join('|');
   }
 
   handleRemove(range, context, key) {
