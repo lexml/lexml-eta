@@ -679,6 +679,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.slSplitPanel.addEventListener('sl-reposition', () => {
       this.ajustarAltura();
     });
+
+    // No estado neutro nenhum outro ponto ajusta a altura; espera as abas renderizarem para medir o cabeçalho.
+    this._tabsEsquerda?.updateComplete.then(() => this.handleResize());
   }
 
   private pesquisarAlturaParentElement(elemento): number {
@@ -744,8 +747,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       setTabPanelStyles(proposicaoTabPanel, estilosOriginais.proposicao, true);
     }
 
-    const alturaToolBarJustificativa = qlToolbarJustificativa?.clientHeight + 10;
-    const alturaToolBar = qlToolbar?.clientHeight + 10;
+    const alturaToolBarJustificativa = (qlToolbarJustificativa?.clientHeight ?? 0) + 10;
+    const alturaToolBar = (qlToolbar?.clientHeight ?? 0) + 10;
 
     setTabPanelStyles(justificativaTabPanel, estilosOriginais.justificativa);
     setTabPanelStyles(proposicaoTabPanel, estilosOriginais.proposicao);
@@ -857,7 +860,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           display: flex;
           align-items: center;
           justify-content: center;
-          height: var(--height);
+          height: 100%;
           min-height: var(--min-height);
           color: var(--sl-color-neutral-500);
           font-family: var(--eta-font-sans);
