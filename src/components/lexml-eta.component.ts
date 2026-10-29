@@ -250,9 +250,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.localDoArquivo = dados.local;
     this.destinoAoAbrir = { ...this._lexmlDestino!.colegiadoApreciador };
     if (!this.anexoParecer) {
-      this._lexmlJustificativa.setContent(lerJustificacao(documento));
+      this._lexmlJustificativa.setContent(lerJustificacao(documento, dados.revisoesTextuais));
       // setContent é silencioso: o alerta avaliado em inicializarEdicao e a aba "Notas" refletiriam o texto anterior.
       this.buildAlertaJustificativa();
+      this._lexmlJustificativa.alertaGlobalRevisao();
       this._lexmlJustificativa.updateNotasRodape();
       this.notasRodape = this._lexmlJustificativa.notasRodape;
     }

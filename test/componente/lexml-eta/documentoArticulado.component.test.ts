@@ -13,6 +13,7 @@ import { RENUMERAR_ELEMENTO } from '../../../src/model/lexml/acao/renumerarEleme
 import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierarquiaUtil';
 import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
+import { removerAlerta } from '../../../src/model/alerta/acao/removerAlerta';
 import {
   lexeditSalvo,
   metadadoProprietarioLexEdit,
@@ -692,6 +693,130 @@ describe('ETA — salvar e abrir documento articulado', () => {
         expect(notasDoEditor()).to.have.length(0);
         expect(editor().notasRodape).to.deep.equal([]);
         expect((component as any).notasRodape).to.deep.equal([]);
+      });
+    });
+
+    describe('revisões de texto', () => {
+      const ID_INS = 'a1b2c3d4-0000-4000-8000-000000000001';
+      const ID_SUB = 'a1b2c3d4-0000-4000-8000-000000000002';
+      const ID_EXC = 'a1b2c3d4-0000-4000-8000-000000000003';
+      const marca = (tag: 'ins' | 'del', idRevisao: string, conteudo: string): string =>
+        `<${tag} usuario="Fulano de Tal" date="2026-05-11 15:51:00 " id-revisao="${idRevisao}" id-usuario="sf:fulano" sigla-usuario="FT">${conteudo}</${tag}>`;
+      const notaHtml = (): string => {
+        const el = document.createElement('lexml-eta-nota-rodape');
+        el.setAttribute('class', 'lexml-eta-nota-rodape');
+        el.setAttribute('contenteditable', 'false');
+        el.setAttribute('id-lexml-eta-nota-rodape', 'nr1');
+        el.setAttribute('numero', '1');
+        el.setAttribute('texto', encodeHtml('<p>Da exclusão.</p>'));
+        el.textContent = '1';
+        return el.outerHTML;
+      };
+      // Inclusão, substituição e exclusão que atravessa negrito, com nota no trecho excluído.
+      const COM_MARCAS =
+        `<p>Texto ${marca('ins', ID_INS, 'incluído')} e ${marca('del', ID_SUB, 'antigo')}${marca('ins', ID_SUB, 'novo')}.</p>` +
+        `<p>${marca('del', ID_EXC, 'excluído ')}<strong>${marca('del', ID_EXC, `em negrito${notaHtml()}`)}</strong> fim.</p>`;
+      const marcasDoEditor = (): HTMLElement[] => Array.from(editor().quill.root.querySelectorAll('ins, del'));
+      const moduloRevisao = (): any => editor().quill.revisao;
+      const alertaRevisaoExibido = (): boolean => rootStore.getState().elementoReducer.ui.alertas.some((a: any) => a.id === 'alerta-global-revisao');
+      const aguardarAlertas = (): Promise<void> => new Promise(resolve => setTimeout(resolve, 20));
+      const badgeJustificacao = (): string | undefined => editor().querySelector('#badge-marca-alteracao-justificativa')?.textContent?.trim();
+
+      const abrirComMarcas = async (): Promise<any> => {
+        carregar(COM_MARCAS);
+        const salvo = component.getDocumentoArticulado();
+        carregar('');
+        await component.abrirDocumentoArticulado(salvo);
+        return salvo;
+      };
+
+      afterEach(() => {
+        // Marcas no editor religam a revisão desligada e contaminam os testes seguintes.
+        carregar('');
+        if (rootStore.getState().elementoReducer.emRevisao) rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
+      });
+
+      it('ida e volta com o Quill real: salvar o documento reaberto gera o mesmo documento', async () => {
+        carregar(COM_MARCAS);
+        const salvo = component.getDocumentoArticulado();
+        const lexedit = lexeditSalvo(salvo);
+        expect(lexedit.revisoesTextuais.revisaoTextual).to.have.length(5);
+        expect(lexedit.usuarios.usuario).to.deep.equal([{ TYPE_NAME: 'br_gov_lexml_lexedit__1.Usuario', idUsuario: 'sf:fulano', nome: 'Fulano de Tal', sigla: 'FT' }]);
+        expect(lexedit.pendencias.pendencia).to.include('Resolver marcas de revisão de texto.');
+        expect(JSON.stringify(salvo.value.projetoNorma.justificacao)).to.include('"localPart":"NotaDeRodape"');
+
+        await component.abrirDocumentoArticulado(salvo);
+        editor().updateApenasTexto();
+
+        expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+      });
+
+      it('ao abrir, as marcas têm os atributos do editor, o contador indica os grupos e o alerta de revisão é exibido', async () => {
+        await abrirComMarcas();
+        await aguardarAlertas();
+
+        const marcas = marcasDoEditor();
+        expect(marcas.map(m => m.tagName)).to.deep.equal(['INS', 'DEL', 'INS', 'DEL', 'DEL']);
+        marcas.forEach(m => {
+          expect(m.getAttribute('usuario')).to.equal('Fulano de Tal');
+          expect(m.getAttribute('date')).to.equal('2026-05-11 15:51:00 ');
+          expect(m.getAttribute('id-usuario')).to.equal('sf:fulano');
+          expect(m.getAttribute('sigla-usuario')).to.equal('FT');
+        });
+        expect(marcas.map(m => m.getAttribute('id-revisao'))).to.deep.equal([ID_INS, ID_SUB, ID_SUB, ID_EXC, ID_EXC]);
+        // Grupos: inclusão, exclusão e inclusão da substituição, exclusão em dois trechos.
+        expect(moduloRevisao().getQuantidadeRevisoes()).to.equal(4);
+        expect(alertaRevisaoExibido()).to.be.true;
+        expect(badgeJustificacao()).to.equal('4');
+      });
+
+      it('um evento Redux posterior não troca o contador da justificação pela contagem da articulação', async () => {
+        await abrirComMarcas();
+        await aguardarAlertas();
+
+        rootStore.dispatch(removerAlerta('alerta-global-revisao'));
+
+        expect(badgeJustificacao()).to.equal('4');
+      });
+
+      it('rejeitar pela marca de um trecho a exclusão gravada em dois del devolve os dois trechos', async () => {
+        await abrirComMarcas();
+        expect(moduloRevisao().emRevisao).to.be.true;
+
+        // Como a dica: todos os elementos de mesma tag e id-revisao.
+        const grupo = Array.from(editor().quill.root.querySelectorAll(`del[id-revisao="${ID_EXC}"]`)) as HTMLElement[];
+        expect(grupo).to.have.length(2);
+        moduloRevisao().revisar(grupo, false);
+
+        expect(editor().quill.root.querySelectorAll(`del[id-revisao="${ID_EXC}"]`)).to.have.length(0);
+        expect(editor().quill.getText()).to.include('excluído em negrito');
+        expect(moduloRevisao().getQuantidadeRevisoes()).to.equal(3);
+      });
+
+      it('aceitar todas e salvar não grava ins, del, RevisoesTextuais nem a pendência', async () => {
+        await abrirComMarcas();
+
+        moduloRevisao().revisarTodos(true);
+        editor().updateApenasTexto();
+
+        expect(marcasDoEditor()).to.have.length(0);
+        const salvo = component.getDocumentoArticulado();
+        expect(JSON.stringify(salvo.value.projetoNorma.justificacao)).to.not.match(/"localPart":"(ins|del)"/);
+        const lexedit: any = salvo.value.metadado.metadadoProprietario?.[0].any[0].value ?? {};
+        expect(lexedit).to.not.have.property('revisoesTextuais');
+        expect(lexedit.pendencias?.pendencia ?? []).to.not.include('Resolver marcas de revisão de texto.');
+        expect(editor().quill.getText()).to.include('incluído');
+        expect(editor().quill.getText()).to.not.include('antigo');
+      });
+
+      it('salvar e reabrir dá o mesmo arquivo', async () => {
+        const salvo = await abrirComMarcas();
+        editor().updateApenasTexto();
+        const segundo = component.getDocumentoArticulado();
+
+        expect(segundo.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
+        expect(lexeditSalvo(segundo).revisoesTextuais).to.deep.equal(lexeditSalvo(salvo).revisoesTextuais);
+        expect(lexeditSalvo(segundo).usuarios).to.deep.equal(lexeditSalvo(salvo).usuarios);
       });
     });
 

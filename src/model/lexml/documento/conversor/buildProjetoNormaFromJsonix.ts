@@ -9,7 +9,7 @@ import { ProjetoNorma } from '../projetoNorma';
 import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getPreambuloPadrao, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 import { Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO } from '../../../proposicao/proposicao';
-import { DadosLexEdit, RevisaoArticulacaoLida } from '../documentoArticulado';
+import { DadosLexEdit, RevisaoArticulacaoLida, RevisaoTextualLida } from '../documentoArticulado';
 import { SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
 import { Usuario } from '../../../revisao/usuario';
@@ -202,12 +202,14 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const autoria = lerAutoria(lexedit?.autoria);
   const colegiadoApreciador = lerColegiadoApreciador(lexedit?.colegiadoApreciador);
   const revisoesLidas = lerRevisoesArticulacao(lexedit);
+  const revisoesTextuais = lerRevisoesTextuais(lexedit);
   return {
     ...lerFecho(lexedit),
     ...(opcoesImpressao && { opcoesImpressao }),
     ...(autoria && { autoria }),
     ...(colegiadoApreciador && { colegiadoApreciador }),
     ...(revisoesLidas.length > 0 && { revisoesLidas }),
+    ...(Object.keys(revisoesTextuais).length > 0 && { revisoesTextuais }),
   };
 };
 
@@ -299,6 +301,22 @@ export const lerRevisoesArticulacao = (lexedit: any): RevisaoArticulacaoLida[] =
       };
     })
     .filter((r): r is RevisaoArticulacaoLida => !!r);
+};
+
+/** Revisões de texto (especificação 09) por `refIdRevisao`, tolerantes: ignora a sem `refIdRevisao`; usuário sem registro usa o próprio id e data inválida vira agora. */
+export const lerRevisoesTextuais = (lexedit: any): Record<string, RevisaoTextualLida> => {
+  const usuarios = lerUsuarios(lexedit?.usuarios);
+  const lidas: Record<string, RevisaoTextualLida> = {};
+  comoLista(lexedit?.revisoesTextuais?.revisaoTextual)
+    .filter(lida => isObjeto(lida) && textoNaoVazio(lida.refIdRevisao))
+    .forEach(lida => {
+      const refIdUsuario = textoNaoVazio(lida.refIdUsuario) ? lida.refIdUsuario : '';
+      lidas[lida.refIdRevisao] = {
+        usuario: usuarios.get(refIdUsuario) ?? new Usuario(refIdUsuario || undefined, refIdUsuario || undefined),
+        dataHora: (typeof lida.data === 'string' && parseIsoToDateTime(lida.data)) || formatDateTime(new Date()),
+      };
+    });
+  return lidas;
 };
 
 const getMetadado = (documento: any): Metadado => {

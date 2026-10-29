@@ -3,7 +3,7 @@ import { isArticulacao, isArtigo, isCaput } from '../../../dispositivo/tipo';
 import { Elemento, Referencia } from '../../../elemento';
 import { getDispositivoFromElemento } from '../../../elemento/elementoUtil';
 import { RevisaoElemento } from '../../../revisao/revisao';
-import { Usuario } from '../../../revisao/usuario';
+import { getIdUsuario, Usuario } from '../../../revisao/usuario';
 import { StateType, State } from '../../../../redux/state';
 import { getDispositivoPaiFromElemento, redodDispositivoExcluido } from '../../../../redux/elemento/util/undoRedoReducerUtil';
 import {
@@ -26,8 +26,6 @@ import { mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente, temSituacaoSalva
 const TYPE_REVISAO = 'br_gov_lexml_lexedit__1.RevisaoArticulacao';
 
 const lowerFirst = (texto: string): string => texto.charAt(0).toLowerCase() + texto.slice(1);
-
-const getIdUsuario = (usuario: Usuario): string => String(usuario.id ?? usuario.nome);
 
 const montaRevisaoBase = (revisao: RevisaoElemento, operacoes: string): RevisaoArticulacaoLexEdit => {
   const usuario = revisao.usuario ?? new Usuario();

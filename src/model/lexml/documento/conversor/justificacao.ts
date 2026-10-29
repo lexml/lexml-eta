@@ -1,6 +1,10 @@
 // Justificação: HTML do editor (`texto` do editor de texto rico) ↔ Justificacao/PartePrincipal do LexML (especificações 06 e 07).
-// Decisões em openspec/changes/archive/2026-10-19-c01-salvar-abrir-justificacao/design.md (D4) e 2026-10-19-c02-salvar-abrir-notas-rodape/design.md.
+// Decisões em openspec/changes/archive/2026-10-19-c01-salvar-abrir-justificacao/design.md (D4) e 2026-10-19-c02-salvar-abrir-notas-rodape/design.md; revisões de texto em 2026-10-22-c01-salvar-abrir-revisoes-texto-justificacao/design.md.
 import { decodeHtml, encodeHtml } from '../../../../util/string-util';
+import { formatDateTime, formatDateTimeToIso } from '../../../../util/date-util';
+import { generateUUID } from '../../../../util/uuid';
+import { Usuario } from '../../../revisao/usuario';
+import type { RevisaoTextualLida } from '../documentoArticulado';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -39,7 +43,57 @@ const montaImagem = (img: HTMLElement): any =>
     ...estiloDimensoes(img),
   });
 
-const montaInline = (nos: NodeListOf<ChildNode> | ChildNode[]): any[] =>
+/** Marca de revisão de texto encontrada ao gravar: `id` do `ins`/`del`, autor e data ISO com fuso. */
+export interface RevisaoTextualMontada {
+  id: string;
+  usuario: Usuario;
+  data: string;
+}
+
+// Estado da varredura que gera os `id` das marcas (design D1/D2).
+interface VarreduraRevisoes {
+  revisoes: RevisaoTextualMontada[];
+  porIdRevisao: Map<string, number>;
+  idsSubstitutos: Map<string, string>;
+}
+
+export const PREFIXO_ID_REVISAO_TEXTUAL = '_rt';
+
+// O id gravado é `_rt<id-revisao>_<n>`; o id-revisao precisa caber num NCName.
+const ID_REVISAO_VALIDO = /^[A-Za-z0-9_.-]+$/;
+
+const idRevisaoEfetivo = (varredura: VarreduraRevisoes, idRevisao: string): string => {
+  if (ID_REVISAO_VALIDO.test(idRevisao)) return idRevisao;
+  if (!idRevisao) return generateUUID();
+  if (!varredura.idsSubstitutos.has(idRevisao)) varredura.idsSubstitutos.set(idRevisao, generateUUID());
+  return varredura.idsSubstitutos.get(idRevisao)!;
+};
+
+// Data da marca ("AAAA-MM-DD HH:mm:00 ", local); inválida vira o instante do salvamento.
+const dataIsoDaMarca = (date: string | null): string => {
+  const valor = (date ?? '').trim();
+  const iso = formatDateTimeToIso(valor);
+  return iso !== valor ? iso : formatDateTimeToIso(formatDateTime(new Date()));
+};
+
+// Marca que só tem o caractere de cursor do Quill não é revisão (design D7).
+const ehMarcaVazia = (el: Element): boolean => !el.textContent?.replace(/\uFEFF/g, '') && !el.querySelector('img, lexml-eta-nota-rodape');
+
+const montaMarcaRevisao = (el: Element, varredura: VarreduraRevisoes): any => {
+  const idRevisao = idRevisaoEfetivo(varredura, el.getAttribute('id-revisao') ?? '');
+  const n = (varredura.porIdRevisao.get(idRevisao) ?? 0) + 1;
+  varredura.porIdRevisao.set(idRevisao, n);
+  const id = `${PREFIXO_ID_REVISAO_TEXTUAL}${idRevisao}_${n}`;
+  varredura.revisoes.push({
+    id,
+    usuario: new Usuario(el.getAttribute('usuario') || undefined, el.getAttribute('id-usuario') || undefined, el.getAttribute('sigla-usuario') || undefined),
+    data: dataIsoDaMarca(el.getAttribute('date')),
+  });
+  return elemento(el.tagName.toLowerCase(), comConteudo({ TYPE_NAME: 'br_gov_lexml__1.GenInline', id }, montaInline(el.childNodes, varredura)));
+};
+
+// Sem varredura (texto da nota de rodapé), `ins`/`del` ficam só com o conteúdo.
+const montaInline = (nos: NodeListOf<ChildNode> | ChildNode[], varredura?: VarreduraRevisoes): any[] =>
   Array.from(nos).flatMap((no): any[] => {
     if (no.nodeType === Node.TEXT_NODE) return no.textContent ? [escapar(no.textContent)] : [];
     if (no.nodeType !== Node.ELEMENT_NODE) return [];
@@ -47,14 +101,15 @@ const montaInline = (nos: NodeListOf<ChildNode> | ChildNode[]): any[] =>
     if (el.tagName === 'BR') return [];
     if (el.tagName === 'IMG') return [montaImagem(el as HTMLElement)];
     if (el.tagName === 'LEXML-ETA-NOTA-RODAPE') return [montaNotaRodape(el)];
+    if ((el.tagName === 'INS' || el.tagName === 'DEL') && varredura && !ehMarcaVazia(el)) return [montaMarcaRevisao(el, varredura)];
     const tag = INLINE[el.tagName];
-    if (!tag) return montaInline(el.childNodes);
+    if (!tag) return montaInline(el.childNodes, varredura);
     const value: any = { TYPE_NAME: 'br_gov_lexml__1.GenInline', ...classe(el) };
     if (tag === 'a') {
       if (el.getAttribute('href')) value.href = el.getAttribute('href');
       if (el.getAttribute('target')) value.target = el.getAttribute('target');
     }
-    return [elemento(tag, comConteudo(value, montaInline(el.childNodes)))];
+    return [elemento(tag, comConteudo(value, montaInline(el.childNodes, varredura)))];
   });
 
 // Junta textos vizinhos, como o conversor faz ao ler o XML.
@@ -84,22 +139,23 @@ const montaNotaRodape = (el: Element): any => {
   );
 };
 
-const montaParagrafo = (el: Element): any => elemento('p', comConteudo({ TYPE_NAME: 'br_gov_lexml__1.GenInline', ...classe(el) }, montaInline(el.childNodes)));
+const montaParagrafo = (el: Element, varredura: VarreduraRevisoes): any =>
+  elemento('p', comConteudo({ TYPE_NAME: 'br_gov_lexml__1.GenInline', ...classe(el) }, montaInline(el.childNodes, varredura)));
 
-const montaLista = (el: Element): any =>
+const montaLista = (el: Element, varredura: VarreduraRevisoes): any =>
   elemento(el.tagName.toLowerCase(), {
     TYPE_NAME: 'br_gov_lexml__1.HTMLlist',
     li: Array.from(el.children)
       .filter(li => li.tagName === 'LI')
-      .map(li => comConteudo({ TYPE_NAME: 'br_gov_lexml__1.Li', ...classe(li) }, montaInline(li.childNodes))),
+      .map(li => comConteudo({ TYPE_NAME: 'br_gov_lexml__1.Li', ...classe(li) }, montaInline(li.childNodes, varredura))),
   });
 
 // `td`/`th` só aceitam conteúdo inline: cada parágrafo vira `span` com a classe `p`.
-const montaCelula = (celula: HTMLTableCellElement): any => {
+const montaCelula = (celula: HTMLTableCellElement, varredura: VarreduraRevisoes): any => {
   const content = Array.from(celula.childNodes).flatMap(no =>
     no.nodeType === Node.ELEMENT_NODE && (no as Element).tagName === 'P'
-      ? [elemento('span', comConteudo({ TYPE_NAME: 'br_gov_lexml__1.GenInline', ...classe(no as Element, 'p') }, montaInline(no.childNodes)))]
-      : montaInline([no])
+      ? [elemento('span', comConteudo({ TYPE_NAME: 'br_gov_lexml__1.GenInline', ...classe(no as Element, 'p') }, montaInline(no.childNodes, varredura)))]
+      : montaInline([no], varredura)
   );
   const value: any = { TYPE_NAME: 'br_gov_lexml__1.GenInline', ...classe(celula), ...estiloDimensoes(celula) };
   // 1 é o padrão do XSD; omitir evita diferença com o que o Quill devolve ao reabrir.
@@ -108,7 +164,7 @@ const montaCelula = (celula: HTMLTableCellElement): any => {
   return elemento(celula.tagName.toLowerCase(), comConteudo(value, content));
 };
 
-const montaTabela = (tabela: HTMLTableElement, sequencial: number): any => {
+const montaTabela = (tabela: HTMLTableElement, sequencial: number, varredura: VarreduraRevisoes): any => {
   const border = Number.parseInt(tabela.getAttribute('border') ?? '', 10);
   return elemento('table', {
     TYPE_NAME: 'br_gov_lexml__1.Table',
@@ -121,39 +177,46 @@ const montaTabela = (tabela: HTMLTableElement, sequencial: number): any => {
       TYPE_NAME: 'br_gov_lexml__1.Tr',
       tableCellElement: Array.from(tr.cells)
         .filter(celula => !celula.hasAttribute('merge_id'))
-        .map(montaCelula),
+        .map(celula => montaCelula(celula, varredura)),
     })),
   });
 };
 
 const temConteudo = (raiz: Element): boolean => !!raiz.textContent?.trim() || !!raiz.querySelector('img');
 
-/** Devolve `Justificacao` no formato do conversor jsonix-lexml 2.0.0, ou undefined se não houver conteúdo. */
-export const montaJustificacao = (html: string | undefined): any | undefined => {
+/** `Justificacao` no formato do conversor jsonix-lexml 2.1.0 e as marcas de revisão de texto, da mesma varredura (design D2). */
+export interface JustificacaoMontada {
+  /** undefined se não houver conteúdo. */
+  justificacao?: any;
+  revisoes: RevisaoTextualMontada[];
+}
+
+export const montaJustificacao = (html: string | undefined): JustificacaoMontada => {
   const template = document.createElement('template');
   template.innerHTML = html ?? '';
-  const raiz = template.content;
-  // Revisões ainda não são gravadas (#994): `ins` fica só com o texto, e `del` sai com as notas que tiver.
-  raiz.querySelectorAll('del').forEach(el => el.remove());
   const container = document.createElement('div');
-  container.append(raiz);
-  if (!temConteudo(container)) return undefined;
+  container.append(template.content);
+  if (!temConteudo(container)) return { revisoes: [] };
 
+  const varredura: VarreduraRevisoes = { revisoes: [], porIdRevisao: new Map(), idsSubstitutos: new Map() };
   let tabelas = 0;
   const blocos = Array.from(container.childNodes).flatMap((no): any[] => {
     if (no.nodeType === Node.TEXT_NODE) return no.textContent?.trim() ? [elemento('p', { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: [escapar(no.textContent)] })] : [];
     if (no.nodeType !== Node.ELEMENT_NODE) return [];
     const el = no as Element;
-    if (el.tagName === 'TABLE') return [montaTabela(el as HTMLTableElement, ++tabelas)];
-    if (el.tagName === 'UL' || el.tagName === 'OL') return [montaLista(el)];
+    if (el.tagName === 'TABLE') return [montaTabela(el as HTMLTableElement, ++tabelas, varredura)];
+    if (el.tagName === 'UL' || el.tagName === 'OL') return [montaLista(el, varredura)];
     // No Quill a imagem é bloco; no LexML `img` é inline.
     if (el.tagName === 'IMG') return [elemento('p', { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: [montaImagem(el as HTMLElement)] })];
-    return [montaParagrafo(el)];
+    return [montaParagrafo(el, varredura)];
   });
 
   return {
-    TYPE_NAME: 'br_gov_lexml__1.OpenStructure',
-    partePrincipal: { TYPE_NAME: 'br_gov_lexml__1.PartePrincipal', agrupamentoHierarquicoOrDivOrAgrupamento: blocos },
+    justificacao: {
+      TYPE_NAME: 'br_gov_lexml__1.OpenStructure',
+      partePrincipal: { TYPE_NAME: 'br_gov_lexml__1.PartePrincipal', agrupamentoHierarquicoOrDivOrAgrupamento: blocos },
+    },
+    revisoes: varredura.revisoes,
   };
 };
 
@@ -203,9 +266,10 @@ const criaImagem = (value: any): HTMLElement => {
 const TAGS_INLINE = new Set(['b', 'i', 'u', 'sup', 'sub', 'span', 'a']);
 
 // Nota no formato do editor; `texto` é o HTML do modal, codificado. Id e número são definidos em lerJustificacao.
+// O texto da nota não tem revisão: `ins`/`del` ali ficam só com o conteúdo.
 const criaNotaRodape = (value: any): HTMLElement => {
   const p = document.createElement('p');
-  p.append(...criaInline(value?.content));
+  p.append(...criaInline(value?.content, false));
   const el = document.createElement('lexml-eta-nota-rodape');
   el.setAttribute('class', 'lexml-eta-nota-rodape');
   el.setAttribute('contenteditable', 'false');
@@ -213,23 +277,53 @@ const criaNotaRodape = (value: any): HTMLElement => {
   return el;
 };
 
-const criaInline = (content: any[] | undefined): Node[] =>
+// `ins`/`del` levam o `id` gravado até lerJustificacao aplicar os atributos do editor.
+const criaInline = (content: any[] | undefined, comRevisoes = true): Node[] =>
   (content ?? []).flatMap((item): Node[] => {
     if (typeof item === 'string') return [document.createTextNode(item)];
     const tag = nomeLocal(item);
     if (tag === 'img') return [criaImagem(item.value)];
     if (tag === 'NotaDeRodape') return [criaNotaRodape(item.value)];
-    // Inline desconhecido (Remissao, ins, del...): só o texto.
-    if (!tag || !TAGS_INLINE.has(tag)) return criaInline(item?.value?.content);
+    if ((tag === 'ins' || tag === 'del') && comRevisoes) {
+      const marca = document.createElement(tag);
+      marca.setAttribute(ATRIBUTO_ID_GRAVADO, typeof item.value?.id === 'string' ? item.value.id : '');
+      marca.append(...criaInline(item.value?.content));
+      return [marca];
+    }
+    // Inline desconhecido (Remissao...): só o texto.
+    if (!tag || !TAGS_INLINE.has(tag)) return criaInline(item?.value?.content, comRevisoes);
     const el = document.createElement(tag);
     aplicaAtributos(el, item.value);
     if (tag === 'a') {
       if (item.value?.href) el.setAttribute('href', item.value.href);
       if (item.value?.target) el.setAttribute('target', item.value.target);
     }
-    el.append(...criaInline(item.value?.content));
+    el.append(...criaInline(item.value?.content, comRevisoes));
     return [el];
   });
+
+const ATRIBUTO_ID_GRAVADO = 'data-id-gravado';
+
+// `_rt<id-revisao>_<n>` → `<id-revisao>`; `_rt<id>` sem sufixo usa o resto (exemplo da especificação 09).
+const idRevisaoDoIdGravado = (id: string): string | undefined => {
+  if (!id.startsWith(PREFIXO_ID_REVISAO_TEXTUAL)) return undefined;
+  const resto = id.slice(PREFIXO_ID_REVISAO_TEXTUAL.length).replace(/_\d+$/, '');
+  return resto || undefined;
+};
+
+// Atributos de InsBlot/DelBlot (`moduloRevisao.ts`); sem RevisaoTextual, a marca é de "Anônimo" com a data da abertura.
+const aplicaAtributosRevisao = (marca: Element, revisoes: Record<string, RevisaoTextualLida>): void => {
+  const id = marca.getAttribute(ATRIBUTO_ID_GRAVADO) ?? '';
+  marca.removeAttribute(ATRIBUTO_ID_GRAVADO);
+  const lida = revisoes[id];
+  const usuario = lida?.usuario ?? new Usuario();
+  marca.setAttribute('usuario', usuario.nome);
+  // O editor grava a data local seguida de um espaço.
+  marca.setAttribute('date', `${lida?.dataHora ?? formatDateTime(new Date())} `);
+  marca.setAttribute('id-revisao', idRevisaoDoIdGravado(id) ?? generateUUID());
+  if (usuario.id !== undefined && usuario.id !== null && usuario.id !== '') marca.setAttribute('id-usuario', String(usuario.id));
+  if (usuario.sigla) marca.setAttribute('sigla-usuario', usuario.sigla);
+};
 
 const criaComFilhos = (tag: string, value: any, filhos: Node[]): HTMLElement => {
   const el = document.createElement(tag);
@@ -297,8 +391,11 @@ const criaBloco = (item: any): Node[] => {
   return texto.trim() ? [criaComFilhos('p', undefined, [document.createTextNode(texto)])] : [];
 };
 
-/** HTML para o editor da justificação a partir de todas as `Justificacao` do documento; '' quando não há. Nunca lança erro. */
-export const lerJustificacao = (documento: any): string => {
+/**
+ * HTML para o editor da justificação a partir de todas as `Justificacao` do documento; '' quando não há. Nunca lança erro.
+ * `revisoesTextuais` (de lerMetadadoLexEdit) dá autor e data aos `ins`/`del`.
+ */
+export const lerJustificacao = (documento: any, revisoesTextuais: Record<string, RevisaoTextualLida> = {}): string => {
   const justificacoes = documento?.value?.projetoNorma?.justificacao;
   const container = document.createElement('div');
   for (const justificacao of Array.isArray(justificacoes) ? justificacoes : []) {
@@ -318,5 +415,6 @@ export const lerJustificacao = (documento: any): string => {
     nota.setAttribute('numero', String(i + 1));
     nota.textContent = String(i + 1);
   });
+  container.querySelectorAll(`ins[${ATRIBUTO_ID_GRAVADO}], del[${ATRIBUTO_ID_GRAVADO}]`).forEach(marca => aplicaAtributosRevisao(marca, revisoesTextuais));
   return container.innerHTML;
 };

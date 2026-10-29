@@ -9,3 +9,6 @@ export class Usuario {
     this.sigla = sigla;
   }
 }
+
+// `idUsuario` gravado em `lexedit:Usuarios`; sem identificador do host, vale o nome (especificação 12).
+export const getIdUsuario = (usuario: Usuario): string => String(usuario.id ?? usuario.nome);

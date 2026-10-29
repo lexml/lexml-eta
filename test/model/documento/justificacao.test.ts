@@ -1,6 +1,7 @@
 import { expect } from '@open-wc/testing';
 import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
-import { lerJustificacao } from '../../../src/model/lexml/documento/conversor/justificacao';
+import { lerJustificacao, montaJustificacao } from '../../../src/model/lexml/documento/conversor/justificacao';
+import { formatDateTimeToIso } from '../../../src/util/date-util';
 import { criarDocumentoArticulado, DadosLexEdit, lerDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
 import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
 import { decodeHtml, encodeHtml } from '../../../src/util/string-util';
@@ -160,11 +161,6 @@ describe('Justificação — salvar (especificação 06)', () => {
     expect(simplificar(blocosSalvos('<p>a</p><p><br></p><p>b</p>')[1])).to.deep.equal({ p: { TYPE_NAME: 'br_gov_lexml__1.GenInline' } });
   });
 
-  it('retira as marcas de revisão, mantendo o texto incluído e descartando o excluído com a sua nota', () => {
-    const [p] = blocosSalvos(`<p>Texto com <ins id-revisao="1">novo</ins><del id-revisao="2">velho${nota('nr1', 'da exclusão')}</del> fim.</p>`);
-    expect(p.value.content.join('')).to.equal('Texto com novo fim.');
-  });
-
   it('preserva o texto literal com & e sinais de menor e maior', () => {
     const [p] = blocosSalvos('<p>A &amp; B, 1 &lt; 2 &gt; 0 e &amp;amp; escrito.</p>');
     expect(p.value.content).to.deep.equal(['A & B, 1 < 2 > 0 e &amp; escrito.']);
@@ -230,6 +226,102 @@ describe('Justificação — salvar notas de rodapé (especificação 07)', () =
     expect(simplificar(lista.value.li[0].content[1])).to.deep.equal({ NotaDeRodape: { TYPE_NAME: GEN, content: ['Na lista.'] } });
     const span = tab.value.tr[0].tableCellElement[0].value.content[0];
     expect(simplificar(span)).to.deep.equal({ span: { TYPE_NAME: GEN, clazz: 'p', content: ['2025', { NotaDeRodape: { TYPE_NAME: GEN, content: ['Na tabela.'] } }] } });
+  });
+});
+
+// Marca de revisão no formato de `texto` do editor.
+const marca = (tag: 'ins' | 'del', idRevisao: string | undefined, conteudo: string, autor: { idUsuario?: string; sigla?: string; date?: string } = {}): string =>
+  `<${tag} usuario="Fulano de Tal" date="${autor.date ?? '2026-05-11 15:51:00 '}"` +
+  (idRevisao !== undefined ? ` id-revisao="${idRevisao}"` : '') +
+  (autor.idUsuario ? ` id-usuario="${autor.idUsuario}"` : '') +
+  (autor.sigla ? ` sigla-usuario="${autor.sigla}"` : '') +
+  `>${conteudo}</${tag}>`;
+
+describe('Justificação — salvar revisões de texto (especificação 09)', () => {
+  const ID = 'a1b2c3d4-0000-4000-8000-000000000001';
+  const ID2 = 'a1b2c3d4-0000-4000-8000-000000000002';
+
+  it('grava o trecho incluído em ins e o excluído em del, com id de prefixo _rt e o seu RevisaoTextual', () => {
+    const html = `<p>Texto ${marca('ins', ID, 'novo', { idUsuario: 'sf:fulano', sigla: 'FT' })}${marca('del', ID2, 'velho', { idUsuario: 'sf:fulano', sigla: 'FT' })} fim.</p>`;
+    const [p] = blocosSalvos(html);
+    expect(simplificar(p.value.content)).to.deep.equal([
+      'Texto ',
+      { ins: { TYPE_NAME: GEN, id: `_rt${ID}_1`, content: ['novo'] } },
+      { del: { TYPE_NAME: GEN, id: `_rt${ID2}_1`, content: ['velho'] } },
+      ' fim.',
+    ]);
+
+    const { revisoes } = montaJustificacao(html);
+    expect(revisoes.map(r => r.id)).to.deep.equal([`_rt${ID}_1`, `_rt${ID2}_1`]);
+    revisoes.forEach(r => {
+      expect(r.usuario).to.include({ nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' });
+      expect(r.data).to.equal(formatDateTimeToIso('2026-05-11 15:51:00'));
+    });
+  });
+
+  it('dá ids distintos ao del e ao ins da mesma substituição', () => {
+    const { justificacao, revisoes } = montaJustificacao(`<p>${marca('del', ID, 'velho')}${marca('ins', ID, 'novo')}</p>`);
+    const [del, ins] = justificacao.partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento[0].value.content;
+    expect([del.value.id, ins.value.id]).to.deep.equal([`_rt${ID}_1`, `_rt${ID}_2`]);
+    expect(revisoes.map(r => r.id)).to.deep.equal([`_rt${ID}_1`, `_rt${ID}_2`]);
+  });
+
+  it('dá ids distintos aos trechos de uma exclusão que atravessa negrito', () => {
+    const [p] = blocosSalvos(`<p>${marca('del', ID, 'texto ')}<strong>${marca('del', ID, 'negrito')}</strong> fim</p>`);
+    expect(simplificar(p.value.content)).to.deep.equal([
+      { del: { TYPE_NAME: GEN, id: `_rt${ID}_1`, content: ['texto '] } },
+      { b: { TYPE_NAME: GEN, content: [{ del: { TYPE_NAME: GEN, id: `_rt${ID}_2`, content: ['negrito'] } }] } },
+      ' fim',
+    ]);
+  });
+
+  it('grava a nota de rodapé dentro do trecho excluído', () => {
+    const [p] = blocosSalvos(`<p>a ${marca('del', ID, `velho${nota('nr1', '<p>Da exclusão.</p>')}`)}</p>`);
+    expect(simplificar(p.value.content[1])).to.deep.equal({
+      del: { TYPE_NAME: GEN, id: `_rt${ID}_1`, content: ['velho', { NotaDeRodape: { TYPE_NAME: GEN, content: ['Da exclusão.'] } }] },
+    });
+  });
+
+  it('gera um id-revisao novo para marca sem id-revisao, com cada marca num grupo', () => {
+    const { revisoes } = montaJustificacao(`<p>${marca('ins', undefined, 'a')} e ${marca('ins', undefined, 'b')}</p>`);
+    expect(revisoes).to.have.length(2);
+    revisoes.forEach(r => expect(r.id).to.match(/^_rt[0-9a-f-]{36}_1$/));
+    expect(revisoes[0].id).to.not.equal(revisoes[1].id);
+  });
+
+  it('troca o id-revisao que não cabe num NCName, mantendo o grupo', () => {
+    const { revisoes } = montaJustificacao(`<p>${marca('del', 'id com espaço', 'a')}<b>${marca('del', 'id com espaço', 'b')}</b></p>`);
+    const [primeiro, segundo] = revisoes.map(r => /^_rt(.+)_(\d+)$/.exec(r.id)!);
+    expect(primeiro[1]).to.match(/^[0-9a-f-]{36}$/);
+    expect(segundo[1]).to.equal(primeiro[1]);
+    expect([primeiro[2], segundo[2]]).to.deep.equal(['1', '2']);
+  });
+
+  it('marca sem id do usuário fica só com o nome', () => {
+    const [revisao] = montaJustificacao(`<p>${marca('ins', ID, 'a')}</p>`).revisoes;
+    expect(revisao.usuario.nome).to.equal('Fulano de Tal');
+    expect(revisao.usuario.id).to.be.undefined;
+    expect(revisao.usuario.sigla).to.be.undefined;
+  });
+
+  it('marca só com o cursor do Quill vira texto comum, sem revisão', () => {
+    const html = `<p>a${marca('ins', ID, '﻿')}b</p>`;
+    const { justificacao, revisoes } = montaJustificacao(html);
+    expect(revisoes).to.be.empty;
+    expect(justificacao.partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento[0].value.content.every((c: any) => typeof c === 'string')).to.be.true;
+  });
+
+  it('grava a data com o fuso, e a data inválida como o instante do salvamento', () => {
+    const [valida, invalida] = montaJustificacao(`<p>${marca('ins', ID, 'a')}${marca('del', ID2, 'b', { date: 'ontem' })}</p>`).revisoes;
+    expect(valida.data).to.match(/^2026-05-11T15:51:00[+-]\d{2}:\d{2}$/);
+    expect(Date.parse(invalida.data)).to.be.closeTo(Date.now(), 120000);
+    expect(invalida.data).to.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/);
+  });
+
+  it('justificação sem marcas não tem ins, del nem revisões', () => {
+    const { justificacao, revisoes } = montaJustificacao('<p>Texto <strong>sem</strong> marcas.</p>');
+    expect(revisoes).to.be.empty;
+    expect(JSON.stringify(simplificar(justificacao))).to.not.match(/"(ins|del)"/);
   });
 });
 

@@ -18,14 +18,16 @@ import { atualizarTextoRemissao, isTextoReconhecivel } from '../../../remissao/l
 import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
-import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit } from '../documentoArticulado';
+import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit, RevisoesLexEdit } from '../documentoArticulado';
+import { getIdUsuario } from '../../../revisao/usuario';
 import { Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
 import { formatarLocalDataFecho } from '../urnUtil';
-import { montaJustificacao } from './justificacao';
+import { JustificacaoMontada, montaJustificacao, RevisaoTextualMontada } from './justificacao';
 import { coletarSituacaoNaNormaVigente, mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 export const PENDENCIA_REVISAO_ARTICULACAO = 'Resolver marcas de revisão na articulação.';
+export const PENDENCIA_REVISAO_TEXTO = 'Resolver marcas de revisão de texto.';
 
 type Remissoes = Record<number, RemissaoInternaValue[]>;
 type RemissoesExternas = Record<string, RemissaoExternaValue>;
@@ -46,15 +48,18 @@ const garantirIdsRemissoesInvalidas = (remissoes?: Remissoes): string[] => {
 
 export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: string, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
   const idsRemissoesInvalidas = garantirIdsRemissoesInvalidas(remissoes);
+  // Uma só varredura: os `id` de `ins`/`del` e os de `RevisoesTextuais` não podem divergir.
+  const justificacao = montaJustificacao(dados?.justificacao);
   const resultado = montaCabecalho(
     urn,
     montaMetadadoLexEdit(
       dados,
       idsRemissoesInvalidas,
-      mesclarSituacaoNaNormaVigente(coletarSituacaoNaNormaVigente(projetoNorma.articulacao), dados?.revisoes?.situacaoDosExcluidos)
+      mesclarSituacaoNaNormaVigente(coletarSituacaoNaNormaVigente(projetoNorma.articulacao), dados?.revisoes?.situacaoDosExcluidos),
+      justificacao.revisoes
     )
   );
-  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas, dados);
+  resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas, dados, justificacao);
   return resultado;
 };
 
@@ -125,8 +130,30 @@ const montaSituacaoNaNormaVigente = (situacao: SituacaoNaNormaVigente): Metadado
   };
 };
 
+const montaRevisoesTextuais = (revisoes: RevisaoTextualMontada[]): MetadadoLexEdit['revisoesTextuais'] => ({
+  TYPE_NAME: 'br_gov_lexml_lexedit__1.RevisoesTextuais',
+  revisaoTextual: revisoes.map(r => ({ TYPE_NAME: 'br_gov_lexml_lexedit__1.RevisaoTextual', refIdRevisao: r.id, refIdUsuario: getIdUsuario(r.usuario), data: r.data })),
+});
+
+// União por idUsuario: primeiro os das revisões da hierarquia, depois os das marcas de texto (design D5).
+const montaUsuarios = (daArticulacao: RevisoesLexEdit['usuarios'] | undefined, revisoesTextuais: RevisaoTextualMontada[]): RevisoesLexEdit['usuarios'] | undefined => {
+  const usuario = [...(daArticulacao?.usuario ?? [])];
+  revisoesTextuais.forEach(({ usuario: u }) => {
+    const idUsuario = getIdUsuario(u);
+    if (!usuario.some(registrado => registrado.idUsuario === idUsuario)) {
+      usuario.push({ TYPE_NAME: 'br_gov_lexml_lexedit__1.Usuario', idUsuario, nome: u.nome, ...(u.sigla && { sigla: u.sigla }) });
+    }
+  });
+  return usuario.length ? { TYPE_NAME: 'br_gov_lexml_lexedit__1.Usuarios', usuario } : undefined;
+};
+
 // Ponto único de composição dos grupos `lexedit`: undefined quando não há grupo a serializar.
-const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInvalidas: string[], situacao: SituacaoNaNormaVigente): MetadadoLexEdit | undefined => {
+const montaMetadadoLexEdit = (
+  dados: DadosLexEdit | undefined,
+  idsRemissoesInvalidas: string[],
+  situacao: SituacaoNaNormaVigente,
+  revisoesTextuais: RevisaoTextualMontada[]
+): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
   // As do editor vêm antes da de remissões, como na especificação 13.
   const pendencias: string[] = [...(dados?.pendencias ?? [])];
@@ -144,11 +171,17 @@ const montaMetadadoLexEdit = (dados: DadosLexEdit | undefined, idsRemissoesInval
     lexedit.remissoesInternasInvalidas = { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idsRemissoesInvalidas.join(' ') };
     pendencias.push('Corrigir remissões internas inválidas.');
   }
-  if (dados?.revisoes?.revisoesArticulacao.revisaoArticulacao.length) {
-    lexedit.revisoesArticulacao = dados.revisoes.revisoesArticulacao;
-    lexedit.usuarios = dados.revisoes.usuarios;
+  if (revisoesTextuais.length) {
+    lexedit.revisoesTextuais = montaRevisoesTextuais(revisoesTextuais);
+    pendencias.push(PENDENCIA_REVISAO_TEXTO);
+  }
+  const temRevisoesArticulacao = !!dados?.revisoes?.revisoesArticulacao.revisaoArticulacao.length;
+  if (temRevisoesArticulacao) {
+    lexedit.revisoesArticulacao = dados!.revisoes!.revisoesArticulacao;
     pendencias.push(PENDENCIA_REVISAO_ARTICULACAO);
   }
+  const usuarios = montaUsuarios(temRevisoesArticulacao ? dados!.revisoes!.usuarios : undefined, revisoesTextuais);
+  if (usuarios) lexedit.usuarios = usuarios;
   const situacaoNaNormaVigente = montaSituacaoNaNormaVigente(situacao);
   if (situacaoNaNormaVigente) lexedit.situacaoNaNormaVigente = situacaoNaNormaVigente;
   if (pendencias.length > 0) lexedit.pendencias = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Pendencias', pendencia: pendencias };
@@ -197,7 +230,7 @@ const montaCabecalho = (urn: string, lexedit?: MetadadoLexEdit): any => {
   };
 };
 
-const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit): any => {
+const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesExternas?: RemissoesExternas, dados?: DadosLexEdit, montada?: JustificacaoMontada): any => {
   const p = {
     TYPE_NAME: 'br_gov_lexml__1.ProjetoNorma',
   };
@@ -209,8 +242,7 @@ const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesEx
     articulacao: montaArticulacao(projetoNorma, remissoes, remissoesExternas),
     ...(parteFinal && { parteFinal }),
   };
-  const justificacao = montaJustificacao(dados?.justificacao);
-  if (justificacao) p['justificacao'] = [justificacao];
+  if (montada?.justificacao) p['justificacao'] = [montada.justificacao];
 
   return p;
 };

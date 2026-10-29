@@ -34,6 +34,8 @@ export interface MetadadoLexEdit {
   situacaoNaNormaVigente?: { TYPE_NAME: string; refIdsDispositivosExistentes?: string; refIdsDispositivosNovos?: string };
   revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
   usuarios?: RevisoesLexEdit['usuarios'];
+  // Um RevisaoTextual por `ins`/`del` da justificação (especificação 09).
+  revisoesTextuais?: { TYPE_NAME: string; revisaoTextual: Array<{ TYPE_NAME: string; refIdRevisao: string; refIdUsuario: string; data: string }> };
 }
 
 /** `lexedit:RevisaoArticulacao`: o conteúdo filho é uma única propriedade do choice do XSD (o dispositivo anterior ou excluído, ex.: `artigo`; ou `p`, só na leitura). */
@@ -78,6 +80,14 @@ export interface DadosLexEdit {
   revisoes?: RevisoesLexEdit;
   // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
   revisoesLidas?: RevisaoArticulacaoLida[];
+  // Só na leitura: autor e data de cada `ins`/`del` da justificação, por `refIdRevisao`.
+  revisoesTextuais?: Record<string, RevisaoTextualLida>;
+}
+
+/** `lexedit:RevisaoTextual` lida do arquivo; `dataHora` no formato interno (`AAAA-MM-DD HH:mm:ss`, horário local). */
+export interface RevisaoTextualLida {
+  usuario: Usuario;
+  dataHora: string;
 }
 
 /** `lexedit:RevisaoArticulacao` lida do arquivo, já sem as operações desconhecidas. */
