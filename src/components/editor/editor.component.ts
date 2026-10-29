@@ -753,6 +753,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const elemento: Elemento = this.criarElemento(linha.uuid, linha.uuid2, linha.lexmlId, linha.tipo, textoLinha, linha.numero, linha.hierarquia);
 
+    this.cancelarTimerOnChangePendente();
     if (ev.key.toLowerCase() === 'o') {
       rootStore.dispatch(transformarAction(elemento, TipoDispositivo.omissis.name!));
     } else if (Keyboard.keys.TAB) {
@@ -1529,7 +1530,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   // Evita que inserirNovoElementoNoQuill pule o reposicionamento síncrono do cursor
-  // (guarda "!this.timerOnChange") quando um novo elemento é criado logo após digitar.
+  // (guarda "!this.timerOnChange") quando um elemento é criado ou transformado logo após outra edição.
   private cancelarTimerOnChangePendente(): void {
     clearTimeout(this.timerOnChange);
     this.timerOnChange = undefined;
