@@ -121,17 +121,21 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
   });
 
-  it('modo de anexo de parecer e documento referenciado vão e voltam pelo CLI', async () => {
+  it('modo de anexo de parecer, documento referenciado e data da última modificação vão e voltam pelo CLI', async () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const urnDocumentoReferenciado = 'urn:lex:br:senado.federal:projeto.lei;pl:2025;10';
-    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { anexoParecer: true, urnDocumentoReferenciado });
+    const dataUltimaModificacao = '2026-10-29T10:15:30-03:00';
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { anexoParecer: true, urnDocumentoReferenciado, dataUltimaModificacao });
 
     const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
 
     expect(retorno.valido, retorno.erro).to.equal(true);
     expect(retorno.xml).to.match(/<lexedit:Metadado[^>]*urnDocumentoReferenciado="urn:lex:br:senado.federal:projeto.lei;pl:2025;10"[^>]*anexoParecer="true"/);
+    expect(retorno.xml).to.match(/<lexedit:Metadado[^>]* dataUltimaModificacao="2026-10-29T10:15:30-03:00"/);
+    expect(retorno.xml).not.to.match(/aplicacao=|versaoAplicacao=/);
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
     const dados = lerMetadadoLexEdit(retorno.jsonix);
-    expect(dados).to.deep.equal({ anexoParecer: true, urnDocumentoReferenciado });
+    expect(dados).to.deep.equal({ anexoParecer: true, urnDocumentoReferenciado, dataUltimaModificacao });
     const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
   });

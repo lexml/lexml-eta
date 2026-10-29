@@ -46,6 +46,7 @@ import { DestinoComponent } from './destino/destino.component';
 import { AnexosComponent } from './anexos/anexos.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { isHtmlSemTexto } from '../util/string-util';
+import { formatDateTime, formatDateTimeToIso } from '../util/date-util';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { Anexo, Autoria, ColegiadoApreciador, Epigrafe, getRefProposicaoReduzida, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
 import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
@@ -121,6 +122,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   private anexoParecer = false;
 
   private urnDocumentoReferenciado?: string;
+
+  private _dataUltimaModificacaoDocumento?: string;
+
+  /** `dataUltimaModificacao` do documento aberto, como gravada; salvar não a altera. Não é o campo "Data" do fecho. */
+  get dataUltimaModificacaoDocumento(): string | undefined {
+    return this._dataUltimaModificacaoDocumento;
+  }
 
   // Documento que não é proposição suportada (ex.: MPV, norma): sem destino e autoria, com erro na aba de avisos.
   @state()
@@ -250,6 +258,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       ...(this.urnDocumentoReferenciado && { urnDocumentoReferenciado: this.urnDocumentoReferenciado }),
       local: this.getLocalFecho(),
       data: normalizarDataFecho(this._lexmlData.data),
+      dataUltimaModificacao: formatDateTimeToIso(formatDateTime(new Date())),
       // Em tipo não suportado, destino e autoria não são editáveis e saem vazios.
       ...(this.tipoNaoSuportado ? {} : { autoria: this._lexmlAutoria.getAutoriaAtualizada() }),
       ...(this.anexoParecer || this.tipoNaoSuportado ? {} : { colegiadoApreciador: this._lexmlDestino!.colegiadoApreciador }),
@@ -338,6 +347,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
     this.outrosMetadados = dados.outrosMetadados ?? {};
     this.urnDocumentoReferenciado = dados.urnDocumentoReferenciado;
+    this._dataUltimaModificacaoDocumento = dados.dataUltimaModificacao;
     this.aplicarAnexos(dados.anexos);
   }
 
@@ -509,6 +519,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.localDoArquivo = undefined;
     this.destinoAoAbrir = undefined;
     this.outrosMetadados = {};
+    this._dataUltimaModificacaoDocumento = undefined;
     this.notasRodape = [];
     // Antes da primeira renderização os formulários ainda não existem.
     if (this._lexmlJustificativa) {

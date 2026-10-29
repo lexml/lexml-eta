@@ -192,6 +192,8 @@ const montaMetadadoLexEdit = (
   // O editor sempre informa o modo; sem dados (chamadas diretas do conversor), o atributo é omitido.
   if (typeof dados?.anexoParecer === 'boolean') lexedit.anexoParecer = dados.anexoParecer;
   if (dados?.urnDocumentoReferenciado?.trim()) lexedit.urnDocumentoReferenciado = dados.urnDocumentoReferenciado.trim();
+  // Vem do editor: gerar aqui tornaria o conversor não determinístico.
+  if (dados?.dataUltimaModificacao) lexedit.dataUltimaModificacao = dados.dataUltimaModificacao;
   // Sem local não há fecho; data não informada é omitida, pois xsd:date não aceita texto vazio.
   if (dados?.local) {
     lexedit.local = dados.local;

@@ -77,7 +77,7 @@ Datas e horas devem ser serializadas em ISO 8601, utilizando os tipos xsd:date o
 | Remissões internas | [10-remissoes-internas.md](10-remissoes-internas.md) | Implementado |
 | Revisão da hierarquia | [11-revisao-da-hierarquia.md](11-revisao-da-hierarquia.md) | Implementado |
 | Registro de usuários | [12-registro-usuarios.md](12-registro-usuarios.md) | Implementado para os usuários das revisões da hierarquia e das revisões de texto |
-| Outros metadados do LexEdit | [13-outros-metadados-do-lexedit.md](13-outros-metadados-do-lexedit.md) | Parcial: `Pendencias` e `SituacaoNaNormaVigente`; os atributos de `lexedit:Metadado` deste grupo não são gravados |
+| Outros metadados do LexEdit | [13-outros-metadados-do-lexedit.md](13-outros-metadados-do-lexedit.md) | Implementado (#997): `Pendencias`, `SituacaoNaNormaVigente` e os atributos `dataUltimaModificacao`, `anexoParecer` e `urnDocumentoReferenciado`; `aplicacao` e `versaoAplicacao` ainda não são gravados |
 | Colegiado apreciador | [14-colegiado-apreciador.md](14-colegiado-apreciador.md) | Implementado |
 | Metadados genéricos dos hosts | [15-outros-metadados-dos-hosts.md](15-outros-metadados-dos-hosts.md) | Implementado |
 | Exemplo completo | [99-exemplo-completo.md](99-exemplo-completo.md) | — |

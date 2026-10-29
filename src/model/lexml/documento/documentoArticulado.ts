@@ -19,6 +19,8 @@ export interface MetadadoLexEdit {
   // Ausente nos arquivos antigos: equivale a false (modo normal).
   anexoParecer?: boolean;
   urnDocumentoReferenciado?: string;
+  // xsd:dateTime do salvamento; `aplicacao` e `versaoAplicacao` ainda não são gravados (especificação 13).
+  dataUltimaModificacao?: string;
   // Atributos opcionais no arquivo: a ausência significa o padrão da aplicação (especificação 02).
   opcoesImpressao?: Partial<OpcoesImpressao> & { TYPE_NAME?: string };
   // Só autoria de parlamentares por enquanto (especificação 04).
@@ -76,6 +78,8 @@ export interface MetadadoLexEditProvisorio {
 export interface DadosLexEdit {
   anexoParecer?: boolean;
   urnDocumentoReferenciado?: string;
+  // Ao salvar, o instante informado pelo editor; ao abrir, o valor lido como gravado.
+  dataUltimaModificacao?: string;
   local?: string;
   // 'AAAA-MM-DD'; ausente ou vazia significa data não informada.
   data?: string;

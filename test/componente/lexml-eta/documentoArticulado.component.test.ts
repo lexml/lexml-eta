@@ -16,10 +16,13 @@ import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { removerAlerta } from '../../../src/model/alerta/acao/removerAlerta';
 import {
+  congelarRelogio,
+  DATA_ULTIMA_MODIFICACAO_CONGELADA,
   lexeditSalvo,
   metadadoProprietarioLexEdit,
   novoDocumentoArticulado,
   novoDocumentoComTextoLiteral,
+  restaurarRelogio,
   TEXTO_LITERAL,
   TYPE_NAME_OPCOES_IMPRESSAO,
 } from '../../doc/documentoArticulado';
@@ -34,6 +37,8 @@ describe('ETA — salvar e abrir documento articulado', () => {
     await component.abrirDocumentoArticulado(novoDocumentoArticulado());
   });
 
+  afterEach(restaurarRelogio);
+
   it('abre e exporta a identificação e o conteúdo do arquivo', () => {
     const documento = component.getDocumentoArticulado();
     expect(documento.name.localPart).to.equal('LexML');
@@ -42,6 +47,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
   });
 
   it('preserva aspas e caracteres literais sem interpretá-los como HTML', async () => {
+    congelarRelogio();
     await component.abrirDocumentoArticulado(novoDocumentoComTextoLiteral());
     const salvo = component.getDocumentoArticulado();
     const norma = salvo.value.projetoNorma.norma;
@@ -209,6 +215,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('no modo anexo de parecer aplica a data lida e preserva local e data ao salvar e reabrir', async () => {
+      congelarRelogio();
       await component.abrirDocumentoArticulado(entradaComFecho({ anexoParecer: true, local: 'Sala da comissão', data: '2026-04-24' }));
       await campoData().updateComplete;
 
@@ -257,6 +264,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('salvar e reabrir preserva local, data e o texto do fecho', async () => {
+      congelarRelogio();
       await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da comissão', data: '2026-05-01' }));
       const salvo = component.getDocumentoArticulado();
 
@@ -264,6 +272,68 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
       expect((salvo.value.projetoNorma.norma as any).parteFinal.localDataFecho.p[0].content[0]).to.equal('Sala da comissão, 1º de maio de 2026.');
+    });
+  });
+
+  describe('data da última modificação', () => {
+    const DATA_ARQUIVO = '2026-05-12T10:15:00-03:00';
+    const salvoCom = (dataUltimaModificacao: unknown): any => {
+      const entrada = novoDocumentoArticulado();
+      entrada.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit({ dataUltimaModificacao, opcoesImpressao: { tamanhoFonte: 18 } })];
+      return entrada;
+    };
+    const opcoesImpressao = (): any => (component.querySelector('lexml-eta-opcoes-impressao') as any).opcoesImpressao;
+
+    it('salvar grava o instante do salvamento, com fuso', () => {
+      congelarRelogio();
+      expect(lexeditSalvo(component.getDocumentoArticulado()).dataUltimaModificacao).to.equal(DATA_ULTIMA_MODIFICACAO_CONGELADA);
+      expect(DATA_ULTIMA_MODIFICACAO_CONGELADA).to.match(/^2026-10-29T10:15:30[+-]\d{2}:\d{2}$/);
+    });
+
+    it('salvar de novo, num instante posterior, grava o novo instante', () => {
+      const relogio = congelarRelogio();
+      const primeiro = lexeditSalvo(component.getDocumentoArticulado()).dataUltimaModificacao;
+      relogio.tick(65_000);
+
+      const segundo = lexeditSalvo(component.getDocumentoArticulado()).dataUltimaModificacao;
+
+      expect(segundo).to.not.equal(primeiro);
+      expect(Date.parse(segundo) - Date.parse(primeiro)).to.equal(65_000);
+    });
+
+    it('abrir um arquivo com a data preenche a propriedade, e obter o documento não a altera', async () => {
+      await component.abrirDocumentoArticulado(salvoCom(DATA_ARQUIVO));
+      expect(component.dataUltimaModificacaoDocumento).to.equal(DATA_ARQUIVO);
+
+      const salvo = component.getDocumentoArticulado();
+
+      expect(lexeditSalvo(salvo).dataUltimaModificacao).to.not.equal(DATA_ARQUIVO);
+      expect(component.dataUltimaModificacaoDocumento).to.equal(DATA_ARQUIVO);
+    });
+
+    it('abrir um arquivo sem a data, depois de outro que a tinha, deixa a propriedade indefinida', async () => {
+      await component.abrirDocumentoArticulado(salvoCom(DATA_ARQUIVO));
+      await component.abrirDocumentoArticulado(salvoCom(undefined));
+
+      expect(component.dataUltimaModificacaoDocumento).to.be.undefined;
+      expect(opcoesImpressao().tamanhoFonte).to.equal(18);
+    });
+
+    it('data inválida no arquivo deixa a propriedade indefinida e aplica os demais metadados', async () => {
+      await component.abrirDocumentoArticulado(salvoCom('ontem'));
+
+      expect(component.dataUltimaModificacaoDocumento).to.be.undefined;
+      expect(opcoesImpressao().tamanhoFonte).to.equal(18);
+    });
+
+    it('nova proposição e documento fechado deixam a propriedade indefinida', async () => {
+      await component.abrirDocumentoArticulado(salvoCom(DATA_ARQUIVO));
+      await component.novaProposicao({ urn: 'urn:lex:br:senado.federal:projeto.lei;pl:9999;999999', epigrafe: 'PROJETO DE LEI', preambulo: '' });
+      expect(component.dataUltimaModificacaoDocumento).to.be.undefined;
+
+      await component.abrirDocumentoArticulado(salvoCom(DATA_ARQUIVO));
+      component.fecharDocumento();
+      expect(component.dataUltimaModificacaoDocumento).to.be.undefined;
     });
   });
 
@@ -313,6 +383,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('salvar e reabrir preserva os pares', async () => {
+      congelarRelogio();
       component.outrosMetadados = outros;
       const salvo = component.getDocumentoArticulado();
 
@@ -486,6 +557,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('salvar e reabrir preserva a autoria e as assinaturas', async () => {
+      congelarRelogio();
       await component.abrirDocumentoArticulado(entradaComAutoria([davi, soraya]));
       const salvo = component.getDocumentoArticulado();
 
@@ -526,6 +598,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     };
 
     it('abre os grupos do formato provisório e salva somente no formato novo, com os mesmos valores', async () => {
+      congelarRelogio();
       const { entrada, idRemissao } = entradaProvisoria();
 
       await component.abrirDocumentoArticulado(entrada);
@@ -544,6 +617,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(lexeditSalvo(salvo)).to.deep.equal({
         TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado',
         anexoParecer: false,
+        dataUltimaModificacao: DATA_ULTIMA_MODIFICACAO_CONGELADA,
         local: 'Sala da comissão',
         data: '2026-04-24',
         opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...OPCOES },
@@ -585,6 +659,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
   describe('pendência de justificação não informada — ida e volta', () => {
     it('com a justificação vazia, salvar o documento reaberto gera os mesmos metadados', async () => {
+      congelarRelogio();
       const salvo = component.getDocumentoArticulado();
 
       await component.abrirDocumentoArticulado(salvo);
@@ -593,6 +668,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('com a justificação preenchida, salvar o documento reaberto gera o mesmo documento, sem a pendência', async () => {
+      congelarRelogio();
       (component as any)._lexmlJustificativa.setContent('<p>Justificação.</p>');
       const salvo = component.getDocumentoArticulado();
       expect(lexeditSalvo(salvo)).to.not.have.property('pendencias');
@@ -671,6 +747,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('ida e volta com o Quill real: salvar o documento reaberto gera o mesmo documento', async () => {
+      congelarRelogio();
       carregar(COMPLETO);
       const salvo = component.getDocumentoArticulado();
       const blocos = salvo.value.projetoNorma.justificacao![0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento;
@@ -707,6 +784,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
       const notasDoEditor = (): HTMLElement[] => Array.from(editor().quill.root.querySelectorAll('lexml-eta-nota-rodape'));
 
       it('ida e volta com o Quill real: salvar o documento reaberto gera o mesmo documento, com as notas', async () => {
+        congelarRelogio();
         carregar(COM_NOTAS);
         const salvo = component.getDocumentoArticulado();
         expect(JSON.stringify(salvo.value.projetoNorma.justificacao)).to.include('"localPart":"NotaDeRodape"');
@@ -791,6 +869,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
       });
 
       it('ida e volta com o Quill real: salvar o documento reaberto gera o mesmo documento', async () => {
+        congelarRelogio();
         carregar(COM_MARCAS);
         const salvo = component.getDocumentoArticulado();
         const lexedit = lexeditSalvo(salvo);
