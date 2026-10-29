@@ -1,0 +1,52 @@
+[
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CAE",
+    "nome": "Comissão de Assuntos Econômicos"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CCJ",
+    "nome": "Comissão de Constituição, Justiça e Cidadania"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CAS",
+    "nome": "Comissão de Assuntos Sociais"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CE",
+    "nome": "Comissão de Educação e Cultura"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CRE",
+    "nome": "Comissão de Relações Exteriores e Defesa Nacional"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CI",
+    "nome": "Comissão de Serviços de Infraestrutura"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CMA",
+    "nome": "Comissão de Meio Ambiente"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CCT",
+    "nome": "Comissão de Ciência, Tecnologia, Inovação e Informática"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CDR",
+    "nome": "Comissão de Desenvolvimento Regional e Turismo"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CDH",
+    "nome": "Comissão de Direitos Humanos e Legislação Participativa"
+  }
+]
