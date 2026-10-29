@@ -145,19 +145,19 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
   });
 
   for (const [caso, data, texto] of [
-    ['com data', '2026-04-24', 'Sala da comissão, 24 de abril de 2026.'],
-    ['sem data', undefined, 'Sala da comissão,'],
+    ['com data', '2026-04-24', 'Sala da Comissão, 24 de abril de 2026.'],
+    ['sem data', undefined, 'Sala da Comissão,'],
   ] as const) {
     it(`valida e reabre um documento com local e data do fecho (${caso})`, async () => {
       const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
-      const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { local: 'Sala da comissão', ...(data && { data }) });
+      const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { local: 'Sala da Comissão', ...(data && { data }) });
 
       const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
 
       expect(retorno.valido, retorno.erro).to.equal(true);
       expect(retorno.xml).to.include(`<ParteFinal><LocalDataFecho><p>${texto}</p></LocalDataFecho></ParteFinal>`);
       const dados = lerMetadadoLexEdit(retorno.jsonix);
-      expect(dados).to.deep.equal({ local: 'Sala da comissão', ...(data && { data }) });
+      expect(dados).to.deep.equal({ local: 'Sala da Comissão', ...(data && { data }) });
       const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
       expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
     });
@@ -165,14 +165,14 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
 
   it('os quatro grupos do LexEdit no mesmo documento vão e voltam pelo CLI', async () => {
     const opcoesImpressao = { imprimirBrasao: true, textoCabecalho: 'Liderança', reduzirEspacoEntreLinhas: false, tamanhoFonte: 12 };
-    const { salvo, idPersistido } = documentoComRemissaoInvalida({ local: 'Sala das sessões', data: '2026-05-01', opcoesImpressao });
+    const { salvo, idPersistido } = documentoComRemissaoInvalida({ local: 'Sala das Sessões', data: '2026-05-01', opcoesImpressao });
 
     const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
 
     expect(retorno.valido, retorno.erro).to.equal(true);
-    expect(retorno.xml).to.include('<lexedit:Metadado local="Sala das sessões" data="2026-05-01">');
+    expect(retorno.xml).to.include('<lexedit:Metadado local="Sala das Sessões" data="2026-05-01">');
     expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
-    expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({ local: 'Sala das sessões', data: '2026-05-01', opcoesImpressao });
+    expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({ local: 'Sala das Sessões', data: '2026-05-01', opcoesImpressao });
     expect(lerIdsRemissoesInvalidas(retorno.jsonix)).to.deep.equal([idPersistido]);
   });
 
@@ -186,7 +186,7 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
       ];
       const autoria = { ...new Autoria(), imprimirPartidoUF, parlamentares };
       const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
-      const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { local: 'Sala das sessões', data: '2026-04-24', autoria });
+      const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { local: 'Sala das Sessões', data: '2026-04-24', autoria });
 
       const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
 

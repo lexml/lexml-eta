@@ -134,7 +134,7 @@ describe('Autoria de parlamentares — salvar lexedit:Autoria (especificação 0
       [caput.uuid!]: [{ refId: 'ref_x', targetLexmlId: 'artInexistente', textoRef, inicio: caput.texto!.indexOf(textoRef), valida: false }],
     };
     const documento = criarDocumentoArticulado(modelo, modelo.urn, remissoes, undefined, {
-      local: 'Sala das sessões',
+      local: 'Sala das Sessões',
       data: '2026-04-24',
       opcoesImpressao: new OpcoesImpressao(),
       autoria: autoriaCom([davi()]),
@@ -142,7 +142,7 @@ describe('Autoria de parlamentares — salvar lexedit:Autoria (especificação 0
 
     expect(documento.value.metadado.metadadoProprietario).to.have.length(1);
     const lexedit = lexeditSalvo(documento);
-    expect(lexedit.local).to.equal('Sala das sessões');
+    expect(lexedit.local).to.equal('Sala das Sessões');
     expect(lexedit.data).to.equal('2026-04-24');
     expect(lexedit.opcoesImpressao.TYPE_NAME).to.equal(TYPE_NAME_OPCOES_IMPRESSAO);
     expect(lexedit.autoria.parlamentares.parlamentar).to.have.length(1);
@@ -178,7 +178,7 @@ describe('Autoria de parlamentares — salvar AssinaturaTexto (especificação 0
   });
 
   it('fecho e assinaturas: LocalDataFecho antes dos AssinaturaTexto, na ordem dos parlamentares', () => {
-    const final = parteFinal(salvar({ local: 'Sala das sessões', data: '2026-04-24', autoria: autoriaCom([davi(), soraya()]) }));
+    const final = parteFinal(salvar({ local: 'Sala das Sessões', data: '2026-04-24', autoria: autoriaCom([davi(), soraya()]) }));
     expect(Object.keys(final)).to.deep.equal(['TYPE_NAME', 'localDataFecho', 'assinaturaTexto']);
     expect(final.assinaturaTexto.map((a: any) => textos(a)[0])).to.deep.equal(['**Senador Davi Alcolumbre**', '**Senadora Soraya Thronicke**']);
   });
@@ -194,7 +194,7 @@ describe('Autoria de parlamentares — salvar AssinaturaTexto (especificação 0
   });
 
   it('documento com autoria passa em validarDocumentoArticulado', () => {
-    expect(() => validarDocumentoArticulado(salvar({ local: 'Sala das sessões', autoria: autoriaCom([davi(), soraya()]) }))).to.not.throw();
+    expect(() => validarDocumentoArticulado(salvar({ local: 'Sala das Sessões', autoria: autoriaCom([davi(), soraya()]) }))).to.not.throw();
   });
 
   it('dados do exemplo da especificação geram a mesma ParteFinal do exemplo', () => {
@@ -278,7 +278,7 @@ describe('Autoria de parlamentares — abrir (especificação 04)', () => {
   it('convive com os demais grupos e com um grupo desconhecido', () => {
     const dados = lerMetadadoLexEdit(
       documentoCom({
-        local: 'Sala das sessões',
+        local: 'Sala das Sessões',
         data: '2026-04-24',
         opcoesImpressao: { tamanhoFonte: 16 },
         remissoesInternasInvalidas: { refIdsRemissoesInternas: '_ri1' },
@@ -286,7 +286,7 @@ describe('Autoria de parlamentares — abrir (especificação 04)', () => {
         autoria: gravada([davi()]),
       })
     );
-    expect(dados.local).to.equal('Sala das sessões');
+    expect(dados.local).to.equal('Sala das Sessões');
     expect(dados.opcoesImpressao!.tamanhoFonte).to.equal(16);
     expect(dados.autoria!.parlamentares).to.deep.equal([davi()]);
   });
@@ -294,7 +294,7 @@ describe('Autoria de parlamentares — abrir (especificação 04)', () => {
 
 describe('Autoria de parlamentares — ida e volta pelo código do editor (especificação 04)', () => {
   it('criar → serializar → ler devolve a mesma autoria e recriar produz o mesmo lexedit e a mesma ParteFinal', () => {
-    const dados = { local: 'Sala das sessões', data: '2026-04-24', autoria: autoriaCom([davi(), { ...soraya(), siglaCasaLegislativa: 'CD' }], false) };
+    const dados = { local: 'Sala das Sessões', data: '2026-04-24', autoria: autoriaCom([davi(), { ...soraya(), siglaCasaLegislativa: 'CD' }], false) };
     const primeiro = salvar(dados);
 
     const lido = lerDocumentoArticulado(serializarDocumentoArticulado(primeiro));

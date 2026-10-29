@@ -214,7 +214,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   private montarLocalFromColegiadoApreciador(colegiado: ColegiadoApreciador): any {
-    return colegiado.tipoColegiado === 'Comissão' ? 'Sala da comissão' : 'Sala das sessões';
+    return colegiado.tipoColegiado === 'Comissão' ? 'Sala da Comissão' : 'Sala das Sessões';
   }
 
   private montarProposicaoPorUrn(urn: string): Proposicao {

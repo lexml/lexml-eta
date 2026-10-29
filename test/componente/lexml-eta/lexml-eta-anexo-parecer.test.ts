@@ -13,7 +13,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     const proposicao = new Proposicao();
     proposicao.justificativa = '<p>Justificativa</p>';
     proposicao.justificativaAntesRevisao = '<p>Justificativa anterior</p>';
-    proposicao.local = 'Sala da comissão';
+    proposicao.local = 'Sala da Comissão';
     proposicao.autoria.parlamentares = [{ identificacao: '1' } as any];
     proposicao.notasRodape = [{ id: '1', numero: 1, texto: 'Nota' }];
 
@@ -99,7 +99,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     expect(proposicao).not.to.have.property('justificativa');
     expect(proposicao).not.to.have.property('justificativaAntesRevisao');
     expect(proposicao).not.to.have.property('notasRodape');
-    expect(proposicao.local).to.equal('Sala das sessões');
+    expect(proposicao.local).to.equal('Sala das Sessões');
     expect(proposicao.autoria).to.deep.equal({ parlamentares: [{ identificacao: '1' }] });
     expect(proposicao.dataUltimaModificacao).to.equal('2026-08-19');
     expect(proposicao.colegiadoApreciador).to.equal(colegiadoApreciador);

@@ -20,15 +20,15 @@ const parteFinalCom = (texto: string): any => ({
 
 describe('Local e data do fecho — texto (especificação 03)', () => {
   it('formata local e data por extenso', () => {
-    expect(formatarLocalDataFecho('Sala das sessões', '2026-04-24')).to.equal('Sala das sessões, 24 de abril de 2026.');
+    expect(formatarLocalDataFecho('Sala das Sessões', '2026-04-24')).to.equal('Sala das Sessões, 24 de abril de 2026.');
   });
 
   it('escreve o primeiro dia do mês como 1º', () => {
-    expect(formatarLocalDataFecho('Sala das sessões', '2026-05-01')).to.equal('Sala das sessões, 1º de maio de 2026.');
+    expect(formatarLocalDataFecho('Sala das Sessões', '2026-05-01')).to.equal('Sala das Sessões, 1º de maio de 2026.');
   });
 
   it('escreve dias de um dígito sem zero à esquerda', () => {
-    expect(formatarLocalDataFecho('Sala da comissão', '2026-03-05')).to.equal('Sala da comissão, 5 de março de 2026.');
+    expect(formatarLocalDataFecho('Sala da Comissão', '2026-03-05')).to.equal('Sala da Comissão, 5 de março de 2026.');
   });
 
   it('usa o nome de cada um dos 12 meses', () => {
@@ -40,7 +40,7 @@ describe('Local e data do fecho — texto (especificação 03)', () => {
 
   for (const data of [undefined, '', '24/04/2026', '2026-13-01', '2026-04-00']) {
     it(`sem data válida (${JSON.stringify(data)}) escreve só o local seguido de vírgula`, () => {
-      expect(formatarLocalDataFecho('Sala das sessões', data)).to.equal('Sala das sessões,');
+      expect(formatarLocalDataFecho('Sala das Sessões', data)).to.equal('Sala das Sessões,');
     });
   }
 
@@ -52,23 +52,23 @@ describe('Local e data do fecho — texto (especificação 03)', () => {
 describe('Local e data do fecho — salvar (especificação 03)', () => {
   it('grava local, data e o texto em ParteFinal/LocalDataFecho', () => {
     const modelo = novoModelo();
-    const documento = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { local: 'Sala das sessões', data: '2026-04-24' });
+    const documento = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { local: 'Sala das Sessões', data: '2026-04-24' });
 
     const lexedit = lexeditSalvo(documento);
-    expect(lexedit.local).to.equal('Sala das sessões');
+    expect(lexedit.local).to.equal('Sala das Sessões');
     expect(lexedit.data).to.equal('2026-04-24');
-    expect(documento.value.projetoNorma.norma.parteFinal).to.deep.equal(parteFinalCom('Sala das sessões, 24 de abril de 2026.'));
+    expect(documento.value.projetoNorma.norma.parteFinal).to.deep.equal(parteFinalCom('Sala das Sessões, 24 de abril de 2026.'));
   });
 
   for (const data of [undefined, '']) {
     it(`sem data (${JSON.stringify(data)}) omite o atributo e escreve só o local`, () => {
       const modelo = novoModelo();
-      const documento = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { local: 'Sala da comissão', data });
+      const documento = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { local: 'Sala da Comissão', data });
 
       const lexedit = lexeditSalvo(documento);
-      expect(lexedit.local).to.equal('Sala da comissão');
+      expect(lexedit.local).to.equal('Sala da Comissão');
       expect(lexedit).to.not.have.property('data');
-      expect(documento.value.projetoNorma.norma.parteFinal).to.deep.equal(parteFinalCom('Sala da comissão,'));
+      expect(documento.value.projetoNorma.norma.parteFinal).to.deep.equal(parteFinalCom('Sala da Comissão,'));
     });
   }
 
@@ -89,7 +89,7 @@ describe('Local e data do fecho — salvar (especificação 03)', () => {
     };
 
     const documento = criarDocumentoArticulado(modelo, modelo.urn, remissoes, undefined, {
-      local: 'Sala das sessões',
+      local: 'Sala das Sessões',
       data: '2026-05-01',
       opcoesImpressao: new OpcoesImpressao(),
     });
@@ -97,12 +97,12 @@ describe('Local e data do fecho — salvar (especificação 03)', () => {
     const metadadoProprietario = documento.value.metadado.metadadoProprietario!;
     expect(metadadoProprietario).to.have.length(1);
     const lexedit = lexeditSalvo(documento);
-    expect(lexedit.local).to.equal('Sala das sessões');
+    expect(lexedit.local).to.equal('Sala das Sessões');
     expect(lexedit.data).to.equal('2026-05-01');
     expect(lexedit.opcoesImpressao).to.deep.equal({ TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...new OpcoesImpressao() });
     expect(lexedit.remissoesInternasInvalidas.refIdsRemissoesInternas).to.match(/^_ri\d+$/);
     expect(lexedit.pendencias.pendencia).to.deep.equal(['Corrigir remissões internas inválidas.']);
-    expect(documento.value.projetoNorma.norma.parteFinal).to.deep.equal(parteFinalCom('Sala das sessões, 1º de maio de 2026.'));
+    expect(documento.value.projetoNorma.norma.parteFinal).to.deep.equal(parteFinalCom('Sala das Sessões, 1º de maio de 2026.'));
   });
 
   // Valores copiados de docs/extensao-formato-lexml/documento-articulado-exemplo.json (formato do jsonix-lexml 2.0.0).
@@ -155,7 +155,7 @@ describe('Local e data do fecho — salvar (especificação 03)', () => {
 
   it('o documento com fecho passa na validação estrutural', () => {
     const modelo = novoModelo();
-    const documento = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { local: 'Sala das sessões', data: '2026-04-24' });
+    const documento = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { local: 'Sala das Sessões', data: '2026-04-24' });
 
     expect(() => validarDocumentoArticulado(documento)).to.not.throw();
     expect(() => lerDocumentoArticulado(JSON.stringify(documento))).to.not.throw();
@@ -203,16 +203,16 @@ describe('Local e data do fecho — abrir (especificação 03)', () => {
   });
 
   it('lê local e data', () => {
-    expect(lerMetadadoLexEdit(documentoCom({ local: 'Sala da comissão', data: '2026-04-24' }))).to.deep.equal({ local: 'Sala da comissão', data: '2026-04-24' });
+    expect(lerMetadadoLexEdit(documentoCom({ local: 'Sala da Comissão', data: '2026-04-24' }))).to.deep.equal({ local: 'Sala da Comissão', data: '2026-04-24' });
   });
 
   it('data ausente não traz data', () => {
-    expect(lerMetadadoLexEdit(documentoCom({ local: 'Sala das sessões' }))).to.deep.equal({ local: 'Sala das sessões' });
+    expect(lerMetadadoLexEdit(documentoCom({ local: 'Sala das Sessões' }))).to.deep.equal({ local: 'Sala das Sessões' });
   });
 
   for (const data of ['', '24/04/2026', '2026-04-24T10:00:00Z', 20260424]) {
     it(`data ${JSON.stringify(data)} é tratada como não informada`, () => {
-      expect(lerMetadadoLexEdit(documentoCom({ local: 'Sala das sessões', data }))).to.deep.equal({ local: 'Sala das sessões' });
+      expect(lerMetadadoLexEdit(documentoCom({ local: 'Sala das Sessões', data }))).to.deep.equal({ local: 'Sala das Sessões' });
     });
   }
 
@@ -223,12 +223,12 @@ describe('Local e data do fecho — abrir (especificação 03)', () => {
   }
 
   it('sem MetadadoProprietario não lê o texto de LocalDataFecho', () => {
-    expect(lerMetadadoLexEdit(documentoCom(undefined, parteFinalCom('Sala da comissão, 24 de abril de 2026.')))).to.deep.equal({});
+    expect(lerMetadadoLexEdit(documentoCom(undefined, parteFinalCom('Sala da Comissão, 24 de abril de 2026.')))).to.deep.equal({});
   });
 
   it('convive com opções de impressão, remissões inválidas e um grupo desconhecido', () => {
     const documento = documentoCom({
-      local: 'Sala das sessões',
+      local: 'Sala das Sessões',
       data: '2026-05-01',
       grupoFuturo: { qualquer: true },
       opcoesImpressao: { tamanhoFonte: 16 },
@@ -237,7 +237,7 @@ describe('Local e data do fecho — abrir (especificação 03)', () => {
     });
 
     const dados = lerMetadadoLexEdit(documento);
-    expect(dados.local).to.equal('Sala das sessões');
+    expect(dados.local).to.equal('Sala das Sessões');
     expect(dados.data).to.equal('2026-05-01');
     expect(dados.opcoesImpressao!.tamanhoFonte).to.equal(16);
     expect(lerIdsRemissoesInvalidas(documento)).to.deep.equal(['_ri1']);
@@ -248,11 +248,11 @@ describe('Local e data do fecho — salvar e reabrir pelo código do editor', ()
   for (const data of ['2026-04-24', undefined]) {
     it(`reabre o mesmo local, a mesma data e o mesmo texto (data ${JSON.stringify(data)})`, () => {
       const modelo = novoModelo();
-      const salvo = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { local: 'Sala da comissão', data });
+      const salvo = criarDocumentoArticulado(modelo, modelo.urn, undefined, undefined, { local: 'Sala da Comissão', data });
 
       const reaberto = lerDocumentoArticulado(serializarDocumentoArticulado(salvo));
       const dados = lerMetadadoLexEdit(reaberto);
-      expect(dados).to.deep.equal({ local: 'Sala da comissão', ...(data && { data }) });
+      expect(dados).to.deep.equal({ local: 'Sala da Comissão', ...(data && { data }) });
 
       const modeloReaberto = buildProjetoNormaFromJsonix(reaberto, true);
       const salvoNovamente = criarDocumentoArticulado(modeloReaberto, modeloReaberto.urn!, undefined, undefined, dados);

@@ -142,9 +142,9 @@ describe('ETA — salvar e abrir documento articulado', () => {
       const salvo = component.getDocumentoArticulado();
 
       const lexedit = lexeditSalvo(salvo);
-      expect(lexedit.local).to.equal('Sala das sessões');
+      expect(lexedit.local).to.equal('Sala das Sessões');
       expect(lexedit.data).to.equal('2026-04-24');
-      expect(textoFecho(salvo)).to.equal('Sala das sessões, 24 de abril de 2026.');
+      expect(textoFecho(salvo)).to.equal('Sala das Sessões, 24 de abril de 2026.');
     });
 
     it('com "Não informar" exporta só o local', () => {
@@ -153,15 +153,15 @@ describe('ETA — salvar e abrir documento articulado', () => {
       const salvo = component.getDocumentoArticulado();
 
       expect(lexeditSalvo(salvo)).to.not.have.property('data');
-      expect(textoFecho(salvo)).to.equal('Sala das sessões,');
+      expect(textoFecho(salvo)).to.equal('Sala das Sessões,');
     });
 
-    it('com destino Comissão exporta "Sala da comissão"', () => {
+    it('com destino Comissão exporta "Sala da Comissão"', () => {
       (component.querySelector('lexml-eta-destino') as any).colegiadoApreciador = { siglaCasaLegislativa: 'SF', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' };
 
       const salvo = component.getDocumentoArticulado();
 
-      expect(lexeditSalvo(salvo).local).to.equal('Sala da comissão');
+      expect(lexeditSalvo(salvo).local).to.equal('Sala da Comissão');
     });
 
     it('no modo anexo de parecer exporta local, data e o fecho', () => {
@@ -171,9 +171,9 @@ describe('ETA — salvar e abrir documento articulado', () => {
       const salvo = component.getDocumentoArticulado();
 
       const lexedit = lexeditSalvo(salvo);
-      expect(lexedit.local).to.equal('Sala das sessões');
+      expect(lexedit.local).to.equal('Sala das Sessões');
       expect(lexedit.data).to.equal('2026-04-24');
-      expect(textoFecho(salvo)).to.equal('Sala das sessões, 24 de abril de 2026.');
+      expect(textoFecho(salvo)).to.equal('Sala das Sessões, 24 de abril de 2026.');
     });
 
     it('no modo anexo de parecer sem data exporta só o local', () => {
@@ -183,7 +183,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
       const salvo = component.getDocumentoArticulado();
 
       expect(lexeditSalvo(salvo)).to.not.have.property('data');
-      expect(textoFecho(salvo)).to.equal('Sala das sessões,');
+      expect(textoFecho(salvo)).to.equal('Sala das Sessões,');
     });
   });
 
@@ -197,7 +197,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     const localSalvo = (): string | undefined => lexeditSalvo(component.getDocumentoArticulado()).local;
 
     it('aplica a data lida ao campo "Data"', async () => {
-      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala das sessões', data: '2026-04-24' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala das Sessões', data: '2026-04-24' }));
       await campoData().updateComplete;
 
       expect(campoData().data).to.equal('2026-04-24');
@@ -205,12 +205,12 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('no modo anexo de parecer aplica a data lida e preserva local e data ao salvar e reabrir', async () => {
-      await component.abrirDocumentoArticulado(entradaComFecho({ anexoParecer: true, local: 'Sala da comissão', data: '2026-04-24' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ anexoParecer: true, local: 'Sala da Comissão', data: '2026-04-24' }));
       await campoData().updateComplete;
 
       expect(campoData().data).to.equal('2026-04-24');
       const salvo = component.getDocumentoArticulado();
-      expect(lexeditSalvo(salvo).local).to.equal('Sala da comissão');
+      expect(lexeditSalvo(salvo).local).to.equal('Sala da Comissão');
       expect(lexeditSalvo(salvo).data).to.equal('2026-04-24');
 
       await component.abrirDocumentoArticulado(salvo);
@@ -220,7 +220,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('sem data no arquivo seleciona "Não informar"', async () => {
-      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala das sessões' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala das Sessões' }));
       await campoData().updateComplete;
 
       expect(campoData().data).to.equal('');
@@ -228,38 +228,38 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('preserva o local do arquivo enquanto o destino não muda', async () => {
-      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da comissão', data: '2026-04-24' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da Comissão', data: '2026-04-24' }));
 
-      expect(localSalvo()).to.equal('Sala da comissão');
+      expect(localSalvo()).to.equal('Sala da Comissão');
     });
 
     it('volta a derivar o local quando o destino muda', async () => {
-      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala das sessões', data: '2026-04-24' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala das Sessões', data: '2026-04-24' }));
       (component.querySelector('lexml-eta-destino') as any).colegiadoApreciador = {
         siglaCasaLegislativa: 'SF',
         tipoColegiado: 'Comissão',
         siglaComissao: 'CCJ',
       };
 
-      expect(localSalvo()).to.equal('Sala da comissão');
+      expect(localSalvo()).to.equal('Sala da Comissão');
     });
 
     it('abrir outro documento não herda o local nem a data do anterior', async () => {
-      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da comissão', data: '2026-04-24' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da Comissão', data: '2026-04-24' }));
       await component.abrirDocumentoArticulado(novoDocumentoArticulado());
 
-      expect(localSalvo()).to.equal('Sala das sessões');
+      expect(localSalvo()).to.equal('Sala das Sessões');
       expect(campoData().data).to.equal('');
     });
 
     it('salvar e reabrir preserva local, data e o texto do fecho', async () => {
-      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da comissão', data: '2026-05-01' }));
+      await component.abrirDocumentoArticulado(entradaComFecho({ local: 'Sala da Comissão', data: '2026-05-01' }));
       const salvo = component.getDocumentoArticulado();
 
       await component.abrirDocumentoArticulado(salvo);
 
       expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
-      expect((salvo.value.projetoNorma.norma as any).parteFinal.localDataFecho.p[0].content[0]).to.equal('Sala da comissão, 1º de maio de 2026.');
+      expect((salvo.value.projetoNorma.norma as any).parteFinal.localDataFecho.p[0].content[0]).to.equal('Sala da Comissão, 1º de maio de 2026.');
     });
   });
 
@@ -383,9 +383,9 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
 
     it('mantém o local do arquivo enquanto o destino aplicado não muda', async () => {
-      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }, { local: 'Sala da comissão' }));
+      await component.abrirDocumentoArticulado(entradaComColegiado({ siglaCasaLegislativa: 'CN', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }, { local: 'Sala da Comissão' }));
 
-      expect(lexeditSalvo(component.getDocumentoArticulado()).local).to.equal('Sala da comissão');
+      expect(lexeditSalvo(component.getDocumentoArticulado()).local).to.equal('Sala da Comissão');
     });
 
     it('salvar e reabrir preserva o destino', async () => {
@@ -503,14 +503,14 @@ describe('ETA — salvar e abrir documento articulado', () => {
       const remissoes: Record<number, any[]> = {
         [caput.uuid!]: [{ refId: 'ref_x', targetLexmlId: 'artInexistente', textoRef, inicio: caput.texto!.indexOf(textoRef), valida: false }],
       };
-      const entrada: any = criarDocumentoArticulado(modelo, modelo.urn!, remissoes, undefined, { local: 'Sala da comissão', data: '2026-04-24', opcoesImpressao: OPCOES });
+      const entrada: any = criarDocumentoArticulado(modelo, modelo.urn!, remissoes, undefined, { local: 'Sala da Comissão', data: '2026-04-24', opcoesImpressao: OPCOES });
       const idRemissao = remissoes[caput.uuid!][0].idPersistido;
       entrada.value.metadado.metadadoProprietario = [
         {
           TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
           fonte: 'http://www.lexml.gov.br/lexedit/1.0',
           lexedit: {
-            local: 'Sala da comissão',
+            local: 'Sala da Comissão',
             data: '2026-04-24',
             opcoesImpressao: OPCOES,
             remissoesInternasInvalidas: { refIdsRemissoesInternas: [idRemissao] },
@@ -540,7 +540,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(lexeditSalvo(salvo)).to.deep.equal({
         TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado',
         anexoParecer: false,
-        local: 'Sala da comissão',
+        local: 'Sala da Comissão',
         data: '2026-04-24',
         opcoesImpressao: { TYPE_NAME: TYPE_NAME_OPCOES_IMPRESSAO, ...OPCOES },
         // O arquivo provisório não tem destino: vale o padrão do editor, com a casa derivada da URN.
