@@ -4,7 +4,8 @@ Atualizado em 29/10/2026. Branch `feat/992-salvar-pendencias-jsonix`.
 
 ## Em andamento
 
-- Nada em andamento. Todas as changes da branch estão implementadas e arquivadas; `a49a8bb8` (arquivamento da #997) ainda sem push.
+- **#1030 — nota de rodapé com um só parágrafo** (OpenSpec `2026-10-29-c02-nota-rodape-paragrafo-unico`, 29/10/2026). Proposta pronta (capability nova `nota-rodape`, design D1–D5, tasks em 3 grupos), `openspec validate --strict` ok. Implementada em 29/10/2026: 7/7 tasks, `npm test` completo e Cypress `documento-articulado/*` (59/61; as 2 falhas já existem na `develop`). Falta: commit e arquivar a change. Decisões do usuário: Enter/Shift+Enter ignorados com aviso no modal; nota antiga abre unida por espaço (salvar grava unida); colar troca quebras por espaço com a formatação preservada; sem ajustes visuais nem limpeza do `console.log`.
+- `a49a8bb8` (arquivamento da #997) ainda sem push.
 
 ## Próximas
 

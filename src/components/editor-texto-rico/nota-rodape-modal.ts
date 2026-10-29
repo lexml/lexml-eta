@@ -3,6 +3,28 @@ import PrivateQuill from '../../internal/quill/private-quill';
 import { NOTA_RODAPE_INPUT_EVENT } from './notaRodape';
 import { QuillUtil } from './quill-util';
 
+const Delta = PrivateQuill.import('delta');
+
+export const AVISO_PARAGRAFO_UNICO = 'A nota de rodapé admite um só parágrafo.';
+
+const TEMPO_AVISO_MS = 4000;
+
+const juntarLinhas = (delta: any, apararFim: boolean): any => {
+  const linhas: any[] = [];
+  delta.eachLine((linha: any) => linha.length() && linhas.push(linha));
+  const ops = linhas.flatMap((linha, i) => (i ? [{ insert: ' ' }, ...linha.ops] : linha.ops)).map((op: any) => ({ ...op }));
+  const aparar = (op: any, fn: (s: string) => string): void => {
+    if (op && typeof op.insert === 'string') op.insert = fn(op.insert);
+  };
+  aparar(ops[0], s => s.trimStart());
+  if (apararFim) aparar(ops[ops.length - 1], s => s.trimEnd());
+  // `insert` funde trechos vizinhos de mesmo formato.
+  return ops.filter((op: any) => op.insert !== '').reduce((d: any, op: any) => d.insert(op.insert, op.attributes), new Delta());
+};
+
+// Mesmo critério da gravação (montaNotaRodape): descarta linhas vazias, une com espaço e apara as pontas.
+export const unirLinhas = (delta: any): any => juntarLinhas(delta, true).insert('\n');
+
 export class NotaRodapeModal {
   private modalElement: HTMLElement;
   private overlayElement: HTMLElement;
@@ -14,6 +36,9 @@ export class NotaRodapeModal {
   textoInicialNotaRodape: string;
   domNodeNotaRodape: HTMLElement;
   tituloModal?: string;
+  // Nota antiga com vários parágrafos: salvar grava a versão unida mesmo sem outra alteração.
+  private uniuAoAbrir = false;
+  private timerAviso?: ReturnType<typeof setTimeout>;
 
   constructor(options: { domNodeNotaRodape: HTMLElement; idNotaRodape?: string; textoInicialNotaRodape?: string; tituloModal?: string }) {
     this.idNotaRodape = options.idNotaRodape;
@@ -191,6 +216,11 @@ export class NotaRodapeModal {
         .modal-lexml-eta-nota-rodape .ql-tooltip[data-mode='link'] input:invalid ~ div.tooltip-invalid-message {
           display: block;
         }
+        .modal-aviso {
+          margin-top: 8px;
+          color: var(--sl-color-warning-700, #b45309);
+          font-size: 0.9rem;
+        }
         .d-flex {
           display: flex;
           flex-direction: column;
@@ -204,6 +234,7 @@ export class NotaRodapeModal {
       </div>
       <div class="modal-body">
         <div id="editor-lexml-eta-nota-rodape-container"></div>
+        <div class="modal-aviso" role="status" aria-live="polite" hidden></div>
       </div>
       <div class="modal-footer">
         <button class="modal-save-button" aria-label="Salvar">Salvar</button>
@@ -245,12 +276,52 @@ export class NotaRodapeModal {
         toolbar: {
           container: [['bold', 'italic', 'underline'], ['link']],
         },
+        keyboard: {
+          bindings: {
+            // Registrado antes do Enter padrão do Quill; shiftKey null cobre também Shift+Enter.
+            paragrafoUnico: {
+              key: 13,
+              shiftKey: null,
+              handler: (): boolean => {
+                this.exibirAvisoParagrafoUnico();
+                return false;
+              },
+            },
+          },
+        },
       },
       placeholder: 'Digite a nota de rodapé aqui...',
       theme: 'snow',
     });
 
     QuillUtil.configurarAcoesLink(this.quill!);
+    this.quill.on('text-change', this.manterParagrafoUnico);
+  }
+
+  // Colar ou arrastar texto com quebras cai aqui. 'api' para o histórico fundir a união com a edição do usuário.
+  private manterParagrafoUnico = (_delta: any, _anterior: any, source: string): void => {
+    if (source !== PrivateQuill.sources.USER) return;
+    if (!this.quill.getText().slice(0, -1).includes('\n')) return;
+    const selecao = this.quill.getSelection();
+    const atual = this.quill.getContents();
+    this.quill.setContents(unirLinhas(atual), PrivateQuill.sources.API);
+    if (selecao) this.quill.setSelection(juntarLinhas(atual.slice(0, selecao.index), false).length(), 0, PrivateQuill.sources.SILENT);
+  };
+
+  private get elementoAviso(): HTMLElement {
+    return this.shadowRoot.querySelector('.modal-aviso') as HTMLElement;
+  }
+
+  private exibirAvisoParagrafoUnico(): void {
+    this.elementoAviso.textContent = AVISO_PARAGRAFO_UNICO;
+    this.elementoAviso.hidden = false;
+    clearTimeout(this.timerAviso);
+    this.timerAviso = setTimeout(() => this.ocultarAvisoParagrafoUnico(), TEMPO_AVISO_MS);
+  }
+
+  private ocultarAvisoParagrafoUnico(): void {
+    clearTimeout(this.timerAviso);
+    this.elementoAviso.hidden = true;
   }
 
   ajustaHtml = (html = ''): string => {
@@ -270,6 +341,14 @@ export class NotaRodapeModal {
     }, 10);
 
     this.quill.root.innerHTML = this.textoInicialNotaRodape ?? '';
+    this.quill.update(PrivateQuill.sources.SILENT);
+    // Nota antiga com vários parágrafos abre unida; o HTML unido vira a base para "sem alteração".
+    this.uniuAoAbrir = this.quill.getText().slice(0, -1).includes('\n');
+    if (this.uniuAoAbrir) {
+      this.quill.setContents(unirLinhas(this.quill.getContents()), PrivateQuill.sources.SILENT);
+      this.quill.history.clear();
+      this.textoInicialNotaRodape = this.quill.root.innerHTML;
+    }
     this.quill.root.focus();
 
     const modalTitle = this.shadowRoot.querySelector('.modal-title');
@@ -297,13 +376,14 @@ export class NotaRodapeModal {
 
   private removeModal(): void {
     document.removeEventListener('keydown', this.keydownListener);
+    clearTimeout(this.timerAviso);
     this.modalElement.remove();
     this.overlayElement.remove();
   }
 
   save(): void {
     const texto = this.quill.root.innerHTML;
-    if (texto === this.textoInicialNotaRodape || !texto) {
+    if ((texto === this.textoInicialNotaRodape && !this.uniuAoAbrir) || !texto) {
       this.close(true);
       return;
     }
