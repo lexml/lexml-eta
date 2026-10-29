@@ -18,7 +18,8 @@ import { MPV_1078_2021 } from '../doc/mpv_1078_2021';
 import { MPV_1160_2023 } from '../doc/mpv_1160_2023';
 import { PLC_ARTIGOS_AGRUPADOS } from '../doc/plc_artigos_agrupados';
 import { PL_AGRUPADORES } from '../doc/pl_agrupadores';
-import { getAno, getNumero, getSigla } from '../../src/model/lexml/documento/urnUtil';
+import { getAno, getNumero, getPreambuloPadrao, getSigla } from '../../src/model/lexml/documento/urnUtil';
+import { getVocabularioDaCasa } from '../../src/model/lexml/documento/vocabulario';
 import { PDL_343_2023 } from '../doc/pdl_343_2023';
 import { PEC_48_2023 } from '../doc/pec_48_2023';
 import { Plc_142_2018 } from '../doc/plc_142_2018';
@@ -80,6 +81,53 @@ const mapProjetosNormas = {
   _pl_4_2025: PL_4_2025,
 };
 
+const getUrnDocumento = (projetoNorma: any): string | undefined => projetoNorma?.value?.metadado?.identificacao?.urn;
+
+// Deriva em memória um documento da Câmara a partir de um do Senado, trocando só a URN.
+const derivarParaCamara = (projetoNorma: any): any => {
+  const urn = (getUrnDocumento(projetoNorma) as string).replace('senado.federal', 'camara.deputados').replace(';plc:', ';pl:');
+  const { metadado } = projetoNorma.value;
+  return { ...projetoNorma, value: { ...projetoNorma.value, metadado: { ...metadado, identificacao: { ...metadado.identificacao, urn } } } };
+};
+
+const documentosCamara: { chave: string; rotulo: string; origem: any }[] = [
+  { chave: 'cd_pl_5008_2023', rotulo: 'PL 5008, de 2023 (CD)', origem: PL_5008_2023 },
+  { chave: 'cd_plc_artigos_agrupados', rotulo: 'PL com agrupadores e alterações (CD)', origem: PLC_ARTIGOS_AGRUPADOS },
+  { chave: 'cd_pl_142_2018', rotulo: 'PL 142, de 2018 (CD)', origem: Plc_142_2018 },
+  { chave: 'cd_plp_197_2023', rotulo: 'PLP 197, de 2023 (CD)', origem: PLP_197_2023 },
+];
+documentosCamara.forEach(d => (mapProjetosNormas[d.chave] = derivarParaCamara(d.origem)));
+
+// Documentos sem rótulo derivável da chave.
+const opcoesEspeciais = [
+  { chave: '_codcivil_completo', rotulo: 'Código Civil Completo' },
+  { chave: '_codcivil_parcial1', rotulo: 'Código Civil (arts. 1 a 1023)' },
+  { chave: '_codcivil_parcial2', rotulo: 'Código Civil (arts. 1 a 388)' },
+  { chave: '_plc_artigos_agrupados', rotulo: 'PL (testes unitários de cmd)' },
+  { chave: '_pl_agrupadores', rotulo: 'PL Agrupadores (Simulaçao de cmd para testes)' },
+  { chave: '_sem_texto', rotulo: 'PL 3/2023 (sem texto LexML)' },
+  { chave: '_plp_68_2024', rotulo: 'PLP 68, de 2024 (completo)' },
+  { chave: '_mpv_905_2019', rotulo: 'MPV 905, de 2019 (com dispositivos bloqueados)' },
+  { chave: '_pl_4_2025', rotulo: 'PL 4, de 2025' },
+];
+
+const opcoesDocumentos = [
+  ...Object.keys(mapProjetosNormas)
+    .filter(k => !k.startsWith('_') && !k.startsWith('cd_'))
+    .map(k => ({ chave: k, rotulo: k.toUpperCase().replace(/_/, ' ').replace(/_/, ', de ') })),
+  ...documentosCamara.map(d => ({ chave: d.chave, rotulo: d.rotulo })),
+  ...opcoesEspeciais,
+];
+
+// Documento resolvido pelo vocabulário da casa do editor; sem URN (ex.: sem texto), sempre listado.
+const documentoDaCasa = (chave: string): boolean => {
+  const urn = getUrnDocumento(mapProjetosNormas[chave]);
+  if (!urn) return true;
+  const [autoridade, segmento] = urn.replace('urn:lex:br:', '').split(':');
+  const tipoSemSigla = segmento?.split(';')[0];
+  return getVocabularioDaCasa().tiposDocumento.some(t => t.urnAutoridade === autoridade && (t.urn === segmento || (t.ativo && !!t.sigla && t.urnTipoDocumento === tipoSemSigla)));
+};
+
 const mapConfiguracaoPaginacaoDispositivos = {
   _plp_68_2024: {
     // maxItensPorPagina: 700,
@@ -103,7 +151,7 @@ export class DemoView extends LitElement {
   private elLexmlEta!: LexmlEtaComponent;
 
   @state() modo = 'edicao';
-  @state() anexoParecer = false;
+  @state() casa: 'SF' | 'CD' = 'SF';
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoReduzida();
 
@@ -184,7 +232,6 @@ export class DemoView extends LitElement {
   }
 
   limparTela(): void {
-    this.elLexmlEta.style.display = 'none';
     this.projetoNorma = {};
     this.elLexmlEta.fecharDocumento();
 
@@ -209,25 +256,41 @@ export class DemoView extends LitElement {
         if (this.elLexmlEta) {
           this.etaConfig.configuracaoPaginacao = mapConfiguracaoPaginacaoDispositivos[this.elDocumento.value];
 
-          // O modo de anexo de parecer faz parte do documento: o checkbox só vale para a nova proposição.
-          const iniciar =
-            this.projetoNorma && Object.keys(this.projetoNorma).length > 0
-              ? this.elLexmlEta.abrirDocumentoArticulado(this.projetoNorma)
-              : this.elLexmlEta.novaProposicao({
-                  urn: 'urn:lex:br:senado.federal:projeto.lei;pl:9999;999999',
-                  epigrafe: 'PROJETO DE LEI Nº 999999, DE 9999',
-                  preambulo: 'O CONGRESSO NACIONAL decreta:',
-                  anexoParecer: this.anexoParecer,
-                });
-          iniciar.catch(erro => window.alert((erro as Error).message || 'Não foi possível iniciar o documento.'));
-
-          this.atualizarProposicaoCorrente(this.projetoNorma);
-          this.elLexmlEta.style.display = 'block';
+          if (this.projetoNorma && Object.keys(this.projetoNorma).length > 0) {
+            this.elLexmlEta.abrirDocumentoArticulado(this.projetoNorma).catch(erro => window.alert((erro as Error).message || 'Não foi possível iniciar o documento.'));
+            this.atualizarProposicaoCorrente(this.projetoNorma);
+          } else {
+            this.novaProposicao();
+          }
         } else {
           this.atualizarProposicaoCorrente(this.projetoNorma);
         }
       }, 0);
     }
+  }
+
+  private getUrnNovaProposicao(): string {
+    const autoridade = this.casa === 'SF' ? 'senado.federal' : 'camara.deputados';
+    return `urn:lex:br:${autoridade}:projeto.lei;pl:2026;999999`;
+  }
+
+  novaProposicao(): void {
+    const urn = this.getUrnNovaProposicao();
+    this.getElement('#fileUpload').value = null;
+    this.projetoNorma = {};
+    this.elLexmlEta
+      .novaProposicao({ urn, epigrafe: 'PROJETO DE LEI Nº , DE 2026', preambulo: getPreambuloPadrao(urn) ?? '' })
+      .catch(erro => window.alert((erro as Error).message || 'Não foi possível criar a proposição.'));
+    this.atualizarProposicaoCorrente({ value: { metadado: { identificacao: { urn } } } });
+  }
+
+  // A casa define o vocabulário do componente: o documento em edição é encerrado e a lista de documentos é refiltrada.
+  onChangeCasa(event: Event): void {
+    this.limparTela();
+    this.casa = (event.target as HTMLSelectElement).value as 'SF' | 'CD';
+    this.etaConfig.casaLegislativaEditor = this.casa;
+    this.elLexmlEta.lexmlEtaConfig = this.etaConfig;
+    this.elDocumento.value = '';
   }
 
   async salvar(): Promise<void> {
@@ -369,7 +432,7 @@ export class DemoView extends LitElement {
           height: 1.5rem;
         }
         lexml-eta {
-          display: none;
+          display: block;
           outline: 0;
           border: 0;
           -webkit-box-shadow: none;
@@ -393,7 +456,13 @@ export class DemoView extends LitElement {
           <input type="button" class="lexml-eta-btn--demo" title="Aplicação exemplo" value="Demo" />
         </div>
         <div class="lexml-eta-main-header--actions">
+          <select id="casaEditor" title="Casa legislativa do editor" .value=${this.casa} @change=${this.onChangeCasa}>
+            <option value="SF">SF</option>
+            <option value="CD">CD</option>
+          </select>
+          <input type="button" value="Nova proposição" @click=${this.novaProposicao} />
           <input type="button" value="Salvar" @click=${this.salvar} />
+          <input type="button" value="Resetar" @click=${this.limparTela} />
           <input type="button" value="Abrir" @click=${this.abrir} />
           <input type="button" value="Usuário" @click=${this.usuario} />
           <input type="button" value="Comparar" @click=${this.comparar} />
@@ -403,30 +472,9 @@ export class DemoView extends LitElement {
 
         <div class="lexml-eta-main-header--selecao">
           <select id="projetoNorma" @change=${this.onChangeDocumento}>
-            <option value="novo" selected>Nova articulação</option>
-            ${Object.keys(mapProjetosNormas)
-              .filter(k => !k.startsWith('_'))
-              .map(k => html`<option value="${k}">${k.toUpperCase().replace(/_/, ' ').replace(/_/, ', de ')}</option>`)}
-            <option value="_codcivil_completo">Código Civil Completo</option>
-            <option value="_codcivil_parcial1">Código Civil (arts. 1 a 1023)</option>
-            <option value="_codcivil_parcial2">Código Civil (arts. 1 a 388)</option>
-            <option value="_plc_artigos_agrupados">PL (testes unitários de cmd)</option>
-            <option value="_pl_agrupadores">PL Agrupadores (Simulaçao de cmd para testes)</option>
-            <option value="_sem_texto">PL 3/2023 (sem texto LexML)</option>
-            <option value="_plp_68_2024">PLP 68, de 2024 (completo)</option>
-            <option value="_mpv_905_2019">MPV 905, de 2019 (com dispositivos bloqueados)</option>
-            <option value="_pl_4_2025">PL 4, de 2025</option>
+            <option value="" selected>Selecione um documento</option>
+            ${opcoesDocumentos.filter(o => documentoDaCasa(o.chave)).map(o => html`<option value="${o.chave}">${o.rotulo}</option>`)}
           </select>
-          <label
-            ><input
-              type="checkbox"
-              .checked=${this.anexoParecer}
-              @change=${(event: Event): void => {
-                this.anexoParecer = (event.target as HTMLInputElement).checked;
-              }}
-            />
-            Anexo de parecer</label
-          >
           <input type="button" value="Ok" @click=${this.executar} />
         </div>
       </div>

@@ -3,7 +3,7 @@
  *
  * Cobre, pela UI real, a change 2026-10-19-c01-anexo-parecer-fecho-data-assinatura (issue #1022).
  * Fixture: demo/doc/teste_fecho_com_data.json (data do fecho 2026-04-24), gerada por
- * criarDocumentoArticulado(); o modo anexo é ligado pelo checkbox "Anexo de parecer" da demo.
+ * criarDocumentoArticulado(); o modo anexo vem do arquivo (demo/doc/teste_fecho_com_data_anexo_parecer.json, com anexoParecer).
  *
  * O salvar via download real do navegador não é coberto aqui (o projeto não tem infraestrutura de
  * download em E2E). Esse lado fica nos testes de componente de documentoArticulado.component.test.ts
@@ -11,10 +11,7 @@
  */
 
 const SEL_CAMPO_DATA_ANEXO = 'lexml-eta-data';
-
-const ligarModoAnexoParecer = (): void => {
-  cy.contains('label', 'Anexo de parecer').find('input[type="checkbox"]').check({ force: true });
-};
+const ARQUIVO_ANEXO_PARECER = 'demo/doc/teste_fecho_com_data_anexo_parecer.json';
 
 describe('Campo "Data" e modo anexo de parecer', () => {
   beforeEach(() => {
@@ -31,8 +28,7 @@ describe('Campo "Data" e modo anexo de parecer', () => {
   });
 
   it('no modo anexo de parecer, abre arquivo com data e exibe a data no campo', () => {
-    ligarModoAnexoParecer();
-    cy.get('#fileUpload').selectFile('demo/doc/teste_fecho_com_data.json', { force: true });
+    cy.get('#fileUpload').selectFile(ARQUIVO_ANEXO_PARECER, { force: true });
     cy.getContainerArtigoByNumero(1).should('exist');
 
     cy.get(SEL_CAMPO_DATA_ANEXO).should('have.prop', 'data', '2026-04-24');
@@ -41,8 +37,7 @@ describe('Campo "Data" e modo anexo de parecer', () => {
   });
 
   it('no modo anexo de parecer, oculta justificação e notas e exibe data e autoria', () => {
-    ligarModoAnexoParecer();
-    cy.get('#fileUpload').selectFile('demo/doc/teste_fecho_com_data.json', { force: true });
+    cy.get('#fileUpload').selectFile(ARQUIVO_ANEXO_PARECER, { force: true });
     cy.getContainerArtigoByNumero(1).should('exist');
 
     cy.get('sl-tab[panel="justificativa"]').should('not.exist');

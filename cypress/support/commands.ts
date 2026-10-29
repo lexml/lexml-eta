@@ -27,8 +27,12 @@ Cypress.Commands.add('novaProposicao', (projetoNormaSelectValue = 'novo', opcoes
       win.localStorage.setItem('naoMostrarExplicacaoSufixo', 'true');
     });
   }
-  cy.get('#projetoNorma').select(projetoNormaSelectValue);
-  cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
+  if (projetoNormaSelectValue === 'novo') {
+    cy.get('div.lexml-eta-main-header--actions input[type="button"][value="Nova proposição"]').click();
+  } else {
+    cy.get('#projetoNorma').select(projetoNormaSelectValue);
+    cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
+  }
   return cy.wrap(true);
 });
 
