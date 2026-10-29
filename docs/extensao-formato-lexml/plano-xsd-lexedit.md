@@ -41,14 +41,14 @@ Levantamento feito lendo os 13 arquivos de especificação. Coluna "Status" indi
 | `03` | `lexedit:Metadado/@local`, `@data` | **Implementado** (+ `ParteFinal/LocalDataFecho` no LexML) |
 | `04` | `lexedit:Autoria` > `lexedit:Parlamentares`/`lexedit:Parlamentar` ou `lexedit:ColegiadoAutor` | **Implementado** para parlamentares (+ `ParteFinal/AssinaturaTexto` no LexML); comissão (`ColegiadoAutor`) pendente |
 | `05` | `lexedit:Anexos` > `lexedit:Anexo` | Não implementado |
-| `06` | `Justificacao`/`PartePrincipal` (namespace LexML, fora do escopo do XSD lexedit) | **Implementado** (#991; sem revisões, e largura de tabela/coluna não volta ao editor) |
+| `06` | `Justificacao`/`PartePrincipal` (namespace LexML, fora do escopo do XSD lexedit) | **Implementado** (#991; largura de tabela/coluna não volta ao editor) |
 | `07` | `NotaDeRodape` (namespace LexML, fora do escopo do XSD lexedit) | **Implementado** (#993; parágrafos da nota unidos num só) |
 | `08` | `lexedit:Comentarios` > `lexedit:SequenciaComentario` > `lexedit:Comentario` | Não implementado |
-| `09` | `lexedit:RevisoesTextuais` > `lexedit:RevisaoTextual` (+ `ins`/`del` do LexML) | Não implementado |
+| `09` | `lexedit:RevisoesTextuais` > `lexedit:RevisaoTextual` (+ `ins`/`del` do LexML) | **Implementado** (#994): salvar e abrir na justificação, com id `_rt<id-revisao>_<n>` e um `RevisaoTextual` por elemento |
 | `10` | `lexedit:RemissoesInternasInvalidas` (+ `Remissao` do LexML) | **Implementado** |
 | `11` | `lexedit:RevisoesArticulacao` > `lexedit:RevisaoArticulacao` | **Implementado**: salvar e abrir (operações combinadas, incluindo `alteracaoRotulo;<idOriginal>`; exclusões com subárvore e id `_<base>-exc<seq>`; reaplicação imediata das revisões) |
-| `12` | `lexedit:Usuarios` > `lexedit:Usuario` | **Implementado**: salvar (usuários das revisões da hierarquia) e abrir |
-| `13` | `lexedit:Metadado/@dataUltimaModificacao`, `@aplicacao`, `@versaoAplicacao`, `@urnDocumentoReferenciado` (previsto, não preenchido), `@anexoParecer`; `lexedit:Pendencias` > `lexedit:Pendencia`; `lexedit:SituacaoNaNormaVigente` | Parcial (`Pendencias` implementado, com as pendências de justificação não informada, de remissões internas inválidas e de marcas de revisão na articulação) |
+| `12` | `lexedit:Usuarios` > `lexedit:Usuario` | **Implementado**: salvar (usuários das revisões da hierarquia e das revisões de texto, unidos por `idUsuario`) e abrir |
+| `13` | `lexedit:Metadado/@dataUltimaModificacao`, `@aplicacao`, `@versaoAplicacao`, `@urnDocumentoReferenciado` (previsto, não preenchido), `@anexoParecer`; `lexedit:Pendencias` > `lexedit:Pendencia`; `lexedit:SituacaoNaNormaVigente` | Parcial (`Pendencias` implementado, com as pendências de justificação não informada, de remissões internas inválidas, de marcas de revisão de texto e de marcas de revisão na articulação) |
 | `14` | `lexedit:ColegiadoApreciador` (`@siglaCasaLegislativa`, `@tipoColegiado`, `@siglaComissao`) | Salvar e abrir (change `2026-10-19-c01-metadados-lexedit-situacao-colegiado`) |
 
 O XSD cobre todos os grupos acima, incluindo os ainda não implementados em código — os elementos/atributos do namespace LexML citados como dependência (`Justificacao`, `NotaDeRodape`, `ins`/`del`, `Remissao`, dispositivos da articulação) já pertencem ao esquema LexML oficial e não são redefinidos aqui.
