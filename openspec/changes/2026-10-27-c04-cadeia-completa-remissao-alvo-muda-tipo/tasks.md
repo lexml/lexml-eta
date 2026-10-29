@@ -13,4 +13,4 @@
 
 ## 4. Fechamento
 
-- [ ] 4.1 Rodar `npm run lint` e a suíte completa (`npm test`) e confirmar que ambos passam.
+- [x] 4.1 Rodar `npm run lint` e a suíte completa (`npm test`) e confirmar que ambos passam.
