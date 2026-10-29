@@ -26,3 +26,5 @@
 /.project
 .scannerwork/
 .externalToolBuilders/
+cypress/downloads/
+docs/sessao/
