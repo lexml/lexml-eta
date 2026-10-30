@@ -195,6 +195,16 @@ describe('lexml-nova-proposicao', () => {
         expect(existe('np-g2')).to.be.false;
       });
 
+      it('número e ano só aceitam dígitos', async () => {
+        await escolherSigla('np-sigla-proposicao', 'PL');
+        await digitar('np-numero-proposicao', '00a12-b');
+        await digitar('np-ano-proposicao', '20x26');
+        expect(q<any>('np-numero-proposicao').value).to.equal('0012');
+        expect(q<any>('np-ano-proposicao').value).to.equal('2026');
+        await clicar('np-proposicao-verificar');
+        expect(chamadas).to.include('/v/PL/12/2026');
+      });
+
       it('Verificar só habilita com sigla, número e ano', async () => {
         expect(botaoHabilitado('np-proposicao-verificar')).to.be.false;
         await escolherSigla('np-sigla-proposicao', 'PL');

@@ -122,6 +122,15 @@ describe('Nova proposição — componente no modal da demo', () => {
     cy.get('#np-comissao .ac-lista').should('not.exist');
   });
 
+  it('número e ano só aceitam dígitos', () => {
+    abrirModal();
+    marcarRadioSl('especie', 'substitutivo');
+    digitarEmSl('#np-numero-proposicao', 'ab12c3');
+    cy.get('#np-numero-proposicao').should('have.prop', 'value', '123');
+    digitarEmSl('#np-ano-proposicao', '20o2x6');
+    cy.get('#np-ano-proposicao').should('have.prop', 'value', '2026');
+  });
+
   it('ementa em fonte normal, sem negrito', () => {
     abrirModal();
     marcarRadioSl('especie', 'substitutivo');

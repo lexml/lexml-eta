@@ -515,21 +515,33 @@ export class NovaProposicaoComponent extends LitElement {
     ></lexml-eta-autocomplete-lista>`;
   }
 
-  private campoTexto(id: string, valor: string, aoDigitar?: (valor: string) => void, maxlength?: number, classe = ''): TemplateResult {
+  private campoTexto(id: string, valor: string, aoDigitar?: (valor: string) => void, maxlength?: number, classe = '', numerico = false): TemplateResult {
     return html`<sl-input
       id=${id}
       class=${classe}
       .value=${valor}
       maxlength=${maxlength ?? nothing}
+      inputmode=${numerico ? 'numeric' : nothing}
       @sl-input=${(e: Event): void => {
-        const novo = this.valorDe(e);
+        const campo = e.target as HTMLInputElement;
+        let novo = campo.value ?? '';
+        if (numerico && /\D/.test(novo)) {
+          // Colar ou digitar não dígitos: o campo volta a ter só os dígitos.
+          novo = novo.replace(/\D/g, '');
+          campo.value = novo;
+        }
         if (aoDigitar && novo !== valor) aoDigitar(novo);
       }}
     ></sl-input>`;
   }
 
+  // Número e ano só aceitam dígitos.
+  private campoNumero(id: string, valor: string, aoDigitar: (valor: string) => void): TemplateResult {
+    return this.campoTexto(id, valor, aoDigitar, undefined, '', true);
+  }
+
   private campoAno(id: string, valor: string, aoDigitar: (valor: string) => void): TemplateResult {
-    return this.campoTexto(id, valor, aoDigitar, 4, 'np-ano');
+    return this.campoTexto(id, valor, aoDigitar, 4, 'np-ano', true);
   }
 
   // Texto fixo (ex.: "s/n"), sem campo editável.
@@ -600,7 +612,7 @@ export class NovaProposicaoComponent extends LitElement {
           this.selectSiglas('np-sigla-proposicao', this.siglasProposicao, this.chaveProposicao, c => this.onSiglaProposicao(c)),
           numeroFixo
             ? this.textoCinza('np-numero-proposicao', 's/n')
-            : this.campoTexto('np-numero-proposicao', this.numeroProposicao, v => {
+            : this.campoNumero('np-numero-proposicao', this.numeroProposicao, v => {
                 this.numeroProposicao = v;
                 this.verificacaoProposicao = verificacaoVazia();
               }),
@@ -625,7 +637,7 @@ export class NovaProposicaoComponent extends LitElement {
             <legend>Identificação da medida provisória</legend>
             ${this.linhaIdentificacao(
               html`<span id="np-sigla-mpv" class="np-sigla-fixa">${getTipoMpv()?.sigla ?? 'MPV'}</span>`,
-              this.campoTexto('np-numero-mpv', this.numeroMpv, v => {
+              this.campoNumero('np-numero-mpv', this.numeroMpv, v => {
                 this.numeroMpv = v;
                 this.verificacaoMpv = verificacaoVazia();
               }),
@@ -704,7 +716,7 @@ export class NovaProposicaoComponent extends LitElement {
                 this.verificacaoOutra = verificacaoVazia();
                 this.textoIndisponivel = false;
               }),
-              this.campoTexto('np-numero-outra', this.numeroOutra, v => {
+              this.campoNumero('np-numero-outra', this.numeroOutra, v => {
                 this.numeroOutra = v;
                 this.verificacaoOutra = verificacaoVazia();
                 this.textoIndisponivel = false;
