@@ -1,6 +1,7 @@
 // import { hmrPlugin, presets } from '@open-wc/dev-server-hmr';
 import { createPrivateQuillDevPlugin } from './private-quill.mjs';
 import { createLexmlLinkerVendorStaticPlugin } from './serve-lexml-linker-vendor.mjs';
+import { tratarRequisicaoDemo } from './demo/server/handlers.mjs';
 
 /** Use Hot Module replacement by adding --hmr to the start command */
 
@@ -8,7 +9,6 @@ import fs from 'fs';
 import path from 'path';
 
 const fileParlamentaresMock = path.resolve(process.cwd(), 'parlamentares.json');
-const fileComissoesMock = path.resolve(process.cwd(), 'comissoes.json');
 // Mock de GET /api/autocomplete-norma?query=: lê normas.json (poucas normas, filtra por nomePreferido, ementa e urn).
 // Mesmo formato do endpoint real, para copiar normas novas: https://legis.senado.gov.br/lexeditweb/resources/shared/autocomplete-norma?query=<texto>
 // O componente só consulta com 5 ou mais caracteres digitados (autocomplete-async).
@@ -16,13 +16,18 @@ const fileNormasMock = path.resolve(process.cwd(), 'normas.json');
 
 async function mockApiMiddleware(context, next) {
   try {
+    // Backend simulado da demo (comissões, verificação e texto de proposições): ver demo/server/handlers.mjs.
+    const respostaDemo = tratarRequisicaoDemo(context.url);
+    if (respostaDemo) {
+      context.status = respostaDemo.status;
+      context.set('Content-Type', respostaDemo.tipo);
+      context.body = respostaDemo.corpo;
+      return;
+    }
+
     let fileContent;
     if (/^\/parlamentares(\?.*)?$/.test(context.url)) {
       fileContent = fs.readFileSync(fileParlamentaresMock, 'utf8');
-      context.set('Content-Type', 'application/json');
-      context.body = fileContent;
-    } else if (/^\/comissoes(\?.*)?$/.test(context.url)) {
-      fileContent = fs.readFileSync(fileComissoesMock, 'utf8');
       context.set('Content-Type', 'application/json');
       context.body = fileContent;
     } else if (/^\/api\/autocomplete-norma(\?.*)?$/.test(context.url)) {

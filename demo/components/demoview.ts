@@ -3,8 +3,8 @@ import { setBasePath } from '@shoelace-style/shoelace/dist/utilities/base-path.j
 import { PL_5008_2023 } from '../doc/pl_5008_2023';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
-import { LexmlEtaConfig, LexmlEtaComponent, Usuario } from '../../src';
-import type { Anexo, ObterAnexoBlobResult } from '../../src';
+import { LexmlEtaConfig, LexmlEtaComponent, NovaProposicaoComponent, Usuario } from '../../src';
+import type { Anexo, ObterAnexoBlobResult, ResultadoNovaProposicao } from '../../src';
 import { RefProposicaoReduzida } from '../../src/model/proposicao/proposicao';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
@@ -150,7 +150,12 @@ export class DemoView extends LitElement {
   @query('lexml-eta')
   private elLexmlEta!: LexmlEtaComponent;
 
+  @query('lexml-nova-proposicao')
+  private elNovaProposicao?: NovaProposicaoComponent;
+
   @state() modo = 'edicao';
+  // O modal só existe no DOM enquanto aberto: não interfere em outros sl-dialog da página.
+  @state() modalNovaProposicao = false;
   @state() casa: 'SF' | 'CD' = 'SF';
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoReduzida();
@@ -163,7 +168,6 @@ export class DemoView extends LitElement {
     setBasePath('./');
     this.etaConfig = new LexmlEtaConfig();
     this.etaConfig.urlConsultaParlamentares = '/parlamentares';
-    this.etaConfig.urlComissoes = '/comissoes';
     this.configurarAnexos();
   }
 
@@ -197,6 +201,17 @@ export class DemoView extends LitElement {
   protected firstUpdated(): void {
     this.elNomeProposicao.style.display = 'none';
     this.elLexmlEta.setUsuario(new Usuario(this.nomeUsuario));
+  }
+
+  // URLs simuladas pelo backend da demo (demo/server), servido pelo web-dev-server.
+  private configurarNovaProposicao(): void {
+    if (!this.elNovaProposicao) return;
+    this.elNovaProposicao.config = {
+      casaLegislativaEditor: this.casa,
+      urlVerificacaoProposicao: '/demo-api/proposicoes/{sigla}/{numero}/{ano}',
+      urlTextoEstruturado: '/demo-api/proposicoes/{sigla}/{numero}/{ano}/texto',
+      urlComissoes: '/demo-api/comissoes/{casa}',
+    };
   }
 
   private getElement(selector: string): any {
@@ -260,7 +275,7 @@ export class DemoView extends LitElement {
             this.elLexmlEta.abrirDocumentoArticulado(this.projetoNorma).catch(erro => window.alert((erro as Error).message || 'Não foi possível iniciar o documento.'));
             this.atualizarProposicaoCorrente(this.projetoNorma);
           } else {
-            this.novaProposicao();
+            this.novaProposicaoPadrao();
           }
         } else {
           this.atualizarProposicaoCorrente(this.projetoNorma);
@@ -274,7 +289,33 @@ export class DemoView extends LitElement {
     return `urn:lex:br:${autoridade}:projeto.lei;pl:2026;999999`;
   }
 
-  novaProposicao(): void {
+  async novaProposicao(): Promise<void> {
+    this.modalNovaProposicao = true;
+    await this.updateComplete;
+    this.configurarNovaProposicao();
+  }
+
+  private onNovaProposicaoConcluida(e: CustomEvent<ResultadoNovaProposicao>): void {
+    const { urn, urnDocumentoReferenciado, epigrafe, preambulo, colegiadoDestino, texto, anexoParecer } = e.detail;
+    // Os textos simulados da demo são do Senado: na CD, só a URN do modelo é trocada (o editor recusa documento da outra casa).
+    this.modalNovaProposicao = false;
+    this.getElement('#fileUpload').value = null;
+    this.projetoNorma = {};
+    this.elLexmlEta
+      .novaProposicao({
+        urn,
+        urnDocumentoReferenciado,
+        epigrafe,
+        preambulo,
+        colegiadoApreciador: { ...colegiadoDestino, siglaCasaLegislativa: this.casa },
+        documentoModelo: this.casa === 'CD' && texto ? derivarParaCamara(texto) : texto,
+        anexoParecer,
+      })
+      .catch(erro => window.alert((erro as Error).message || 'Não foi possível criar a proposição.'));
+    this.atualizarProposicaoCorrente({ value: { metadado: { identificacao: { urn } } } });
+  }
+
+  private novaProposicaoPadrao(): void {
     const urn = this.getUrnNovaProposicao();
     this.getElement('#fileUpload').value = null;
     this.projetoNorma = {};
@@ -290,6 +331,7 @@ export class DemoView extends LitElement {
     this.casa = (event.target as HTMLSelectElement).value as 'SF' | 'CD';
     this.etaConfig.casaLegislativaEditor = this.casa;
     this.elLexmlEta.lexmlEtaConfig = this.etaConfig;
+    this.configurarNovaProposicao();
     this.elDocumento.value = '';
   }
 
@@ -480,6 +522,25 @@ export class DemoView extends LitElement {
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
       <lexml-eta .lexmlEtaConfig=${this.etaConfig} modo=${this.modo} @onrevisao=${this.onRevisao}></lexml-eta>
+      ${this.modalNovaProposicao
+        ? html`<sl-dialog
+            id="dialogNovaProposicao"
+            open
+            label="Nova proposição"
+            style="--width: 46rem"
+            no-header
+            @sl-hide=${(e: Event): void => {
+              if (e.target === e.currentTarget) this.modalNovaProposicao = false;
+            }}
+          >
+            <lexml-nova-proposicao
+              @nova-proposicao-concluida=${this.onNovaProposicaoConcluida}
+              @nova-proposicao-cancelada=${(): void => {
+                this.modalNovaProposicao = false;
+              }}
+            ></lexml-nova-proposicao>
+          </sl-dialog>`
+        : ''}
     `;
   }
 
