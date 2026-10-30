@@ -53,7 +53,7 @@ describe('Estado neutro e ciclo de vida do documento', () => {
   });
 
   it('sai do estado neutro ao criar uma nova proposição', () => {
-    cy.get('input[type="button"][value="Nova proposição"]').click();
+    cy.novaProposicao();
 
     verificarDocumentoEmEdicao();
   });
@@ -90,7 +90,7 @@ describe('Estado neutro e ciclo de vida do documento', () => {
 
   it('cria nova proposição da casa selecionada e volta ao estado neutro ao trocar a casa', () => {
     cy.get('#casaEditor').select('CD');
-    cy.get('input[type="button"][value="Nova proposição"]').click();
+    cy.novaProposicao();
     verificarDocumentoEmEdicao();
 
     cy.get('#casaEditor').select('SF');

@@ -1,4 +1,5 @@
 /// <reference types="cypress" />
+import { escolherItemSl } from './nova-proposicao';
 
 export type TipoMensagemContainerDispositivo = 'warning' | 'danger';
 export interface NovaProposicaoOpcoesCypress {
@@ -28,7 +29,11 @@ Cypress.Commands.add('novaProposicao', (projetoNormaSelectValue = 'novo', opcoes
     });
   }
   if (projetoNormaSelectValue === 'novo') {
+    // O botão abre o modal do componente de nova proposição: PL, destino Plenário e texto vazio (padrões).
     cy.get('div.lexml-eta-main-header--actions input[type="button"][value="Nova proposição"]').click();
+    escolherItemSl('#np-sigla-proposicao', 'PL');
+    cy.get('#np-continuar').click();
+    cy.get('#np-continuar').click();
   } else {
     cy.get('#projetoNorma').select(projetoNormaSelectValue);
     cy.get('div.lexml-eta-main-header--selecao input[type="button"][value="Ok"]').click();
