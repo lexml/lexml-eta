@@ -16,6 +16,7 @@ Este projeto utiliza três arquivos principais para gestão de contexto e contin
   - Espere confirmação antes de implementar mudanças significativas
   - Para bugs ou problemas, sempre proponha a abordagem antes de executar
   - **PROIBIDO fazer git commit sem solicitação explícita do usuário em um prompt específico para isso — nunca comite por iniciativa própria, mesmo após um fix bem-sucedido**
+  - **NUNCA rode o lint (`npm run lint`, `eslint` ou `prettier`) para todo o código, a não ser que o usuário peça expressamente** — se necessário, rode só nos arquivos alterados (e sem `--fix` em pastas inteiras: ele reformata arquivos que não são seus)
   - **Comentários de código devem ser sempre concisos e essenciais** — em português do Brasil, preferencialmente uma linha. Só comente o que não é óbvio pelo código em si (o "porquê", uma invariante não-óbvia, um workaround); nunca descreva o "o quê". Evite blocos de várias linhas quando uma frase resolve.
 
 ### 2. docs/sessao/TODO.md
