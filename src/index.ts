@@ -32,7 +32,9 @@ export { AlterarLarguraTabelaColunaModalComponent } from './components/editor-te
 export { AlterarLarguraImagemModalComponent } from './components/editor-texto-rico/alterar-largura-imagem-modal';
 export { LexmlEtaProposicaoComponent } from './components/lexml-eta-proposicao.component';
 export { AutoriaComponent } from './components/autoria/autoria.component';
-export { DestinoComponent } from './components/destino/destino.component';
+export { NovaProposicaoComponent } from './components/nova-proposicao/nova-proposicao.component';
+export type { ResultadoNovaProposicao } from './components/nova-proposicao/tiposNovaProposicao';
+export type { ConfigNovaProposicao } from './components/nova-proposicao/urlsNovaProposicao';
 export { LexmlAutocomplete } from './components/lexml-autocomplete';
 export { DataComponent } from './components/data/data.component';
 export { LexmlEtaComponent } from './components/lexml-eta.component';
