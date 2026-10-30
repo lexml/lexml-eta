@@ -344,28 +344,28 @@ Ao abrir um documento, o sistema SHALL restaurar a situação "Existente" ou "No
 - **THEN** o documento abre como antes, sem alterar a situação dos dispositivos
 
 ### Requirement: Destino aplicado ao abrir
-Ao abrir um documento de tipo suportado, o sistema SHALL preencher o formulário de destino com o `lexedit:ColegiadoApreciador` registrado. Atributo ausente ou inválido SHALL assumir o valor padrão do formulário, sem invalidar os demais, e sem o elemento o destino SHALL permanecer o padrão. A regra do local do fecho SHALL ser mantida: o local lido do arquivo só vale enquanto o destino não for alterado pelo usuário em relação ao destino aplicado ao abrir. Em documento de tipo não suportado, o destino lido SHALL ser ignorado.
+Ao abrir um documento de tipo suportado, em qualquer modo (inclusive o anexo de parecer), o sistema SHALL manter como colegiado do documento o `lexedit:ColegiadoApreciador` registrado, sem exibi-lo em formulário editável. Sem o elemento, o documento SHALL receber o colegiado padrão (Plenário, da casa do editor). Atributo ausente ou inválido no elemento SHALL assumir o padrão, sem invalidar os demais. A regra do local do fecho SHALL ser mantida: o local lido do arquivo SHALL valer enquanto o colegiado do documento for o lido ao abrir. Em documento de tipo não suportado, o colegiado lido SHALL ser ignorado.
 
 #### Scenario: Destino restaurado
 - **WHEN** o usuário abre um arquivo com `ColegiadoApreciador` de `tipoColegiado="Comissão"` e uma `siglaComissao`
-- **THEN** o formulário de destino exibe Comissão e a comissão informada
+- **THEN** o documento mantém esse colegiado e o grava ao ser salvo
 
 #### Scenario: Arquivo sem ColegiadoApreciador
 - **WHEN** o usuário abre um arquivo que não contém `lexedit:ColegiadoApreciador` (inclusive um salvo antes desta versão)
-- **THEN** o documento abre sem erro e o formulário de destino exibe Plenário
-- **AND** ao salvar, o arquivo registra `tipoColegiado="Plenário"`
+- **THEN** o documento abre sem erro com o colegiado padrão (Plenário)
+- **AND** ao salvar, o arquivo registra `lexedit:ColegiadoApreciador` com `tipoColegiado="Plenário"` e sem `siglaComissao`
 
 #### Scenario: Local preservado com destino igual
-- **WHEN** o usuário abre um arquivo com destino Plenário e local "Sala das Sessões", sem alterar o destino, e salva
+- **WHEN** o usuário abre um arquivo com colegiado Plenário e local "Sala das Sessões" e salva
 - **THEN** o local gravado continua "Sala das Sessões"
 
 #### Scenario: Atributo inválido
 - **WHEN** o arquivo traz `tipoColegiado` fora dos valores conhecidos
-- **THEN** o formulário assume o tipo padrão e os demais atributos válidos são aplicados
+- **THEN** o atributo inválido assume o padrão e os demais atributos válidos são aplicados
 
 #### Scenario: Destino ignorado em tipo não suportado
 - **WHEN** o usuário abre um arquivo de tipo não suportado com `tipoColegiado="Comissão"`
-- **THEN** o destino lido é ignorado e nenhum formulário de destino é exibido
+- **THEN** o colegiado lido é ignorado e o documento fica sem colegiado
 
 ### Requirement: Abertura de documento de tipo não suportado
 Ao abrir um documento cuja URN não seja de proposição suportada pelo editor (ver `vocabulario-urn`; por exemplo, uma medida provisória, de autoridade `federal`, ou uma norma), o sistema SHALL abrir o documento como tipo "não suportado": SHALL NOT exibir a edição do colegiado de destino nem a da autoria, SHALL ignorar os valores de destino e autoria do arquivo, e SHALL gravar ambos vazios ao salvar. A aba de avisos SHALL exibir uma mensagem de erro informando que esse tipo de documento não é completamente suportado pelo editor. O erro SHALL NOT impedir a edição do texto nem o salvamento.
