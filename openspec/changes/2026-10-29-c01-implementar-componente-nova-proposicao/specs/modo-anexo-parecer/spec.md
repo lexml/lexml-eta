@@ -19,3 +19,12 @@ No modo anexo de parecer, o sistema SHALL exibir, na mesma aba do modo normal, o
 #### Scenario: Proposição sem data informada
 - **WHEN** a aplicação consumidora obtém a proposição no modo anexo de parecer com "Não informar" selecionado
 - **THEN** `dataUltimaModificacao` da proposição é vazio
+
+## ADDED Requirements
+
+### Requirement: Colegiado no modo anexo de parecer
+O modo anexo de parecer SHALL NOT interferir no tratamento do colegiado apreciador: ele é recebido de `novaProposicao` ou lido do arquivo, exposto na proposição e gravado em `lexedit:ColegiadoApreciador` como no modo normal.
+
+#### Scenario: Salvar e reabrir em anexo de parecer
+- **WHEN** o usuário salva um anexo de parecer com colegiado Comissão e o reabre
+- **THEN** o colegiado Comissão e a sigla da comissão são preservados

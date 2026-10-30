@@ -60,7 +60,6 @@ const editor = document.querySelector('#editor') as LexmlEtaComponent;
 // 1. Configuração da sessão (antes de iniciar um documento)
 const config = new LexmlEtaConfig();
 config.urlConsultaParlamentares = '/parlamentares';
-config.urlComissoes = '/comissoes';
 config.usuario = new Usuario('Maria da Silva', 123, 'MSILVA'); // usado nas marcas de revisão
 editor.lexmlEtaConfig = config;
 
@@ -89,7 +88,6 @@ Em Lit, a configuração pode ser passada por binding de propriedade: `<lexml-et
 |---|---|---|---|
 | `lexmlEtaConfig` | `LexmlEtaConfig` | `new LexmlEtaConfig()` | URLs de serviços e limites. Veja a seção 5. |
 | `parlamentares` | `Parlamentar[]` | `[]` | Lista usada na autoria. É **preenchida pelo próprio componente** ao iniciar um documento, a partir de `urlConsultaParlamentares`. |
-| `comissoes` | `Comissao[]` | `[]` | Lista de comissões da casa legislativa. Também preenchida pelo componente, a partir de `urlComissoes`. |
 | `exibirAjuda` | `boolean` | `true` | Exibe o conteúdo de ajuda. |
 | `outrosMetadados` | `Record<string, string>` | `{}` | Pares chave/valor do host gravados no documento (`lexedit:OutrosMetadados`), também no modo `anexoParecer`. Os valores são sempre texto: para dados estruturados, grave um JSON serializado. `abrirDocumentoArticulado` substitui o valor pelos pares do arquivo (vazio se o arquivo não tiver o grupo), então o host deve lê-lo depois de abrir. |
 | `totalAlertas` | `number` | `0` | Quantidade de alertas (somente leitura na prática; atualizada pelo componente). |
@@ -110,7 +108,7 @@ Todo método valida a entrada **antes de alterar o editor**: entrada inválida e
 | `epigrafe` | `string` | **Obrigatório.** Texto da epígrafe. |
 | `preambulo` | `string` | **Obrigatório** (pode ser vazio; então vale o texto padrão do tipo, se houver). |
 | `urnDocumentoReferenciado` | `string?` | URN do documento referenciado (substitutivo, PLV); gravada em `lexedit:Metadado@urnDocumentoReferenciado`. |
-| `colegiadoApreciador` | `ColegiadoApreciador?` | Destino. Padrão: Plenário. Ignorado no modo anexo de parecer. |
+| `colegiadoApreciador` | `ColegiadoApreciador?` | Destino, em geral o `colegiadoDestino` do componente de nova proposição (seção 11). Sem ele, o documento criado fica sem colegiado e o `lexedit:ColegiadoApreciador` não é gravado; ao **abrir** um arquivo sem o elemento vale o padrão (Plenário). Não é editável no `lexml-eta` e o modo anexo de parecer não interfere. |
 | `autoria` | `Autoria?` | Padrão: `lexmlEtaConfig.autoriaPadrao`, se houver. |
 | `opcoesImpressao` | `OpcoesImpressao?` | Padrão: `lexmlEtaConfig.opcoesImpressaoPadrao`, se houver. |
 | `outrosMetadados` | `Record<string, string>?` | Pares gravados no documento. |
@@ -185,7 +183,6 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `urlConsultaParlamentares` | `string` | `'api/parlamentares'` | Endpoint (GET) que devolve a lista de parlamentares. |
 | `urlAutocomplete` | `string` | `'api/autocomplete-norma'` | Endpoint (GET `?query=`) de busca de normas, usado nos diálogos de alteração de norma e de remissão externa. |
 | `urlPortalNormas` | `string` | `'https://normas.leg.br'` | Base dos links para abrir uma norma referenciada. |
-| `urlComissoes` | `string?` | — | Endpoint (GET `?siglaCasaLegislativa=`) de comissões. Se ausente, a lista de comissões fica vazia. |
 | `usuario` | `Usuario?` | — | Usuário das marcas de revisão. Se omitido, mantém o usuário atual do store. |
 | `configuracaoPaginacao` | `ConfiguracaoPaginacao?` | — | Paginação dos dispositivos em textos grandes: `{ maxItensPorPagina?: number; rangeArtigos?: { numInicial: number; numFinal: number }[] }`. **Opcional**: sem ela, o texto é paginado automaticamente em blocos de até **1250 dispositivos**. Veja a seção 9. |
 | `autoriaPadrao` | `{ identificacao: string; siglaCasaLegislativa: 'SF' \| 'CD' }?` | — | Parlamentar pré-selecionado na autoria de uma **nova proposição** (só funciona se o parlamentar existir na lista carregada; o dado `autoria` de `novaProposicao` vence). Não se aplica ao abrir. |
@@ -208,12 +205,6 @@ O usuário, a paginação e os padrões ficam na configuração da sessão e **s
 ```
 
 A lista é filtrada pela casa legislativa corrente (`CN` aceita ambas). Erros de rede ou de parse são tratados em silêncio (lista vazia).
-
-**Comissões** — `GET {urlComissoes}?siglaCasaLegislativa=SF` devolve:
-
-```json
-[{ "siglaCasaLegislativa": "SF", "sigla": "CCJ", "nome": "Comissão de Constituição, Justiça e Cidadania" }]
-```
 
 **Autocomplete de normas** — `GET {urlAutocomplete}?query=<texto>`, resposta no formato consumido por `autocomplete-norma` (`src/components/autocomplete/autocomplete-norma.ts`).
 
@@ -290,7 +281,7 @@ class Proposicao {
   notasRodape: NotaRodape[];
   autoria: Autoria;
   opcoesImpressao: OpcoesImpressao;
-  colegiadoApreciador: ColegiadoApreciador;
+  colegiadoApreciador?: ColegiadoApreciador; // só existe se informado em novaProposicao ou lido do arquivo
   revisoes: Revisao[];
   anexos: Anexo[];
   pendenciasPreenchimento: string[];
@@ -339,7 +330,7 @@ Fonte: `src/model/proposicao/proposicao.ts`.
 ### Salvar e retomar depois
 
 ```ts
-// Salvar: o arquivo LexML é autocontido (texto, revisões, anexos, destino, autoria...).
+// Salvar: o arquivo LexML é autocontido (texto, revisões, anexos, colegiado, autoria...).
 const documento = editor.getDocumentoArticulado();
 await fetch('/minhas-edicoes', { method: 'POST', body: JSON.stringify(documento) });
 
@@ -388,7 +379,44 @@ Remissões internas e externas são detectadas quando o usuário **sai** do disp
 - Um parlamentar vindo de um arquivo aberto e que não esteja mais na lista do host pode ser removido da autoria se o usuário entrar e sair do campo do nome.
 - O estado do store Redux é global ao pacote: reutilize a mesma instância ao trocar de documento, chamando `novaProposicao`/`abrirDocumentoArticulado` novamente, em vez de criar outra.
 
-## 11. Referências
+## 11. Componente `<lexml-nova-proposicao>`
+
+Coleta a identificação do novo documento (espécie, sigla, proposição referenciada, destino e forma de apresentação) e o texto inicial, e **devolve o resultado por evento**: ele não cria o documento. Quem cria é o host, chamando `novaProposicao()` do `<lexml-eta>`. Especificação: `openspec/specs/nova-proposicao/spec.md` e `docs/requisitos/componente-nova-proposicao.md`.
+
+```ts
+import type { ConfigNovaProposicao, ResultadoNovaProposicao } from '@lexml/lexml-eta';
+
+const nova = document.createElement('lexml-nova-proposicao');
+nova.config = {
+  casaLegislativaEditor: 'SF', // 'SF' | 'CD'; padrão 'SF'
+  urlVerificacaoProposicao: '/api/proposicoes/{sigla}/{numero}/{ano}',
+  urlTextoEstruturado: '/api/proposicoes/{sigla}/{numero}/{ano}/texto',
+  urlComissoes: '/api/comissoes/{casa}',
+} satisfies ConfigNovaProposicao;
+
+nova.addEventListener('nova-proposicao-concluida', (e: Event) => {
+  const r = (e as CustomEvent<ResultadoNovaProposicao>).detail;
+  elLexmlEta.novaProposicao({
+    urn: r.urn,
+    urnDocumentoReferenciado: r.urnDocumentoReferenciado,
+    epigrafe: r.epigrafe,
+    preambulo: r.preambulo,
+    colegiadoApreciador: { ...r.colegiadoDestino, siglaCasaLegislativa: casa },
+    documentoModelo: r.texto,
+    anexoParecer: r.anexoParecer,
+  });
+});
+nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
+```
+
+- **Configuração.** As três URLs são **obrigatórias**: sem qualquer uma, a atribuição de `config` lança erro que nomeia a URL ausente e nenhuma tela é exibida. Só a casa tem padrão. O componente inicializa o vocabulário da casa ao ser criado e a cada nova configuração; manter a mesma casa no `<lexml-eta>` é responsabilidade do host.
+- **Placeholders.** `{sigla}` (maiúsculas), `{numero}` (sem zeros à esquerda) e `{ano}` nas duas URLs de proposição; `{casa}` (`SF`, `CD` ou `CN`) em `urlComissoes`.
+- **Verificação** (`200` `{ ementa, textoEstruturadoDisponivel }`, `404` inexistente), **texto estruturado** (`200` JSONIX, `404` indisponível) e **comissões** (lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados): contrato completo na seção 9 do documento de requisitos.
+- **Evento `nova-proposicao-concluida`** — `detail`: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoDestino` (`{ tipoColegiado, siglaComissao? }`), `texto?` (JSONIX) e `anexoParecer`. **`nova-proposicao-cancelada`** não tem `detail`. Após concluir, o host decide quando fechar ou chamar `reiniciar()`.
+- **Importação de arquivo.** O tratamento real de DOCX/TXT/LexML ainda não existe: o componente valida extensão e tamanho (5 MB) e simula um erro de parser (Tela 3), sem chamar URL.
+- **Epígrafe e preâmbulo.** Enquanto o serviço de epígrafe (#1053) não existe, a epígrafe é a do caso padrão (`<TIPO> Nº   , DE <ANO>`, sem sufixo). Tipo sem texto padrão recebe `O CONGRESSO NACIONAL decreta:` com log de erro (regra do componente; a abertura de documentos não muda).
+
+## 12. Referências
 
 - Demo completa: `demo/components/demoview.ts`.
 - Formato LexML: `docs/estrutura-lexml.md`.

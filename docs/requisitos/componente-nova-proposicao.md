@@ -166,7 +166,7 @@ Os modelos de epígrafe (por tipo, substitutivo, subemenda substitutiva e PLV) n
 
 ### 5.2 Preâmbulo
 
-O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreambuloPadrao`. Os modelos não são listados aqui. Sem modelo para o tipo, `getPreambuloPadrao` registra um log de erro de preâmbulo não encontrado para a URN e devolve `O CONGRESSO NACIONAL decreta:`. **Essa regra de fallback (log e texto padrão) deve ser implementada em `getPreambuloPadrao`** (hoje ela devolve `undefined`), e não no componente, que apenas a usa. A mudança afeta os demais consumidores, como a abertura de documento (`buildProjetoNormaFromJsonix`), em que o tipo sem modelo passará a ter preâmbulo; deve ser tratada na change de implementação.
+O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreambuloPadrao`, que continua devolvendo `undefined` quando não há modelo para o tipo. Nesse caso o **próprio componente** registra um log de erro de preâmbulo não encontrado para a URN e usa `O CONGRESSO NACIONAL decreta:`. A regra fica no componente (decisão da issue #1050, em vez de em `getPreambuloPadrao`) para não alterar a abertura de documentos: um documento aberto de tipo sem modelo continua sem preâmbulo.
 
 
 ## 6. Critérios de aceite (resumo)
@@ -186,7 +186,6 @@ O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreamb
 ## 7. Pontos em aberto
 
 - **Destino no `lexml-eta`:** o `lexml-eta` deixa de ter o componente de colegiado de destino, porque o destino passa a ser definido aqui. Definir, na change de implementação, de onde o editor lê o destino ao abrir um documento e como fica o `ColegiadoApreciador` hoje salvo e aberto (change `2026-10-19-c01-metadados-lexedit-situacao-colegiado`); **BREAKING** para o host.
-- Implementar em `getPreambuloPadrao` o fallback do preâmbulo (log de erro e `O CONGRESSO NACIONAL decreta:`) e avaliar o impacto na abertura de documentos com tipo sem modelo (ver 5.2).
 - O serviço de epígrafe está na issue #1053 (ver 5.1).
 
 Decididos (não são mais pontos em aberto): a subemenda substitutiva da `CD` referencia a proposição original, com a referência ao substitutivo implícita (RN-22); formato da lista de comissões (seção 9); colegiado da epígrafe do substitutivo do `SF` (coletado em g5); serviços de verificação, de texto e de comissões (URLs configuráveis, seção 9); limite do arquivo importado (5 MB); siglas referenciáveis e de nova proposição (do vocabulário, RN-00 e RN-00a); inclusão de siglas inativas (sim, ao final, em cinza); MPV fora das listas de siglas, só como referência do PLV; tipos de proposição de cada casa (definidos nos vocabulários, não há mais lista a confirmar).
@@ -241,7 +240,7 @@ O componente não tem efeito colateral: coleta e devolve um resultado por evento
   | `urn` | URN do novo documento (seção 4). |
   | `urnDocumentoReferenciado` | Em substitutivo, subemenda substitutiva e PLV. No substitutivo do `SF`, sem o sufixo de versão. |
   | `epigrafe` | Do serviço de epígrafe do vocabulário (#1053, com o sufixo do destino no `SF`), quando implementado; senão, a epígrafe do caso padrão (5.1). |
-  | `preambulo` | De `getPreambuloPadrao` (5.2), que aplica o fallback (log de erro e `O CONGRESSO NACIONAL decreta:`) quando o tipo não tem modelo. |
+  | `preambulo` | De `getPreambuloPadrao` (5.2); o componente aplica o fallback (log de erro e `O CONGRESSO NACIONAL decreta:`) quando o tipo não tem modelo. |
   | `colegiadoDestino` | Sempre presente: tipo (Plenário ou Comissão) e, em Comissão, a sigla da comissão. |
   | `texto` | Documento articulado em JSONIX; só quando o texto vem de documento existente (importação, documento referenciado ou outra proposição). |
   | `anexoParecer` | Booleano (g6). |

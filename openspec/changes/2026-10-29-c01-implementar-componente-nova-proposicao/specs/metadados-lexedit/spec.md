@@ -1,7 +1,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Colegiado apreciador no arquivo
-O sistema SHALL gravar o destino da proposição em `lexedit:ColegiadoApreciador`, com `siglaCasaLegislativa` (`SF`, `CD` ou `CN`) e `tipoColegiado` (`Plenário` ou `Comissão`), e `siglaComissao` somente quando houver comissão informada, **apenas quando o documento tem colegiado**. O colegiado SHALL vir de `novaProposicao` ou do arquivo aberto e SHALL NOT ser editável no `lexml-eta`; sem colegiado, o sistema SHALL NOT gravar o elemento nem assumir valor padrão. Um anexo de parecer SHALL NOT ter o elemento gravado, assim como não tem fecho nem autoria.
+O sistema SHALL gravar o destino da proposição em `lexedit:ColegiadoApreciador`, com `siglaCasaLegislativa` (`SF`, `CD` ou `CN`) e `tipoColegiado` (`Plenário` ou `Comissão`), e `siglaComissao` somente quando houver comissão informada, **apenas quando o documento tem colegiado**. O colegiado SHALL vir de `novaProposicao` ou do arquivo aberto e SHALL NOT ser editável no `lexml-eta`; sem colegiado, o sistema SHALL NOT gravar o elemento. O modo de anexo de parecer SHALL NOT interferir: o colegiado é gravado e lido como nos demais documentos.
 
 #### Scenario: Destino Plenário
 - **WHEN** o usuário salva um documento criado com colegiado Plenário do Senado
@@ -12,5 +12,9 @@ O sistema SHALL gravar o destino da proposição em `lexedit:ColegiadoApreciador
 - **THEN** o `lexedit:ColegiadoApreciador` contém `tipoColegiado="Comissão"` e a `siglaComissao` informada
 
 #### Scenario: Documento sem colegiado
-- **WHEN** o usuário salva um documento que não tem colegiado (criado sem ele ou aberto de arquivo sem o elemento)
+- **WHEN** o usuário salva um documento criado sem colegiado
 - **THEN** o arquivo não contém `lexedit:ColegiadoApreciador`
+
+#### Scenario: Anexo de parecer
+- **WHEN** o usuário salva, no modo de anexo de parecer, um documento com colegiado Comissão
+- **THEN** o arquivo contém `lexedit:ColegiadoApreciador` com `tipoColegiado="Comissão"` e a `siglaComissao`
