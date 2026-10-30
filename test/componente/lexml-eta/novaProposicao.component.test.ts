@@ -30,7 +30,7 @@ describe('LexmlEtaComponent — novaProposicao', () => {
     await component.novaProposicao(dadosMinimos());
 
     expect((component as any)._lexmlOpcoesImpressao.opcoesImpressao).to.deep.equal(new OpcoesImpressao());
-    expect((component as any)._lexmlDestino.colegiadoApreciador.tipoColegiado).to.equal('Plenário');
+    expect((component as any).colegiadoApreciador).to.equal(undefined);
     expect(component.outrosMetadados).to.deep.equal({});
   });
 
@@ -100,7 +100,7 @@ describe('LexmlEtaComponent — novaProposicao', () => {
       urnDocumentoReferenciado: 'urn:lex:br:senado.federal:projeto.lei;pl:2025;7',
     });
 
-    const destinoAplicado = (component as any)._lexmlDestino.colegiadoApreciador;
+    const destinoAplicado = (component as any).colegiadoApreciador;
     expect(destinoAplicado.tipoColegiado).to.equal('Comissão');
     expect(destinoAplicado.siglaComissao).to.equal('CAE');
     expect(component.outrosMetadados).to.deep.equal({ chave: 'valor' });

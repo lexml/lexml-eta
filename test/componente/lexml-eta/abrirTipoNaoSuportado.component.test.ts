@@ -53,13 +53,12 @@ describe('LexmlEtaComponent — abrir documento: modo, referência e tipo não s
     expect(salvo).not.to.have.property('urnDocumentoReferenciado');
   });
 
-  it('proposição inativa (PLS) abre com destino e autoria', async () => {
+  it('proposição inativa (PLS) abre com colegiado e autoria', async () => {
     await component.abrirDocumentoArticulado(entrada(URN_PLS));
 
-    expect(oculto('lexml-eta-destino')).to.be.false;
     expect(oculto('lexml-eta-autoria')).to.be.false;
     expect(alertas().some(a => a.mensagem === PENDENCIA_DOCUMENTO_NAO_SUPORTADO)).to.be.false;
-    expect(campo('lexml-eta-destino').colegiadoApreciador.siglaComissao).to.equal('CAE');
+    expect((component as any).colegiadoApreciador.siglaComissao).to.equal('CAE');
   });
 
   describe('tipo não suportado', () => {
@@ -67,10 +66,9 @@ describe('LexmlEtaComponent — abrir documento: modo, referência e tipo não s
       ['medida provisória', URN_MPV],
       ['norma de autoridade com casa', 'urn:lex:br:senado.federal:resolucao:2026;1'],
     ].forEach(([nome, urn]) => {
-      it(`${nome}: oculta destino e autoria e exibe o erro na aba de avisos`, async () => {
+      it(`${nome}: oculta a autoria e exibe o erro na aba de avisos`, async () => {
         await component.abrirDocumentoArticulado(entrada(urn));
 
-        expect(oculto('lexml-eta-destino')).to.be.true;
         expect(oculto('lexml-eta-autoria')).to.be.true;
         const erro = alertas().find(a => a.mensagem === PENDENCIA_DOCUMENTO_NAO_SUPORTADO);
         expect(erro?.tipo).to.equal('ERROR');
@@ -97,7 +95,6 @@ describe('LexmlEtaComponent — abrir documento: modo, referência e tipo não s
       await component.abrirDocumentoArticulado(entrada(URN_MPV));
       await component.abrirDocumentoArticulado(entrada(URN_PLS));
 
-      expect(oculto('lexml-eta-destino')).to.be.false;
       expect(alertas().some(a => a.mensagem === PENDENCIA_DOCUMENTO_NAO_SUPORTADO)).to.be.false;
       expect(lexeditSalvo(component.getDocumentoArticulado())).to.have.property('colegiadoApreciador');
     });

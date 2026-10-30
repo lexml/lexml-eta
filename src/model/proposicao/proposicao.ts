@@ -17,7 +17,8 @@ export class Proposicao {
   autoria = new Autoria();
   opcoesImpressao = new OpcoesImpressao();
   revisoes: Revisao[] = [];
-  colegiadoApreciador = new ColegiadoApreciador();
+  // Sem valor padrão: só existe quando definido na criação ou lido do arquivo.
+  colegiadoApreciador?: ColegiadoApreciador;
   notasRodape: NotaRodape[] = [];
   projetoNorma?: ProjetoNorma;
 

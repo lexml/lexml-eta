@@ -42,7 +42,7 @@ describe('Campo "Data" e modo anexo de parecer', () => {
 
     cy.get('sl-tab[panel="justificativa"]').should('not.exist');
     cy.get('sl-tab[panel="notas"]').should('not.exist');
-    cy.get('sl-tab[panel="autoria"]').should('contain.text', 'Destino, Data, Autoria e Impressão');
+    cy.get('sl-tab[panel="autoria"]').should('contain.text', 'Data, Autoria e Impressão');
     cy.get(SEL_CAMPO_DATA_ANEXO).parent().should('not.have.css', 'display', 'none');
     cy.get('lexml-eta-autoria').parent().should('not.have.css', 'display', 'none');
   });

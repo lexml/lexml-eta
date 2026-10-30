@@ -36,10 +36,10 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     expect(component.querySelector('sl-tab[panel="notas"]')).to.be.null;
     expect((component.querySelector('sl-tab-panel[name="justificativa"]') as HTMLElement).style.display).to.equal('none');
     expect(component.querySelector('sl-tab-panel[name="notas"]')).to.be.null;
-    expect(component.querySelector('sl-tab[panel="autoria"]')?.textContent?.trim()).to.equal('Destino, Data, Autoria e Impressão');
+    expect(component.querySelector('sl-tab[panel="autoria"]')?.textContent?.trim()).to.equal('Data, Autoria e Impressão');
     expect((component.querySelector('lexml-eta-data')?.parentElement as HTMLElement).style.display).not.to.equal('none');
     expect((component.querySelector('lexml-eta-autoria')?.parentElement as HTMLElement).style.display).not.to.equal('none');
-    expect(component.querySelector('lexml-eta-destino')).not.to.be.null;
+    expect(component.querySelector('lexml-eta-destino') === null).to.be.true;
     expect(component.querySelector('lexml-eta-opcoes-impressao')).not.to.be.null;
   });
 
@@ -91,8 +91,8 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
       },
       _lexmlAutoria: { value: { getAutoriaAtualizada: (): any => ({ parlamentares: [{ identificacao: '1' }] }) } },
       _lexmlOpcoesImpressao: { value: { opcoesImpressao } },
-      _lexmlDestino: { value: { colegiadoApreciador } },
     });
+    (component as any).colegiadoApreciador = colegiadoApreciador;
 
     const proposicao = component.getProposicao();
 

@@ -15,7 +15,6 @@ const registeredCustomElements = [
   'lexml-eta-autocomplete-norma',
   'lexml-eta-autoria',
   'lexml-eta-data',
-  'lexml-eta-destino',
   'lexml-eta-editor-texto-rico',
   'lexml-eta-elemento',
   'lexml-eta-opcoes-impressao',
@@ -24,6 +23,7 @@ const registeredCustomElements = [
   'lexml-eta-sufixos-modal',
   'lexml-eta-switch-revisao',
   'lexml-eta',
+  'lexml-nova-proposicao',
   'lexml-substituicao-termo',
   'proposicao-dividida-modal',
 ];
