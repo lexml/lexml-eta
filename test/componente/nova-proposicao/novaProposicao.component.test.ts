@@ -30,13 +30,6 @@ describe('lexml-nova-proposicao', () => {
     q<HTMLElement>(id)!.click();
     await atualizar();
   };
-  // sl-select/sl-input: o valor é atribuído e o evento do Shoelace disparado (padrão do guia do Cypress).
-  const escolher = async (id: string, valor: string): Promise<void> => {
-    const s = q<any>(id)!;
-    s.value = valor;
-    s.dispatchEvent(new CustomEvent('sl-change', { bubbles: true }));
-    await atualizar();
-  };
   const digitar = async (id: string, valor: string): Promise<void> => {
     const i = q<any>(id)!;
     i.value = valor;
@@ -47,13 +40,32 @@ describe('lexml-nova-proposicao', () => {
     el.querySelector<HTMLElement>(`sl-radio[name="${nome}"][value="${valor}"]`)!.click();
     await atualizar();
   };
-  const itens = (id: string): HTMLElement[] => Array.from(q(id)!.querySelectorAll<HTMLElement>('sl-menu-item'));
-  const textosItens = (id: string): string[] => itens(id).map(i => (i.textContent ?? '').trim());
-  const chaveSigla = (id: string, sigla: string): string =>
-    itens(id)
-      .find(i => (i.textContent ?? '').trim() === sigla)!
-      .getAttribute('value')!;
-  const escolherSigla = (id: string, sigla: string): Promise<void> => escolher(id, chaveSigla(id, sigla));
+  // Autocomplete (siglas e comissão): abre a lista pelo clique no campo, filtra pelo texto e escolhe o item.
+  const abrirLista = async (id: string): Promise<void> => {
+    q<any>(id)!.querySelector('sl-input')!.dispatchEvent(new MouseEvent('click'));
+    await atualizar();
+  };
+  const itensDaLista = (id: string): HTMLElement[] => Array.from(q(id)!.querySelectorAll<HTMLElement>('.ac-lista li'));
+  const textosItens = async (id: string): Promise<string[]> => {
+    await abrirLista(id);
+    return itensDaLista(id).map(i => (i.textContent ?? '').trim());
+  };
+  const digitarNaLista = async (id: string, texto: string): Promise<void> => {
+    const campo = q<any>(id)!.querySelector('sl-input')!;
+    campo.value = texto;
+    campo.dispatchEvent(new CustomEvent('sl-input', { bubbles: true }));
+    await atualizar();
+  };
+  const escolherNaLista = async (id: string, valor: string): Promise<void> => {
+    await abrirLista(id);
+    el.querySelector<HTMLElement>(`#${id} .ac-lista li[data-value="${valor}"]`)!.click();
+    await atualizar();
+  };
+  const chaveSigla = (id: string, sigla: string): string => q<any>(id)!.items.find((i: any) => i.label === sigla).value;
+  const escolherSigla = (id: string, sigla: string): Promise<void> => escolherNaLista(id, chaveSigla(id, sigla));
+  const siglasSugeridas = (): (string | null)[] => itensDaLista('np-comissao').map(li => li.getAttribute('data-value'));
+  const escolherComissao = (sigla: string): Promise<void> => escolherNaLista('np-comissao', sigla);
+  const abrirSugestoes = (): Promise<void> => abrirLista('np-comissao');
 
   const iniciar = async (config: object = CONFIG): Promise<void> => {
     el = await fixture<NovaProposicaoComponent>(html`<lexml-nova-proposicao></lexml-nova-proposicao>`);
@@ -121,8 +133,8 @@ describe('lexml-nova-proposicao', () => {
 
     it('espécie padrão é Proposição, com número s/n, sem Verificar e sem ementa', async () => {
       expect(el.querySelector<any>('sl-radio[name="especie"][value="proposicao"]')!.checked).to.be.true;
-      expect(q<any>('np-numero-proposicao')!.value).to.equal('s/n');
-      expect(q<any>('np-numero-proposicao')!.disabled).to.be.true;
+      expect(q<any>('np-numero-proposicao')!.textContent).to.equal('s/n');
+      expect(q<any>('np-numero-proposicao')!.tagName).to.equal('SPAN');
       expect(existe('np-proposicao-verificar')).to.be.false;
       expect(existe('np-proposicao-ementa')).to.be.false;
     });
@@ -133,7 +145,7 @@ describe('lexml-nova-proposicao', () => {
     });
 
     it('lista de siglas: ativos antes de inativos e sem a MPV', async () => {
-      const textos = textosItens('np-sigla-proposicao');
+      const textos = await textosItens('np-sigla-proposicao');
       expect(textos).to.include.members(['PL', 'PLP', 'PLV', 'PLS']);
       expect(textos).to.not.include('MPV');
       expect(textos.indexOf('PLS')).to.be.greaterThan(textos.indexOf('PLV'));
@@ -156,8 +168,7 @@ describe('lexml-nova-proposicao', () => {
     it('PLV exibe o grupo da MPV com sigla fixa; outra sigla não', async () => {
       await escolherSigla('np-sigla-proposicao', 'PLV');
       expect(existe('np-g4')).to.be.true;
-      expect(q<any>('np-sigla-mpv')!.value).to.equal('MPV');
-      expect(q<any>('np-sigla-mpv')!.disabled).to.be.true;
+      expect(q<any>('np-sigla-mpv')!.textContent).to.equal('MPV');
       await escolherSigla('np-sigla-proposicao', 'PL');
       expect(existe('np-g4')).to.be.false;
     });
@@ -167,7 +178,7 @@ describe('lexml-nova-proposicao', () => {
       expect(botaoHabilitado('np-continuar')).to.be.false;
       await digitar('np-numero-mpv', '99');
       await clicar('np-mpv-verificar');
-      expect(q<any>('np-mpv-ementa')!.value).to.equal('Ementa da MPV 99');
+      expect(q<any>('np-mpv-ementa')!.textContent).to.equal('Ementa da MPV 99');
       expect(botaoHabilitado('np-continuar')).to.be.true;
     });
 
@@ -179,7 +190,7 @@ describe('lexml-nova-proposicao', () => {
       it('padrões: Comissão e parecer marcado; número editável com Verificar', async () => {
         expect(el.querySelector<any>('sl-radio[name="destino"][value="Comissão"]')!.checked).to.be.true;
         expect(q<any>('np-anexo-parecer')!.checked).to.be.true;
-        expect(q<any>('np-numero-proposicao')!.disabled).to.be.false;
+        expect(q<any>('np-numero-proposicao')!.tagName).to.equal('SL-INPUT');
         expect(existe('np-proposicao-verificar')).to.be.true;
         expect(existe('np-g2')).to.be.false;
       });
@@ -197,9 +208,9 @@ describe('lexml-nova-proposicao', () => {
         await digitar('np-numero-proposicao', '0012');
         await clicar('np-proposicao-verificar');
         expect(chamadas).to.include('/v/PL/12/2026');
-        expect(q<any>('np-proposicao-ementa')!.value).to.equal('Ementa do PL 12');
+        expect(q<any>('np-proposicao-ementa')!.textContent).to.equal('Ementa do PL 12');
         await digitar('np-numero-proposicao', '0013');
-        expect(q<any>('np-proposicao-ementa')!.value).to.equal('');
+        expect(q<any>('np-proposicao-ementa')!.textContent).to.equal('');
       });
 
       it('documento inexistente: informa, ementa vazia e Continuar desabilitado', async () => {
@@ -207,7 +218,7 @@ describe('lexml-nova-proposicao', () => {
         await digitar('np-numero-proposicao', '7');
         await clicar('np-proposicao-verificar');
         expect(existe('np-nao-encontrado')).to.be.true;
-        expect(q<any>('np-proposicao-ementa')!.value).to.equal('');
+        expect(q<any>('np-proposicao-ementa')!.textContent).to.equal('');
         expect(botaoHabilitado('np-continuar')).to.be.false;
       });
 
@@ -226,7 +237,7 @@ describe('lexml-nova-proposicao', () => {
         await digitar('np-numero-proposicao', '12');
         await clicar('np-proposicao-verificar');
         expect(botaoHabilitado('np-continuar')).to.be.false;
-        await escolher('np-comissao', 'CCJ');
+        await escolherComissao('CCJ');
         expect(botaoHabilitado('np-continuar')).to.be.true;
       });
     });
@@ -236,7 +247,8 @@ describe('lexml-nova-proposicao', () => {
         await escolherSigla('np-sigla-proposicao', 'PLV');
         await marcar('destino', 'Comissão');
         expect(chamadas).to.include('/c/CN');
-        expect(itens('np-comissao').map(i => i.getAttribute('value'))).to.deep.equal(['CMO']);
+        await abrirSugestoes();
+        expect(siglasSugeridas()).to.deep.equal(['CMO']);
       });
 
       it('falha na obtenção: só Plenário, e o padrão do substitutivo passa a ser Plenário', async () => {
@@ -246,6 +258,36 @@ describe('lexml-nova-proposicao', () => {
         expect(existe('np-erro-comissoes')).to.be.true;
         expect(el.querySelector<any>('sl-radio[name="destino"][value="Comissão"]')!.disabled).to.be.true;
         expect(el.querySelector<any>('sl-radio[name="destino"][value="Plenário"]')!.checked).to.be.true;
+      });
+
+      it('autocomplete filtra pelo texto digitado, sem acento e sem diferenciar maiúsculas', async () => {
+        await escolherSigla('np-sigla-proposicao', 'PLV');
+        await marcar('destino', 'Comissão');
+        await digitarNaLista('np-comissao', 'mista de orcamento');
+        expect(siglasSugeridas()).to.deep.equal(['CMO']);
+        await digitarNaLista('np-comissao', 'xyz');
+        expect(siglasSugeridas()).to.deep.equal([]);
+      });
+
+      it('digitar depois de escolher invalida a escolha até nova seleção', async () => {
+        await escolherSigla('np-sigla-proposicao', 'PLV');
+        await marcar('destino', 'Comissão');
+        await escolherComissao('CMO');
+        expect(botaoHabilitado('np-continuar')).to.be.false; // PLV ainda sem a MPV verificada
+        await digitarNaLista('np-comissao', 'Comissão Mista');
+        expect(el.querySelector('#np-comissao .ac-lista') !== null).to.be.true;
+        await escolherComissao('CMO');
+        expect(q<any>('np-comissao').value).to.equal('CMO');
+        expect(q<any>('np-comissao').querySelector('sl-input').value).to.equal('CMO - Comissão Mista de Orçamento');
+      });
+
+      it('lista sem rolagem horizontal e com texto excedente omitido', async () => {
+        await escolherSigla('np-sigla-proposicao', 'PLV');
+        await marcar('destino', 'Comissão');
+        await abrirSugestoes();
+        const lista = getComputedStyle(el.querySelector('#np-comissao .ac-lista')!);
+        const item = getComputedStyle(el.querySelector('#np-comissao .ac-lista li')!);
+        expect([lista.overflowX, lista.overflowY, item.textOverflow, item.whiteSpace]).to.deep.equal(['hidden', 'auto', 'ellipsis', 'nowrap']);
       });
 
       it('destino Comissão sem comissão desabilita Continuar', async () => {
@@ -269,12 +311,12 @@ describe('lexml-nova-proposicao', () => {
     it('oferece subemenda e o grupo g2 com número s/n; siglas só do substitutivo', async () => {
       await marcar('especie', 'substitutivo');
       expect(existe('np-g2')).to.be.true;
-      expect(q<any>('np-numero-substitutivo')!.value).to.equal('s/n');
-      const textos = textosItens('np-sigla-substitutivo');
+      expect(q<any>('np-numero-substitutivo')!.textContent).to.equal('s/n');
+      const textos = await textosItens('np-sigla-substitutivo');
       expect(textos).to.include('SBT');
       expect(textos).to.not.include('PEP');
       await marcar('especie', 'subemenda');
-      expect(textosItens('np-sigla-substitutivo')).to.include('PEP');
+      expect(await textosItens('np-sigla-substitutivo')).to.include('PEP');
     });
   });
 
@@ -288,7 +330,7 @@ describe('lexml-nova-proposicao', () => {
       await escolherSigla('np-sigla-proposicao', 'PL');
       await digitar('np-numero-proposicao', '12');
       await clicar('np-proposicao-verificar');
-      await escolher('np-comissao', 'CCJ');
+      await escolherComissao('CCJ');
       await clicar('np-continuar');
     };
     const concluida = (): { detail?: any } => {
@@ -304,7 +346,7 @@ describe('lexml-nova-proposicao', () => {
       await irParaTela2Proposicao();
       expect(opcao('vazio')!.checked).to.be.true;
       expect(!!opcao('referenciado')).to.be.false;
-      expect(q('np-cabecalho')!.textContent).to.contain('Novo(a) Projeto de Lei.');
+      expect(q('np-cabecalho')!.textContent).to.contain('Novo Projeto de Lei.');
     });
 
     it('conclui sem texto: detail sem urnDocumentoReferenciado nem texto', async () => {
@@ -350,7 +392,7 @@ describe('lexml-nova-proposicao', () => {
       await escolherSigla('np-sigla-proposicao', 'PL');
       await digitar('np-numero-proposicao', '13');
       await clicar('np-proposicao-verificar');
-      await escolher('np-comissao', 'CCJ');
+      await escolherComissao('CCJ');
       await clicar('np-continuar');
       expect(existe('np-texto-indisponivel')).to.be.true;
       expect(botaoHabilitado('np-continuar')).to.be.false;
@@ -366,15 +408,24 @@ describe('lexml-nova-proposicao', () => {
       expect(botaoHabilitado('np-continuar')).to.be.true;
     });
 
+    it('texto de outra proposição: a sigla vem de todas as siglas da casa, ativas e inativas, inclusive a MPV', async () => {
+      await irParaTela2Proposicao();
+      await marcar('opcaoTexto', 'outra');
+      const siglas = await textosItens('np-sigla-outra');
+      expect(siglas).to.include.members(['PL', 'PLP', 'PLV', 'PLS', 'MPV']);
+      expect(siglas.indexOf('PLS')).to.be.greaterThan(siglas.indexOf('MPV'));
+      expect(siglas).to.deep.equal(await textosItens('np-sigla-outra'));
+    });
+
     it('texto de outra proposição: exige verificação e aceita qualquer sigla', async () => {
       const r = concluida();
       await irParaTela2Proposicao();
       await marcar('opcaoTexto', 'outra');
       expect(botaoHabilitado('np-continuar')).to.be.false;
-      await digitar('np-sigla-outra', 'pl');
+      await escolherSigla('np-sigla-outra', 'PL');
       await digitar('np-numero-outra', '12');
       await clicar('np-outra-verificar');
-      expect(q<any>('np-outra-ementa')!.value).to.equal('Ementa do PL 12');
+      expect(q<any>('np-outra-ementa')!.textContent).to.equal('Ementa do PL 12');
       await clicar('np-continuar');
       expect(r.detail.texto).to.deep.equal(TEXTO);
     });

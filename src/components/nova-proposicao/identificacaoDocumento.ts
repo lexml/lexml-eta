@@ -4,7 +4,14 @@ import { DadosIdentificacao } from './tiposNovaProposicao';
 
 const artigo = (tipo: TipoDocumento): string => (tipo.genero === 'F' ? 'à' : 'ao');
 
-/** RN-08: texto "Novo(a) <identificação>" dos cabeçalhos das Telas 2 e 3. */
+// "Novo"/"Nova" concorda com o gênero do documento: substitutivo é masculino; subemenda substitutiva, feminino; nos demais, o do tipo.
+export const getNovoOuNova = (dados: Pick<DadosIdentificacao, 'especie' | 'tipoProposicao'>): 'Novo' | 'Nova' => {
+  if (dados.especie === 'substitutivo') return 'Novo';
+  if (dados.especie === 'subemenda') return 'Nova';
+  return dados.tipoProposicao?.genero === 'F' ? 'Nova' : 'Novo';
+};
+
+/** RN-08: texto da identificação dos cabeçalhos das Telas 2 e 3 ("Novo/Nova <identificação>."). */
 export const getIdentificacaoDocumento = (dados: DadosIdentificacao): string => {
   const { especie, tipoProposicao } = dados;
   if (!tipoProposicao) return '';

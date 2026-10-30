@@ -5,24 +5,27 @@ import '@shoelace-style/shoelace/dist/components/input/input';
 import '@shoelace-style/shoelace/dist/components/menu-item/menu-item';
 import '@shoelace-style/shoelace/dist/components/radio/radio';
 import '@shoelace-style/shoelace/dist/components/radio-group/radio-group';
-import '@shoelace-style/shoelace/dist/components/select/select';
-import '@shoelace-style/shoelace/dist/components/textarea/textarea';
 import { html, LitElement, nothing, TemplateResult } from 'lit';
 import { customElement, property, state } from 'lit/decorators.js';
 import { keyed } from 'lit/directives/keyed.js';
+import '../autocomplete/autocomplete-lista';
 import { getCasaLegislativaResponsavel } from '../../model/lexml/documento/urnUtil';
 import { inicializarVocabulario } from '../../model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoDocumento, TipoRelacaoSubstitutivo } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { montaEpigrafePadrao } from './epigrafePadrao';
-import { getIdentificacaoDocumento } from './identificacaoDocumento';
+import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
 import { isPlv, montaUrnNovaProposicao } from './montaUrnNovaProposicao';
 import { getPreambuloNovaProposicao } from './preambuloNovaProposicao';
-import { chaveTipo, getSiglasNovaProposicao, getSiglasProposicaoReferenciada, getSiglasSubstitutivo, getTipoMpv } from './siglasNovaProposicao';
+import { chaveTipo, getSiglasNovaProposicao, getSiglasOutraProposicao, getSiglasProposicaoReferenciada, getSiglasSubstitutivo, getTipoMpv } from './siglasNovaProposicao';
 import { ColegiadoDestino, DadosIdentificacao, EspecieDocumento, LIMITE_ARQUIVO_BYTES, ResultadoNovaProposicao, TipoColegiadoDestino } from './tiposNovaProposicao';
 import { ConfigNovaProposicao, montaUrlComissoes, montaUrlProposicao, validarConfigNovaProposicao } from './urlsNovaProposicao';
 
 export const EVENTO_CONCLUIDA = 'nova-proposicao-concluida';
 export const EVENTO_CANCELADA = 'nova-proposicao-cancelada';
+
+// Altura máxima das listas flutuantes (px): siglas = 126 (7 itens) + 50%.
+const ALTURA_LISTA_SIGLA = 189;
+const ALTURA_LISTA_COMISSAO = 192;
 
 const EXTENSOES_ARQUIVO = ['docx', 'txt', 'xml', 'json', 'lexml'];
 const ERRO_PARSER_SIMULADO = 'Erro simulado de conversão: o tratamento real do arquivo importado ainda não está disponível.';
@@ -72,7 +75,7 @@ export class NovaProposicaoComponent extends LitElement {
   @state() private opcaoTexto: OpcaoTexto = 'vazio';
   @state() private arquivo?: File;
   @state() private erroArquivo = '';
-  @state() private siglaOutra = '';
+  @state() private chaveOutra = '';
   @state() private numeroOutra = '';
   @state() private anoOutra = this.anoCorrente;
   @state() private verificacaoOutra = verificacaoVazia();
@@ -128,7 +131,7 @@ export class NovaProposicaoComponent extends LitElement {
     this.opcaoTexto = 'vazio';
     this.arquivo = undefined;
     this.erroArquivo = '';
-    this.siglaOutra = '';
+    this.chaveOutra = '';
     this.numeroOutra = '';
     this.anoOutra = this.anoCorrente;
     this.verificacaoOutra = verificacaoVazia();
@@ -158,6 +161,15 @@ export class NovaProposicaoComponent extends LitElement {
 
   private get tipoProposicao(): TipoDocumento | undefined {
     return this.siglasProposicao.find(t => chaveTipo(t) === this.chaveProposicao);
+  }
+
+  // Sigla da "outra proposição" (Tela 2): qualquer sigla da casa do editor, ativa ou inativa, inclusive a MPV.
+  private get tipoOutra(): TipoDocumento | undefined {
+    return getSiglasOutraProposicao().find(t => chaveTipo(t) === this.chaveOutra);
+  }
+
+  private get siglaOutra(): string {
+    return this.tipoOutra?.sigla ?? '';
   }
 
   private get tipoSubstitutivo(): TipoDocumento | undefined {
@@ -208,7 +220,7 @@ export class NovaProposicaoComponent extends LitElement {
   }
 
   private get destinoValido(): boolean {
-    return this.tipoColegiado === 'Plenário' || !!this.siglaComissao;
+    return this.tipoColegiado === 'Plenário' || (!!this.siglaComissao && this.comissoesDisponiveis.some(c => c.sigla === this.siglaComissao));
   }
 
   private numeroPreenchido = (valor: string): boolean => /^\d+$/.test(valor.trim());
@@ -232,7 +244,7 @@ export class NovaProposicaoComponent extends LitElement {
   private aplicarPadroesDaEspecie(): void {
     const substitutivo = this.especie !== 'proposicao';
     this.tipoColegiado = substitutivo && !this.comissaoIndisponivel ? 'Comissão' : 'Plenário';
-    this.siglaComissao = '';
+    this.limparComissao();
     this.anexoParecer = substitutivo;
   }
 
@@ -265,11 +277,34 @@ export class NovaProposicaoComponent extends LitElement {
   private onTipoColegiado(tipo: TipoColegiadoDestino): void {
     if (tipo === this.tipoColegiado) return;
     this.tipoColegiado = tipo;
-    if (tipo === 'Plenário') this.siglaComissao = '';
+    if (tipo === 'Plenário') this.limparComissao();
     else this.carregarComissoes();
   }
 
   // ---------------------------------------------------------------- comissões (g5, RN-19)
+
+  private limparComissao(): void {
+    this.siglaComissao = '';
+  }
+
+  private rotuloComissao(c: Comissao): string {
+    return `${c.sigla} - ${c.nome}`;
+  }
+
+  private renderComissao(): TemplateResult {
+    const itens = this.comissoesDisponiveis.map(c => ({ value: c.sigla, label: this.rotuloComissao(c) }));
+    return html`<lexml-eta-autocomplete-lista
+      id="np-comissao"
+      label="Comissão"
+      placeholder="Digite para buscar a comissão"
+      .items=${itens}
+      .value=${this.siglaComissao}
+      .alturaMaxima=${ALTURA_LISTA_COMISSAO}
+      @autocomplete-change=${(e: CustomEvent<{ value: string }>): void => {
+        this.siglaComissao = e.detail.value;
+      }}
+    ></lexml-eta-autocomplete-lista>`;
+  }
 
   private async carregarComissoes(): Promise<void> {
     const casa = this.casaDasComissoes;
@@ -278,7 +313,10 @@ export class NovaProposicaoComponent extends LitElement {
     // Sem lista de comissões, só o Plenário é oferecido (inclusive como padrão do substitutivo).
     if (this.comissaoIndisponivel) {
       this.tipoColegiado = 'Plenário';
-      this.siglaComissao = '';
+      this.limparComissao();
+    } else if (this.siglaComissao && !this.comissoesDisponiveis.some(c => c.sigla === this.siglaComissao)) {
+      // A casa do documento mudou: a comissão escolhida deixou de existir na lista.
+      this.limparComissao();
     }
     this.comissoesVersao++;
   }
@@ -464,24 +502,44 @@ export class NovaProposicaoComponent extends LitElement {
     >`;
   }
 
-  private selectSiglas(id: string, rotulo: string, tipos: TipoDocumento[], valor: string, aoMudar: (chave: string) => void): TemplateResult {
-    return html`<sl-select id=${id} label=${rotulo} placeholder="Selecione" .value=${valor} @sl-change=${(e: Event): void => aoMudar(this.valorDe(e))}>
-      ${tipos.map(t => html`<sl-menu-item value=${chaveTipo(t)} style=${t.ativo ? '' : 'color:#888'}>${t.sigla}</sl-menu-item>`)}
-    </sl-select>`;
+  private selectSiglas(id: string, tipos: TipoDocumento[], valor: string, aoMudar: (chave: string) => void): TemplateResult {
+    const itens = tipos.map(t => ({ value: chaveTipo(t), label: t.sigla!, inativo: !t.ativo }));
+    return html`<lexml-eta-autocomplete-lista
+      id=${id}
+      class="np-sigla"
+      placeholder="Sigla"
+      .items=${itens}
+      .value=${valor}
+      .alturaMaxima=${ALTURA_LISTA_SIGLA}
+      @autocomplete-change=${(e: CustomEvent<{ value: string }>): void => aoMudar(e.detail.value)}
+    ></lexml-eta-autocomplete-lista>`;
   }
 
-  private campoTexto(id: string, rotulo: string, valor: string, aoDigitar?: (valor: string) => void, desabilitado = false, maxlength?: number): TemplateResult {
+  private campoTexto(id: string, valor: string, aoDigitar?: (valor: string) => void, maxlength?: number, classe = ''): TemplateResult {
     return html`<sl-input
       id=${id}
-      label=${rotulo}
+      class=${classe}
       .value=${valor}
-      ?disabled=${desabilitado}
       maxlength=${maxlength ?? nothing}
       @sl-input=${(e: Event): void => {
         const novo = this.valorDe(e);
         if (aoDigitar && novo !== valor) aoDigitar(novo);
       }}
     ></sl-input>`;
+  }
+
+  private campoAno(id: string, valor: string, aoDigitar: (valor: string) => void): TemplateResult {
+    return this.campoTexto(id, valor, aoDigitar, 4, 'np-ano');
+  }
+
+  // Texto fixo (ex.: "s/n"), sem campo editável.
+  private textoCinza(id: string, texto: string): TemplateResult {
+    return html`<span id=${id} class="np-cinza">${texto}</span>`;
+  }
+
+  // "<sigla> nº <número>, de <ano>" na mesma linha, sem rótulos.
+  private linhaIdentificacao(sigla: TemplateResult, numero: TemplateResult, ano: TemplateResult): TemplateResult {
+    return html`<div class="np-identificacao">${sigla}<span>nº</span>${numero}<span>, de</span>${ano}</div>`;
   }
 
   private aviso(id: string, variante: 'danger' | 'warning' | 'neutral', texto: string): TemplateResult {
@@ -500,14 +558,14 @@ export class NovaProposicaoComponent extends LitElement {
     return html`
       <sl-button id="${prefixo}-verificar" ?disabled=${!pode} @click=${(): void => (pode ? aoVerificar() : undefined)}>Verificar</sl-button>
       ${this.rotuloVerificacao(v)}
-      <sl-textarea id="${prefixo}-ementa" label="Ementa" readonly rows="2" .value=${v.estado === 'ok' ? v.ementa : ''}></sl-textarea>
+      <div class="np-ementa-rotulo">Ementa</div>
+      <div id="${prefixo}-ementa" class="np-ementa">${v.estado === 'ok' ? v.ementa : ''}</div>
     `;
   }
 
   private renderTela1(): TemplateResult {
     const substitutivo = this.especie !== 'proposicao';
     const numeroFixo = this.especie === 'proposicao';
-    const comissoes = this.comissoesDisponiveis;
     return html`
       <h3>Nova proposição</h3>
 
@@ -526,46 +584,32 @@ export class NovaProposicaoComponent extends LitElement {
       ${this.grupoSubstitutivoVisivel
         ? html`<fieldset id="np-g2">
             <legend>Identificação ${this.especie === 'subemenda' ? 'da subemenda substitutiva' : 'do substitutivo'}</legend>
-            ${this.selectSiglas('np-sigla-substitutivo', 'Sigla', this.siglasSubstitutivo, this.chaveSubstitutivo, c => this.onSiglaSubstitutivo(c))}
-            ${this.campoTexto('np-numero-substitutivo', 'Número', 's/n', undefined, true)}
-            ${this.campoTexto(
-              'np-ano-substitutivo',
-              'Ano',
-              this.anoSubstitutivo,
-              v => {
+            ${this.linhaIdentificacao(
+              this.selectSiglas('np-sigla-substitutivo', this.siglasSubstitutivo, this.chaveSubstitutivo, c => this.onSiglaSubstitutivo(c)),
+              this.textoCinza('np-numero-substitutivo', 's/n'),
+              this.campoAno('np-ano-substitutivo', this.anoSubstitutivo, v => {
                 this.anoSubstitutivo = v;
-              },
-              false,
-              4
+              })
             )}
           </fieldset>`
         : nothing}
 
       <fieldset id="np-g3">
         <legend>Identificação da proposição</legend>
-        ${this.selectSiglas('np-sigla-proposicao', 'Sigla', this.siglasProposicao, this.chaveProposicao, c => this.onSiglaProposicao(c))}
-        ${this.siglaInativaSelecionada ? this.aviso('np-sigla-inativa', 'warning', 'Esta sigla está inativa e não deve ser usada para iniciar um texto novo.') : nothing}
-        ${this.campoTexto(
-          'np-numero-proposicao',
-          'Número',
-          numeroFixo ? 's/n' : this.numeroProposicao,
-          v => {
-            this.numeroProposicao = v;
-            this.verificacaoProposicao = verificacaoVazia();
-          },
+        ${this.linhaIdentificacao(
+          this.selectSiglas('np-sigla-proposicao', this.siglasProposicao, this.chaveProposicao, c => this.onSiglaProposicao(c)),
           numeroFixo
-        )}
-        ${this.campoTexto(
-          'np-ano-proposicao',
-          'Ano',
-          this.anoProposicao,
-          v => {
+            ? this.textoCinza('np-numero-proposicao', 's/n')
+            : this.campoTexto('np-numero-proposicao', this.numeroProposicao, v => {
+                this.numeroProposicao = v;
+                this.verificacaoProposicao = verificacaoVazia();
+              }),
+          this.campoAno('np-ano-proposicao', this.anoProposicao, v => {
             this.anoProposicao = v;
             this.verificacaoProposicao = verificacaoVazia();
-          },
-          false,
-          4
+          })
         )}
+        ${this.siglaInativaSelecionada ? this.aviso('np-sigla-inativa', 'warning', 'Esta sigla está inativa e não deve ser usada para iniciar um texto novo.') : nothing}
         ${substitutivo
           ? this.grupoVerificacao(
               'np-proposicao',
@@ -579,21 +623,16 @@ export class NovaProposicaoComponent extends LitElement {
       ${this.plv
         ? html`<fieldset id="np-g4">
             <legend>Identificação da medida provisória</legend>
-            ${this.campoTexto('np-sigla-mpv', 'Sigla', getTipoMpv()?.sigla ?? 'MPV', undefined, true)}
-            ${this.campoTexto('np-numero-mpv', 'Número', this.numeroMpv, v => {
-              this.numeroMpv = v;
-              this.verificacaoMpv = verificacaoVazia();
-            })}
-            ${this.campoTexto(
-              'np-ano-mpv',
-              'Ano',
-              this.anoMpv,
-              v => {
+            ${this.linhaIdentificacao(
+              html`<span id="np-sigla-mpv" class="np-sigla-fixa">${getTipoMpv()?.sigla ?? 'MPV'}</span>`,
+              this.campoTexto('np-numero-mpv', this.numeroMpv, v => {
+                this.numeroMpv = v;
+                this.verificacaoMpv = verificacaoVazia();
+              }),
+              this.campoAno('np-ano-mpv', this.anoMpv, v => {
                 this.anoMpv = v;
                 this.verificacaoMpv = verificacaoVazia();
-              },
-              false,
-              4
+              })
             )}
             ${this.grupoVerificacao('np-mpv', this.verificacaoMpv, () => this.verificarMpv(), this.podeVerificar(this.numeroMpv, this.anoMpv))}
           </fieldset>`
@@ -606,19 +645,7 @@ export class NovaProposicaoComponent extends LitElement {
           ${this.radio('destino', 'Comissão', 'Comissão', this.tipoColegiado === 'Comissão', () => this.onTipoColegiado('Comissão'), this.comissaoIndisponivel)}
         </sl-radio-group>
         ${this.comissaoIndisponivel ? this.aviso('np-erro-comissoes', 'danger', 'Não foi possível obter a lista de comissões. Só o Plenário está disponível.') : nothing}
-        ${this.tipoColegiado === 'Comissão'
-          ? html`<sl-select
-              id="np-comissao"
-              label="Comissão"
-              placeholder="Selecione"
-              .value=${this.siglaComissao}
-              @sl-change=${(e: Event): void => {
-                this.siglaComissao = this.valorDe(e);
-              }}
-            >
-              ${comissoes.map(c => html`<sl-menu-item value=${c.sigla}>${c.sigla} - ${c.nome}</sl-menu-item>`)}
-            </sl-select>`
-          : nothing}
+        ${this.tipoColegiado === 'Comissão' ? this.renderComissao() : nothing}
       </fieldset>
 
       <fieldset id="np-g6">
@@ -641,7 +668,7 @@ export class NovaProposicaoComponent extends LitElement {
   }
 
   private get cabecalho(): TemplateResult {
-    return html`<h3 id="np-cabecalho">Novo(a) ${getIdentificacaoDocumento(this.dados)}.</h3>`;
+    return html`<h3 id="np-cabecalho">${getNovoOuNova(this.dados)} ${getIdentificacaoDocumento(this.dados)}.</h3>`;
   }
 
   private opcao(valor: OpcaoTexto, rotulo: string): TemplateResult {
@@ -670,34 +697,25 @@ export class NovaProposicaoComponent extends LitElement {
       </sl-radio-group>
       ${this.opcaoTexto === 'outra'
         ? html`<div class="np-subopcao">
-            ${this.campoTexto('np-sigla-outra', 'Sigla', this.siglaOutra, v => {
-              this.siglaOutra = v;
-              this.verificacaoOutra = verificacaoVazia();
-              this.textoIndisponivel = false;
-            })}
-            ${this.campoTexto('np-numero-outra', 'Número', this.numeroOutra, v => {
-              this.numeroOutra = v;
-              this.verificacaoOutra = verificacaoVazia();
-              this.textoIndisponivel = false;
-            })}
-            ${this.campoTexto(
-              'np-ano-outra',
-              'Ano',
-              this.anoOutra,
-              v => {
+            ${this.linhaIdentificacao(
+              this.selectSiglas('np-sigla-outra', getSiglasOutraProposicao(), this.chaveOutra, chave => {
+                if (chave === this.chaveOutra) return;
+                this.chaveOutra = chave;
+                this.verificacaoOutra = verificacaoVazia();
+                this.textoIndisponivel = false;
+              }),
+              this.campoTexto('np-numero-outra', this.numeroOutra, v => {
+                this.numeroOutra = v;
+                this.verificacaoOutra = verificacaoVazia();
+                this.textoIndisponivel = false;
+              }),
+              this.campoAno('np-ano-outra', this.anoOutra, v => {
                 this.anoOutra = v;
                 this.verificacaoOutra = verificacaoVazia();
                 this.textoIndisponivel = false;
-              },
-              false,
-              4
+              })
             )}
-            ${this.grupoVerificacao(
-              'np-outra',
-              this.verificacaoOutra,
-              () => this.verificarOutra(),
-              !!this.siglaOutra.trim() && this.podeVerificar(this.numeroOutra, this.anoOutra)
-            )}
+            ${this.grupoVerificacao('np-outra', this.verificacaoOutra, () => this.verificarOutra(), !!this.tipoOutra && this.podeVerificar(this.numeroOutra, this.anoOutra))}
           </div>`
         : nothing}
       ${this.textoIndisponivelNaOpcao ? this.aviso('np-texto-indisponivel', 'warning', 'Texto estruturado não disponível para edição') : nothing}
@@ -756,6 +774,8 @@ export class NovaProposicaoComponent extends LitElement {
           border: 1px solid var(--sl-color-gray-300, #ccc);
           border-radius: 4px;
           margin: 0 0 12px;
+          padding-top: 10px;
+          padding-bottom: 15px;
           display: flex;
           flex-direction: column;
           gap: 8px;
@@ -764,6 +784,38 @@ export class NovaProposicaoComponent extends LitElement {
           display: flex;
           gap: 8px;
           margin-top: 12px;
+        }
+        lexml-nova-proposicao .np-identificacao {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 6px;
+        }
+        lexml-nova-proposicao .np-identificacao sl-input,
+        lexml-nova-proposicao .np-identificacao lexml-eta-autocomplete-lista {
+          width: 9rem;
+        }
+        lexml-nova-proposicao .np-identificacao sl-input.np-ano {
+          width: 6rem;
+        }
+        lexml-nova-proposicao .np-cinza {
+          color: #888;
+          display: inline-block;
+          min-width: 9rem;
+        }
+        lexml-nova-proposicao .np-ementa-rotulo {
+          font-size: 0.85em;
+          color: #555;
+        }
+        lexml-nova-proposicao .np-ementa {
+          font-weight: normal;
+          line-height: 1.5;
+          min-height: 1.5em;
+          max-height: 4.5em;
+          overflow-y: auto;
+          border: 1px solid var(--sl-color-gray-300, #ccc);
+          border-radius: 4px;
+          padding: 2px 6px;
         }
         lexml-nova-proposicao .np-opcao {
           margin: 4px 0;

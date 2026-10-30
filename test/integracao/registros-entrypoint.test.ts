@@ -12,6 +12,7 @@ const registeredCustomElements = [
   'lexml-eta-atalhos-modal',
   'lexml-eta-autocomplete',
   'lexml-eta-autocomplete-async',
+  'lexml-eta-autocomplete-lista',
   'lexml-eta-autocomplete-norma',
   'lexml-eta-autoria',
   'lexml-eta-data',

@@ -7,7 +7,7 @@
  * salvamento é conferido pelo blob capturado em URL.createObjectURL (padrão de abertura-tipo-nao-suportado.cy.ts).
  * Documentos de verificação: PL 5008/2023 (com texto), PL 3/2023 (sem texto estruturado) e MPV 1089/2021.
  */
-import { deveEstarDesabilitado, deveEstarHabilitado, digitarEmSl, escolherItemSl, marcarRadioSl } from '../../support/nova-proposicao';
+import { abrirLista, deveEstarDesabilitado, deveEstarHabilitado, digitarEmSl, escolherComissao, escolherItemLista, marcarRadioSl } from '../../support/nova-proposicao';
 
 const BOTAO_NOVA = 'div.lexml-eta-main-header--actions input[type="button"][value="Nova proposição"]';
 const MODAL = '#dialogNovaProposicao';
@@ -26,8 +26,8 @@ const verificarProposicao = (numero: string, ano = '2026'): void => {
 
 const ementaDeve = (seletor: string, vazia: boolean): void => {
   cy.get(seletor)
-    .invoke('prop', 'value')
-    .should(vazia ? 'be.empty' : 'not.be.empty');
+    .invoke('text')
+    .should(texto => expect(texto.trim().length === 0, 'ementa vazia').to.equal(vazia));
 };
 
 describe('Nova proposição — componente no modal da demo', () => {
@@ -59,10 +59,10 @@ describe('Nova proposição — componente no modal da demo', () => {
   it('proposição com texto vazio cria o documento e grava o colegiado Plenário', () => {
     abrirModal();
     deveEstarDesabilitado('#np-continuar');
-    escolherItemSl('#np-sigla-proposicao', 'PL');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
     deveEstarHabilitado('#np-continuar');
     cy.get('#np-continuar').click();
-    cy.get('#np-cabecalho').should('contain.text', 'Novo(a) Projeto de Lei.');
+    cy.get('#np-cabecalho').should('contain.text', 'Novo Projeto de Lei.');
     cy.get('#np-continuar').click();
 
     cy.get(`${MODAL}[open]`).should('not.exist');
@@ -74,18 +74,75 @@ describe('Nova proposição — componente no modal da demo', () => {
     });
   });
 
+  it('lista de siglas é flutuante, tem no máximo 189 px e rola na vertical', () => {
+    abrirModal();
+    abrirLista('#np-sigla-proposicao');
+    cy.get('#np-sigla-proposicao .ac-lista')
+      .should('be.visible')
+      .and('have.css', 'position', 'fixed')
+      .and('have.css', 'max-height', '189px')
+      .and('have.css', 'overflow-x', 'hidden')
+      .should($lista => {
+        expect($lista[0].scrollHeight, 'há mais itens que o visível').to.be.greaterThan($lista[0].clientHeight);
+        expect($lista[0].clientHeight, 'altura visível').to.be.at.most(189);
+      });
+  });
+
+  it('sigla digitada que não é um item é apagada ao perder o foco', () => {
+    abrirModal();
+    digitarEmSl('#np-sigla-proposicao sl-input', 'xyz');
+    cy.get('#np-sigla-proposicao sl-input').shadow().find('input').blur();
+    cy.get('#np-sigla-proposicao sl-input').shadow().find('input').should('have.value', '');
+    deveEstarDesabilitado('#np-continuar');
+  });
+
+  it('comissão: lista flutuante, filtra pelo texto, sem rolagem horizontal e com texto excedente omitido', () => {
+    abrirModal();
+    marcarRadioSl('especie', 'substitutivo');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
+    abrirLista('#np-comissao');
+    cy.get('#np-comissao .ac-lista li').should('have.length.greaterThan', 1);
+    cy.get('#np-comissao .ac-lista').should('be.visible').and('have.css', 'position', 'fixed').and('have.css', 'overflow-x', 'hidden');
+    cy.get('#np-comissao .ac-lista li').first().should('have.css', 'text-overflow', 'ellipsis');
+    digitarEmSl('#np-comissao sl-input', 'constituicao');
+    cy.get('#np-comissao .ac-lista li').should('have.length', 1).and('contain.text', 'CCJ');
+    cy.get('#np-comissao .ac-lista li').click();
+    cy.get('#np-comissao sl-input')
+      .should('have.prop', 'value')
+      .and('match', /^CCJ - /);
+  });
+
+  it('comissão digitada que não é um item é apagada ao perder o foco', () => {
+    abrirModal();
+    marcarRadioSl('especie', 'substitutivo');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
+    digitarEmSl('#np-comissao sl-input', 'inexistente');
+    cy.get('#np-comissao sl-input').shadow().find('input').blur();
+    cy.get('#np-comissao sl-input').shadow().find('input').should('have.value', '');
+    cy.get('#np-comissao .ac-lista').should('not.exist');
+  });
+
+  it('ementa em fonte normal, sem negrito', () => {
+    abrirModal();
+    marcarRadioSl('especie', 'substitutivo');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
+    verificarProposicao('5008', '2023');
+    ementaDeve('#np-proposicao-ementa', false);
+    cy.get('#np-proposicao-ementa').should('have.css', 'font-weight', '400');
+  });
+
   it('substitutivo traz o texto do documento referenciado e grava a comissão escolhida', () => {
     abrirModal();
     marcarRadioSl('especie', 'substitutivo');
-    escolherItemSl('#np-sigla-proposicao', 'PL');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
     verificarProposicao('5008', '2023');
     ementaDeve('#np-proposicao-ementa', false);
     cy.get('sl-radio[name="destino"][value="Comissão"]').should('have.prop', 'checked', true);
     cy.get('#np-anexo-parecer').should('have.prop', 'checked', true);
-    escolherItemSl('#np-comissao', 'CCJ');
+    escolherComissao('CCJ');
     cy.get('#np-continuar').click();
 
-    cy.get('#np-cabecalho').should('contain.text', 'Novo(a) Substitutivo ao Projeto de Lei nº 5008 de 2023.');
+    cy.get('#np-cabecalho').should('contain.text', 'Novo Substitutivo ao Projeto de Lei nº 5008 de 2023.');
     cy.get('sl-radio[name="opcaoTexto"][value="referenciado"]').should('have.prop', 'checked', true);
     cy.get('#np-continuar').click();
 
@@ -102,9 +159,9 @@ describe('Nova proposição — componente no modal da demo', () => {
   it('substitutivo de proposição sem texto estruturado exibe o alerta e bloqueia Continuar só nessa opção', () => {
     abrirModal();
     marcarRadioSl('especie', 'substitutivo');
-    escolherItemSl('#np-sigla-proposicao', 'PL');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
     verificarProposicao('3', '2023');
-    escolherItemSl('#np-comissao', 'CCJ');
+    escolherComissao('CCJ');
     cy.get('#np-continuar').click();
 
     cy.get('#np-texto-indisponivel').should('contain.text', 'Texto estruturado não disponível para edição');
@@ -117,7 +174,7 @@ describe('Nova proposição — componente no modal da demo', () => {
   it('proposição inexistente informa que não foi encontrada e mantém Continuar desabilitado', () => {
     abrirModal();
     marcarRadioSl('especie', 'substitutivo');
-    escolherItemSl('#np-sigla-proposicao', 'PL');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
     verificarProposicao('1', '1999');
     cy.get('#np-nao-encontrado').should('exist');
     ementaDeve('#np-proposicao-ementa', true);
@@ -126,7 +183,7 @@ describe('Nova proposição — componente no modal da demo', () => {
 
   it('PLV exige a verificação da MPV e usa o texto dela', () => {
     abrirModal();
-    escolherItemSl('#np-sigla-proposicao', 'PLV');
+    escolherItemLista('#np-sigla-proposicao', 'PLV');
     cy.get('#np-g4').should('exist');
     deveEstarDesabilitado('#np-continuar');
     digitarEmSl('#np-numero-mpv', '1089');
@@ -149,7 +206,7 @@ describe('Nova proposição — componente no modal da demo', () => {
 
   it('importação de arquivo simulada leva à Tela 3 e Continuar cria o documento vazio', () => {
     abrirModal();
-    escolherItemSl('#np-sigla-proposicao', 'PL');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
     cy.get('#np-continuar').click();
     marcarRadioSl('opcaoTexto', 'importar');
     deveEstarDesabilitado('#np-continuar');
@@ -169,7 +226,7 @@ describe('Nova proposição — componente no modal da demo', () => {
 
   it('arquivo acima de 5 MB é recusado', () => {
     abrirModal();
-    escolherItemSl('#np-sigla-proposicao', 'PL');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
     cy.get('#np-continuar').click();
     marcarRadioSl('opcaoTexto', 'importar');
     cy.get('#np-arquivo').selectFile({ contents: Cypress.Buffer.alloc(5 * 1024 * 1024 + 1), fileName: 'grande.docx' }, { force: true });
@@ -179,7 +236,7 @@ describe('Nova proposição — componente no modal da demo', () => {
 
   it('Cancelar fecha o modal sem criar documento', () => {
     abrirModal();
-    escolherItemSl('#np-sigla-proposicao', 'PL');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
     cy.get('#np-cancelar').click();
 
     cy.get(`${MODAL}[open]`).should('not.exist');
@@ -191,10 +248,10 @@ describe('Nova proposição — componente no modal da demo', () => {
     abrirModal();
     marcarRadioSl('especie', 'substitutivo');
     cy.get('#np-g2').should('exist');
-    escolherItemSl('#np-sigla-substitutivo', 'SBT');
-    escolherItemSl('#np-sigla-proposicao', 'PL');
+    escolherItemLista('#np-sigla-substitutivo', 'SBT');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
     verificarProposicao('5008', '2023');
-    escolherItemSl('#np-comissao', 'CCJC');
+    escolherComissao('CCJC');
     cy.get('#np-continuar').click();
     cy.get('#np-continuar').click();
 

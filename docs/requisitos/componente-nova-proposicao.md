@@ -69,7 +69,7 @@ Regras da tela:
 
 ### Tela 2 — Texto inicial para edição
 
-Cabeçalho: "Novo(a) *\<identificação do novo documento\>*." (ver RN-08).
+Cabeçalho: "Novo/Nova *\<identificação do novo documento\>*." (ver RN-08).
 
 Pergunta: "Como você quer iniciar?" — opções (seleção única):
 
@@ -78,14 +78,14 @@ Pergunta: "Como você quer iniciar?" — opções (seleção única):
 | 1 | Texto vazio | — |
 | 2 | Importar documento (DOCX, TXT ou LexML) | Exibe o campo **Arquivo** (seleção de arquivo), que aceita DOCX, TXT e LexML, de até 5 MB. O LexML pode estar em XML ou em JSON (formato JSONIX, o mesmo usado pelo componente ao abrir um documento). |
 | 3 | Texto do(a) *\<documento referenciado\>* | Só é oferecida em Substitutivo, Subemenda substitutiva ou PLV. Exibe o alerta "Texto estruturado não disponível para edição" quando for o caso. |
-| 4 | Texto de outra proposição | Exibe sigla + número + ano, **Verificar**, o alerta de indisponibilidade e a ementa (somente leitura). Aceita qualquer sigla, ativa ou inativa. |
+| 4 | Texto de outra proposição | Exibe sigla (escolhida entre todas as siglas do vocabulário da casa do editor, ativas e inativas, inclusive a MPV) + número + ano, **Verificar**, o alerta de indisponibilidade e a ementa (somente leitura). Aceita qualquer sigla, ativa ou inativa. |
 
 Botões: **Continuar**, **Voltar**, **Cancelar**.
 
 Regras da tela:
 
 - **RN-07 — Opção padrão.** Opção 3 em Substitutivo, Subemenda substitutiva ou PLV; opção 1 nos demais casos.
-- **RN-08 — Identificação do novo documento** (usada nos cabeçalhos das telas 2 e 3):
+- **RN-08 — Identificação do novo documento** (usada nos cabeçalhos das telas 2 e 3, precedida de "Novo" ou "Nova" conforme o gênero do documento: o do tipo da proposição; substitutivo sempre "Novo"; subemenda substitutiva sempre "Nova"):
   - Não substitutivo, não subemenda e não PLV: nome do tipo do documento.
   - PLV: "Projeto de Lei de Conversão (Medida Provisória nº *\<número\>* de *\<ano\>*)".
   - Substitutivo: "Substitutivo ao/à *\<tipo da proposição\>* nº *\<número\>* de *\<ano\>*".
@@ -104,7 +104,7 @@ Exibida apenas quando o parser do arquivo importado (DOCX, TXT ou LexML) falha.
 
 Conteúdo:
 
-- Cabeçalho "Novo(a) *\<identificação do novo documento\>*.".
+- Cabeçalho "Novo/Nova *\<identificação do novo documento\>*.".
 - Mensagem "Ocorreram os seguintes erros na tentativa de conversão do *\<nome do arquivo\>*." seguida da lista de erros do parser.
 - Orientação: "Você pode corrigi-los no documento e tentar novamente ou continuar para iniciar com um documento vazio."
 

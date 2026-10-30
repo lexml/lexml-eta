@@ -30,6 +30,9 @@ export const getSiglasNovaProposicao = (casa: CasaLegislativaEditor): TipoDocume
 export const getSiglasProposicaoReferenciada = (): TipoDocumento[] =>
   ordenar(getVocabularioDaCasa().tiposDocumento.filter(t => t.sigla && t.tipoRelacaoSubstitutivo === TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO));
 
+/** Tela 2, "texto de outra proposição": todas as siglas do vocabulário da casa, ativas e inativas (inclui a MPV). */
+export const getSiglasOutraProposicao = (): TipoDocumento[] => ordenar(getVocabularioDaCasa().tiposDocumento.filter(t => t.sigla));
+
 /** g2 (CD): tipos ativos de substitutivo ou de subemenda substitutiva. */
 export const getSiglasSubstitutivo = (relacao: TipoRelacaoSubstitutivo.E_SUBSTITUTIVO | TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA): TipoDocumento[] =>
   ordenar(getVocabularioDaCasa().tiposDocumento.filter(t => t.sigla && t.ativo && t.tipoRelacaoSubstitutivo === relacao));

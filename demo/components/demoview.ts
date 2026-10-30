@@ -199,7 +199,7 @@ export class DemoView extends LitElement {
   }
 
   protected firstUpdated(): void {
-    this.elNomeProposicao.style.display = 'none';
+    this.elNomeProposicao.style.visibility = 'hidden';
     this.elLexmlEta.setUsuario(new Usuario(this.nomeUsuario));
   }
 
@@ -223,7 +223,7 @@ export class DemoView extends LitElement {
     this.proposicaoCorrente.sigla = sigla;
     this.proposicaoCorrente.numero = numero;
     this.proposicaoCorrente.ano = ano;
-    this.elNomeProposicao.style.display = 'block';
+    this.elNomeProposicao.style.visibility = 'visible';
   }
 
   private atualizarSelects(projetoNorma: any): void {
@@ -253,7 +253,7 @@ export class DemoView extends LitElement {
     this.proposicaoCorrente.sigla = '';
     this.proposicaoCorrente.numero = '';
     this.proposicaoCorrente.ano = '';
-    this.elNomeProposicao.style.display = 'none';
+    this.elNomeProposicao.style.visibility = 'hidden';
   }
 
   executar(): void {
@@ -473,13 +473,20 @@ export class DemoView extends LitElement {
           width: 4rem;
           height: 1.5rem;
         }
+        /* A demo preenche a janela (menos a margem de 8px do body) sem barra de rolagem na página. */
+        demo-view {
+          display: flex;
+          flex-direction: column;
+          height: calc(100vh - 16px);
+        }
         lexml-eta {
           display: block;
           outline: 0;
           border: 0;
           -webkit-box-shadow: none;
           box-shadow: none;
-          height: calc(100vh - 100px);
+          flex: 1 1 0;
+          min-height: 0;
         }
 
         .nome-proposicao {
@@ -490,6 +497,8 @@ export class DemoView extends LitElement {
           padding: 5px 10px;
           border-radius: 2px;
           margin-bottom: 2px;
+          /* Espaço sempre reservado: a barra aparecer depois de abrir um documento não pode mudar a altura do editor. */
+          min-height: 1.4rem;
         }
       </style>
       <div class="lexml-eta-main-header">

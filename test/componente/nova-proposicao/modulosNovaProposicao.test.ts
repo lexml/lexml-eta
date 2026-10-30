@@ -1,9 +1,14 @@
 import { expect } from '@open-wc/testing';
 import { getPreambuloNovaProposicao, PREAMBULO_FALLBACK } from '../../../src/components/nova-proposicao/preambuloNovaProposicao';
 import { montaEpigrafePadrao } from '../../../src/components/nova-proposicao/epigrafePadrao';
-import { getIdentificacaoDocumento } from '../../../src/components/nova-proposicao/identificacaoDocumento';
+import { getIdentificacaoDocumento, getNovoOuNova } from '../../../src/components/nova-proposicao/identificacaoDocumento';
 import { montaUrnNovaProposicao } from '../../../src/components/nova-proposicao/montaUrnNovaProposicao';
-import { getSiglasNovaProposicao, getSiglasProposicaoReferenciada, getSiglasSubstitutivo } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
+import {
+  getSiglasNovaProposicao,
+  getSiglasOutraProposicao,
+  getSiglasProposicaoReferenciada,
+  getSiglasSubstitutivo,
+} from '../../../src/components/nova-proposicao/siglasNovaProposicao';
 import { DadosIdentificacao } from '../../../src/components/nova-proposicao/tiposNovaProposicao';
 import { montaUrlComissoes, montaUrlProposicao, validarConfigNovaProposicao } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
@@ -65,6 +70,17 @@ describe('Módulos puros da nova proposição', () => {
       expect(lista.every(t => t.tipoRelacaoSubstitutivo === TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO)).to.be.true;
       expect(lista.map(t => t.sigla)).to.include.members(['PL', 'PLS', 'PLC', 'PRN']);
       expect(lista.map(t => t.sigla)).to.not.include('PLV');
+    });
+
+    it('outra proposição: todas as siglas da casa, ativas antes das inativas, inclusive MPV', () => {
+      inicializarVocabulario('SF');
+      const sf = getSiglasOutraProposicao();
+      expect(sf.map(t => t.sigla)).to.include.members(['PL', 'PLS', 'PLV', 'MPV']);
+      expect(sf.some(t => t.urnAutoridade === 'camara.deputados')).to.be.false;
+      const primeiroInativo = sf.findIndex(t => !t.ativo);
+      expect(sf.slice(primeiroInativo).every(t => !t.ativo)).to.be.true;
+      inicializarVocabulario('CD');
+      expect(getSiglasOutraProposicao().map(t => t.sigla)).to.include.members(['PL', 'SBT', 'PEP', 'MPV']);
     });
 
     it('g2 da CD: substitutivo e subemenda substitutiva', () => {
@@ -134,6 +150,24 @@ describe('Módulos puros da nova proposição', () => {
       expect(getIdentificacaoDocumento(dados('CD', { especie: 'subemenda', tipoProposicao: tipo('CD', 'PEC', true), numeroProposicao: '3' }))).to.equal(
         'Subemenda Substitutiva à Proposta de Emenda Constitucional nº 3 de 2026'
       );
+    });
+  });
+
+  describe('Novo/Nova conforme o gênero', () => {
+    it('proposição acompanha o gênero do tipo', () => {
+      inicializarVocabulario('SF');
+      expect(getNovoOuNova(dados('SF', { tipoProposicao: tipo('SF', 'PL') }))).to.equal('Novo');
+      expect(getNovoOuNova(dados('SF', { tipoProposicao: tipo('SF', 'PEC') }))).to.equal('Nova');
+    });
+
+    it('substitutivo é sempre masculino, mesmo de tipo feminino', () => {
+      inicializarVocabulario('SF');
+      expect(getNovoOuNova(dados('SF', { especie: 'substitutivo', tipoProposicao: tipo('SF', 'PEC', true) }))).to.equal('Novo');
+    });
+
+    it('subemenda substitutiva é sempre feminina', () => {
+      inicializarVocabulario('CD');
+      expect(getNovoOuNova(dados('CD', { especie: 'subemenda', tipoProposicao: tipo('CD', 'PL', true) }))).to.equal('Nova');
     });
   });
 
