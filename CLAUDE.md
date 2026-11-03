@@ -98,7 +98,7 @@ Regras já registradas como enforcement real em `openspec/config.yaml` (`rules.t
 ### Build and Development
 ```bash
 npm start                # Start dev server with watch mode
-npm start:cache          # Start dev server with cache
+npm run start:clean      # Limpa out-tsc e inicia o servidor (start normal é incremental)
 npm run build            # Compile TypeScript to out-tsc/
 npm run clean            # Clean build artifacts (out-tsc/, prod/)
 ```
