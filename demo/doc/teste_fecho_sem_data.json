@@ -29,7 +29,7 @@
               },
               "value": {
                 "TYPE_NAME": "br_gov_lexml_lexedit__1.Metadado",
-                "local": "Sala das sessões",
+                "local": "Sala das Sessões",
                 "opcoesImpressao": {
                   "TYPE_NAME": "br_gov_lexml_lexedit__1.OpcoesImpressao",
                   "imprimirBrasao": true,
@@ -231,7 +231,7 @@
               {
                 "TYPE_NAME": "br_gov_lexml__1.GenInline",
                 "content": [
-                  "Sala das sessões,"
+                  "Sala das Sessões,"
                 ]
               }
             ]

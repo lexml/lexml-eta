@@ -44,18 +44,18 @@ describe('Modo de anexo de parecer e documento referenciado — abrir', () => {
   });
 
   it('atributos ausentes equivalem ao modo normal e sem referência', () => {
-    const dados = lerMetadadoLexEdit(documentoCom({ local: 'Sala das sessões' }));
+    const dados = lerMetadadoLexEdit(documentoCom({ local: 'Sala das Sessões' }));
 
     expect(!!dados.anexoParecer).to.be.false;
     expect(dados.urnDocumentoReferenciado).to.be.undefined;
   });
 
   it('valores inválidos são descartados sem invalidar os demais', () => {
-    const dados = lerMetadadoLexEdit(documentoCom({ anexoParecer: 'sim', urnDocumentoReferenciado: 42, local: 'Sala das sessões' }));
+    const dados = lerMetadadoLexEdit(documentoCom({ anexoParecer: 'sim', urnDocumentoReferenciado: 42, local: 'Sala das Sessões' }));
 
     expect(!!dados.anexoParecer).to.be.false;
     expect(dados.urnDocumentoReferenciado).to.be.undefined;
-    expect(dados.local).to.equal('Sala das sessões');
+    expect(dados.local).to.equal('Sala das Sessões');
   });
 
   it('ida e volta preserva o modo e a referência', () => {

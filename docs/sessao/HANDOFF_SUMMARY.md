@@ -43,14 +43,14 @@ Branch: `feat/992-salvar-pendencias-jsonix`. Ela reúne as issues que gravam e r
   - sem ajustes extras: o `min-height` de 400px e o `console.log` de `shouldClose` ficam como estão;
   - a união usa `setContents(…, 'api')`, para o desfazer fundir a união com a edição (invariante (as)).
 - **Merge:**
-  - a justificação continua gravada em documento de tipo não suportado (a `develop` só esconde destino e autoria);
+  - a justificação continua gravada em documento de tipo não suportado (a `develop` só esconde colegiado e autoria);
+  - no merge de 03/11/2026 (#1050), vale a regra da `develop` para o colegiado: sem formulário de destino, vem de `novaProposicao` ou do arquivo e é gravado também no anexo de parecer; a justificação segue fora do anexo de parecer;
   - as invariantes desta branch no `CLAUDE.md` passaram para (an)–(ar), e os itens para 20–23.
 
 ## Pendências (fora do escopo das changes)
 
-- **3 specs Cypress que já falham na `develop`:**
+- **2 specs Cypress que já falham na `develop`:**
   - `abertura-pena.cy.ts` e `pena/pena.cy.ts`: o seletor `sl-dialog` acha também o diálogo de anexos;
-  - `anexo-parecer-data-fecho.cy.ts`: o modo anexo de parecer agora vem do arquivo, e o fixture não o tem.
 - **CLI `jsonix-lexml` 2.3.0:** instalar para os cenários de `OutrosMetadados` da integração passarem.
 - **Coordenação com o `lexeditweb-editor`:**
   - o `onchange` agora também dispara por edições na justificação (#1011);

@@ -10,7 +10,6 @@ Atualizado em 29/10/2026. Branch `feat/992-salvar-pendencias-jsonix`.
 
 - **Cypress que já falha na `develop`:**
   - `abertura-pena.cy.ts` e `pena/pena.cy.ts`: o seletor `sl-dialog` casa também com o diálogo de anexos, e a `develop` só corrigiu isso no teste unitário (`0c5e12de`);
-  - `anexo-parecer-data-fecho.cy.ts`: o checkbox do demo só vale para nova proposição, e o fixture não tem `anexoParecer`.
 - **CLI `jsonix-lexml` 2.3.0:** instalar para os 2 cenários de `OutrosMetadados` da integração passarem. Só o 2.1.0 está em `C:/jsonix-lexml-win/desenv`.
 - **Coordenação com o `lexeditweb-editor` antes de publicar a versão:**
   - `onchange` também emitido por edições na justificação, com `detail.origemEvento = 'justificativa'` (#1011);
@@ -26,6 +25,7 @@ Atualizado em 29/10/2026. Branch `feat/992-salvar-pendencias-jsonix`.
 
 - **#1030:** nota de rodapé com um só parágrafo (`7164e20e`, arquivada em `366d826d` com a spec nova `nota-rodape`, 29/10/2026). Enter e Shift+Enter ignorados com aviso; nota antiga abre unida; colar troca quebras por espaço.
 - **#997:** data da última modificação no `lexedit:Metadado` (`93fbd504`, `0546f8cb`, arquivada em `a49a8bb8`, 29/10/2026).
+- **Merge da `develop` (03/11/2026):** 15 commits, com a #1050 (componente de nova proposição, sem formulário de destino; o colegiado vem de `novaProposicao` ou do arquivo e é gravado também no anexo de parecer).
 - **Merge da `develop`:** 170 commits, resolvido em `725bbb41`, 29/10/2026.
 - **#994:** revisões de texto da justificação, com a correção do contador de revisões do texto rico (`17210119`..`29a2bdb4`, 27/10/2026).
 - **#993:** notas de rodapé (`8df7f73e`).

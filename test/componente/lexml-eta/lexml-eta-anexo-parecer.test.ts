@@ -13,7 +13,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     const proposicao = new Proposicao();
     proposicao.justificativa = '<p>Justificativa</p>';
     proposicao.justificativaAntesRevisao = '<p>Justificativa anterior</p>';
-    proposicao.local = 'Sala da comissão';
+    proposicao.local = 'Sala da Comissão';
     proposicao.autoria.parlamentares = [{ identificacao: '1' } as any];
     proposicao.notasRodape = [{ id: '1', numero: 1, texto: 'Nota' }];
 
@@ -36,10 +36,10 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     expect(component.querySelector('sl-tab[panel="notas"]')).to.be.null;
     expect((component.querySelector('sl-tab-panel[name="justificativa"]') as HTMLElement).style.display).to.equal('none');
     expect(component.querySelector('sl-tab-panel[name="notas"]')).to.be.null;
-    expect(component.querySelector('sl-tab[panel="autoria"]')?.textContent?.trim()).to.equal('Destino, Data, Autoria e Impressão');
+    expect(component.querySelector('sl-tab[panel="autoria"]')?.textContent?.trim()).to.equal('Data, Autoria e Impressão');
     expect((component.querySelector('lexml-eta-data')?.parentElement as HTMLElement).style.display).not.to.equal('none');
     expect((component.querySelector('lexml-eta-autoria')?.parentElement as HTMLElement).style.display).not.to.equal('none');
-    expect(component.querySelector('lexml-eta-destino')).not.to.be.null;
+    expect(component.querySelector('lexml-eta-destino') === null).to.be.true;
     expect(component.querySelector('lexml-eta-opcoes-impressao')).not.to.be.null;
   });
 
@@ -91,15 +91,15 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
       },
       _lexmlAutoria: { value: { getAutoriaAtualizada: (): any => ({ parlamentares: [{ identificacao: '1' }] }) } },
       _lexmlOpcoesImpressao: { value: { opcoesImpressao } },
-      _lexmlDestino: { value: { colegiadoApreciador } },
     });
+    (component as any).colegiadoApreciador = colegiadoApreciador;
 
     const proposicao = component.getProposicao();
 
     expect(proposicao).not.to.have.property('justificativa');
     expect(proposicao).not.to.have.property('justificativaAntesRevisao');
     expect(proposicao).not.to.have.property('notasRodape');
-    expect(proposicao.local).to.equal('Sala das sessões');
+    expect(proposicao.local).to.equal('Sala das Sessões');
     expect(proposicao.autoria).to.deep.equal({ parlamentares: [{ identificacao: '1' }] });
     expect(proposicao.dataUltimaModificacao).to.equal('2026-08-19');
     expect(proposicao.colegiadoApreciador).to.equal(colegiadoApreciador);

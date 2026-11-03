@@ -1,0 +1,152 @@
+[
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CAE",
+    "nome": "Comissão de Assuntos Econômicos"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CCJ",
+    "nome": "Comissão de Constituição, Justiça e Cidadania"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CAS",
+    "nome": "Comissão de Assuntos Sociais"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CE",
+    "nome": "Comissão de Educação e Cultura"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CRE",
+    "nome": "Comissão de Relações Exteriores e Defesa Nacional"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CI",
+    "nome": "Comissão de Serviços de Infraestrutura"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CMA",
+    "nome": "Comissão de Meio Ambiente"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CCT",
+    "nome": "Comissão de Ciência, Tecnologia, Inovação e Informática"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CDR",
+    "nome": "Comissão de Desenvolvimento Regional e Turismo"
+  },
+  {
+    "siglaCasaLegislativa": "SF",
+    "sigla": "CDH",
+    "nome": "Comissão de Direitos Humanos e Legislação Participativa"
+  },
+  {
+    "siglaCasaLegislativa": "CD",
+    "sigla": "CCJC",
+    "nome": "Comissão de Constituição e Justiça e de Cidadania"
+  },
+  {
+    "siglaCasaLegislativa": "CD",
+    "sigla": "CFT",
+    "nome": "Comissão de Finanças e Tributação"
+  },
+  {
+    "siglaCasaLegislativa": "CD",
+    "sigla": "CSAUDE",
+    "nome": "Comissão de Saúde"
+  },
+  {
+    "siglaCasaLegislativa": "CD",
+    "sigla": "CE",
+    "nome": "Comissão de Educação"
+  },
+  {
+    "siglaCasaLegislativa": "CD",
+    "sigla": "CTRAB",
+    "nome": "Comissão de Trabalho"
+  },
+  {
+    "siglaCasaLegislativa": "CD",
+    "sigla": "CSPCCO",
+    "nome": "Comissão de Segurança Pública e Combate ao Crime Organizado"
+  },
+  {
+    "siglaCasaLegislativa": "CD",
+    "sigla": "CMADS",
+    "nome": "Comissão de Meio Ambiente e Desenvolvimento Sustentável"
+  },
+  {
+    "siglaCasaLegislativa": "CD",
+    "sigla": "CAPADR",
+    "nome": "Comissão de Agricultura, Pecuária, Abastecimento e Desenvolvimento Rural"
+  },
+  {
+    "siglaCasaLegislativa": "CD",
+    "sigla": "CDC",
+    "nome": "Comissão de Defesa do Consumidor"
+  },
+  {
+    "siglaCasaLegislativa": "CD",
+    "sigla": "CCOM",
+    "nome": "Comissão de Comunicação"
+  },
+  {
+    "siglaCasaLegislativa": "CN",
+    "sigla": "CMO",
+    "nome": "Comissão Mista de Planos, Orçamentos Públicos e Fiscalização"
+  },
+  {
+    "siglaCasaLegislativa": "CN",
+    "sigla": "CCAI",
+    "nome": "Comissão Mista de Controle das Atividades de Inteligência"
+  },
+  {
+    "siglaCasaLegislativa": "CN",
+    "sigla": "CMMIR",
+    "nome": "Comissão Mista Permanente sobre Migrações Internacionais e Refugiados"
+  },
+  {
+    "siglaCasaLegislativa": "CN",
+    "sigla": "CMCPLP",
+    "nome": "Comissão Mista do Congresso Nacional de Assuntos Relacionados à Comunidade dos Países de Língua Portuguesa"
+  },
+  {
+    "siglaCasaLegislativa": "CN",
+    "sigla": "FIPA",
+    "nome": "Comissão Mista Representativa do Congresso Nacional no Fórum Interparlamentar das Américas"
+  },
+  {
+    "siglaCasaLegislativa": "CN",
+    "sigla": "CMMC",
+    "nome": "Comissão Mista Permanente sobre Mudanças Climáticas"
+  },
+  {
+    "siglaCasaLegislativa": "CN",
+    "sigla": "CMCVM",
+    "nome": "Comissão Permanente Mista de Combate à Violência contra a Mulher"
+  },
+  {
+    "siglaCasaLegislativa": "CN",
+    "sigla": "CMCF",
+    "nome": "Comissão Mista de Consolidação da Legislação Federal"
+  },
+  {
+    "siglaCasaLegislativa": "CN",
+    "sigla": "CMMPV 950/2020",
+    "nome": "Comissão Mista da Medida Provisória n° 950/2020"
+  },
+  {
+    "siglaCasaLegislativa": "CN",
+    "sigla": "CMMPV 968/2020",
+    "nome": "Comissão Mista da Medida Provisória n° 968, de 2020"
+  }
+]

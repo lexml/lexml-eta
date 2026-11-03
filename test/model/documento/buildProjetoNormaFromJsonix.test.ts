@@ -317,12 +317,12 @@ describe('lerIdsRemissoesInvalidas', () => {
 
 describe('lerMetadadoLexEdit — formatos do ponto de extensão', () => {
   const OPCOES = { imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 18 };
-  const DADOS = { local: 'Sala da comissão', data: '2026-04-24', opcoesImpressao: OPCOES };
+  const DADOS = { local: 'Sala da Comissão', data: '2026-04-24', opcoesImpressao: OPCOES };
 
   it('lê todos os grupos do formato novo', () => {
     const doc = documentoComMetadado(
       metadadoProprietarioLexEdit({
-        local: 'Sala da comissão',
+        local: 'Sala da Comissão',
         data: '2026-04-24',
         opcoesImpressao: { TYPE_NAME: 'br_gov_lexml_lexedit__1.OpcoesImpressao', ...OPCOES },
         remissoesInternasInvalidas: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: '_ri1' },
@@ -336,7 +336,7 @@ describe('lerMetadadoLexEdit — formatos do ponto de extensão', () => {
   it('lê todos os grupos do formato provisório', () => {
     const doc = documentoComMetadado(
       metadadoProprietarioProvisorio({
-        local: 'Sala da comissão',
+        local: 'Sala da Comissão',
         data: '2026-04-24',
         opcoesImpressao: OPCOES,
         remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_ri1'] },
@@ -348,12 +348,12 @@ describe('lerMetadadoLexEdit — formatos do ponto de extensão', () => {
   });
 
   it('com os dois formatos no mesmo arquivo, vale o novo', () => {
-    const novo = metadadoProprietarioLexEdit({ local: 'Sala da comissão', remissoesInternasInvalidas: { refIdsRemissoesInternas: '_riNovo' } });
-    const provisorio = { local: 'Sala das sessões', data: '2026-01-01', remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_riAntigo'] } };
+    const novo = metadadoProprietarioLexEdit({ local: 'Sala da Comissão', remissoesInternasInvalidas: { refIdsRemissoesInternas: '_riNovo' } });
+    const provisorio = { local: 'Sala das Sessões', data: '2026-01-01', remissoesInternasInvalidas: { refIdsRemissoesInternas: ['_riAntigo'] } };
 
     // Nos dois arranjos: chave `lexedit` no mesmo MetadadoProprietario e em outro, antes do novo.
     for (const doc of [documentoComMetadado({ ...novo, lexedit: provisorio }), documentoComMetadado(metadadoProprietarioProvisorio(provisorio), novo)]) {
-      expect(lerMetadadoLexEdit(doc)).to.deep.equal({ local: 'Sala da comissão' });
+      expect(lerMetadadoLexEdit(doc)).to.deep.equal({ local: 'Sala da Comissão' });
       expect(lerIdsRemissoesInvalidas(doc)).to.deep.equal(['_riNovo']);
     }
   });
@@ -361,9 +361,9 @@ describe('lerMetadadoLexEdit — formatos do ponto de extensão', () => {
   it('lê o formato novo sem TYPE_NAME', () => {
     const doc = documentoComMetadado({
       fonte: 'http://www.lexml.gov.br/lexedit/1.0',
-      any: [{ name: { namespaceURI: 'http://www.lexml.gov.br/lexedit/1.0', localPart: 'Metadado' }, value: { local: 'Sala das sessões', opcoesImpressao: OPCOES } }],
+      any: [{ name: { namespaceURI: 'http://www.lexml.gov.br/lexedit/1.0', localPart: 'Metadado' }, value: { local: 'Sala das Sessões', opcoesImpressao: OPCOES } }],
     });
-    expect(lerMetadadoLexEdit(doc)).to.deep.equal({ local: 'Sala das sessões', opcoesImpressao: OPCOES });
+    expect(lerMetadadoLexEdit(doc)).to.deep.equal({ local: 'Sala das Sessões', opcoesImpressao: OPCOES });
   });
 
   it('ignora elemento de outro namespace em any', () => {
