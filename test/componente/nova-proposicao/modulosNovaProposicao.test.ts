@@ -8,6 +8,7 @@ import {
   getSiglasOutraProposicao,
   getSiglasProposicaoReferenciada,
   getSiglasSubstitutivo,
+  resolverTipoComplementar,
 } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
 import { DadosIdentificacao } from '../../../src/components/nova-proposicao/tiposNovaProposicao';
 import { montaUrlComissoes, montaUrlProposicao, validarConfigNovaProposicao } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
@@ -42,17 +43,13 @@ describe('Módulos puros da nova proposição', () => {
       expect(siglas.some(s => s.endsWith(':MPV'))).to.be.false;
     });
 
-    it('SF: ativos antes dos inativos, cada grupo em ordem alfabética', () => {
+    it('SF: só tipos ativos, em ordem alfabética, sem PLS nem PLC', () => {
       inicializarVocabulario('SF');
       const lista = getSiglasNovaProposicao('SF');
-      const primeiroInativo = lista.findIndex(t => !t.ativo);
-      expect(primeiroInativo).to.be.greaterThan(0);
-      expect(lista.slice(primeiroInativo).every(t => !t.ativo)).to.be.true;
-      const ativas = lista.slice(0, primeiroInativo).map(t => t.sigla!);
-      expect(ativas).to.deep.equal([...ativas].sort((a, b) => a.localeCompare(b)));
-      const inativas = lista.slice(primeiroInativo).map(t => t.sigla!);
-      expect(inativas).to.deep.equal([...inativas].sort((a, b) => a.localeCompare(b)));
-      expect(inativas).to.include.members(['PLS', 'PLC']);
+      expect(lista.every(t => t.ativo)).to.be.true;
+      const siglas = lista.map(t => t.sigla!);
+      expect(siglas).to.deep.equal([...siglas].sort((a, b) => a.localeCompare(b)));
+      expect(siglas).to.not.include.members(['PLS', 'PLC', 'PDS']);
     });
 
     it('CD: sem substitutivo, subemenda, tipos do Senado nem MPV', () => {
@@ -70,6 +67,16 @@ describe('Módulos puros da nova proposição', () => {
       expect(lista.every(t => t.tipoRelacaoSubstitutivo === TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO)).to.be.true;
       expect(lista.map(t => t.sigla)).to.include.members(['PL', 'PLS', 'PLC', 'PRN']);
       expect(lista.map(t => t.sigla)).to.not.include('PLV');
+    });
+
+    it('proposição referenciada e outra proposição: uma entrada por sigla (PLS e PLC não repetem)', () => {
+      inicializarVocabulario('SF');
+      [getSiglasProposicaoReferenciada(), getSiglasOutraProposicao()].forEach(lista => {
+        const siglas = lista.map(t => t.sigla);
+        expect(siglas.filter(x => x === 'PLS')).to.have.length(1);
+        expect(siglas.filter(x => x === 'PLC')).to.have.length(1);
+        expect(new Set(siglas).size).to.equal(siglas.length);
+      });
     });
 
     it('outra proposição: todas as siglas da casa, ativas antes das inativas, inclusive MPV', () => {
@@ -101,6 +108,20 @@ describe('Módulos puros da nova proposição', () => {
       const r = montaUrnNovaProposicao(dados('SF', { especie: 'substitutivo', tipoProposicao: tipo('SF', 'PL', true), numeroProposicao: '0012' }));
       expect(r.urn).to.equal('urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo');
       expect(r.urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei;pl:2026;12');
+    });
+
+    it('substitutivo do SF de PLS: complementar escolhe o tipo da URN; PL ignora o atributo', () => {
+      inicializarVocabulario('SF');
+      const pls = tipo('SF', 'PLS', true);
+      const montar = (t: any, complementar: boolean): any =>
+        montaUrnNovaProposicao(dados('SF', { especie: 'substitutivo', tipoProposicao: resolverTipoComplementar(t, complementar), numeroProposicao: '7' }));
+      expect(montar(pls, true).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei.complementar;pls:2026;7');
+      expect(montar(pls, true).urn).to.equal('urn:lex:br:senado.federal:projeto.lei.complementar;pls:2026;7@apresentacao.substitutivo');
+      expect(montar(pls, false).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei;pls:2026;7');
+      const plc = tipo('SF', 'PLC', true);
+      expect(montar(plc, true).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei.complementar;plc:2026;7');
+      const pl = tipo('SF', 'PL', true);
+      expect(montar(pl, true).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei;pl:2026;7');
     });
 
     it('substitutivo da CD: tipo e ano de g2, 999999, sem versão', () => {
