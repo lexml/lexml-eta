@@ -243,3 +243,44 @@ describe('Testando emissão de onchange do lexml-eta-editor-texto-rico', () => {
     expect(eventos).to.have.length(0);
   });
 });
+
+describe('Destaque das marcas de revisão no texto rico', () => {
+  const marca = (tag: string, idRevisao: string): string => `<${tag} usuario="Fulano de Tal" date="2026-05-11 15:51:00 " id-revisao="${idRevisao}">`;
+
+  beforeEach(async () => {
+    editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico modo="justificativa"></lexml-eta-editor-texto-rico>`);
+  });
+
+  it('exibe a inclusão com letra verde, sem fundo nem sublinhado', () => {
+    editorTextoRico.setContent(`<p>Texto ${marca('ins', 'r1')}incluído</ins> fim</p>`);
+    const estilo = getComputedStyle(editorTextoRico.quill!.root.querySelector('ins')!);
+
+    expect(estilo.color).to.equal('rgb(24, 128, 56)');
+    expect(estilo.backgroundColor).to.equal('rgba(0, 0, 0, 0)');
+    expect(estilo.textDecorationLine).to.equal('none');
+  });
+
+  it('exibe a exclusão com o traço vermelho por imagem de fundo, sem cor de fundo nem text-decoration', () => {
+    editorTextoRico.setContent(`<p>Texto ${marca('del', 'r1')}excluído</del> fim</p>`);
+    const estilo = getComputedStyle(editorTextoRico.quill!.root.querySelector('del')!);
+
+    expect(estilo.backgroundColor).to.equal('rgba(0, 0, 0, 0)');
+    expect(estilo.backgroundImage).to.contain('linear-gradient');
+    expect(estilo.backgroundImage).to.contain('rgb(217, 48, 37)');
+    expect(estilo.textDecorationLine).to.equal('none');
+  });
+
+  it('emoldura a marca com a classe de seleção, na cor da operação', () => {
+    editorTextoRico.setContent(`<p>${marca('ins', 'r1')}incluído</ins> ${marca('del', 'r2')}excluído</del></p>`);
+    const ins = editorTextoRico.quill!.root.querySelector('ins')!;
+    const del = editorTextoRico.quill!.root.querySelector('del')!;
+    ins.classList.add('revisao-selecionada');
+    del.classList.add('revisao-selecionada');
+
+    expect(getComputedStyle(ins).borderTopColor).to.equal('rgb(24, 128, 56)');
+    expect(getComputedStyle(del).borderBottomColor).to.equal('rgb(217, 48, 37)');
+    expect(getComputedStyle(ins, '::before').content).to.not.equal('none');
+    ins.classList.add('revisao-fragmento-continua-anterior');
+    expect(getComputedStyle(ins, '::before').content).to.equal('none');
+  });
+});

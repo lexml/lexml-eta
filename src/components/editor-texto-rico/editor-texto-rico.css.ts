@@ -266,16 +266,68 @@ export const editorTextoRicoCss = html`
       margin-bottom: 0;
     }
 
-    .ql-editor ins {
+    /* Sem cor de fundo: o fundo fica reservado ao destaque de comentário. */
+    .lexml-eta-editor-texto-rico .ql-editor ins {
+      color: #188038;
       text-decoration: none;
-      background-color: #b2e6be;
-      /* #d4edda; */
+      background-color: transparent;
     }
 
-    .ql-editor del {
-      text-decoration: strikethrough;
-      background-color: #f4a9b0;
-      /* #f8d7da; */
+    /* Traço por imagem de fundo: text-decoration não é recolorido nos filhos (negrito, nota de rodapé). */
+    .lexml-eta-editor-texto-rico .ql-editor del {
+      text-decoration: none;
+      background-color: transparent;
+      background-image: linear-gradient(#d93025, #d93025);
+      background-position: 0 55%;
+      background-repeat: repeat-x;
+      background-size: 100% 2px;
+    }
+
+    .lexml-eta-editor-texto-rico .ql-editor ins.revisao-selecionada {
+      --cor-moldura-revisao: #188038;
+    }
+
+    .lexml-eta-editor-texto-rico .ql-editor del.revisao-selecionada {
+      --cor-moldura-revisao: #d93025;
+    }
+
+    .lexml-eta-editor-texto-rico .ql-editor ins.revisao-selecionada,
+    .lexml-eta-editor-texto-rico .ql-editor del.revisao-selecionada {
+      border-top: 2px solid var(--cor-moldura-revisao);
+      border-bottom: 2px solid var(--cor-moldura-revisao);
+      box-decoration-break: clone;
+      -webkit-box-decoration-break: clone;
+    }
+
+    /* Laterais curtas por pseudo-elemento: border-left/right deslocaria o texto. */
+    .lexml-eta-editor-texto-rico .ql-editor ins.revisao-selecionada::before,
+    .lexml-eta-editor-texto-rico .ql-editor del.revisao-selecionada::before {
+      content: '';
+      display: inline-block;
+      width: 2px;
+      height: 0.5em;
+      background-color: var(--cor-moldura-revisao);
+      vertical-align: top;
+      margin-left: -2px;
+    }
+
+    .lexml-eta-editor-texto-rico .ql-editor ins.revisao-selecionada::after,
+    .lexml-eta-editor-texto-rico .ql-editor del.revisao-selecionada::after {
+      content: '';
+      display: inline-block;
+      width: 2px;
+      height: 0.5em;
+      background-color: var(--cor-moldura-revisao);
+      margin-right: -2px;
+      position: relative;
+      top: 0.35em;
+    }
+
+    .lexml-eta-editor-texto-rico .ql-editor ins.revisao-selecionada.revisao-fragmento-continua-anterior::before,
+    .lexml-eta-editor-texto-rico .ql-editor del.revisao-selecionada.revisao-fragmento-continua-anterior::before,
+    .lexml-eta-editor-texto-rico .ql-editor ins.revisao-selecionada.revisao-fragmento-continua-proximo::after,
+    .lexml-eta-editor-texto-rico .ql-editor del.revisao-selecionada.revisao-fragmento-continua-proximo::after {
+      content: none;
     }
 
     .lexml-eta-editor-texto-rico .ql-tooltip input:invalid {

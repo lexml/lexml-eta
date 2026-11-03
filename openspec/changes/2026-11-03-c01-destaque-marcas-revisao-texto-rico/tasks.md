@@ -1,7 +1,7 @@
 ## 1. Estilo das marcas de revisão
 
-- [ ] 1.1 Em `editor-texto-rico.css.ts`, trocar as regras sem escopo `.ql-editor ins`/`.ql-editor del` por regras sob `.lexml-eta-editor-texto-rico`: `ins` com letra verde (`#188038`), sem fundo e sem sublinhado; `del` sem fundo, com `text-decoration: none` e traço vermelho (`#d93025`) de 2px por `background-image` a 55% da altura. Verificar abrindo `demo/doc/teste_revisao_texto.json` no `npm start`: inclusão em verde e exclusão tachada em vermelho, inclusive sobre o trecho em negrito e a referência de nota.
-- [ ] 1.2 Acrescentar as regras da moldura (`.revisao-selecionada` com `--cor-moldura-revisao` verde ou vermelha, bordas superior e inferior com `box-decoration-break: clone`, laterais por `::before`/`::after`) e a supressão das laterais em `.revisao-fragmento-continua-anterior::before` e `.revisao-fragmento-continua-proximo::after`. Verificar no navegador aplicando a classe a um `del` pelo DevTools.
+- [x] 1.1 Em `editor-texto-rico.css.ts`, trocar as regras sem escopo `.ql-editor ins`/`.ql-editor del` por regras sob `.lexml-eta-editor-texto-rico`: `ins` com letra verde (`#188038`), sem fundo e sem sublinhado; `del` sem fundo, com `text-decoration: none` e traço vermelho (`#d93025`) de 2px por `background-image` a 55% da altura. Verificar abrindo `demo/doc/teste_revisao_texto.json` no `npm start`: inclusão em verde e exclusão tachada em vermelho, inclusive sobre o trecho em negrito e a referência de nota.
+- [x] 1.2 Acrescentar as regras da moldura (`.revisao-selecionada` com `--cor-moldura-revisao` verde ou vermelha, bordas superior e inferior com `box-decoration-break: clone`, laterais por `::before`/`::after`) e a supressão das laterais em `.revisao-fragmento-continua-anterior::before` e `.revisao-fragmento-continua-proximo::after`. Verificar no navegador aplicando a classe a um `del` pelo DevTools.
 
 ## 2. Moldura sob o cursor e texto entregue
 
