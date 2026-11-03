@@ -11,6 +11,12 @@ const pastaDocs = path.resolve(pastaServidor, '../doc');
 // Proposição sem texto estruturado: existe na verificação, mas o texto devolve 404 (cobre o alerta "texto indisponível").
 const PROPOSICAO_SEM_TEXTO = { sigla: 'PL', numero: '3', ano: '2023', arquivo: null, ementa: 'Proposição de teste sem texto estruturado disponível para edição.' };
 
+// PLS existe como lei ordinária e como complementar: a verificação informa `complementar` (omitido = false).
+const PROPOSICOES_PLS = [
+  { sigla: 'PLS', numero: '7', ano: '2015', arquivo: null, complementar: true, ementa: 'Projeto de Lei Complementar do Senado de teste, sem texto estruturado disponível.' },
+  { sigla: 'PLS', numero: '8', ano: '2015', arquivo: null, ementa: 'Projeto de Lei do Senado de teste, sem texto estruturado disponível.' },
+];
+
 const lerJson = arquivo => JSON.parse(fs.readFileSync(path.join(pastaServidor, 'dados', arquivo), 'utf8'));
 
 const json = (status, objeto) => ({ status, tipo: 'application/json', corpo: JSON.stringify(objeto) });
@@ -20,7 +26,7 @@ const semZeros = valor => String(valor).replace(/^0+(?=\d)/, '');
 
 const buscarProposicao = (sigla, numero, ano) => {
   const chave = [sigla.toUpperCase(), semZeros(numero), ano].join('/');
-  return [...lerJson('proposicoes.json'), PROPOSICAO_SEM_TEXTO].find(p => [p.sigla, p.numero, p.ano].join('/') === chave);
+  return [...lerJson('proposicoes.json'), PROPOSICAO_SEM_TEXTO, ...PROPOSICOES_PLS].find(p => [p.sigla, p.numero, p.ano].join('/') === chave);
 };
 
 /** @returns {{status:number, tipo:string, corpo:string}|undefined} undefined quando a URL não é da demo. */
@@ -39,7 +45,8 @@ export const tratarRequisicaoDemo = url => {
   if (partes[0] === 'proposicoes' && (partes.length === 4 || (partes.length === 5 && partes[4] === 'texto'))) {
     const proposicao = buscarProposicao(partes[1], partes[2], partes[3]);
     if (!proposicao) return naoEncontrado();
-    if (partes.length === 4) return json(200, { ementa: proposicao.ementa, textoEstruturadoDisponivel: !!proposicao.arquivo });
+    if (partes.length === 4)
+      return json(200, { ementa: proposicao.ementa, textoEstruturadoDisponivel: !!proposicao.arquivo, ...(proposicao.complementar && { complementar: true }) });
     if (!proposicao.arquivo) return naoEncontrado();
     return { status: 200, tipo: 'application/json', corpo: fs.readFileSync(path.join(pastaDocs, proposicao.arquivo), 'utf8') };
   }
