@@ -1,0 +1,12 @@
+[
+  { "siglaCasaLegislativa": "CD", "sigla": "CCJC", "nome": "Comissão de Constituição e Justiça e de Cidadania" },
+  { "siglaCasaLegislativa": "CD", "sigla": "CFT", "nome": "Comissão de Finanças e Tributação" },
+  { "siglaCasaLegislativa": "CD", "sigla": "CSAUDE", "nome": "Comissão de Saúde" },
+  { "siglaCasaLegislativa": "CD", "sigla": "CE", "nome": "Comissão de Educação" },
+  { "siglaCasaLegislativa": "CD", "sigla": "CTRAB", "nome": "Comissão de Trabalho" },
+  { "siglaCasaLegislativa": "CD", "sigla": "CSPCCO", "nome": "Comissão de Segurança Pública e Combate ao Crime Organizado" },
+  { "siglaCasaLegislativa": "CD", "sigla": "CMADS", "nome": "Comissão de Meio Ambiente e Desenvolvimento Sustentável" },
+  { "siglaCasaLegislativa": "CD", "sigla": "CAPADR", "nome": "Comissão de Agricultura, Pecuária, Abastecimento e Desenvolvimento Rural" },
+  { "siglaCasaLegislativa": "CD", "sigla": "CDC", "nome": "Comissão de Defesa do Consumidor" },
+  { "siglaCasaLegislativa": "CD", "sigla": "CCOM", "nome": "Comissão de Comunicação" }
+]

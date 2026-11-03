@@ -69,7 +69,7 @@ Regras da tela:
 
 ### Tela 2 — Texto inicial para edição
 
-Cabeçalho: "Novo(a) *\<identificação do novo documento\>*." (ver RN-08).
+Cabeçalho: "Novo/Nova *\<identificação do novo documento\>*." (ver RN-08).
 
 Pergunta: "Como você quer iniciar?" — opções (seleção única):
 
@@ -78,14 +78,14 @@ Pergunta: "Como você quer iniciar?" — opções (seleção única):
 | 1 | Texto vazio | — |
 | 2 | Importar documento (DOCX, TXT ou LexML) | Exibe o campo **Arquivo** (seleção de arquivo), que aceita DOCX, TXT e LexML, de até 5 MB. O LexML pode estar em XML ou em JSON (formato JSONIX, o mesmo usado pelo componente ao abrir um documento). |
 | 3 | Texto do(a) *\<documento referenciado\>* | Só é oferecida em Substitutivo, Subemenda substitutiva ou PLV. Exibe o alerta "Texto estruturado não disponível para edição" quando for o caso. |
-| 4 | Texto de outra proposição | Exibe sigla + número + ano, **Verificar**, o alerta de indisponibilidade e a ementa (somente leitura). Aceita qualquer sigla, ativa ou inativa. |
+| 4 | Texto de outra proposição | Exibe sigla (escolhida entre todas as siglas do vocabulário da casa do editor, ativas e inativas, inclusive a MPV) + número + ano, **Verificar**, o alerta de indisponibilidade e a ementa (somente leitura). Aceita qualquer sigla, ativa ou inativa. |
 
 Botões: **Continuar**, **Voltar**, **Cancelar**.
 
 Regras da tela:
 
 - **RN-07 — Opção padrão.** Opção 3 em Substitutivo, Subemenda substitutiva ou PLV; opção 1 nos demais casos.
-- **RN-08 — Identificação do novo documento** (usada nos cabeçalhos das telas 2 e 3):
+- **RN-08 — Identificação do novo documento** (usada nos cabeçalhos das telas 2 e 3, precedida de "Novo" ou "Nova" conforme o gênero do documento: o do tipo da proposição; substitutivo sempre "Novo"; subemenda substitutiva sempre "Nova"):
   - Não substitutivo, não subemenda e não PLV: nome do tipo do documento.
   - PLV: "Projeto de Lei de Conversão (Medida Provisória nº *\<número\>* de *\<ano\>*)".
   - Substitutivo: "Substitutivo ao/à *\<tipo da proposição\>* nº *\<número\>* de *\<ano\>*".
@@ -104,7 +104,7 @@ Exibida apenas quando o parser do arquivo importado (DOCX, TXT ou LexML) falha.
 
 Conteúdo:
 
-- Cabeçalho "Novo(a) *\<identificação do novo documento\>*.".
+- Cabeçalho "Novo/Nova *\<identificação do novo documento\>*.".
 - Mensagem "Ocorreram os seguintes erros na tentativa de conversão do *\<nome do arquivo\>*." seguida da lista de erros do parser.
 - Orientação: "Você pode corrigi-los no documento e tentar novamente ou continuar para iniciar com um documento vazio."
 
@@ -166,7 +166,7 @@ Os modelos de epígrafe (por tipo, substitutivo, subemenda substitutiva e PLV) n
 
 ### 5.2 Preâmbulo
 
-O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreambuloPadrao`. Os modelos não são listados aqui. Sem modelo para o tipo, `getPreambuloPadrao` registra um log de erro de preâmbulo não encontrado para a URN e devolve `O CONGRESSO NACIONAL decreta:`. **Essa regra de fallback (log e texto padrão) deve ser implementada em `getPreambuloPadrao`** (hoje ela devolve `undefined`), e não no componente, que apenas a usa. A mudança afeta os demais consumidores, como a abertura de documento (`buildProjetoNormaFromJsonix`), em que o tipo sem modelo passará a ter preâmbulo; deve ser tratada na change de implementação.
+O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreambuloPadrao`, que continua devolvendo `undefined` quando não há modelo para o tipo. Nesse caso o **próprio componente** registra um log de erro de preâmbulo não encontrado para a URN e usa `O CONGRESSO NACIONAL decreta:`. A regra fica no componente (decisão da issue #1050, em vez de em `getPreambuloPadrao`) para não alterar a abertura de documentos: um documento aberto de tipo sem modelo continua sem preâmbulo.
 
 
 ## 6. Critérios de aceite (resumo)
@@ -186,7 +186,6 @@ O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreamb
 ## 7. Pontos em aberto
 
 - **Destino no `lexml-eta`:** o `lexml-eta` deixa de ter o componente de colegiado de destino, porque o destino passa a ser definido aqui. Definir, na change de implementação, de onde o editor lê o destino ao abrir um documento e como fica o `ColegiadoApreciador` hoje salvo e aberto (change `2026-10-19-c01-metadados-lexedit-situacao-colegiado`); **BREAKING** para o host.
-- Implementar em `getPreambuloPadrao` o fallback do preâmbulo (log de erro e `O CONGRESSO NACIONAL decreta:`) e avaliar o impacto na abertura de documentos com tipo sem modelo (ver 5.2).
 - O serviço de epígrafe está na issue #1053 (ver 5.1).
 
 Decididos (não são mais pontos em aberto): a subemenda substitutiva da `CD` referencia a proposição original, com a referência ao substitutivo implícita (RN-22); formato da lista de comissões (seção 9); colegiado da epígrafe do substitutivo do `SF` (coletado em g5); serviços de verificação, de texto e de comissões (URLs configuráveis, seção 9); limite do arquivo importado (5 MB); siglas referenciáveis e de nova proposição (do vocabulário, RN-00 e RN-00a); inclusão de siglas inativas (sim, ao final, em cinza); MPV fora das listas de siglas, só como referência do PLV; tipos de proposição de cada casa (definidos nos vocabulários, não há mais lista a confirmar).
@@ -241,7 +240,7 @@ O componente não tem efeito colateral: coleta e devolve um resultado por evento
   | `urn` | URN do novo documento (seção 4). |
   | `urnDocumentoReferenciado` | Em substitutivo, subemenda substitutiva e PLV. No substitutivo do `SF`, sem o sufixo de versão. |
   | `epigrafe` | Do serviço de epígrafe do vocabulário (#1053, com o sufixo do destino no `SF`), quando implementado; senão, a epígrafe do caso padrão (5.1). |
-  | `preambulo` | De `getPreambuloPadrao` (5.2), que aplica o fallback (log de erro e `O CONGRESSO NACIONAL decreta:`) quando o tipo não tem modelo. |
+  | `preambulo` | De `getPreambuloPadrao` (5.2); o componente aplica o fallback (log de erro e `O CONGRESSO NACIONAL decreta:`) quando o tipo não tem modelo. |
   | `colegiadoDestino` | Sempre presente: tipo (Plenário ou Comissão) e, em Comissão, a sigla da comissão. |
   | `texto` | Documento articulado em JSONIX; só quando o texto vem de documento existente (importação, documento referenciado ou outra proposição). |
   | `anexoParecer` | Booleano (g6). |

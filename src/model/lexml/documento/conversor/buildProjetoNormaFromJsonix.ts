@@ -11,7 +11,7 @@ import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getPreambuloPadrao, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 import { Anexo, Autoria, ColegiadoApreciador, MimeType, OpcoesImpressao, Parlamentar, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO } from '../../../proposicao/proposicao';
 import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
-import { DadosLexEdit, RevisaoArticulacaoLida } from '../documentoArticulado';
+import { DadosLexEdit, RevisaoArticulacaoLida, RevisaoTextualLida } from '../documentoArticulado';
 import { SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
 import { Usuario } from '../../../revisao/usuario';
@@ -160,6 +160,12 @@ export const lerFecho = (lexedit: any): Pick<DadosLexEdit, 'local' | 'data'> => 
 
 const textoNaoVazio = (valor: any): boolean => typeof valor === 'string' && !!valor.trim();
 
+// Forma de xsd:dateTime (fuso e frações opcionais); o valor é devolvido como gravado.
+const REGEX_XSD_DATE_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/;
+
+const lerDataUltimaModificacao = (valor: any): string | undefined =>
+  typeof valor === 'string' && REGEX_XSD_DATE_TIME.test(valor) && !Number.isNaN(Date.parse(valor)) ? valor : undefined;
+
 // Sem identificação ou nome o parlamentar é descartado; os demais atributos assumem o padrão da classe.
 const lerParlamentar = (lido: any): Parlamentar | undefined => {
   if (!isObjeto(lido) || !textoNaoVazio(lido.identificacao) || !textoNaoVazio(lido.nome)) return undefined;
@@ -233,11 +239,14 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const autoria = lerAutoria(lexedit?.autoria);
   const colegiadoApreciador = lerColegiadoApreciador(lexedit?.colegiadoApreciador);
   const revisoesLidas = lerRevisoesArticulacao(lexedit);
+  const revisoesTextuais = lerRevisoesTextuais(lexedit);
   const outrosMetadados = lerOutrosMetadados(lexedit?.outrosMetadados);
   const anexos = lerAnexos(lexedit?.anexos);
+  const dataUltimaModificacao = lerDataUltimaModificacao(lexedit?.dataUltimaModificacao);
   return {
     ...(lexedit?.anexoParecer === true && { anexoParecer: true }),
     ...(textoNaoVazio(lexedit?.urnDocumentoReferenciado) && { urnDocumentoReferenciado: lexedit.urnDocumentoReferenciado.trim() }),
+    ...(dataUltimaModificacao && { dataUltimaModificacao }),
     ...lerFecho(lexedit),
     ...(opcoesImpressao && { opcoesImpressao }),
     ...(autoria && { autoria }),
@@ -245,6 +254,7 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
     ...(outrosMetadados && { outrosMetadados }),
     ...(anexos && { anexos }),
     ...(revisoesLidas.length > 0 && { revisoesLidas }),
+    ...(Object.keys(revisoesTextuais).length > 0 && { revisoesTextuais }),
   };
 };
 
@@ -342,6 +352,22 @@ export const lerRevisoesArticulacao = (lexedit: any): RevisaoArticulacaoLida[] =
       };
     })
     .filter((r): r is RevisaoArticulacaoLida => !!r);
+};
+
+/** Revisões de texto (especificação 09) por `refIdRevisao`, tolerantes: ignora a sem `refIdRevisao`; usuário sem registro usa o próprio id e data inválida vira agora. */
+export const lerRevisoesTextuais = (lexedit: any): Record<string, RevisaoTextualLida> => {
+  const usuarios = lerUsuarios(lexedit?.usuarios);
+  const lidas: Record<string, RevisaoTextualLida> = {};
+  comoLista(lexedit?.revisoesTextuais?.revisaoTextual)
+    .filter(lida => isObjeto(lida) && textoNaoVazio(lida.refIdRevisao))
+    .forEach(lida => {
+      const refIdUsuario = textoNaoVazio(lida.refIdUsuario) ? lida.refIdUsuario : '';
+      lidas[lida.refIdRevisao] = {
+        usuario: usuarios.get(refIdUsuario) ?? new Usuario(refIdUsuario || undefined, refIdUsuario || undefined),
+        dataHora: (typeof lida.data === 'string' && parseIsoToDateTime(lida.data)) || formatDateTime(new Date()),
+      };
+    });
+  return lidas;
 };
 
 const getMetadado = (documento: any): Metadado => {

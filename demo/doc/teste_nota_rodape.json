@@ -1,0 +1,332 @@
+{
+  "name": {
+    "key": "{http://www.lexml.gov.br/1.0}LexML",
+    "localPart": "LexML",
+    "namespaceURI": "http://www.lexml.gov.br/1.0",
+    "prefix": "",
+    "string": "{http://www.lexml.gov.br/1.0}LexML"
+  },
+  "value": {
+    "TYPE_NAME": "br_gov_lexml__1.LexML",
+    "metadado": {
+      "TYPE_NAME": "br_gov_lexml__1.Metadado",
+      "identificacao": {
+        "TYPE_NAME": "br_gov_lexml__1.Identificacao",
+        "urn": "urn:lex:br:senado.federal:projeto.lei;pls:9999;999999"
+      },
+      "metadadoProprietario": [
+        {
+          "TYPE_NAME": "br_gov_lexml__1.MetadadoProprietario",
+          "any": [
+            {
+              "name": {
+                "key": "{http://www.lexml.gov.br/lexedit/1.0}Metadado",
+                "localPart": "Metadado",
+                "namespaceURI": "http://www.lexml.gov.br/lexedit/1.0",
+                "prefix": "lexedit",
+                "string": "{http://www.lexml.gov.br/lexedit/1.0}lexedit:Metadado"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml_lexedit__1.Metadado",
+                "local": "Sala das sessões",
+                "opcoesImpressao": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.OpcoesImpressao",
+                  "imprimirBrasao": true,
+                  "reduzirEspacoEntreLinhas": false,
+                  "tamanhoFonte": 14,
+                  "textoCabecalho": ""
+                }
+              }
+            }
+          ],
+          "fonte": "http://www.lexml.gov.br/lexedit/1.0"
+        }
+      ]
+    },
+    "projetoNorma": {
+      "TYPE_NAME": "br_gov_lexml__1.ProjetoNorma",
+      "justificacao": [
+        {
+          "TYPE_NAME": "br_gov_lexml__1.OpenStructure",
+          "partePrincipal": {
+            "TYPE_NAME": "br_gov_lexml__1.PartePrincipal",
+            "agrupamentoHierarquicoOrDivOrAgrupamento": [
+              {
+                "name": {
+                  "key": "{http://www.lexml.gov.br/1.0}p",
+                  "localPart": "p",
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "prefix": "",
+                  "string": "{http://www.lexml.gov.br/1.0}p"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "clazz": "align-justify",
+                  "content": [
+                    "O conceito é definido em regulamento",
+                    {
+                      "name": {
+                        "key": "{http://www.lexml.gov.br/1.0}NotaDeRodape",
+                        "localPart": "NotaDeRodape",
+                        "namespaceURI": "http://www.lexml.gov.br/1.0",
+                        "prefix": "",
+                        "string": "{http://www.lexml.gov.br/1.0}NotaDeRodape"
+                      },
+                      "value": {
+                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                        "content": [
+                          "Texto ",
+                          {
+                            "name": {
+                              "key": "{http://www.lexml.gov.br/1.0}b",
+                              "localPart": "b",
+                              "namespaceURI": "http://www.lexml.gov.br/1.0",
+                              "prefix": "",
+                              "string": "{http://www.lexml.gov.br/1.0}b"
+                            },
+                            "value": {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                              "content": [
+                                "formatado"
+                              ]
+                            }
+                          },
+                          " da primeira nota."
+                        ]
+                      }
+                    },
+                    ", conforme a legislação vigente",
+                    {
+                      "name": {
+                        "key": "{http://www.lexml.gov.br/1.0}NotaDeRodape",
+                        "localPart": "NotaDeRodape",
+                        "namespaceURI": "http://www.lexml.gov.br/1.0",
+                        "prefix": "",
+                        "string": "{http://www.lexml.gov.br/1.0}NotaDeRodape"
+                      },
+                      "value": {
+                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                        "content": [
+                          "Segunda nota de rodapé."
+                        ]
+                      }
+                    },
+                    "."
+                  ]
+                }
+              },
+              {
+                "name": {
+                  "key": "{http://www.lexml.gov.br/1.0}p",
+                  "localPart": "p",
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "prefix": "",
+                  "string": "{http://www.lexml.gov.br/1.0}p"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "São essas as razões que justificam a proposição."
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "norma": {
+        "TYPE_NAME": "br_gov_lexml__1.HierarchicalStructure",
+        "articulacao": {
+          "TYPE_NAME": "br_gov_lexml__1.Articulacao",
+          "lXhier": [
+            {
+              "name": {
+                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                "localPart": "Artigo",
+                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                "prefix": "",
+                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                "id": "art1",
+                "lXcontainersOmissis": [
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                      "localPart": "Caput",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art1_cpt",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "Esta lei dispõe sobre educação e saúde."
+                          ]
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}Paragrafo",
+                      "localPart": "Paragrafo",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}Paragrafo"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art1_par1u",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "Aplica-se em todo o território nacional."
+                          ]
+                        }
+                      ],
+                      "rotulo": "Parágrafo único."
+                    }
+                  }
+                ],
+                "rotulo": "Art. 1º"
+              }
+            }
+          ]
+        },
+        "parteFinal": {
+          "TYPE_NAME": "br_gov_lexml__1.ParteFinal",
+          "localDataFecho": {
+            "TYPE_NAME": "br_gov_lexml__1.ParsType",
+            "p": [
+              {
+                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                "content": [
+                  "Sala das sessões,"
+                ]
+              }
+            ]
+          }
+        },
+        "parteInicial": {
+          "TYPE_NAME": "br_gov_lexml__1.ParteInicial",
+          "ementa": {
+            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+            "content": [
+              {
+                "name": {
+                  "key": "{http://www.lexml.gov.br/1.0}b",
+                  "localPart": "b",
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "prefix": "",
+                  "string": "{http://www.lexml.gov.br/1.0}b"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "Dispõe "
+                  ]
+                }
+              },
+              {
+                "name": {
+                  "key": "{http://www.lexml.gov.br/1.0}i",
+                  "localPart": "i",
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "prefix": "",
+                  "string": "{http://www.lexml.gov.br/1.0}i"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "sobre"
+                  ]
+                }
+              },
+              " educação e saúde."
+            ],
+            "id": "ementa"
+          },
+          "epigrafe": {
+            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+            "content": [
+              "PROJETO ",
+              {
+                "name": {
+                  "key": "{http://www.lexml.gov.br/1.0}b",
+                  "localPart": "b",
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "prefix": "",
+                  "string": "{http://www.lexml.gov.br/1.0}b"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "DE LEI"
+                  ]
+                }
+              }
+            ],
+            "id": "epigrafe"
+          },
+          "preambulo": {
+            "TYPE_NAME": "br_gov_lexml__1.TextoType",
+            "id": "preambulo",
+            "p": [
+              {
+                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                "content": [
+                  "O Congresso Nacional ",
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}b",
+                      "localPart": "b",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}b"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "content": [
+                        "decreta"
+                      ]
+                    }
+                  },
+                  ":"
+                ]
+              },
+              {
+                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                "content": [
+                  "Segundo parágrafo ",
+                  {
+                    "name": {
+                      "key": "{http://www.lexml.gov.br/1.0}i",
+                      "localPart": "i",
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "prefix": "",
+                      "string": "{http://www.lexml.gov.br/1.0}i"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "content": [
+                        "do preâmbulo"
+                      ]
+                    }
+                  },
+                  "."
+                ]
+              }
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -20,7 +20,6 @@ export class LexmlEtaConfig {
   urlConsultaParlamentares = 'api/parlamentares';
   urlAutocomplete = 'api/autocomplete-norma';
   urlPortalNormas = 'https://normas.leg.br';
-  urlComissoes?: string;
   // Identificação do usuário para registro de marcas de revisão.
   usuario?: Usuario;
   // Paginação de dispositivos durante a edição.

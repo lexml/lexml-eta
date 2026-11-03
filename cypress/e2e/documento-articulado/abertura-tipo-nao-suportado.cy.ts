@@ -32,10 +32,8 @@ describe('Abertura de documento de tipo não suportado', () => {
     cy.getContainerArtigoByNumero(1).should('exist');
   });
 
-  it('não exibe os formulários de destino e de autoria', () => {
-    cy.get('lexml-eta-destino').should('have.attr', 'hidden').and('not.be.undefined');
+  it('não exibe o formulário de autoria', () => {
     cy.get('lexml-eta-autoria').should('have.attr', 'hidden').and('not.be.undefined');
-    cy.get('lexml-eta-destino').should('not.be.visible');
     cy.get('lexml-eta-autoria').should('not.be.visible');
   });
 

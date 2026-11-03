@@ -55,7 +55,7 @@ describe('Campo "Data" do documento', () => {
     const proposicao = component.getProposicao();
 
     expect(proposicao.dataUltimaModificacao).to.equal('2026-04-24');
-    expect(proposicao.local).to.equal('Sala das sessões');
+    expect(proposicao.local).to.equal('Sala das Sessões');
     expect(!!proposicao.autoria).to.equal(true);
   });
 });

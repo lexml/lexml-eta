@@ -10,7 +10,7 @@ export const ALTERA_NORMA_TRAVA_EDITOR = {
   pendenciasPreenchimento: ['Não foi informado um texto de justificação.'],
   anexos: [],
   justificativa: '<p class="align-justify"><br></p>',
-  local: 'Sala das sessões',
+  local: 'Sala das Sessões',
   autoria: {
     tipo: 'Parlamentar',
     imprimirPartidoUF: true,

@@ -57,7 +57,7 @@ const CAMARA: Record<string, Tipo> = {
   'projeto.lei.complementar;plp': ['Projeto de Lei Complementar', 'M', 'PLP', true],
   'projeto.resolucao;prc': ['Projeto de Resolução', 'M', 'PRC', true],
   'substitutivo;sbt': ['Substitutivo', 'M', 'SBT', true],
-  'subemenda.substitutiva;pep': ['Subemenda Substitutiva', 'M', 'PEP', true],
+  'subemenda.substitutiva;pep': ['Subemenda Substitutiva', 'F', 'PEP', true],
 };
 
 const decreta = 'O CONGRESSO NACIONAL decreta:';

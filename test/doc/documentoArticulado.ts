@@ -1,4 +1,6 @@
+import { SinonFakeTimers, useFakeTimers } from 'sinon';
 import { DOCUMENTO_PADRAO } from '../../src/model/lexml/documento/modelo/documentoPadrao';
+import { formatDateTime, formatDateTimeToIso } from '../../src/util/date-util';
 
 export const novoDocumentoArticulado = (): any => {
   const documento = JSON.parse(JSON.stringify(DOCUMENTO_PADRAO));
@@ -62,3 +64,20 @@ export const metadadoProprietarioLexEdit = (grupos: Record<string, unknown>): an
     },
   ],
 });
+
+export const INSTANTE_CONGELADO = new Date(2026, 9, 29, 10, 15, 30);
+export const DATA_ULTIMA_MODIFICACAO_CONGELADA = formatDateTimeToIso(formatDateTime(INSTANTE_CONGELADO));
+
+let relogio: SinonFakeTimers | undefined;
+
+// Só o Date: salvar de novo grava a mesma dataUltimaModificacao, e os timers do Lit/Quill seguem reais.
+export const congelarRelogio = (agora: Date = INSTANTE_CONGELADO): SinonFakeTimers => {
+  relogio?.restore();
+  relogio = useFakeTimers({ now: agora, toFake: ['Date'] });
+  return relogio;
+};
+
+export const restaurarRelogio = (): void => {
+  relogio?.restore();
+  relogio = undefined;
+};

@@ -2,7 +2,7 @@
 import { expect, fixture } from '@open-wc/testing';
 import { AnexosComponent, LexmlEtaComponent, LexmlEtaConfig } from '../../../src';
 import { Anexo, MimeType } from '../../../src/model/proposicao/proposicao';
-import { lexeditSalvo, metadadoProprietarioLexEdit, novoDocumentoArticulado } from '../../doc/documentoArticulado';
+import { congelarRelogio, lexeditSalvo, metadadoProprietarioLexEdit, novoDocumentoArticulado, restaurarRelogio } from '../../doc/documentoArticulado';
 
 const URN_PL = 'urn:lex:br:senado.federal:projeto.lei;pl:2026;1';
 const TYPE_NAME_GRUPO = 'br_gov_lexml_lexedit__1.Anexos';
@@ -44,6 +44,8 @@ describe('ETA — aba e documento articulado com anexos', () => {
     await component.abrirDocumentoArticulado(novoDocumentoArticulado());
     aba = component.querySelector('lexml-eta-anexos')!;
   });
+
+  afterEach(restaurarRelogio);
 
   describe('aba', () => {
     it('aparece imediatamente antes de "Avisos"', () => {
@@ -168,6 +170,7 @@ describe('ETA — aba e documento articulado com anexos', () => {
     });
 
     it('salvar o documento aberto gera os mesmos anexos', async () => {
+      congelarRelogio();
       await component.abrirDocumentoArticulado(comAnexos(ANEXOS));
 
       const salvo = component.getDocumentoArticulado();

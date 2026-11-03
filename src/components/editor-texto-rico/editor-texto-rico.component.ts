@@ -28,6 +28,7 @@ import { QuillUtil } from './quill-util';
 import { TipoMensagem } from '../../model/lexml/util/mensagem';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { limparArticulacaoAction } from '../../model/lexml/acao/limparArticulacao';
+import { Usuario } from '../../model/revisao/usuario';
 
 const Delta = Quill.import('delta');
 
@@ -121,7 +122,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       }
 
       if (events.some(ev => ev.stateType === StateType.AtualizaUsuario) && moduloRevisao) {
-        moduloRevisao.usuario = state.elementoReducer.usuario?.nome || 'Anônimo';
+        moduloRevisao.setUsuario(state.elementoReducer.usuario ?? new Usuario());
       }
     }
   }
@@ -184,6 +185,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   disconnectedCallback(): void {
     this.quill?.off('text-change', this.updateTexto);
     this.quill?.off('selection-change', this.onSelectionChange);
+    clearTimeout(this.timerOnChange);
     super.disconnectedCallback();
   }
 
@@ -216,7 +218,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
             cellSelectionOnClick: false,
           },
           revisao: {
-            usuario: rootStore.getState().elementoReducer.usuario?.nome || 'Anônimo',
+            usuario: rootStore.getState().elementoReducer.usuario ?? new Usuario(),
             emRevisao: false,
             gerenciarKeydown: true,
             tableModule: TableModule,
@@ -526,9 +528,26 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.texto = texto === '<p><br></p>' ? '' : texto;
   };
 
+  private agendarEmissaoEventoOnChange(): void {
+    clearTimeout(this.timerOnChange);
+    this.timerOnChange = setTimeout(() => {
+      this.dispatchEvent(
+        new CustomEvent('onchange', {
+          bubbles: true,
+          composed: true,
+          detail: {
+            origemEvento: this.registroEvento,
+          },
+        })
+      );
+      this.onChange.notify(this.registroEvento);
+    }, 1000);
+  }
+
   updateTexto = (): void => {
     const texto = this.ajustaHtml(this.quill?.root.innerHTML);
     this.texto = texto === '<p><br></p>' ? '' : texto;
+    this.agendarEmissaoEventoOnChange();
     this.onSelectionChange(this.quill?.getSelection());
     this.atualizaStatusElementosRevisao(false);
     this.buildRevisoes();

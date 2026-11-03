@@ -21,12 +21,12 @@ No modo anexo de parecer, o sistema SHALL ocultar a aba de justificação e a ab
 - **WHEN** a aplicação consumidora obtém a proposição no modo anexo de parecer
 - **THEN** a proposição não contém `justificativa`, `justificativaAntesRevisao` nem `notasRodape`
 
-### Requirement: Destino, data, autoria e impressão no modo anexo de parecer
-No modo anexo de parecer, o sistema SHALL exibir, na mesma aba do modo normal, os formulários de destino, data, autoria e opções de impressão, e SHALL tratar seus valores como no modo normal. A aba SHALL ter o rótulo "Destino, Data, Autoria e Impressão".
+### Requirement: Data, autoria e impressão no modo anexo de parecer
+No modo anexo de parecer, o sistema SHALL exibir, na mesma aba do modo normal, os formulários de data, autoria e opções de impressão, e SHALL tratar seus valores como no modo normal. A aba SHALL ter o rótulo "Data, Autoria e Impressão".
 
 #### Scenario: Formulários exibidos
 - **WHEN** o documento está no modo anexo de parecer
-- **THEN** a aba "Destino, Data, Autoria e Impressão" exibe os formulários de destino, data, autoria e opções de impressão
+- **THEN** a aba "Data, Autoria e Impressão" exibe os formulários de data, autoria e opções de impressão
 
 #### Scenario: Proposição com local, autoria e data
 - **WHEN** a aplicação consumidora obtém a proposição no modo anexo de parecer com data informada e um parlamentar na autoria
@@ -65,3 +65,10 @@ O modo de anexo de parecer SHALL ser uma propriedade do documento, definida em `
 #### Scenario: Troca de documento
 - **WHEN** o host abre um documento normal depois de um anexo de parecer
 - **THEN** o editor volta ao modo normal, com as abas de justificação e de notas exibidas
+
+### Requirement: Colegiado no modo anexo de parecer
+O modo anexo de parecer SHALL NOT interferir no tratamento do colegiado apreciador: ele é recebido de `novaProposicao` ou lido do arquivo, exposto na proposição e gravado em `lexedit:ColegiadoApreciador` como no modo normal.
+
+#### Scenario: Salvar e reabrir em anexo de parecer
+- **WHEN** o usuário salva um anexo de parecer com colegiado Comissão e o reabre
+- **THEN** o colegiado Comissão e a sigla da comissão são preservados

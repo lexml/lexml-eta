@@ -24,6 +24,10 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
   @property({ type: String })
   modo = '';
 
+  // Só o editor da articulação: nos de texto rico o badge conta as marcas do Quill.
+  @property({ type: Boolean })
+  contaRevisoesArticulacao = false;
+
   onChange: Observable<string> = new Observable<string>();
 
   update(changedProperties: PropertyValues): void {
@@ -54,7 +58,9 @@ export class SwitchRevisaoComponent extends connect(rootStore)(LitElement) {
           break;
       }
 
-      this.atualizaQuantidadeRevisao();
+      if (this.contaRevisoesArticulacao) {
+        this.atualizaQuantidadeRevisao();
+      }
     });
   }
 
