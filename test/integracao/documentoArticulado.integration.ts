@@ -12,7 +12,9 @@ import { createAlteracao, criaDispositivo } from '../../src/model/lexml/disposit
 import { TipoDispositivo } from '../../src/model/lexml/tipo/tipoDispositivo';
 import { novoDocumentoArticulado, novoDocumentoComTextoLiteral } from '../doc/documentoArticulado';
 import { MPV_885_2019 } from '../assets/mpv_885_2019';
+import { lerJustificacao } from '../../src/model/lexml/documento/conversor/justificacao';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
+import { encodeHtml } from '../../src/util/string-util';
 import { Autoria, ColegiadoApreciador, MimeType } from '../../src/model/proposicao/proposicao';
 import { MPV_905_2019 } from '../doc/mpv_905_2019';
 import { MPV_1234_2024 } from '../doc/mpv_1234_2024';
@@ -91,6 +93,19 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(lerIdsRemissoesInvalidas(retorno.jsonix)).to.deep.equal([idPersistido]);
   });
 
+  it('pendência de justificação e de remissão vão e voltam pelo CLI, na ordem', async () => {
+    const { salvo } = documentoComRemissaoInvalida({ pendencias: ['Não foi informado um texto de justificação.'] });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include(
+      '<lexedit:Pendencias><lexedit:Pendencia>Não foi informado um texto de justificação.</lexedit:Pendencia><lexedit:Pendencia>Corrigir remissões internas inválidas.</lexedit:Pendencia></lexedit:Pendencias>'
+    );
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(lerMetadadoLexEdit(retorno.jsonix)).to.not.have.property('pendencias');
+  });
+
   it('valida e reabre um documento com opções de impressão', async () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const opcoesImpressao = { imprimirBrasao: false, textoCabecalho: 'Gabinete do Senador', reduzirEspacoEntreLinhas: true, tamanhoFonte: 16 };
@@ -106,17 +121,21 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
   });
 
-  it('modo de anexo de parecer e documento referenciado vão e voltam pelo CLI', async () => {
+  it('modo de anexo de parecer, documento referenciado e data da última modificação vão e voltam pelo CLI', async () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const urnDocumentoReferenciado = 'urn:lex:br:senado.federal:projeto.lei;pl:2025;10';
-    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { anexoParecer: true, urnDocumentoReferenciado });
+    const dataUltimaModificacao = '2026-10-29T10:15:30-03:00';
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { anexoParecer: true, urnDocumentoReferenciado, dataUltimaModificacao });
 
     const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
 
     expect(retorno.valido, retorno.erro).to.equal(true);
     expect(retorno.xml).to.match(/<lexedit:Metadado[^>]*urnDocumentoReferenciado="urn:lex:br:senado.federal:projeto.lei;pl:2025;10"[^>]*anexoParecer="true"/);
+    expect(retorno.xml).to.match(/<lexedit:Metadado[^>]* dataUltimaModificacao="2026-10-29T10:15:30-03:00"/);
+    expect(retorno.xml).not.to.match(/aplicacao=|versaoAplicacao=/);
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
     const dados = lerMetadadoLexEdit(retorno.jsonix);
-    expect(dados).to.deep.equal({ anexoParecer: true, urnDocumentoReferenciado });
+    expect(dados).to.deep.equal({ anexoParecer: true, urnDocumentoReferenciado, dataUltimaModificacao });
     const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
   });
@@ -174,6 +193,95 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
     expect(lerMetadadoLexEdit(retorno.jsonix)).to.deep.equal({ local: 'Sala das Sessões', data: '2026-05-01', opcoesImpressao });
     expect(lerIdsRemissoesInvalidas(retorno.jsonix)).to.deep.equal([idPersistido]);
+  });
+
+  // Nota de rodapé no formato de `texto` do editor: `texto` é o HTML do modal, codificado.
+  const nota = (id: string, textoHtml: string): string => {
+    const el = document.createElement('lexml-eta-nota-rodape');
+    el.setAttribute('id-lexml-eta-nota-rodape', id);
+    el.setAttribute('numero', '9');
+    el.setAttribute('texto', encodeHtml(textoHtml));
+    el.textContent = '9';
+    return el.outerHTML;
+  };
+
+  it('a justificação vai e volta pelo CLI e valida no XSD, com as notas de rodapé', async () => {
+    const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+    // HTML no formato de `texto` do editor da justificação.
+    const justificacao =
+      `<p class="align-justify">Texto <strong>negrito</strong> <em>itálico</em>, <u>sublinhado</u>, x<sup>2</sup>, A &amp; B e <a href="https://www.congressonacional.leg.br" rel="noopener noreferrer" target="_blank">site</a>${nota(
+        'nr1',
+        '<p>Nota <strong>formatada</strong> com <a href="https://www.senado.leg.br" rel="noopener noreferrer" target="_blank">link</a>.</p>'
+      )}.</p>` +
+      `<ul><li>um${nota('nr2', '<p>Primeiro.</p><p>Segundo.</p>')}</li><li class="indent-1">dois</li></ul><ol><li>a</li></ol><p><br></p>` +
+      '<table table_id="t1" border="1" style="width:80%"><tbody><tr row_id="r1">' +
+      '<td class="td-q" table_id="t1" row_id="r1" cell_id="c1" width="40%"><p class="align-center">1</p><p>2</p></td>' +
+      `<td class="td-q" table_id="t1" row_id="r1" cell_id="c2" colspan="2" rowspan="1"><p>3${nota('nr3', '<p>Na tabela.</p>')}</p></td></tr>` +
+      '<tr row_id="r2"><td class="td-q" table_id="t1" row_id="r2" cell_id="c3"><p><br></p></td></tr></tbody></table>' +
+      `<img src="${png}" width="50%"><p class="ql-text-indent-0px">fim</p>`;
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { justificacao });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('<Justificacao><PartePrincipal>');
+    expect(retorno.xml).to.include('<table border="1" id="_tabela1" style="width: 80%">');
+    expect(retorno.xml).to.include('site</a><NotaDeRodape>Nota <b>formatada</b> com <a xlink:href="https://www.senado.leg.br" target="_blank">link</a>.</NotaDeRodape>.');
+    expect(retorno.xml).to.include('<li>um<NotaDeRodape>Primeiro. Segundo.</NotaDeRodape></li>');
+    expect(retorno.xml).to.include('<span class="p">3<NotaDeRodape>Na tabela.</NotaDeRodape></span>');
+    // O editor troca `ql-indent` por `indent` ao ler o Quill; o leitor devolve `ql-indent`.
+    const lida = lerJustificacao(retorno.jsonix).replace(/ql-indent/g, 'indent');
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, { justificacao: lida })).to.deep.equal(salvo);
+  });
+
+  it('as marcas de revisão de texto da justificação vão e voltam pelo CLI e validam no XSD', async () => {
+    const ID_INS = 'a1b2c3d4-0000-4000-8000-000000000001';
+    const ID_SUB = 'a1b2c3d4-0000-4000-8000-000000000002';
+    const ID_EXC = 'a1b2c3d4-0000-4000-8000-000000000003';
+    const marca = (tag: 'ins' | 'del', idRevisao: string, conteudo: string, idUsuario = 'sf:fulano'): string =>
+      `<${tag} usuario="Fulano de Tal" date="2026-05-11 15:51:00 " id-revisao="${idRevisao}" id-usuario="${idUsuario}" sigla-usuario="FT">${conteudo}</${tag}>`;
+    // Inclusão, substituição (del e ins com o mesmo id-revisao) e exclusão que atravessa negrito, com nota no trecho excluído.
+    const justificacao =
+      `<p>Texto ${marca('ins', ID_INS, 'incluído')} e ${marca('del', ID_SUB, 'antigo')}${marca('ins', ID_SUB, 'novo')}.</p>` +
+      `<p>${marca('del', ID_EXC, 'excluído ')}<strong>${marca('del', ID_EXC, `em negrito${nota('nr1', '<p>Da exclusão.</p>')}`)}</strong> fim.</p>`;
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { justificacao });
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    // A validação com lexedit.xsd confere também a unicidade dos `id` (xsd:ID).
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    const ids = [`_rt${ID_INS}_1`, `_rt${ID_SUB}_1`, `_rt${ID_SUB}_2`, `_rt${ID_EXC}_1`, `_rt${ID_EXC}_2`];
+    expect(retorno.xml).to.include(`<ins id="${ids[0]}">incluído</ins>`);
+    expect(retorno.xml).to.include(`<del id="${ids[1]}">antigo</del><ins id="${ids[2]}">novo</ins>`);
+    expect(retorno.xml).to.include(`<b><del id="${ids[4]}">em negrito<NotaDeRodape>Da exclusão.</NotaDeRodape></del></b>`);
+    ids.forEach(id =>
+      expect(retorno.xml).to.match(new RegExp(`<lexedit:RevisaoTextual refIdRevisao="${id}" refIdUsuario="sf:fulano" data="2026-05-11T15:51:00[+-]\\d{2}:\\d{2}"/>`))
+    );
+    expect(retorno.xml).to.include('<lexedit:Usuario idUsuario="sf:fulano" nome="Fulano de Tal" sigla="FT"/>');
+    expect(retorno.xml).to.include('<lexedit:Pendencia>Resolver marcas de revisão de texto.</lexedit:Pendencia>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(retorno.jsonix.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
+
+    const dados = lerMetadadoLexEdit(retorno.jsonix);
+    const lida = lerJustificacao(retorno.jsonix, dados.revisoesTextuais);
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, { justificacao: lida })).to.deep.equal(salvo);
+  });
+
+  it('o XSD rejeita ids repetidos em ins/del da justificação', async () => {
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const marca = (tag: string): string => `<${tag} usuario="Fulano" date="2026-05-11 15:51:00 " id-revisao="r1">x</${tag}>`;
+    const salvo: any = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { justificacao: `<p>${marca('del')}${marca('ins')}</p>` });
+    const [del, ins] = salvo.value.projetoNorma.justificacao[0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento[0].value.content;
+    ins.value.id = del.value.id;
+
+    const retorno = await executeServerCommand<{ valido: boolean; erro: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido).to.equal(false);
+    expect(retorno.erro).to.include('_rtr1_1');
   });
 
   for (const imprimirPartidoUF of [true, false]) {

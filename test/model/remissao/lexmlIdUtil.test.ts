@@ -9,6 +9,7 @@ import {
   extrairParteRelativa,
   isTextoReconhecivel,
   SegmentoLexmlId,
+  tipoDoUltimoSegmento,
 } from '../../../src/model/remissao/lexmlIdUtil';
 
 describe('lexmlIdUtil', () => {
@@ -1087,5 +1088,15 @@ describe('lexmlIdUtil', () => {
       it('"" → false', () => expect(isTextoReconhecivel('')).to.be.false);
       it('"   " → false', () => expect(isTextoReconhecivel('   ')).to.be.false);
     });
+  });
+
+  describe('tipoDoUltimoSegmento', () => {
+    it('"art2" → "art"', () => expect(tipoDoUltimoSegmento('art2')).to.equal('art'));
+    it('"art1_par1u" → "par"', () => expect(tipoDoUltimoSegmento('art1_par1u')).to.equal('par'));
+    it('"art1_cpt" → "cpt" (segmento sem dígito)', () => expect(tipoDoUltimoSegmento('art1_cpt')).to.equal('cpt'));
+    it('"art1_cpt_inc2" → "inc"', () => expect(tipoDoUltimoSegmento('art1_cpt_inc2')).to.equal('inc'));
+    it('"art1_pena" → "pena"', () => expect(tipoDoUltimoSegmento('art1_pena')).to.equal('pena'));
+    it('"art1_cpt_alt1_art5_par2" (bloco de alteração) → "par"', () => expect(tipoDoUltimoSegmento('art1_cpt_alt1_art5_par2')).to.equal('par'));
+    it('"art1_cpt_alt1_art5" (bloco de alteração) → "art"', () => expect(tipoDoUltimoSegmento('art1_cpt_alt1_art5')).to.equal('art'));
   });
 });

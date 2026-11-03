@@ -177,6 +177,12 @@ export function textoCanonicoLocal(dispositivo: Dispositivo): string {
   return seg ? segmentoParaTexto(seg.tipo, seg.numero) : dispositivo.rotulo?.trim() ?? '';
 }
 
+// Não usa parseLexmlId, que descarta o segmento "cpt" (sem dígito).
+export function tipoDoUltimoSegmento(lexmlId: string): string {
+  const ultimo = lexmlId.split('_').pop() ?? '';
+  return ultimo.match(/^[a-z]+/i)?.[0].toLowerCase() ?? '';
+}
+
 // Mapeamento de nome do dispositivo (como aparece no texto) → prefixo do lexmlId
 /* eslint-disable prettier/prettier */
 const SUFIXO_PARA_TIPO: Record<string, string> = {

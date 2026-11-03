@@ -11,6 +11,7 @@ import {
   textoCanonicoDoDispositivo,
   textoCanonicoLocal,
   textoCanonicoRelativoATipo,
+  tipoDoUltimoSegmento,
 } from './lexmlIdUtil';
 
 // Fase 4/5 do plano de simplificação (docs/PLANO_SIMPLIFICACAO_ATUALIZACAO_REMISSAO.md): recalcula o
@@ -108,6 +109,10 @@ const aplicarTextoNovo = (origemTexto: string, entry: RemissaoInternaValue, text
   return origemTexto.substring(0, inicio) + textoNovo + origemTexto.substring(inicio + tamanhoAtual);
 };
 
+// Destino transformado (ex.: TAB de artigo em parágrafo): o texto enxuto deixa de descrevê-lo e ganha a cadeia completa.
+const mudouTipoDoDestino = (lexmlIdAnterior: string | undefined, lexmlIdAtual: string): boolean =>
+  !!lexmlIdAnterior && tipoDoUltimoSegmento(lexmlIdAnterior) !== tipoDoUltimoSegmento(lexmlIdAtual);
+
 const sincronizarEntrada = (articulacao: Articulacao, entrada: RemissaoInternaValue): RemissaoInternaValue => {
   if (entrada.valida === false || entrada.targetUuid === undefined || entrada.sourceUuid === undefined) {
     return entrada;
@@ -163,7 +168,7 @@ const sincronizarEntrada = (articulacao: Articulacao, entrada: RemissaoInternaVa
   let textoNovo: string;
   if (sufixo && compartilhamAncestralDoTipo(origem, destino, sufixo.tipo)) {
     textoNovo = `${textoCanonicoRelativoATipo(destino, sufixo.tipo)} ${sufixo.texto}`;
-  } else if (!sufixo && !possuiQualificadorExplicito(textoAtual)) {
+  } else if (!sufixo && !possuiQualificadorExplicito(textoAtual) && !mudouTipoDoDestino(entry.targetLexmlId, destino.id)) {
     // D4 do plano de simplificação: referência "enxuta" (ex.: "inciso I", sem "do art. X") — nunca
     // ganha uma cadeia de qualificadores que não tinha originalmente. Só corrige o segmento local se
     // a posição do próprio alvo dentro do seu pai imediato mudou de fato.

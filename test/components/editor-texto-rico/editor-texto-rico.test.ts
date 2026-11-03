@@ -1,4 +1,5 @@
 import { expect, fixture, html } from '@open-wc/testing';
+import { SinonFakeTimers, useFakeTimers } from 'sinon';
 import { EditorTextoRicoComponent, Usuario } from '../../../src';
 import { ajustaHtmlFromEditor, ajustaHtmlToEditor } from '../../../src/components/editor-texto-rico/texto-rico-util';
 import { rootStore } from '../../../src/redux/store';
@@ -149,5 +150,96 @@ describe('Testando lexml-eta-editor-texto-rico (EditorTextoRicoComponent)', () =
         });
       });
     });
+  });
+});
+
+describe('Autor completo na marca de revisão de texto', () => {
+  const marca = (tag: string, idRevisao: string, idUsuario = '', sigla = ''): string =>
+    `<${tag} usuario="Fulano de Tal" date="2026-05-11 15:51:00 " id-revisao="${idRevisao}"` +
+    (idUsuario ? ` id-usuario="${idUsuario}"` : '') +
+    (sigla ? ` sigla-usuario="${sigla}"` : '') +
+    `>`;
+
+  beforeEach(async () => {
+    editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico></lexml-eta-editor-texto-rico>`);
+    rootStore.dispatch(atualizarUsuarioAction.execute(new Usuario('Fulano de Tal', 'sf:fulano', 'FT')));
+  });
+
+  afterEach(() => {
+    if (rootStore.getState().elementoReducer.emRevisao) {
+      rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+    }
+  });
+
+  it('a marca criada em modo de revisão tem o id e a sigla do usuário do estado', () => {
+    editorTextoRico.setContent('<p>Parágrafo 1</p>');
+    rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+    editorTextoRico.quill?.insertText(0, 'TESTE', 'user');
+
+    const ins = editorTextoRico.quill!.root.querySelector('ins')!;
+    expect(!!ins).to.be.true;
+    expect(ins.getAttribute('usuario')).to.equal('Fulano de Tal');
+    expect(ins.getAttribute('id-usuario')).to.equal('sf:fulano');
+    expect(ins.getAttribute('sigla-usuario')).to.equal('FT');
+    expect(ins.getAttribute('id-revisao')).to.not.be.empty;
+  });
+
+  it('uma marca recebida sem id e sigla do usuário continua sendo marca de revisão', () => {
+    editorTextoRico.setContent(`<p>${marca('del', 'r1')}Excluído</del> mantido</p>`);
+
+    const del = editorTextoRico.quill!.root.querySelector('del')!;
+    expect(!!del).to.be.true;
+    expect(del.getAttribute('usuario')).to.equal('Fulano de Tal');
+    expect(del.hasAttribute('id-usuario')).to.be.false;
+    expect(del.hasAttribute('sigla-usuario')).to.be.false;
+    expect((editorTextoRico.quill as any).revisao.getQuantidadeRevisoes()).to.equal(1);
+  });
+
+  it('duas marcas vizinhas fundidas pelo optimize mantêm o id e a sigla do usuário', () => {
+    editorTextoRico.setContent(`<p>${marca('ins', 'r1', 'sf:fulano', 'FT')}A</ins>${marca('ins', 'r2', 'sf:ciclana', 'CC')}B</ins> fim</p>`);
+
+    const marcas = Array.from(editorTextoRico.quill!.root.querySelectorAll('ins'));
+    expect(marcas.map(el => el.textContent).join('')).to.equal('AB');
+    marcas.forEach(el => {
+      expect(el.getAttribute('id-usuario')).to.equal('sf:fulano');
+      expect(el.getAttribute('sigla-usuario')).to.equal('FT');
+    });
+  });
+});
+
+describe('Testando emissão de onchange do lexml-eta-editor-texto-rico', () => {
+  let clock: SinonFakeTimers;
+  let eventos: CustomEvent[];
+
+  beforeEach(async () => {
+    editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico registro-evento="justificativa"></lexml-eta-editor-texto-rico>`);
+    eventos = [];
+    editorTextoRico.addEventListener('onchange', e => eventos.push(e as CustomEvent));
+    clock = useFakeTimers();
+  });
+
+  afterEach(() => {
+    clock.restore();
+  });
+
+  it('emite um único onchange 1s depois da última alteração, com a origem do atributo registro-evento', () => {
+    editorTextoRico.quill?.insertText(0, 'A', 'user');
+    clock.tick(500);
+    editorTextoRico.quill?.insertText(1, 'B', 'user');
+    clock.tick(999);
+    expect(eventos).to.have.length(0);
+
+    clock.tick(1);
+    expect(eventos).to.have.length(1);
+    expect(eventos[0].detail.origemEvento).to.equal('justificativa');
+    expect(eventos[0].bubbles).to.be.true;
+    expect(eventos[0].composed).to.be.true;
+  });
+
+  it('não emite onchange ao carregar o texto com setContent', () => {
+    editorTextoRico.setContent('<p>Justificação carregada.</p>');
+    editorTextoRico.setContent('');
+    clock.tick(2000);
+    expect(eventos).to.have.length(0);
   });
 });

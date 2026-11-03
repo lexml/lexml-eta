@@ -123,6 +123,36 @@ Quando o documento em edição contém ao menos uma remissão interna inválida,
 - **WHEN** o documento em edição não contém nenhuma remissão interna inválida
 - **THEN** o arquivo salvo não contém nenhum item de pendência referente a remissões internas inválidas
 
+### Requirement: Pendência de justificação não informada
+Quando a justificação do documento em edição for obrigatória e não tiver texto, o sistema SHALL incluir, na lista de pendências dos metadados do LexEdit do arquivo salvo, o item "Não foi informado um texto de justificação.". A condição SHALL ser a mesma do alerta de justificação da aba Avisos. Ao abrir um documento, a lista de pendências gravada SHALL NOT ser usada para reconstruir o estado do editor.
+
+#### Scenario: Pendência presente com justificação vazia
+- **WHEN** o usuário salva um documento cuja justificação é obrigatória e está vazia
+- **THEN** o arquivo salvo contém, na lista de pendências, o item "Não foi informado um texto de justificação."
+
+#### Scenario: Pendência ausente com justificação preenchida
+- **WHEN** o usuário salva um documento cuja justificação tem texto
+- **THEN** o arquivo salvo não contém o item "Não foi informado um texto de justificação." na lista de pendências
+
+#### Scenario: Pendência ausente quando a justificação não é obrigatória
+- **WHEN** o usuário salva um documento no modo anexo de parecer e a justificação está vazia
+- **THEN** o arquivo salvo não contém o item "Não foi informado um texto de justificação." na lista de pendências
+
+#### Scenario: Pendência gravada não é lida ao abrir
+- **WHEN** o usuário abre um arquivo cuja lista de pendências contém "Não foi informado um texto de justificação."
+- **THEN** o editor recalcula a pendência a partir da justificação em edição, sem usar o item gravado
+
+### Requirement: Ordem das pendências no arquivo salvo
+Quando houver mais de uma pendência a gravar, o sistema SHALL gravar, nesta ordem, as que existirem: justificação não informada, remissões internas inválidas, revisões de texto e revisões da hierarquia.
+
+#### Scenario: Justificação vazia e remissão inválida
+- **WHEN** o usuário salva um documento com a justificação obrigatória vazia e ao menos uma remissão interna inválida
+- **THEN** a lista de pendências do arquivo salvo contém exatamente "Não foi informado um texto de justificação." seguido de "Corrigir remissões internas inválidas."
+
+#### Scenario: Remissão inválida e revisões de texto e da hierarquia
+- **WHEN** o usuário salva um documento com uma remissão interna inválida, uma marca de revisão de texto na justificação e uma revisão da hierarquia
+- **THEN** a lista de pendências do arquivo salvo contém exatamente "Corrigir remissões internas inválidas.", "Resolver marcas de revisão de texto." e "Resolver marcas de revisão na articulação.", nessa ordem
+
 ### Requirement: Serialização das opções de impressão
 Ao salvar, o sistema SHALL registrar as opções de impressão do documento em edição no grupo `OpcoesImpressao` dos metadados do LexEdit, sempre com os quatro atributos (`imprimirBrasao`, `textoCabecalho`, `reduzirEspacoEntreLinhas` e `tamanhoFonte`), inclusive quando os valores coincidirem com o padrão da aplicação. O valor registrado SHALL ser o do momento em que o documento é obtido, sem compartilhar referência com o formulário de opções de impressão.
 
@@ -242,7 +272,7 @@ Em modo de revisão, o sistema SHALL manter a articulação do arquivo na versã
 - **THEN** o arquivo salvo não contém `RevisoesArticulacao` nem o registro `Usuarios`
 
 ### Requirement: Revisão de alteração de texto
-Quando o texto ou o título de um dispositivo é alterado em revisão, o sistema SHALL gravar na articulação o texto e o título revisados e, na revisão `alterado`, o estado anterior do dispositivo como filho de `RevisaoArticulacao`: um dispositivo do mesmo tipo do dispositivo revisado, sem `id`, com o texto anterior e, quando havia título, com o `TituloDispositivo` anterior. A ausência de `TituloDispositivo` nesse filho SHALL significar que o dispositivo não tinha título. O sistema SHALL NOT gravar um parágrafo solto como filho da revisão.
+Quando o texto, o título ou, na pena, o rótulo de um dispositivo é alterado em revisão, o sistema SHALL gravar na articulação o texto, o título e o rótulo revisados e, na revisão `alterado`, o estado anterior do dispositivo como filho de `RevisaoArticulacao`: um dispositivo do mesmo tipo do dispositivo revisado, sem `id`, com o texto anterior e, quando havia título, com o `TituloDispositivo` anterior. A ausência de `TituloDispositivo` nesse filho SHALL significar que o dispositivo não tinha título. Quando o dispositivo revisado é uma pena, o filho SHALL conter também o `Rotulo` anterior. O sistema SHALL NOT gravar um parágrafo solto como filho da revisão.
 
 #### Scenario: Texto de inciso alterado
 - **WHEN** o usuário, em modo de revisão, altera o texto do inciso II do artigo 4 e salva
@@ -279,6 +309,22 @@ Quando o texto ou o título de um dispositivo é alterado em revisão, o sistema
 #### Scenario: Título restaurado ao valor original
 - **WHEN** o usuário, em modo de revisão, altera o título e o restaura ao valor original antes de salvar
 - **THEN** o arquivo salvo não contém revisão para esse dispositivo
+
+#### Scenario: Rótulo da pena alterado
+- **WHEN** o usuário, em modo de revisão, troca o rótulo de uma pena de "Pena –" para "Infração –" e salva
+- **THEN** a articulação contém a pena com o `Rotulo` "Infração –", e a revisão `alterado` contém como filho uma `Pena`, sem `id`, com o `Rotulo` "Pena –" e o texto da pena
+
+#### Scenario: Só o texto da pena alterado
+- **WHEN** o usuário, em modo de revisão, altera só o texto de uma pena e salva
+- **THEN** a revisão `alterado` contém como filho uma `Pena`, sem `id` e sem `Rotulo`, com o texto anterior
+
+#### Scenario: Pena excluída em revisão
+- **WHEN** o usuário, em modo de revisão, remove uma pena e salva
+- **THEN** a revisão `excluido` contém como filho a `Pena` removida, com `id` `_<base>-exc<n>`, `Rotulo` e texto
+
+#### Scenario: Esquema do LexEdit
+- **WHEN** o arquivo contém essas revisões de pena
+- **THEN** o `lexedit.xsd` aceita `Pena` como filho de `RevisaoArticulacao`; o `jsonix-lexml` 2.1.0 descarta esse filho sem erro, então a gravação depende do `jsonix-lexml` 2.2.0
 
 ### Requirement: Revisão de movimentação
 Quando um dispositivo é movido em revisão, o sistema SHALL registrar `movido;<posicaoOriginal>`, onde a posição original é o sequencial, iniciando em 1, que o dispositivo ocupava antes da movimentação. Para artigos, o sequencial SHALL contar todos os artigos da articulação; para os demais dispositivos, SHALL contar todos os filhos do pai original, de qualquer tipo.
@@ -409,7 +455,7 @@ O sistema SHALL gravar a data de cada revisão no formato ISO 8601 com fuso hor�
 - **THEN** o atributo `data` da revisão é `2026-05-11T15:51:00-03:00`
 
 ### Requirement: Registro de usuários das revisões
-O sistema SHALL registrar em `Usuarios` dos metadados do LexEdit cada usuário referenciado por alguma revisão, uma única vez, com `idUsuario` igual ao identificador fornecido pelo host, `nome` e, quando houver, `sigla`. Sem identificador, `idUsuario` SHALL ser o nome. `refIdUsuario` de cada revisão SHALL referenciar um `idUsuario` registrado.
+O sistema SHALL registrar em `Usuarios` dos metadados do LexEdit cada usuário referenciado por alguma revisão da hierarquia ou de texto, uma única vez, com `idUsuario` igual ao identificador fornecido pelo host, `nome` e, quando houver, `sigla`. Sem identificador, `idUsuario` SHALL ser o nome. `refIdUsuario` de cada revisão SHALL referenciar um `idUsuario` registrado.
 
 #### Scenario: Dois usuários revisando
 - **WHEN** duas revisões feitas pelo usuário `sf:fulano` e uma pelo usuário `sf:ciclana` são salvas
@@ -418,6 +464,14 @@ O sistema SHALL registrar em `Usuarios` dos metadados do LexEdit cada usuário r
 #### Scenario: Usuário sem identificador
 - **WHEN** uma revisão é feita por um usuário sem identificador, de nome "Anônimo"
 - **THEN** o registro em `Usuarios` e o `refIdUsuario` correspondente usam `Anônimo` como identificador
+
+#### Scenario: Mesmo usuário nos dois tipos de revisão
+- **WHEN** o usuário `sf:fulano`, de sigla "FT", faz uma revisão da hierarquia e uma revisão de texto na justificação, e o documento é salvo
+- **THEN** `Usuarios` contém um único registro de `sf:fulano`, com a sigla "FT", referenciado pelas duas revisões
+
+#### Scenario: Marca de revisão de texto sem identificador do usuário
+- **WHEN** a justificação recebida do host tem uma marca de revisão de texto que só informa o nome do autor, "Fulano de Tal", e o documento é salvo
+- **THEN** o registro em `Usuarios` e o `refIdUsuario` da marca usam `Fulano de Tal` como identificador
 
 ### Requirement: Pendência de revisões da hierarquia
 Enquanto houver ao menos uma revisão da hierarquia não resolvida, o sistema SHALL incluir na lista de pendências dos metadados do LexEdit o item "Resolver marcas de revisão na articulação.".
@@ -428,4 +482,129 @@ Enquanto houver ao menos uma revisão da hierarquia não resolvida, o sistema SH
 
 #### Scenario: Pendência ausente após resolver as revisões
 - **WHEN** o usuário aceita ou rejeita todas as revisões da hierarquia e salva
+- **THEN** a lista de pendências não contém esse item
+
+### Requirement: Serialização da pena
+O sistema SHALL gravar a pena de um dispositivo no elemento `Pena` desse dispositivo, depois dos seus filhos, com o identificador `<identificador do dono>_pena`, o `Rotulo` no formato "<rótulo> –" e o texto em `p`. A pena SHALL NOT ser gravada entre os filhos do dispositivo. A pena do artigo SHALL ser gravada no `Caput`. A gravação SHALL valer também para penas dentro de bloco de alteração de norma, e o arquivo SHALL sobreviver à conversão em XML pelo conversor LexML validada com o esquema.
+
+#### Scenario: Pena de parágrafo com incisos
+- **WHEN** o § 2º do art. 2 tem os incisos I e II e a pena "Pena –" com o texto "reclusão, de 6 (seis) a 14 (quatorze) anos, e multa." e o usuário salva
+- **THEN** o `Paragrafo` `art2_par2` contém os incisos e, depois deles, o elemento `Pena` `art2_par2_pena` com `Rotulo` "Pena –" e esse texto em `p`
+
+#### Scenario: Pena do artigo
+- **WHEN** o art. 1 tem pena e o usuário salva
+- **THEN** a pena é gravada no `Caput` `art1_cpt`, com o identificador `art1_cpt_pena`
+
+#### Scenario: Pena em bloco de alteração
+- **WHEN** um artigo de bloco de alteração tem o caput omissis e uma pena, e o usuário salva
+- **THEN** o `Caput` do artigo do bloco contém o texto omitido e a `Pena`
+
+#### Scenario: Conversão pelo conversor LexML
+- **WHEN** o arquivo com penas é convertido em XML pelo conversor, validado com o esquema e convertido de volta
+- **THEN** as penas, com identificador, rótulo e texto, são preservadas na ida e na volta
+
+### Requirement: Serialização da justificação
+Ao salvar, o sistema SHALL gravar a justificação do documento em edição em `ProjetoNorma/Justificacao/PartePrincipal`, com o conteúdo rico no subconjunto HTML do LexML. O sistema SHALL NOT gravar `Justificacao` quando a justificação não tiver conteúdo nem no modo anexo de parecer. O arquivo salvo SHALL ser válido pelo esquema LexML.
+
+#### Scenario: Justificação com texto formatado
+- **WHEN** o usuário salva um documento cuja justificação tem parágrafos com negrito, itálico, sublinhado, sobrescrito, alinhamento e uma lista
+- **THEN** o arquivo salvo contém `Justificacao/PartePrincipal` com esses parágrafos e a lista, com as mesmas marcações e classes de alinhamento
+
+#### Scenario: Justificação vazia
+- **WHEN** o usuário salva um documento cuja justificação está vazia ou só tem parágrafos vazios
+- **THEN** o arquivo salvo não contém `Justificacao`
+
+#### Scenario: Modo anexo de parecer
+- **WHEN** o usuário salva um documento no modo anexo de parecer
+- **THEN** o arquivo salvo não contém `Justificacao`
+
+#### Scenario: Valor do momento do salvamento
+- **WHEN** o usuário salva o documento e depois altera a justificação
+- **THEN** o arquivo já obtido mantém a justificação do momento em que foi salvo
+
+### Requirement: Adaptação do conteúdo rico da justificação ao LexML
+Ao gravar a justificação, o sistema SHALL converter o conteúdo do editor para o que o esquema LexML aceita, sem perder texto nem formatação suportada: negrito e itálico como `b` e `i`; link com `xlink:href`, sem `rel`; tabela sem `tbody`, sem atributos de controle do editor e sem células ocultas de mesclagem, com `id` `_tabela<sequencial>` na ordem das tabelas; parágrafo dentro de célula como `span` com a classe `p`; largura em `style`; imagem dentro de parágrafo; sem quebras de linha `br`.
+
+#### Scenario: Tabela com células mescladas e largura
+- **WHEN** o usuário salva uma justificação com uma tabela que tem largura de 80%, uma coluna de 40% e uma célula que ocupa duas colunas
+- **THEN** a tabela gravada tem `id` `_tabela1` e `style` `width: 80%`, a célula tem `colspan` 2 e a coluna tem `style` `width: 40%`
+- **AND** a tabela gravada não tem `tbody`, `table_id`, `row_id`, `cell_id` nem a célula oculta de mesclagem
+
+#### Scenario: Célula com dois parágrafos
+- **WHEN** o usuário salva uma justificação com uma célula de tabela que tem dois parágrafos, o primeiro centralizado
+- **THEN** a célula gravada contém dois `span`, o primeiro com as classes `p` e de alinhamento centralizado, e o segundo com a classe `p`
+
+#### Scenario: Duas tabelas
+- **WHEN** o usuário salva uma justificação com duas tabelas
+- **THEN** as tabelas gravadas têm os `id` `_tabela1` e `_tabela2`, na ordem do texto
+
+#### Scenario: Link
+- **WHEN** o usuário salva uma justificação com um link para `https://www.congressonacional.leg.br`
+- **THEN** o link gravado é um `a` com `xlink:href` igual a esse endereço e sem `rel`
+
+#### Scenario: Imagem com largura
+- **WHEN** o usuário salva uma justificação com uma imagem inserida pelo editor, com largura de 50%
+- **THEN** a imagem é gravada como `img` dentro de um parágrafo, com o mesmo `src` e `style` `width: 50%`
+
+#### Scenario: Parágrafo vazio
+- **WHEN** o usuário salva uma justificação com um parágrafo vazio entre dois parágrafos com texto
+- **THEN** o parágrafo vazio é gravado sem conteúdo, sem `br`
+
+### Requirement: Revisões de texto na justificação gravada
+Ao gravar a justificação, o sistema SHALL gravar cada marca de revisão de texto como `ins` (texto incluído) ou `del` (texto excluído), no ponto do texto em que está, com o conteúdo e a formatação que tiver, inclusive notas de rodapé. Cada `ins`/`del` SHALL ter um `id` de prefixo `_rt`, único no documento, e um `RevisaoTextual` nos metadados do LexEdit com esse `id` em `refIdRevisao`, o autor em `refIdUsuario` e a data com fuso horário. O arquivo salvo SHALL ser válido pelo esquema LexML.
+
+#### Scenario: Justificação com marcas de revisão
+- **WHEN** o usuário salva uma justificação com um trecho incluído e um trecho excluído em revisão de texto
+- **THEN** o texto gravado contém o trecho incluído dentro de um `ins` e o trecho excluído dentro de um `del`, cada um com `id` de prefixo `_rt`
+- **AND** `RevisoesTextuais` contém um `RevisaoTextual` para cada um, com `refIdRevisao` igual ao `id`, o `refIdUsuario` do autor e a data da revisão
+
+#### Scenario: Revisão em mais de um trecho
+- **WHEN** o usuário salva uma justificação com uma revisão que substituiu um trecho (exclusão e inclusão na mesma ação) e outra que excluiu um trecho com parte em negrito
+- **THEN** cada `ins` e cada `del` gravado tem um `id` diferente dos demais, e cada um tem o seu `RevisaoTextual`
+
+#### Scenario: Nota de rodapé em trecho excluído
+- **WHEN** o usuário salva uma justificação com uma nota de rodapé dentro de um trecho excluído em revisão
+- **THEN** o `del` gravado contém o `NotaDeRodape` da nota
+
+#### Scenario: Justificação sem marcas de revisão
+- **WHEN** o usuário salva uma justificação sem nenhuma marca de revisão de texto
+- **THEN** o arquivo salvo não contém `ins`, `del` nem `RevisoesTextuais`
+
+#### Scenario: Modo anexo de parecer
+- **WHEN** o usuário salva, no modo anexo de parecer, um documento com marcas de revisão de texto na justificação
+- **THEN** o arquivo salvo não contém `RevisoesTextuais`
+
+### Requirement: Notas de rodapé na justificação gravada
+Ao gravar a justificação, o sistema SHALL gravar cada nota de rodapé como `NotaDeRodape` no ponto do texto em que está a referência, com o texto da nota inline e com negrito, itálico, sublinhado e link. O sistema SHALL NOT gravar o número nem o identificador interno da nota. Uma nota com mais de um parágrafo SHALL ser gravada num só, com os parágrafos unidos por um espaço. O arquivo salvo SHALL ser válido pelo esquema LexML.
+
+#### Scenario: Nota no meio de um parágrafo
+- **WHEN** o usuário salva uma justificação com o parágrafo "O conceito é definido em regulamento" seguido de uma nota de rodapé com o texto "Texto formatado da nota.", com "formatado" em negrito, e de um ponto final
+- **THEN** o parágrafo gravado tem o texto "O conceito é definido em regulamento", um `NotaDeRodape` com "Texto ", um `b` com "formatado" e " da nota.", e depois o ponto final
+- **AND** o `NotaDeRodape` não contém o número da nota
+
+#### Scenario: Nota com link
+- **WHEN** o usuário salva uma justificação com uma nota de rodapé que tem um link para `https://www.congressonacional.leg.br`
+- **THEN** o `NotaDeRodape` gravado contém um `a` com `xlink:href` igual a esse endereço e sem `rel`
+
+#### Scenario: Nota com dois parágrafos
+- **WHEN** o usuário salva uma justificação com uma nota de rodapé de dois parágrafos, "Primeiro." e "Segundo."
+- **THEN** o `NotaDeRodape` gravado tem o texto "Primeiro. Segundo.", sem `p` nem `span` de parágrafo
+
+#### Scenario: Notas em lista e em célula de tabela
+- **WHEN** o usuário salva uma justificação com uma nota de rodapé num item de lista e outra num parágrafo de célula de tabela
+- **THEN** cada `NotaDeRodape` é gravado dentro do item de lista e do `span` da célula em que está a referência
+
+### Requirement: Pendência de revisões de texto
+Enquanto houver ao menos uma marca de revisão de texto na justificação gravada, o sistema SHALL incluir na lista de pendências dos metadados do LexEdit o item "Resolver marcas de revisão de texto.". Ao abrir um documento, o item gravado SHALL NOT ser usado para reconstruir o estado do editor.
+
+#### Scenario: Pendência presente com marca de revisão
+- **WHEN** o usuário salva um documento com ao menos uma marca de revisão de texto na justificação
+- **THEN** a lista de pendências contém "Resolver marcas de revisão de texto."
+
+#### Scenario: Pendência ausente após resolver as marcas
+- **WHEN** o usuário aceita ou rejeita todas as marcas de revisão de texto da justificação e salva
+- **THEN** a lista de pendências não contém esse item
+
+#### Scenario: Pendência ausente no modo anexo de parecer
+- **WHEN** o usuário salva, no modo anexo de parecer, um documento com marca de revisão de texto na justificação
 - **THEN** a lista de pendências não contém esse item

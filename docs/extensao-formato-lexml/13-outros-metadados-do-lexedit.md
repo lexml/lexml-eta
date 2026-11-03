@@ -19,7 +19,7 @@ Atributos do próprio elemento `lexedit:Metadado`.
 </lexedit:Metadado>
 ```
 
-`dataUltimaModificacao` é do tipo xsd:dateTime. `anexoParecer` é do tipo xsd:boolean: o LexEdit sempre o grava (`true` no modo de anexo de parecer, `false` no modo normal) e, ao abrir, trata o atributo ausente ou inválido como `false`. `urnDocumentoReferenciado` é do tipo xsd:string, opcional, e guarda a URN do documento ao qual a proposição se refere; é gravado só quando há documento referenciado, e o valor vazio ou ausente significa que não há referência.
+`dataUltimaModificacao` é do tipo xsd:dateTime e registra o instante do salvamento, com o fuso horário local (por exemplo, `2026-10-29T10:15:30-03:00`). Cada salvamento grava o seu próprio instante, mesmo sem alteração no documento. Ao abrir, o valor é lido como gravado e exposto ao host na propriedade `dataUltimaModificacaoDocumento` do componente; ausente ou inválido equivale a não informado. `aplicacao` e `versaoAplicacao` ainda não são gravados pelo LexEdit e são ignorados ao abrir. `anexoParecer` é do tipo xsd:boolean: o LexEdit sempre o grava (`true` no modo de anexo de parecer, `false` no modo normal) e, ao abrir, trata o atributo ausente ou inválido como `false`. `urnDocumentoReferenciado` é do tipo xsd:string, opcional, e guarda a URN do documento ao qual a proposição se refere; é gravado só quando há documento referenciado, e o valor vazio ou ausente significa que não há referência.
 
 ## Pendências
 

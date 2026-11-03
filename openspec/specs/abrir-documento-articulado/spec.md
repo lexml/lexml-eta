@@ -367,6 +367,85 @@ Ao abrir um documento de tipo suportado, em qualquer modo (inclusive o anexo de 
 - **WHEN** o usuário abre um arquivo de tipo não suportado com `tipoColegiado="Comissão"`
 - **THEN** o colegiado lido é ignorado e o documento fica sem colegiado
 
+### Requirement: Recuperação da justificação ao abrir
+Ao abrir um documento, o sistema SHALL carregar no editor da justificação o conteúdo de `ProjetoNorma/Justificacao/PartePrincipal`, refazendo o caminho inverso das adaptações feitas ao salvar: `span` com a classe `p` dentro de célula volta a ser parágrafo, a largura em `style` volta a ser a largura do editor, e a imagem dentro de parágrafo volta a ser imagem do editor. Exceção: a largura de tabela e de coluna não volta ao editor, porque o plugin de tabelas do editor não a guarda e a descarta ao carregar o texto; a largura de imagem volta. Documento sem `Justificacao` SHALL abrir com a justificação vazia. O alerta e a pendência de justificação SHALL refletir a justificação aberta.
+
+#### Scenario: Documento com justificação
+- **WHEN** o usuário abre um documento cuja justificação tem parágrafos formatados, uma lista, um link, uma tabela e uma imagem
+- **THEN** o editor da justificação exibe esse conteúdo, com a mesma formatação, a mesma largura de imagem e as mesmas células mescladas
+- **AND** a aba Avisos não exibe o alerta "Não foi informado um texto de justificação."
+
+#### Scenario: Documento sem justificação
+- **WHEN** o usuário abre um documento sem `Justificacao`, com uma justificação preenchida antes no editor
+- **THEN** o editor da justificação fica vazio, e a aba Avisos exibe o alerta "Não foi informado um texto de justificação." quando a justificação for obrigatória
+
+#### Scenario: Modo anexo de parecer
+- **WHEN** o usuário abre, no modo anexo de parecer, um documento que contém `Justificacao`
+- **THEN** a justificação do arquivo não é carregada
+
+#### Scenario: Conteúdo fora do subconjunto gravado pelo editor
+- **WHEN** o usuário abre um documento cuja justificação contém um elemento LexML que o editor não grava
+- **THEN** o documento é aberto, e o texto desse elemento é preservado na justificação
+
+#### Scenario: Salvar e reabrir preserva a justificação
+- **WHEN** o usuário salva um documento com a justificação preenchida, abre o arquivo salvo e o salva novamente sem alterações
+- **THEN** o segundo arquivo tem a mesma `Justificacao` do primeiro
+
+#### Scenario: Largura de tabela e de coluna ao abrir
+- **WHEN** o usuário abre um documento cuja justificação tem uma tabela com largura de 80% e uma coluna de 40%
+- **THEN** a tabela é exibida no editor sem essas larguras
+- **AND** salvar o documento aberto grava a tabela sem `style` de largura na tabela e na coluna
+
+### Requirement: Recuperação das notas de rodapé ao abrir
+Ao abrir um documento, o sistema SHALL recriar no editor da justificação cada `NotaDeRodape` como nota de rodapé, no mesmo ponto do texto e com o mesmo texto e formatação. As notas SHALL ser numeradas pela ordem em que aparecem na justificação, sem usar nenhum número gravado no arquivo. A lista de notas de rodapé da aba "Notas" SHALL refletir as notas do documento aberto.
+
+#### Scenario: Documento com notas de rodapé
+- **WHEN** o usuário abre um documento cuja justificação tem duas notas de rodapé, a primeira com texto em negrito
+- **THEN** o editor da justificação exibe as referências numeradas 1 e 2, na ordem do texto
+- **AND** a nota 1 tem o texto com o negrito
+- **AND** a aba "Notas" lista as duas notas
+
+#### Scenario: Documento sem notas de rodapé
+- **WHEN** o usuário abre um documento sem `NotaDeRodape` na justificação, depois de ter adicionado uma nota de rodapé no editor
+- **THEN** o editor da justificação não exibe nenhuma nota, e a aba "Notas" informa que não há notas de rodapé
+
+#### Scenario: Nota editada depois de abrir
+- **WHEN** o usuário abre um documento com uma nota de rodapé e altera o texto dessa nota
+- **THEN** salvar o documento grava o `NotaDeRodape` com o texto alterado, no mesmo ponto do texto
+
+#### Scenario: Salvar e reabrir preserva as notas de rodapé
+- **WHEN** o usuário salva um documento com notas de rodapé na justificação, abre o arquivo salvo e o salva novamente sem alterações
+- **THEN** o segundo arquivo tem a mesma `Justificacao` do primeiro, com os mesmos `NotaDeRodape`
+
+### Requirement: Recuperação das revisões de texto ao abrir
+Ao abrir um documento, o sistema SHALL recriar no editor da justificação cada `ins` e `del` como marca de revisão de texto, no mesmo ponto do texto e com o mesmo conteúdo, com o autor identificado pelo registro `Usuarios` e a data do `RevisaoTextual` correspondente no horário local. Marcas gravadas a partir da mesma revisão SHALL voltar agrupadas, para serem aceitas ou rejeitadas juntas. O contador de revisões, os botões de aceitar e rejeitar e o alerta de marcas de revisão SHALL refletir o documento aberto.
+
+#### Scenario: Documento com marcas de revisão
+- **WHEN** o usuário abre um documento cuja justificação tem um `ins` e um `del` com `RevisaoTextual` de `refIdUsuario` igual a `sf:fulano`, registrado em `Usuarios` com nome "Fulano de Tal", e data `2026-05-11T15:51:00-03:00`
+- **THEN** o editor da justificação exibe o trecho incluído e o trecho excluído com as marcas de revisão
+- **AND** a marca exibe "Fulano de Tal" como autor e a data no horário local
+- **AND** o contador de revisões da justificação indica as duas marcas, e a aba Avisos exibe o alerta de marcas de revisão
+
+#### Scenario: Revisão em mais de um trecho volta agrupada
+- **WHEN** o usuário abre um documento com uma revisão de exclusão gravada em dois `del`, por atravessar um trecho em negrito, e rejeita essa revisão pela marca de um dos trechos
+- **THEN** os dois trechos voltam ao texto sem marca
+
+#### Scenario: Marcas reabertas podem ser resolvidas
+- **WHEN** o usuário abre um documento com marcas de revisão de texto e aceita todas
+- **THEN** o texto incluído fica sem marca, o texto excluído sai do texto, e salvar o documento não grava `ins`, `del`, `RevisoesTextuais` nem a pendência "Resolver marcas de revisão de texto."
+
+#### Scenario: Autor não registrado
+- **WHEN** o usuário abre um documento com um `RevisaoTextual` de `refIdUsuario` igual a `sf:fulano` sem registro correspondente em `Usuarios`
+- **THEN** a marca é exibida com `sf:fulano` como autor, sem impedir a abertura
+
+#### Scenario: Marca sem metadados de revisão
+- **WHEN** o usuário abre um documento cuja justificação tem um `del` sem `RevisaoTextual` correspondente
+- **THEN** o trecho excluído é exibido com a marca de revisão, com o autor "Anônimo" e a data e hora da abertura
+
+#### Scenario: Salvar e reabrir preserva as revisões de texto
+- **WHEN** o usuário salva um documento com marcas de revisão de texto na justificação, abre o arquivo salvo e o salva novamente sem alterações
+- **THEN** o segundo arquivo tem a mesma `Justificacao` e os mesmos `RevisoesTextuais` e `Usuarios` do primeiro
+
 ### Requirement: Abertura de documento de tipo não suportado
 Ao abrir um documento cuja URN não seja de proposição suportada pelo editor (ver `vocabulario-urn`; por exemplo, uma medida provisória, de autoridade `federal`, ou uma norma), o sistema SHALL abrir o documento como tipo "não suportado": SHALL NOT exibir a edição do colegiado de destino nem a da autoria, SHALL ignorar os valores de destino e autoria do arquivo, e SHALL gravar ambos vazios ao salvar. A aba de avisos SHALL exibir uma mensagem de erro informando que esse tipo de documento não é completamente suportado pelo editor. O erro SHALL NOT impedir a edição do texto nem o salvamento.
 
@@ -404,3 +483,37 @@ Ao abrir um documento, o sistema SHALL aplicar o modo de anexo de parecer e a UR
 #### Scenario: Documento referenciado lido do arquivo
 - **WHEN** o usuário abre um arquivo com `urnDocumentoReferenciado`
 - **THEN** o documento aberto mantém essa URN como documento referenciado
+
+### Requirement: Recuperação da pena ao abrir
+Ao abrir um documento, o sistema SHALL recuperar a pena de cada dispositivo que a tiver (inclusive o `Caput` e dispositivos de bloco de alteração) como último filho desse dispositivo, com o texto e o rótulo gravados. O separador do rótulo SHALL ser normalizado: o rótulo é o texto antes do separador (hífen, meia-risca, travessão ou o caractere de controle U+0096), sem espaços nas pontas, seguido de " –". A normalização SHALL NOT gerar revisão. Uma pena com mais de um parágrafo SHALL ter os parágrafos unidos num único texto.
+
+#### Scenario: Abrir documento com pena
+- **WHEN** o usuário abre um arquivo em que o `Paragrafo` `art2_par2` tem incisos e a `Pena` `art2_par2_pena`
+- **THEN** o editor exibe a pena depois dos incisos do § 2º, com o rótulo e o texto gravados
+
+#### Scenario: Rótulo com hífen
+- **WHEN** o arquivo traz uma pena com o `Rotulo` "Pena -"
+- **THEN** a pena é exibida com o rótulo "Pena –", e o próximo salvamento grava "Pena –"
+
+#### Scenario: Rótulo fora da lista
+- **WHEN** o arquivo traz uma pena com o `Rotulo` "Sanção -"
+- **THEN** a pena é exibida com o rótulo "Sanção –", e o modal de rótulo abre com "Outro" e "Sanção"
+
+#### Scenario: Ida e volta
+- **WHEN** o usuário abre um arquivo com penas, salva sem editar e abre o novo arquivo
+- **THEN** as penas têm os mesmos identificadores, rótulos e textos
+
+### Requirement: Reconstrução do rótulo anterior da pena ao abrir
+Ao abrir um documento com uma revisão `alterado` de uma pena cujo estado anterior traz um `Rotulo`, o sistema SHALL reconstruir o rótulo anterior, de modo que a marca tenha a mesma descrição da sessão em que foi criada e que rejeitar a revisão restaure o rótulo anterior. Sem `Rotulo` no estado anterior, o rótulo anterior SHALL ser considerado igual ao atual.
+
+#### Scenario: Rejeitar a troca de rótulo reaberta
+- **WHEN** o usuário abre um documento com a pena "Infração –" e uma revisão `alterado` cujo estado anterior tem o `Rotulo` "Pena –", e rejeita a revisão
+- **THEN** a pena volta a exibir "Pena –"
+
+#### Scenario: Estado anterior sem rótulo
+- **WHEN** o usuário abre um documento com uma revisão `alterado` de uma pena cujo estado anterior não tem `Rotulo`
+- **THEN** a revisão é tratada como alteração só do texto, com o rótulo anterior igual ao atual
+
+#### Scenario: Pena excluída em revisão reaberta
+- **WHEN** o usuário abre um documento com uma revisão `excluido` cujo dispositivo excluído é uma `Pena`, e rejeita a revisão
+- **THEN** a pena volta como último filho do dono, com o rótulo e o texto gravados

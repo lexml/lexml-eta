@@ -38,11 +38,13 @@ import { StateEvent, StateType } from '../redux/state';
 import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 import { resetarDocumentoAction } from '../model/lexml/acao/resetarDocumentoAction';
 import { buildContent, getUrn, lerMetadadoLexEdit, lerSituacaoNaNormaVigente } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { lerJustificacao } from '../model/lexml/documento/conversor/justificacao';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { AnexosComponent } from './anexos/anexos.component';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { isHtmlSemTexto } from '../util/string-util';
+import { formatDateTime, formatDateTimeToIso } from '../util/date-util';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { Anexo, Autoria, ColegiadoApreciador, Epigrafe, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
 import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
@@ -73,6 +75,9 @@ class ParametrosEdicao {
   projetoNorma?: ProjetoNorma;
   anexoParecer = false;
 }
+
+// Mesmo texto no alerta, na pendência de preenchimento e na pendência gravada ao salvar.
+const MENSAGEM_JUSTIFICACAO_NAO_INFORMADA = 'Não foi informado um texto de justificação.';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
@@ -114,6 +119,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   private anexoParecer = false;
 
   private urnDocumentoReferenciado?: string;
+
+  private _dataUltimaModificacaoDocumento?: string;
+
+  /** `dataUltimaModificacao` do documento aberto, como gravada; salvar não a altera. Não é o campo "Data" do fecho. */
+  get dataUltimaModificacaoDocumento(): string | undefined {
+    return this._dataUltimaModificacaoDocumento;
+  }
 
   // Documento que não é proposição suportada (ex.: MPV, norma): sem colegiado e autoria, com erro na aba de avisos.
   @state()
@@ -203,17 +215,22 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   /** Exporta somente os grupos implementados do documento LexML. */
   getDocumentoArticulado(): DocumentoArticulado {
     if (!this.urn) throw new Error('Inicialize um documento antes de salvar.');
+    const pendencias = this.isJustificacaoNaoInformada(this._lexmlJustificativa.texto) ? [MENSAGEM_JUSTIFICACAO_NAO_INFORMADA] : [];
+    // A justificação não é gravada no anexo de parecer (spec salvar-documento-articulado).
     return this._lexmlEta!.getDocumentoArticulado({
       anexoParecer: this.anexoParecer,
       ...(this.urnDocumentoReferenciado && { urnDocumentoReferenciado: this.urnDocumentoReferenciado }),
       local: this.getLocalFecho(),
       data: normalizarDataFecho(this._lexmlData.data),
+      dataUltimaModificacao: formatDateTimeToIso(formatDateTime(new Date())),
       // Em tipo não suportado, colegiado e autoria saem vazios.
       ...(this.tipoNaoSuportado ? {} : { autoria: this._lexmlAutoria.getAutoriaAtualizada() }),
       ...(this.tipoNaoSuportado || !this.colegiadoApreciador ? {} : { colegiadoApreciador: this.colegiadoApreciador }),
+      ...(this.anexoParecer ? {} : { justificacao: this._lexmlJustificativa.texto }),
       opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao,
       outrosMetadados: this.outrosMetadados,
       anexos: this._lexmlAnexos?.anexos,
+      pendencias,
     });
   }
 
@@ -283,8 +300,17 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this.colegiadoApreciador = { siglaCasaLegislativa: this.casaLegislativa, tipoColegiado, siglaComissao };
     }
     this.localDoArquivo = dados.local;
+    if (!this.anexoParecer) {
+      this._lexmlJustificativa.setContent(lerJustificacao(documento, dados.revisoesTextuais));
+      // setContent é silencioso: o alerta avaliado em inicializarEdicao e a aba "Notas" refletiriam o texto anterior.
+      this.buildAlertaJustificativa();
+      this._lexmlJustificativa.alertaGlobalRevisao();
+      this._lexmlJustificativa.updateNotasRodape();
+      this.notasRodape = this._lexmlJustificativa.notasRodape;
+    }
     this.outrosMetadados = dados.outrosMetadados ?? {};
     this.urnDocumentoReferenciado = dados.urnDocumentoReferenciado;
+    this._dataUltimaModificacaoDocumento = dados.dataUltimaModificacao;
     this.aplicarAnexos(dados.anexos);
   }
 
@@ -351,8 +377,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const pendenciasPreenchimento: Array<string> = [];
 
     // Verifica preenchimento da justificação
-    if (this.isJustificacaoObrigatoria() && isHtmlSemTexto(proposicao.justificativa)) {
-      pendenciasPreenchimento.push('Não foi informado um texto de justificação.');
+    if (this.isJustificacaoNaoInformada(proposicao.justificativa)) {
+      pendenciasPreenchimento.push(MENSAGEM_JUSTIFICACAO_NAO_INFORMADA);
     }
 
     const messagesCritical = rootStore.getState().elementoReducer.mensagensCritical;
@@ -413,6 +439,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         rootStore.dispatch(adicionarAlerta({ id: ALERTA_TIPO_NAO_SUPORTADO, tipo: TipoMensagem.ERROR, mensagem: PENDENCIA_DOCUMENTO_NAO_SUPORTADO, podeFechar: false }));
       }
 
+      // Também depois das limpezas: abrir a justificação não emite onchange.
+      this.buildAlertaJustificativa();
+
       setTimeout(this.handleResize, 0);
 
       this.desativarMarcaRevisao();
@@ -451,6 +480,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.localDoArquivo = undefined;
     this.colegiadoApreciador = undefined;
     this.outrosMetadados = {};
+    this._dataUltimaModificacaoDocumento = undefined;
     this.notasRodape = [];
     // Antes da primeira renderização os formulários ainda não existem.
     if (this._lexmlJustificativa) {
@@ -726,13 +756,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return !this.anexoParecer;
   }
 
-  buildAlertaJustificativa(): void {
-    if (!this.isJustificacaoObrigatoria()) {
-      rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
-      return;
-    }
+  // Condição única do alerta e da pendência de justificação.
+  private isJustificacaoNaoInformada(justificativa: string | undefined): boolean {
+    return this.isJustificacaoObrigatoria() && isHtmlSemTexto(justificativa);
+  }
 
-    if (this._lexmlJustificativa.isEditorVazio()) {
+  buildAlertaJustificativa(): void {
+    if (this.isJustificacaoNaoInformada(this._lexmlJustificativa.texto)) {
       this.disparaAlerta();
     } else {
       rootStore.dispatch(removerAlerta('alerta-global-justificativa'));
@@ -743,7 +773,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const alerta = {
       id: 'alerta-global-justificativa',
       tipo: TipoMensagem.CRITICAL,
-      mensagem: 'A proposição não possui uma justificação',
+      mensagem: MENSAGEM_JUSTIFICACAO_NAO_INFORMADA,
       podeFechar: false,
     };
     rootStore.dispatch(adicionarAlerta(alerta));
@@ -984,7 +1014,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
                 .lexmlEtaConfig=${this.lexmlEtaConfig}
                 modo="justificativa"
                 id="lexml-eta-editor-texto-rico-justificativa"
-                registroEvento="justificativa"
+                registro-evento="justificativa"
                 @onchange=${this.onChange}
               ></lexml-eta-editor-texto-rico>
             </sl-tab-panel>

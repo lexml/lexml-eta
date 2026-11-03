@@ -70,14 +70,14 @@ Datas e horas devem ser serializadas em ISO 8601, utilizando os tipos xsd:date o
 | Fecho com local e data | [03-fecho-local-e-data.md](03-fecho-local-e-data.md) | Implementado, com `ParteFinal/LocalDataFecho` |
 | Assinaturas | [04-assinaturas.md](04-assinaturas.md) | Implementado para parlamentares, com `ParteFinal/AssinaturaTexto`; comissão (`ColegiadoAutor`) pendente |
 | Anexos | [05-anexos.md](05-anexos.md) | Não implementado |
-| Justificação e conteúdo rico | [06-justificacao-e-conteudo-rico.md](06-justificacao-e-conteudo-rico.md) | Parcial (verificar) |
-| Notas de rodapé | [07-notas-de-rodape.md](07-notas-de-rodape.md) | Não implementado |
+| Justificação e conteúdo rico | [06-justificacao-e-conteudo-rico.md](06-justificacao-e-conteudo-rico.md) | Implementado (#991); largura de tabela e coluna não volta ao editor |
+| Notas de rodapé | [07-notas-de-rodape.md](07-notas-de-rodape.md) | Implementado (#993); parágrafos da nota unidos num só |
 | Comentários | [08-comentarios.md](08-comentarios.md) | Não implementado |
-| Revisão de texto | [09-revisao-de-texto.md](09-revisao-de-texto.md) | Não implementado |
+| Revisão de texto | [09-revisao-de-texto.md](09-revisao-de-texto.md) | Implementado (#994) na justificação, com id `_rt<id-revisao>_<n>` e um `RevisaoTextual` por elemento |
 | Remissões internas | [10-remissoes-internas.md](10-remissoes-internas.md) | Implementado |
 | Revisão da hierarquia | [11-revisao-da-hierarquia.md](11-revisao-da-hierarquia.md) | Implementado |
-| Registro de usuários | [12-registro-usuarios.md](12-registro-usuarios.md) | Implementado para os usuários das revisões da hierarquia |
-| Outros metadados do LexEdit | [13-outros-metadados-do-lexedit.md](13-outros-metadados-do-lexedit.md) | Parcial: `Pendencias` e `SituacaoNaNormaVigente`; os atributos de `lexedit:Metadado` deste grupo não são gravados |
+| Registro de usuários | [12-registro-usuarios.md](12-registro-usuarios.md) | Implementado para os usuários das revisões da hierarquia e das revisões de texto |
+| Outros metadados do LexEdit | [13-outros-metadados-do-lexedit.md](13-outros-metadados-do-lexedit.md) | Implementado (#997): `Pendencias`, `SituacaoNaNormaVigente` e os atributos `dataUltimaModificacao`, `anexoParecer` e `urnDocumentoReferenciado`; `aplicacao` e `versaoAplicacao` ainda não são gravados |
 | Colegiado apreciador | [14-colegiado-apreciador.md](14-colegiado-apreciador.md) | Implementado |
 | Metadados genéricos dos hosts | [15-outros-metadados-dos-hosts.md](15-outros-metadados-dos-hosts.md) | Implementado |
 | Exemplo completo | [99-exemplo-completo.md](99-exemplo-completo.md) | — |

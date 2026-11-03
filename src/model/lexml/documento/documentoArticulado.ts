@@ -19,6 +19,8 @@ export interface MetadadoLexEdit {
   // Ausente nos arquivos antigos: equivale a false (modo normal).
   anexoParecer?: boolean;
   urnDocumentoReferenciado?: string;
+  // xsd:dateTime do salvamento; `aplicacao` e `versaoAplicacao` ainda não são gravados (especificação 13).
+  dataUltimaModificacao?: string;
   // Atributos opcionais no arquivo: a ausência significa o padrão da aplicação (especificação 02).
   opcoesImpressao?: Partial<OpcoesImpressao> & { TYPE_NAME?: string };
   // Só autoria de parlamentares por enquanto (especificação 04).
@@ -41,6 +43,8 @@ export interface MetadadoLexEdit {
   anexos?: { TYPE_NAME: string; anexo: Array<Anexo & { TYPE_NAME: string }> };
   revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
   usuarios?: RevisoesLexEdit['usuarios'];
+  // Um RevisaoTextual por `ins`/`del` da justificação (especificação 09).
+  revisoesTextuais?: { TYPE_NAME: string; revisaoTextual: Array<{ TYPE_NAME: string; refIdRevisao: string; refIdUsuario: string; data: string }> };
 }
 
 /** `lexedit:RevisaoArticulacao`: o conteúdo filho é uma única propriedade do choice do XSD (o dispositivo anterior ou excluído, ex.: `artigo`; ou `p`, só na leitura). */
@@ -74,10 +78,16 @@ export interface MetadadoLexEditProvisorio {
 export interface DadosLexEdit {
   anexoParecer?: boolean;
   urnDocumentoReferenciado?: string;
+  // Ao salvar, o instante informado pelo editor; ao abrir, o valor lido como gravado.
+  dataUltimaModificacao?: string;
   local?: string;
   // 'AAAA-MM-DD'; ausente ou vazia significa data não informada.
   data?: string;
   opcoesImpressao?: OpcoesImpressao;
+  // Calculadas pelo editor ao salvar; nunca preenchidas pela leitura, pois são recalculadas ao abrir.
+  pendencias?: string[];
+  // HTML do editor; vai para ProjetoNorma/Justificacao (LexML), não para `lexedit`, e não é lido por lerMetadadoLexEdit.
+  justificacao?: string;
   autoria?: Autoria;
   colegiadoApreciador?: ColegiadoApreciador;
   outrosMetadados?: Record<string, string>;
@@ -85,6 +95,14 @@ export interface DadosLexEdit {
   revisoes?: RevisoesLexEdit;
   // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
   revisoesLidas?: RevisaoArticulacaoLida[];
+  // Só na leitura: autor e data de cada `ins`/`del` da justificação, por `refIdRevisao`.
+  revisoesTextuais?: Record<string, RevisaoTextualLida>;
+}
+
+/** `lexedit:RevisaoTextual` lida do arquivo; `dataHora` no formato interno (`AAAA-MM-DD HH:mm:ss`, horário local). */
+export interface RevisaoTextualLida {
+  usuario: Usuario;
+  dataHora: string;
 }
 
 /** `lexedit:RevisaoArticulacao` lida do arquivo, já sem as operações desconhecidas. */
