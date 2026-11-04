@@ -57,22 +57,20 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 | Recategorizar dispositivos (parágrafo em artigo, enumeradores de nível) | Essencial | Implementado | `transformaTipoElemento.ts`, `modificaTipoElementoWithTab.ts` |
 | Mover dispositivos para destinos compatíveis | Essencial | Implementado | `moveElementoAcima.ts`, `moveElementoAbaixo.ts` |
 | Blocos de alteração com omissis e nota (NR/AC) | Essencial | Implementado | `blocoAlteracaoAction.ts`, `atualizaNotaAlteracao.ts` |
-| Técnica legislativa penal (Pena, Penalidade, Medida Administrativa, Infração) | Essencial | Depende de especificação | Requisitos formais (João Lima); não há tipo no modelo |
-| Título de dispositivo (`TituloDispositivo`): adicionar, remover e editar | Essencial | Parcial (só apresenta o título; a edição está especificada) | Issue #1010, `eta-blot-titulo-dispositivo.ts` |
+| Técnica legislativa penal (Pena, Penalidade, Medida Administrativa, Infração) | Essencial | Implementado | Requisitos formais (João Lima) |
+| Título de dispositivo (`TituloDispositivo`): adicionar, remover e editar | Essencial | Implementado | Issue #1010, `eta-blot-titulo-dispositivo.ts` |
 | Validação das regras de técnica legislativa (LC 95/1998) e dos rótulos | Essencial | Implementado | `src/model/lexml/regras/`, `validaArticulacao.ts` |
 | Remissões internas (detecção, atualização na renumeração, invalidação) | Essencial | Implementado | `openspec/specs/remissao-interna/` |
 | Remissões externas (criação manual e detecção automática pelo lexml-linker) | Desejável | Implementado | `openspec/specs/remissao-externa/`, `docs/planos/PLANO_INTEGRACAO_LEXML_LINKER_WASM.md` |
 | Colar texto articulado com apoio do parser | Essencial | Implementado | `colarTextoArticuladoDialog.ts`, `colarUtil.ts` |
-| Importar documento articulado (DOCX ou TXT) | Essencial | Depende de especificação | Requisitos gerais (João Lima) |
+| Importar documento articulado (DOCX ou TXT) | Essencial | Depende de especificação | Requisitos gerais (João Lima), issue #1059 |
 | Revisão do texto da justificação (marcar, aceitar, rejeitar) | Essencial | Implementado | `moduloRevisao.ts` |
-| Revisão da articulação (marcar, aceitar, rejeitar) | Essencial | Parcial | `aceitaRevisao.ts` |
+| Revisão da articulação (marcar, aceitar, rejeitar) | Essencial | Implementado | `aceitaRevisao.ts` |
 | Notas de rodapé na justificação | Desejável | Implementado | `moduloNotaRodape.ts` |
 | Paginação da articulação em documentos grandes | Desejável | Implementado | `openspec/specs/paginacao-articulacao/` |
 | Desfazer e refazer | Essencial | Implementado | `undo.ts`, `redo.ts` |
 | Modo de anexo de parecer | Essencial | Implementado | |
-| Alterar tipo da proposição (ex.: PL para PLP, MPV para PLV, PL para substitutivo ao PL) | Desejável | Depende de especificação | |
-| Alteração de norma vigente que não segue a LC 95/1998 | Desejável | Depende de especificação | |
-| Reconhecimento de dispositivo genérico e transformação em dispositivo conhecido | Desejável | Depende de especificação | |
+| Alterar tipo da proposição (ex.: PL para PLP, MPV para PLV, PL para substitutivo ao PL) | Desejável | Depende de especificação | Issue #1051 |
 
 [↑ Voltar ao índice](#índice)
 
@@ -84,13 +82,12 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 | Opções de impressão (inclui o tamanho de fonte configurável) | Essencial | Implementado | `02-opcoes-de-impressao.md`, issue #988 |
 | Local e data do fecho | Essencial | Implementado | `03-fecho-local-e-data.md`, issue #989 |
 | Autoria por parlamentares (com assinaturas) | Essencial | Implementado | `04-assinaturas.md`, issue #990 |
-| Autoria por comissão (`ColegiadoAutor`) | Desejável | Depende de especificação (ainda não se sabe se será necessária) | `04-assinaturas.md` |
-| Destino da proposição (substitutivos) | Desejável | Depende de especificação | Pendência 2 |
-| Substitutivo e demais metadados do LexEdit | Desejável | A implementar (especificado) | `13-outros-metadados-do-lexedit.md`, issue #997 |
-| Gestão de anexos | Desejável | A implementar (especificado) — ainda sem issue | `05-anexos.md` |
+| Destino da proposição (substitutivos) | Desejável | Implementado | |
+| Substitutivo e demais metadados do LexEdit | Desejável | Implementado | `13-outros-metadados-do-lexedit.md`, issue #997 |
+| Gestão de anexos | Desejável | Implementado | `05-anexos.md` |
 | Justificação com conteúdo rico | Essencial | Implementado (a persistência está no item C) | `06-justificacao-e-conteudo-rico.md` |
-| Comentários | Desejável | A implementar (especificado) — ainda sem issue | `08-comentarios.md` |
-| Registro de usuários (autores de revisões e comentários) | Desejável | A implementar (especificado) — ainda sem issue | `12-registro-usuarios.md` |
+| Comentários | Desejável | A implementar (especificado) | Issue #972, `08-comentarios.md` |
+| Registro de usuários (autores de revisões e comentários) | Desejável | Implementado | `12-registro-usuarios.md` |
 
 [↑ Voltar ao índice](#índice)
 
@@ -103,15 +100,14 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 | Salvar e abrir local e data do fecho (com `LocalDataFecho`) | Essencial | Implementado | Issue #989 |
 | Salvar e abrir autoria de parlamentares (com `AssinaturaTexto`) | Essencial | Implementado | Issue #990 |
 | Salvar e abrir remissões internas inválidas | Essencial | Implementado | Issue #995 |
-| Salvar e abrir a justificação (compatibilidade Quill e LexML) | Essencial | A implementar (especificado) | Issue #991 |
-| Salvar pendências de protocolamento | Essencial | Parcial (só a estrutura; falta a pendência da justificação) | Issue #992 |
-| Salvar e abrir notas de rodapé | Desejável | A implementar (especificado) | Issue #993 |
-| Salvar e abrir revisões textuais e usuários | Desejável | A implementar (especificado) | Issue #994 |
-| Salvar e abrir revisões da hierarquia | Desejável | A implementar (especificado) | Issue #996 |
-| Salvar e abrir os demais metadados do LexEdit | Desejável | A implementar (especificado) | Issue #997 |
-| Salvar e abrir anexos | Desejável | A implementar (especificado) — ainda sem issue | `05-anexos.md` |
-| Salvar e abrir comentários | Desejável | A implementar (especificado) — ainda sem issue | `08-comentarios.md` |
-| Salvar e abrir autoria por comissão | Desejável | Depende de especificação (ainda não se sabe se será necessária) | `04-assinaturas.md` |
+| Salvar e abrir a justificação (compatibilidade Quill e LexML) | Essencial | Implementado | Issue #991 |
+| Salvar pendências de protocolamento | Essencial | Implementado | Issue #992 |
+| Salvar e abrir notas de rodapé | Desejável | Implementado | Issue #993 |
+| Salvar e abrir revisões textuais e usuários | Desejável | Implementado | Issue #994 |
+| Salvar e abrir revisões da hierarquia | Desejável | Implementado | Issue #996 |
+| Salvar e abrir os demais metadados do LexEdit | Desejável | Implementado | Issue #997 |
+| Salvar e abrir anexos | Desejável | Implementado | `05-anexos.md` |
+| Salvar e abrir comentários | Desejável | A implementar (especificado) | Issue #972, `08-comentarios.md` |
 | Validar a estrutura e converter para LexML (XML) | Essencial | Implementado | `test:documento-articulado:xml`, `schemas/lexedit.xsd` |
 
 [↑ Voltar ao índice](#índice)
@@ -120,8 +116,8 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 
 | Funcionalidade | Prioridade | Situação | Referência |
 |---|---|---|---|
-| Gerar o PDF/A da proposição com `documento-articulado.xml` anexo | Essencial | Parcial (o serviço gera PDF de emenda e de parecer; falta confirmar a proposição e o PDF/A) | `eta-backend-services/README.md` |
-| Recuperar os dados (`documento-articulado.xml`) a partir do PDF | Essencial | Parcial (o serviço recupera o JSON de emenda e de parecer; idem) | `eta-backend-services/README.md` |
+| Gerar o PDF/A da proposição com `documento-articulado.xml` anexo | Essencial | Implementado | `eta-backend-services/README.md` |
+| Recuperar os dados (`documento-articulado.xml`) a partir do PDF | Essencial | Implementado | `eta-backend-services/README.md` |
 | Converter LexML XML em jsonix e vice-versa | Essencial | Implementado | `jsonix-lexml` |
 
 [↑ Voltar ao índice](#índice)
@@ -199,16 +195,9 @@ Regras próprias de cada casa, independentes do componente que as implementa.
 | # | Pergunta | Área | Casa | Quem decide | O que bloqueia |
 |---|---|---|---|---|---|
 | 1 | Existem regras para o local no fecho do documento? | B | | | |
-| 2 | Tem sentido a configuração de destino do projeto? Talvez apenas para substitutivos. | B | | | |
-| 3 | Quais são os tipos de autoria? Inclui definir se será permitida assinatura não identificada. | B | | | |
-| 4 | Será necessária a autoria por comissão (`ColegiadoAutor`)? A especificação existe, mas não há issue. | B, C | | | Autoria por comissão (edição e persistência) |
-| 5 | Como tratar a técnica legislativa penal (Pena, Penalidade, Medida Administrativa, Infração), hoje sem tipo no modelo? | A | | | Técnica legislativa penal (essencial) |
 | 6 | Quais funcionalidades de abrir, salvar, nomear, excluir e enviar a proposição cada aplicação já oferece? | E, F | | | |
-| 7 | Como serão gerados e lidos o PDF/A da proposição e o `documento-articulado.xml` anexo? Verificar o estado em `eta-backend-services`. | D | | | |
 | 8 | Quais regras específicas da Câmara dos Deputados precisam ser levantadas? | Todas | CD | | |
-| 9 | Quais tipos de proposição permitem substitutivo? | B | | | Destino da proposição (nº 2) e metadado de substitutivo (#997) |
 | 10 | Será necessário configurar a ordem padrão de escrita dos dispositivos nas remissões internas? | A | | | |
-| 11 | Ao propor novos dispositivos em uma norma vigente que não segue a LC 95/1998, podemos seguir a LC 95/1998 nesses dispositivos? | A | | | Alteração de norma vigente que não segue a LC 95/1998 |
 
 [↑ Voltar ao índice](#índice)
 
@@ -228,6 +217,8 @@ Regras próprias de cada casa, independentes do componente que as implementa.
 | 2026-10-06 | Recategorizar agrupadores (subir ou descer um nível da hierarquia) está fora do escopo | Ver seção 7 |
 | 2026-10-06 | Importar documento articulado é essencial e aceita DOCX ou TXT (não PDF) | Os requisitos gerais (João Lima) citavam DOCX e PDF |
 | 2026-10-07 | Exportar o texto completo em DOCX e em LexML está fora do escopo; o padrão de arquivo do editor é o PDF/A-3 com LexML anexado | Ver seção 7 |
+| 2026-11-04 | Autoria por comissão (`ColegiadoAutor`) removida do mapa | Não será necessária |
+| 2026-11-04 | Alteração de norma vigente que não segue a LC 95/1998 e reconhecimento de dispositivo genérico estão fora do escopo | Ver seção 7 |
 
 [↑ Voltar ao índice](#índice)
 
@@ -244,6 +235,8 @@ Requisitos de referência que foram avaliados e deliberadamente não serão impl
 | Exportar o texto completo em DOCX | Decisão de escopo | Requisitos gerais (João Lima) |
 | Exportar o texto completo em LexML | Decisão de escopo | Requisitos gerais (João Lima) |
 | Geração assistida do bloco de alteração a partir do texto da norma | O texto da norma virá do SIGEN | Requisitos gerais e formais (João Lima) |
+| Alteração de norma vigente que não segue a LC 95/1998 | Decisão de escopo | |
+| Reconhecimento de dispositivo genérico e transformação em dispositivo conhecido | Decisão de escopo | |
 | Edição de normas | Decisão de escopo | |
 | Editor de pareceres | Fora do escopo do mapa | `AGENTS.md` |
 
