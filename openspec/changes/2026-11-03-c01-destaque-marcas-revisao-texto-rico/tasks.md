@@ -5,9 +5,9 @@
 
 ## 2. Moldura sob o cursor e texto entregue
 
-- [ ] 2.1 Em `editor-texto-rico.component.ts`, no `setTimeout` de `onSelectionChange`, chamar a atualização da moldura: limpar as três classes, localizar o `ins`/`del` sob o cursor (caractere depois e antes do cursor; primeiro e último da seleção), marcar os elementos de mesma tag e mesmo `id-revisao` e marcar os pares contíguos pela posição no Quill (design.md, "Moldura por classes no DOM"). Verificar com o teste de componente da 3.2.
-- [ ] 2.2 Marcar os `del` com `spellcheck="false"` em `setContent`, `updateTexto` e `updateApenasTexto`. Verificar com o teste de componente da 3.3.
-- [ ] 2.3 Em `ajustaHtml`, retirar o atributo `spellcheck` e as classes `revisao-selecionada`, `revisao-fragmento-continua-anterior` e `revisao-fragmento-continua-proximo` (removendo o atributo `class` que ficar vazio). Verificar com o teste de componente da 3.4.
+- [x] 2.1 Em `editor-texto-rico.component.ts`, no `setTimeout` de `onSelectionChange`, chamar a atualização da moldura: limpar as três classes, localizar o `ins`/`del` sob o cursor (caractere depois e antes do cursor; primeiro e último da seleção), marcar os elementos de mesma tag e mesmo `id-revisao` e marcar os pares contíguos pela posição no Quill (design.md, "Moldura por classes no DOM"). Verificar com o teste de componente da 3.2.
+- [x] 2.2 Marcar os `del` com `spellcheck="false"` em `setContent`, `updateTexto` e `updateApenasTexto`. Verificar com o teste de componente da 3.3.
+- [x] 2.3 Em `ajustaHtml`, retirar o atributo `spellcheck` e as classes `revisao-selecionada`, `revisao-fragmento-continua-anterior` e `revisao-fragmento-continua-proximo` (removendo o atributo `class` que ficar vazio). Verificar com o teste de componente da 3.4.
 
 ## 3. Testes de componente
 

@@ -27,6 +27,29 @@ export const removeElementosTDOcultos = (html = ''): string => {
   return tempDiv.innerHTML;
 };
 
+export const CLASSE_REVISAO_SELECIONADA = 'revisao-selecionada';
+export const CLASSE_FRAGMENTO_CONTINUA_ANTERIOR = 'revisao-fragmento-continua-anterior';
+export const CLASSE_FRAGMENTO_CONTINUA_PROXIMO = 'revisao-fragmento-continua-proximo';
+export const CLASSES_DESTAQUE_REVISAO = [CLASSE_REVISAO_SELECIONADA, CLASSE_FRAGMENTO_CONTINUA_ANTERIOR, CLASSE_FRAGMENTO_CONTINUA_PROXIMO];
+
+// A moldura e o spellcheck do texto excluído existem só na tela, não no texto entregue.
+export const removeMarcacaoDestaqueRevisao = (html = ''): string => {
+  if (!html.includes('spellcheck') && !CLASSES_DESTAQUE_REVISAO.some(classe => html.includes(classe))) {
+    return html;
+  }
+
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  tempDiv.querySelectorAll('[spellcheck]').forEach(el => el.removeAttribute('spellcheck'));
+  CLASSES_DESTAQUE_REVISAO.forEach(classe =>
+    tempDiv.querySelectorAll(`.${classe}`).forEach(el => {
+      el.classList.remove(classe);
+      if (!el.classList.length) el.removeAttribute('class');
+    })
+  );
+  return tempDiv.innerHTML;
+};
+
 export const removeElementosTDOcultosByRegex = (html = ''): string => {
   const regex = /<td[^>]*\smerge_id="[^"]*"[^>]*>[\s\S]*?<\/td>/gim;
   return html.replace(regex, '');

@@ -12,7 +12,14 @@ import { editorTextoRicoCss } from '../editor-texto-rico/editor-texto-rico.css';
 import { quillTableCss } from '../editor-texto-rico/quill.table.css';
 import TableModule from '../../assets/js/quill1-table/index.js';
 import TableTrick from '../../assets/js/quill1-table/js/TableTrick.js';
-import { removeElementosTDOcultos } from './texto-rico-util';
+import {
+  CLASSE_FRAGMENTO_CONTINUA_ANTERIOR,
+  CLASSE_FRAGMENTO_CONTINUA_PROXIMO,
+  CLASSE_REVISAO_SELECIONADA,
+  CLASSES_DESTAQUE_REVISAO,
+  removeElementosTDOcultos,
+  removeMarcacaoDestaqueRevisao,
+} from './texto-rico-util';
 import { StateEvent, StateType } from '../../redux/state';
 import { LexmlEtaConfig } from '../../model/lexmlEtaConfig';
 import { AlterarLarguraTabelaColunaModalComponent } from './alterar-largura-tabela-coluna-modal';
@@ -432,8 +439,77 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     setTimeout(() => {
       const format = range && this.quill?.getFormat(range);
       this.highLightBotaoGerenciarTabela(format);
+      this.atualizaDestaqueRevisaoSelecionada(range);
     }, 0);
   };
+
+  private atualizaDestaqueRevisaoSelecionada(range: any): void {
+    const root = this.quill?.root as HTMLElement | undefined;
+    if (!root) {
+      return;
+    }
+
+    CLASSES_DESTAQUE_REVISAO.forEach(classe => root.querySelectorAll(`.${classe}`).forEach(el => el.classList.remove(classe)));
+
+    const elRevisao = this.getElementoRevisaoNoRange(range);
+    if (!elRevisao) {
+      return;
+    }
+
+    const idRevisao = elRevisao.getAttribute('id-revisao');
+    const tagName = elRevisao.tagName.toLowerCase();
+    // Na substituição, del e ins têm o mesmo id-revisao: só o lado sob o cursor é emoldurado.
+    const fragmentos = idRevisao ? Array.from(root.querySelectorAll(tagName)).filter(el => el.getAttribute('id-revisao') === idRevisao) : [elRevisao];
+    fragmentos.forEach(el => el.classList.add(CLASSE_REVISAO_SELECIONADA));
+    this.marcaFragmentosContinuosRevisao(fragmentos);
+  }
+
+  // Fragmentos encostados formam uma moldura só: o CSS suprime as laterais entre eles.
+  private marcaFragmentosContinuosRevisao(elementos: Element[]): void {
+    const fragmentos = elementos
+      .map(el => {
+        const blot = Quill.find(el);
+        return blot ? { el, index: this.quill!.getIndex(blot), length: blot.length() } : undefined;
+      })
+      .filter((f): f is { el: Element; index: number; length: number } => !!f)
+      .sort((a, b) => a.index - b.index);
+
+    fragmentos.forEach((fragmento, i) => {
+      const proximo = fragmentos[i + 1];
+      if (proximo && fragmento.index + fragmento.length === proximo.index) {
+        fragmento.el.classList.add(CLASSE_FRAGMENTO_CONTINUA_PROXIMO);
+        proximo.el.classList.add(CLASSE_FRAGMENTO_CONTINUA_ANTERIOR);
+      }
+    });
+  }
+
+  // Sem seleção, olha o caractere depois e o antes do cursor; com seleção, o primeiro e o último.
+  private getElementoRevisaoNoRange(range: any): HTMLElement | null {
+    if (!range || !this.quill) {
+      return null;
+    }
+
+    const indices = range.length ? [range.index, range.index + range.length - 1] : [range.index, range.index - 1];
+    for (const indice of indices) {
+      if (indice < 0 || indice >= this.quill.getLength()) {
+        continue;
+      }
+      const leaf = this.quill.getLeaf(indice)?.[0] as any;
+      const node: Node | undefined = leaf?.domNode;
+      const el = node?.nodeType === Node.TEXT_NODE ? node.parentElement : (node as HTMLElement | undefined);
+      const elRevisao = el?.closest?.('ins, del') as HTMLElement | null;
+      if (elRevisao) {
+        return elRevisao;
+      }
+    }
+
+    return null;
+  }
+
+  // O navegador sublinharia como erro de grafia o texto excluído, que já tem o traço vermelho.
+  private atualizaAtributosRevisaoTextoRico(): void {
+    (this.quill?.root as HTMLElement | undefined)?.querySelectorAll('del').forEach(el => el.setAttribute('spellcheck', 'false'));
+  }
 
   highLightBotaoGerenciarTabela = (format: any): void => {
     format?.td ? this.elTableManagerButton?.classList.add('table-selected') : this.elTableManagerButton?.classList.remove('table-selected');
@@ -491,6 +567,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.quill.setContents(this.quill.clipboard.convert(textoAjustado), 'silent');
     this.configAbrindoTexto(false);
     this.notasRodape = notasRodape;
+    this.atualizaAtributosRevisaoTextoRico();
 
     setTimeout(() => {
       this.quill!.history.clear();
@@ -524,6 +601,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   };
 
   updateApenasTexto = (): void => {
+    this.atualizaAtributosRevisaoTextoRico();
     const texto = this.ajustaHtml(this.quill?.root.innerHTML);
     this.texto = texto === '<p><br></p>' ? '' : texto;
   };
@@ -545,6 +623,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   }
 
   updateTexto = (): void => {
+    this.atualizaAtributosRevisaoTextoRico();
     const texto = this.ajustaHtml(this.quill?.root.innerHTML);
     this.texto = texto === '<p><br></p>' ? '' : texto;
     this.agendarEmissaoEventoOnChange();
@@ -585,7 +664,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       .replace(/ql-align-center/g, 'align-center')
       .replace(/ql-align-right/g, 'align-right');
 
-    result = removeElementosTDOcultos(result);
+    result = removeMarcacaoDestaqueRevisao(removeElementosTDOcultos(result));
     return (this.quill as any).notasRodape.ajustarConteudoTagsNotaRodape(result);
   };
 

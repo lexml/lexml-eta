@@ -283,4 +283,97 @@ describe('Destaque das marcas de revisão no texto rico', () => {
     ins.classList.add('revisao-fragmento-continua-anterior');
     expect(getComputedStyle(ins, '::before').content).to.equal('none');
   });
+
+  describe('Moldura da revisão sob o cursor', () => {
+    let clock: SinonFakeTimers;
+
+    beforeEach(() => {
+      clock = useFakeTimers({ toFake: ['setTimeout'] });
+    });
+
+    afterEach(() => {
+      clock.restore();
+    });
+
+    const posicionarCursor = (indice: number, tamanho = 0): void => {
+      editorTextoRico.onSelectionChange({ index: indice, length: tamanho });
+      clock.tick(0);
+    };
+    const indiceDe = (texto: string): number => editorTextoRico.quill!.getText().indexOf(texto);
+    const selecionadas = (): string[] =>
+      Array.from(editorTextoRico.quill!.root.querySelectorAll('.revisao-selecionada')).map(el => `${el.tagName.toLowerCase()}:${el.textContent}`);
+
+    it('emoldura só a inclusão sob o cursor', () => {
+      editorTextoRico.setContent(`<p>Antes ${marca('ins', 'r1')}incluído</ins> meio ${marca('ins', 'r2')}outro</ins></p>`);
+      posicionarCursor(indiceDe('incluído') + 2);
+
+      expect(selecionadas()).to.deep.equal(['ins:incluído']);
+    });
+
+    it('emoldura todos os trechos da exclusão que atravessa um negrito e marca o par contíguo', () => {
+      editorTextoRico.setContent(`<p>Antes ${marca('del', 'r1')}parte </del><strong>${marca('del', 'r1')}negrito</del></strong> fim</p>`);
+      posicionarCursor(indiceDe('parte') + 1);
+
+      expect(selecionadas()).to.deep.equal(['del:parte ', 'del:negrito']);
+      const [primeiro, segundo] = Array.from(editorTextoRico.quill!.root.querySelectorAll('del'));
+      expect(primeiro.classList.contains('revisao-fragmento-continua-proximo')).to.be.true;
+      expect(segundo.classList.contains('revisao-fragmento-continua-anterior')).to.be.true;
+    });
+
+    it('na substituição emoldura só o lado sob o cursor', () => {
+      editorTextoRico.setContent(`<p>Antes ${marca('del', 'r1')}velho</del>${marca('ins', 'r1')}novo</ins> fim</p>`);
+      posicionarCursor(indiceDe('novo') + 1);
+
+      expect(selecionadas()).to.deep.equal(['ins:novo']);
+    });
+
+    it('com seleção, considera a marca do primeiro caractere selecionado', () => {
+      editorTextoRico.setContent(`<p>Antes ${marca('ins', 'r1')}incluído</ins> fim</p>`);
+      posicionarCursor(indiceDe('incluído'), 3);
+
+      expect(selecionadas()).to.deep.equal(['ins:incluído']);
+    });
+
+    it('retira a moldura quando o cursor vai para texto sem revisão', () => {
+      editorTextoRico.setContent(`<p>Antes ${marca('ins', 'r1')}incluído</ins> fim do texto</p>`);
+      posicionarCursor(indiceDe('incluído') + 2);
+      posicionarCursor(indiceDe('do texto') + 1);
+
+      expect(selecionadas()).to.deep.equal([]);
+      expect(!!editorTextoRico.quill!.root.querySelector('[class*="revisao-fragmento"]')).to.be.false;
+    });
+
+    it('mover o cursor entre marcas não acrescenta passos ao desfazer', () => {
+      editorTextoRico.setContent(`<p>Antes ${marca('ins', 'r1')}incluído</ins> fim</p>`);
+      const quill = editorTextoRico.quill as any;
+      quill.history.clear();
+      posicionarCursor(indiceDe('incluído') + 2);
+      posicionarCursor(indiceDe('fim') + 1);
+
+      expect(quill.history.stack.undo).to.have.length(0);
+    });
+  });
+
+  describe('Atributos só de tela', () => {
+    it('desliga a verificação ortográfica do texto excluído ao carregar e depois de editar', () => {
+      editorTextoRico.setContent(`<p>Antes ${marca('del', 'r1')}Contratto</del></p>`);
+      expect(editorTextoRico.quill!.root.querySelector('del')!.getAttribute('spellcheck')).to.equal('false');
+
+      editorTextoRico.quill!.insertText(0, 'Novo ', 'user');
+      editorTextoRico.quill!.root.querySelectorAll('del').forEach(el => expect(el.getAttribute('spellcheck')).to.equal('false'));
+    });
+
+    it('o texto entregue não tem a moldura nem o atributo de verificação ortográfica', () => {
+      editorTextoRico.setContent(`<p>Antes ${marca('del', 'r1')}parte </del><strong>${marca('del', 'r1')}negrito</del></strong></p>`);
+      editorTextoRico.quill!.root.querySelectorAll('del').forEach(el => el.classList.add('revisao-selecionada'));
+      editorTextoRico.quill!.root.querySelector('del')!.classList.add('revisao-fragmento-continua-proximo');
+
+      editorTextoRico.updateApenasTexto();
+
+      expect(editorTextoRico.texto).to.contain('<del');
+      expect(editorTextoRico.texto).to.not.contain('spellcheck');
+      expect(editorTextoRico.texto).to.not.contain('revisao-');
+      expect(editorTextoRico.texto).to.not.contain('class=""');
+    });
+  });
 });
