@@ -51,6 +51,12 @@ Sem documento inicializado, e depois de `fecharDocumento()`, as abas ficam desab
 - `Proposicao.colegiadoApreciador` é **opcional** (antes nascia como Plenário). Um documento criado sem colegiado fica sem ele e não grava o elemento; um arquivo aberto sem o elemento recebe o padrão (Plenário). O local do fecho continua derivado do colegiado ("Sala da Comissão" para Comissão; "Sala das Sessões" para Plenário ou sem colegiado) e, em documento aberto, vale o local do arquivo.
 - O host passa a fornecer ao componente de nova proposição `casaLegislativaEditor` e as três URLs obrigatórias (`urlVerificacaoProposicao`, `urlTextoEstruturado`, `urlComissoes`, esta com o placeholder `{casa}`).
 
+## 8. Datas da proposição (#1034) — **BREAKING**
+
+- A data de impressão do fecho (campo "Data") passou de `Proposicao.dataUltimaModificacao` para o novo campo `Proposicao.data` (`AAAA-MM-DD`). "Não informar" chega como `''`, e não mais como `undefined`.
+- `Proposicao.dataUltimaModificacao` continua existindo, mas passa a ser o instante em que `getProposicao()` foi chamado, no formato `xsd:dateTime` com fuso (ex.: `2026-11-04T10:15:30-03:00`), o mesmo de `lexedit:Metadado@dataUltimaModificacao` no arquivo.
+- Não há erro de compilação: o campo antigo continua sendo `string`. Quem o lê como data de impressão passa a receber data e hora, sem nenhum aviso.
+
 ## Checklist para o `lexeditweb-editor`
 
 - [ ] Trocar toda chamada a `inicializarEdicao` por `novaProposicao`/`abrirDocumentoArticulado`.
@@ -61,3 +67,4 @@ Sem documento inicializado, e depois de `fecharDocumento()`, as abas ficam desab
 - [ ] Tratar o `fatalError` de documento da outra casa ao abrir.
 - [ ] Usar `<lexml-nova-proposicao>` para criar proposições e repassar o resultado a `novaProposicao`; fornecer `casaLegislativaEditor` e as três URLs.
 - [ ] Remover o uso de `lexml-eta-destino`, de `comissoes` e de `urlComissoes`; tratar `Proposicao.colegiadoApreciador` ausente.
+- [ ] Ler a data de impressão em `Proposicao.data`, e não mais em `dataUltimaModificacao`, que passa a ser o instante da obtenção.

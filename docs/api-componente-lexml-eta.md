@@ -135,11 +135,14 @@ Descarta o documento atual e volta ao estado neutro.
 
 Devolve o estado completo da edição, para o host persistir como quiser (por exemplo, no seu backend). Chama internamente `getProjetoAtualizado()`, o que também aplica as edições pendentes (como a detecção de remissões da linha corrente). Sem documento inicializado, devolve uma `Proposicao` vazia.
 
-Campos preenchidos: `projetoNorma`, `justificativa`, `notasRodape`, `autoria`, `opcoesImpressao`, `ementa`, `epigrafe`, `revisoes`, `justificativaAntesRevisao`, `pendenciasPreenchimento`, `colegiadoApreciador`, `anexos`, `substitutivo`, `local`, `urn`, `sigla`, `numero`, `ano` e `dataUltimaModificacao`.
+Campos preenchidos: `projetoNorma`, `justificativa`, `notasRodape`, `autoria`, `opcoesImpressao`, `ementa`, `epigrafe`, `revisoes`, `justificativaAntesRevisao`, `pendenciasPreenchimento`, `colegiadoApreciador`, `anexos`, `substitutivo`, `local`, `urn`, `sigla`, `numero`, `ano`, `data` e `dataUltimaModificacao`.
 
-`pendenciasPreenchimento` lista o que impede considerar o texto pronto: justificação vazia (sempre obrigatória, exceto em `anexoParecer`) e as mensagens de nível crítico da validação. No modo `anexoParecer`, os campos `justificativa`, `justificativaAntesRevisao` e `notasRodape` são removidos do objeto; `local`, `autoria` e `dataUltimaModificacao` continuam sendo entregues.
+`pendenciasPreenchimento` lista o que impede considerar o texto pronto: justificação vazia (sempre obrigatória, exceto em `anexoParecer`) e as mensagens de nível crítico da validação. No modo `anexoParecer`, os campos `justificativa`, `justificativaAntesRevisao` e `notasRodape` são removidos do objeto; `local`, `autoria`, `data` e `dataUltimaModificacao` continuam sendo entregues.
 
-`dataUltimaModificacao` traz a data escolhida no campo "Data" (`AAAA-MM-DD`) e fica `undefined` quando o usuário mantém "Não informar", que é o padrão de um documento novo. Apesar do nome, não é a data do último salvamento: essa está na propriedade `dataUltimaModificacaoDocumento` (seção 3).
+A proposição traz duas datas (#1034, **BREAKING**):
+
+- `data` é a data escolhida no campo "Data", usada na impressão do fecho (`AAAA-MM-DD`). Fica vazia (`''`) quando o usuário mantém "Não informar", que é o padrão de um documento novo.
+- `dataUltimaModificacao` é o instante em que a proposição foi obtida, no mesmo formato gravado em `lexedit:Metadado@dataUltimaModificacao` (`xsd:dateTime` com fuso, ex.: `2026-11-04T10:15:30-03:00`). Cada chamada traz o seu próprio instante. A data do último salvamento do documento aberto está na propriedade `dataUltimaModificacaoDocumento` (seção 3).
 
 ### 4.3 `getDocumentoArticulado(): DocumentoArticulado`
 
@@ -274,7 +277,8 @@ if (doc) await editor.abrirDocumentoArticulado(doc);
 
 ```ts
 class Proposicao {
-  dataUltimaModificacao: string;      // data do campo "Data" (AAAA-MM-DD); vazio = "Não informar"; o padrão da classe é o momento da criação, mas um documento novo nasce sem data
+  dataUltimaModificacao: string;      // instante da obtenção (xsd:dateTime com fuso, ex.: 2026-11-04T10:15:30-03:00)
+  data: string;                       // data do campo "Data", para a impressão do fecho (AAAA-MM-DD); '' = "Não informar"
   urn; sigla; numero; ano; ementa: string;
   epigrafe: { texto: string; complemento: string };
   projetoNorma?: ProjetoNorma;

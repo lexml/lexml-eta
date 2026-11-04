@@ -1,10 +1,10 @@
 # TODO
 
-Atualizado em 29/10/2026. Branch `feat/992-salvar-pendencias-jsonix`.
+Atualizado em 03/11/2026. Branch `feat/1034-correcao-datas` (a partir da `develop` em `c5fc7e52`).
 
 ## Em andamento
 
-- Nenhuma tarefa em andamento. Aguardando a próxima issue.
+- **#1034 — correção de datas** (OpenSpec `2026-11-04-c01-corrigir-datas-proposicao`): implementada em 04/11/2026 (10/10 tasks; `npm test` completo e Cypress `documento-articulado/*` 66/67, com a falha conhecida do `abertura-pena`). Falta commitar e arquivar. Decisões do usuário: `Proposicao.data` guarda a data do campo "Data" e nasce vazia; `Proposicao.dataUltimaModificacao` passa a ser o instante da obtenção (`xsd:dateTime` com fuso). BREAKING para o `lexeditweb-editor`.
 
 ## Próximas
 
@@ -25,6 +25,7 @@ Atualizado em 29/10/2026. Branch `feat/992-salvar-pendencias-jsonix`.
 
 - **#1030:** nota de rodapé com um só parágrafo (`7164e20e`, arquivada em `366d826d` com a spec nova `nota-rodape`, 29/10/2026). Enter e Shift+Enter ignorados com aviso; nota antiga abre unida; colar troca quebras por espaço.
 - **#997:** data da última modificação no `lexedit:Metadado` (`93fbd504`, `0546f8cb`, arquivada em `a49a8bb8`, 29/10/2026).
+- **Branch `feat/992-salvar-pendencias-jsonix` integrada à `develop`** (`c5fc7e52`, 03/11/2026).
 - **Merge da `develop` (03/11/2026):** 15 commits, com a #1050 (componente de nova proposição, sem formulário de destino; o colegiado vem de `novaProposicao` ou do arquivo e é gravado também no anexo de parecer).
 - **Merge da `develop`:** 170 commits, resolvido em `725bbb41`, 29/10/2026.
 - **#994:** revisões de texto da justificação, com a correção do contador de revisões do texto rico (`17210119`..`29a2bdb4`, 27/10/2026).

@@ -1,27 +1,30 @@
 # Handoff — persistência dos metadados do LexEdit (#991, #992, #993, #994, #997, #1011) e nota de rodapé (#1030)
 
-Atualizado em 29/10/2026.
+Atualizado em 03/11/2026.
 
-Branch: `feat/992-salvar-pendencias-jsonix`. Ela reúne as issues que gravam e reabrem no documento articulado (JSONIX/LexML) o que antes ficava só no editor: alerta e pendência de justificação (#1011, #992), justificação (#991), notas de rodapé (#993), revisões de texto da justificação (#994) e data da última modificação (#997). Também traz a nota de rodapé com um só parágrafo (#1030). Todas as changes OpenSpec dessas issues estão implementadas, commitadas e arquivadas.
+**Branch atual:** `feat/1034-correcao-datas`, criada a partir da `develop` em `c5fc7e52`, ainda sem commits próprios e sem upstream. Nenhum trabalho da #1034 foi iniciado.
+
+**Branch anterior:** `feat/992-salvar-pendencias-jsonix`, já integrada à `develop` (`c5fc7e52`) e removida do remoto. Ela reunia as issues que gravam e reabrem no documento articulado (JSONIX/LexML) o que antes ficava só no editor: alerta e pendência de justificação (#1011, #992), justificação (#991), notas de rodapé (#993), revisões de texto da justificação (#994) e data da última modificação (#997). Também traz a nota de rodapé com um só parágrafo (#1030). Todas as changes OpenSpec dessas issues estão implementadas, commitadas, arquivadas e na `develop`.
 
 ## Como retomar
 
-1. `git pull`, `npm install`. A branch está sincronizada com `origin` (último commit `366d826d`).
-2. Ler o item 13 do `CLAUDE.md` (padrão por grupo dos metadados do LexEdit) e os itens 20–23 (invariantes desta branch, de (an) a (as)).
+1. `npm install`. A `feat/1034-correcao-datas` está no mesmo commit da `origin/develop` (`c5fc7e52`); ao fazer o primeiro push, criar o upstream (`git push -u origin feat/1034-correcao-datas`).
+2. Ler o item 13 do `CLAUDE.md` (padrão por grupo dos metadados do LexEdit) e os itens 20–23 (invariantes da branch anterior, de (an) a (as)).
 3. Nunca commitar sem pedido explícito. Ao commitar a pedido, sem coautor e com o plano aprovado antes.
 
 ## Estado
 
-- **Última sessão (27–29/10/2026):**
+- **Última sessão (27/10–03/11/2026):**
   - #994 concluída (revisões `ins`/`del` da justificação);
   - merge da `develop` com 170 commits (`725bbb41`);
   - #997 concluída (`dataUltimaModificacao`, commits `93fbd504`/`0546f8cb` do usuário e arquivamento `a49a8bb8`);
-  - #1030 concluída (nota de rodapé com um só parágrafo, commit `7164e20e` do usuário e arquivamento `366d826d`, com a spec nova `openspec/specs/nota-rodape/spec.md`).
+  - #1030 concluída (nota de rodapé com um só parágrafo, commit `7164e20e` do usuário e arquivamento `366d826d`, com a spec nova `openspec/specs/nota-rodape/spec.md`);
+  - segundo merge da `develop` (15 commits, com a #1050, componente de nova proposição), resolvido em `c5fc7e52`; a branch foi depois integrada à `develop`.
 - **Testes:**
-  - `npm test` completo: passa.
+  - `npm test` completo, depois do merge de 03/11/2026: passa.
   - Integração com o CLI real (`JSONIX_LEXML_CLI=C:/jsonix-lexml-win/desenv/jsonix-lexml-win.exe npm run test:documento-articulado:xml`): 33 de 35. As 2 falhas são de `OutrosMetadados` e exigem o CLI **2.3.0**; só o 2.1.0 está instalado.
-  - Cypress `documento-articulado/*` + `revisao/*` + `pena/*`: as únicas falhas já existem na `develop` (ver "Pendências"). Na #1030, `documento-articulado/*` deu 59 de 61, com o spec novo `edicao-nota-rodape.cy.ts` passando.
-- **Arquivos de sessão:** `docs/sessao/` voltou a ser versionado pelo merge da `develop` (`4dfb8c68`), apesar da linha `docs/sessao/` no `.gitignore`. O `TODO.md` local tem alteração não commitada.
+  - Cypress `documento-articulado/*` + `nova-proposicao/*`, depois do merge de 03/11/2026: 80 de 81. A única falha é `abertura-pena.cy.ts`, que já falhava na `develop` (ver "Pendências"). O `anexo-parecer-data-fecho.cy.ts` voltou a passar.
+- **Arquivos de sessão:** `HANDOFF_SUMMARY.md` e `TODO.md` são versionados (vieram da `develop` em `4dfb8c68`), apesar da linha `docs/sessao/` no `.gitignore`; para commitá-los é preciso `git add -f`. O `NEXT_SESSION_HANDOFF_PROMPT.md` é ignorado.
 
 ## Decisões do usuário (não reabrir)
 
@@ -45,7 +48,7 @@ Branch: `feat/992-salvar-pendencias-jsonix`. Ela reúne as issues que gravam e r
 - **Merge:**
   - a justificação continua gravada em documento de tipo não suportado (a `develop` só esconde colegiado e autoria);
   - no merge de 03/11/2026 (#1050), vale a regra da `develop` para o colegiado: sem formulário de destino, vem de `novaProposicao` ou do arquivo e é gravado também no anexo de parecer; a justificação segue fora do anexo de parecer;
-  - as invariantes desta branch no `CLAUDE.md` passaram para (an)–(ar), e os itens para 20–23.
+  - as invariantes da branch no `CLAUDE.md` passaram para (an)–(as), e os itens para 20–23.
 
 ## Pendências (fora do escopo das changes)
 
@@ -58,12 +61,13 @@ Branch: `feat/992-salvar-pendencias-jsonix`. Ela reúne as issues que gravam e r
   - há uma propriedade nova, `dataUltimaModificacaoDocumento` (#997).
 - **Documentação da `develop`:**
   - letras de invariantes repetidas ((ai)–(am)) nos itens 17–19 do `CLAUDE.md`;
-  - a seção 4.2 de `docs/api-componente-lexml-eta.md` ainda lista `substitutivo`, removido na #1056.
+  - a seção 4.2 de `docs/api-componente-lexml-eta.md` ainda lista `substitutivo`, removido na #1056;
+  - o item 13 do `CLAUDE.md` ainda cita `destinoAoAbrir` e `DestinoComponent`, removidos na #1050.
 - **Largura de tabela e coluna:** o plugin de tabelas não guarda a largura, e a issue para isso ainda precisa ser aberta.
 
 ## Dicas
 
-- **Servidor de desenvolvimento:** encerrar só o `npm start` deixa órfãos o `wds` e o `tsc --watch`. Um servidor órfão antigo serviu código desatualizado e deixou o demo em branco no Cypress. Ao encerrar, derrube também os filhos (filtre por `CreationDate`), e rode o `npm test` só com o servidor parado, porque ele apaga `out-tsc/`.
+- **Servidor de desenvolvimento:** encerrar só o `npm start` deixa órfãos o `wds` e o `tsc --watch`. Um servidor órfão antigo serviu código desatualizado e deixou o demo em branco no Cypress. Ao encerrar, derrube também os filhos (`concurrently`, `tsc --watch`, `wds`). O classificador de permissões nega o `Stop-Process` deles, então liste os PIDs e peça ao usuário um `! taskkill //F //PID …`. E rode o `npm test` só com o servidor parado, porque ele apaga `out-tsc/`.
 - **Porta 8001:** há um servidor de desenvolvimento do usuário rodando nela. Não mexer.
 - **Teclado do Quill em teste:** o Quill 1 lê `which`/`keyCode`, que o construtor de `KeyboardEvent` não preenche. Defina-os no evento, como o helper `teclar` de `test/components/editor-texto-rico/nota-rodape-modal.test.ts`.
 - **Testes de componente que salvam duas vezes:** use `congelarRelogio()`/`restaurarRelogio()` (`test/doc/documentoArticulado.ts`). Não congele o arquivo inteiro, porque `moduloNotaRodape` gera ids só com `new Date().getTime()`.
