@@ -22,5 +22,5 @@
 
 ## 5. Fechamento
 
-- [ ] 5.1 Rodar `npm test` completo e o lint só nos arquivos alterados (`npx eslint` e `npx prettier --check`), sem regressão.
-- [ ] 5.2 Rodar `openspec validate 2026-11-03-c01-destaque-marcas-revisao-texto-rico --strict` sem erros.
+- [x] 5.1 Rodar `npm test` completo e o lint só nos arquivos alterados (`npx eslint` e `npx prettier --check`), sem regressão.
+- [x] 5.2 Rodar `openspec validate 2026-11-03-c01-destaque-marcas-revisao-texto-rico --strict` sem erros.
