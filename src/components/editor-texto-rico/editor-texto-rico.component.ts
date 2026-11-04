@@ -205,6 +205,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
         customToolbarOptions.push(['lexml-eta-nota-rodape']);
         customToolbarOptions[1] = ['bold', 'italic', 'underline', 'link'];
         customFormatsOptions.push('lexml-eta-nota-rodape');
+        customFormatsOptions.push('comentario');
         customFormatsOptions.push('link');
       }
 
@@ -221,6 +222,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           },
           aspasCurvas: true,
           notaRodape: true,
+          comentario: true,
           table: {
             cellSelectionOnClick: false,
           },

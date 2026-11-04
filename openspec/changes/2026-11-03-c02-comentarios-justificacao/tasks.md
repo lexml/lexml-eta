@@ -4,8 +4,8 @@
 
 ## 2. Marcação no Quill
 
-- [ ] 2.1 Portar `moduloComentario.ts` do `lexml-emenda` para `src/components/editor-texto-rico/` (blot `comentario`, atributo `id-sequencia-comentario`, cópia e colagem sem marcação, consultas por id sobre todos os fragmentos) e registrá-lo em `configure-private-quill.ts`. Verificar com testes de componente: marcar uma seleção, remover, `existe` depois de apagar o trecho, posição inicial, texto do trecho com espaços, colar HTML copiado com marcação sem levar a marcação.
-- [ ] 2.2 Acrescentar a função que retira as tags `comentario` de um HTML preservando o texto, compartilhada pela colagem e pelo texto entregue ao host. Verificar com teste unitário (tags aninhadas, vários fragmentos, HTML sem marcação inalterado).
+- [x] 2.1 Portar `moduloComentario.ts` do `lexml-emenda` para `src/components/editor-texto-rico/` (blot `comentario`, atributo `id-sequencia-comentario`, cópia e colagem sem marcação, consultas por id sobre todos os fragmentos) e registrá-lo em `configure-private-quill.ts`. Verificar com testes de componente: marcar uma seleção, remover, `existe` depois de apagar o trecho, posição inicial, texto do trecho com espaços, colar HTML copiado com marcação sem levar a marcação.
+- [x] 2.2 Acrescentar a função que retira as tags `comentario` de um HTML preservando o texto, compartilhada pela colagem e pelo texto entregue ao host. Verificar com teste unitário (tags aninhadas, vários fragmentos, HTML sem marcação inalterado).
 
 ## 3. Editor de texto rico
 

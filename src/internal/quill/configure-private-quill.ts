@@ -7,6 +7,7 @@ import TableRow from '../../assets/js/quill1-table/js/TableRowBlot.js';
 import { EstiloTextoClass } from '../../components/editor-texto-rico/estilos-texto';
 import { ImageBlot } from '../../components/editor-texto-rico/image-blot';
 import { MarginBottomClass } from '../../components/editor-texto-rico/margin-bottom';
+import { ModuloComentario } from '../../components/editor-texto-rico/moduloComentario';
 import { ModuloAspasCurvas } from '../../components/editor-texto-rico/moduloAspasCurvas';
 import { IdNotaRodapeAttribute, ModuloNotaRodape, NotaRodapeBlot, NumeroAttribute, TextoAttribute } from '../../components/editor-texto-rico/moduloNotaRodape';
 import { CustomClipboard, CustomKeyboard, DelBlot, InsBlot, ModuloRevisao } from '../../components/editor-texto-rico/moduloRevisao';
@@ -76,6 +77,7 @@ export const configurePrivateQuill = (): void => {
   PrivateQuill.register('modules/aspasCurvas', ModuloAspasCurvas, true);
   PrivateQuill.register('modules/revisao', ModuloRevisao, true);
   PrivateQuill.register('modules/notaRodape', ModuloNotaRodape, true);
+  PrivateQuill.register('modules/comentario', ModuloComentario, true);
   PrivateQuill.register('modules/table', TableModule, true);
   PrivateQuill.register('modules/eta-keyboard', EtaKeyboard, true);
   PrivateQuill.register('modules/eta-clipboard', EtaClipboard, true);

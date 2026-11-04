@@ -1,7 +1,7 @@
 import { expect, fixture, html } from '@open-wc/testing';
 import { SinonFakeTimers, useFakeTimers } from 'sinon';
 import { EditorTextoRicoComponent, Usuario } from '../../../src';
-import { ajustaHtmlFromEditor, ajustaHtmlToEditor } from '../../../src/components/editor-texto-rico/texto-rico-util';
+import { ajustaHtmlFromEditor, ajustaHtmlToEditor, removeMarcacaoComentario } from '../../../src/components/editor-texto-rico/texto-rico-util';
 import { rootStore } from '../../../src/redux/store';
 import { ativarDesativarRevisaoAction } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
 import { atualizarUsuarioAction } from '../../../src/model/lexml/acao/atualizarUsuarioAction';
@@ -375,5 +375,138 @@ describe('Destaque das marcas de revisão no texto rico', () => {
       expect(editorTextoRico.texto).to.not.contain('revisao-');
       expect(editorTextoRico.texto).to.not.contain('class=""');
     });
+  });
+});
+
+describe('Marcação de trecho comentado no Quill', () => {
+  const ID = 'sc123';
+  const modulo = (): any => (editorTextoRico.quill as any).comentarios;
+  const html_ = (): string => editorTextoRico.quill!.root.innerHTML;
+
+  beforeEach(async () => {
+    editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico modo="justificativa"></lexml-eta-editor-texto-rico>`);
+  });
+
+  it('marca a seleção com a tag de comentário e posiciona o cursor no início', () => {
+    editorTextoRico.setContent('<p>Texto para comentário.</p>');
+
+    expect(modulo().adicionar(ID, { index: 0, length: 5 })).to.equal(true);
+    expect(html_()).to.include(`<comentario id-sequencia-comentario="${ID}">Texto</comentario>`);
+    expect(editorTextoRico.quill!.getSelection()).to.deep.equal({ index: 0, length: 0 });
+  });
+
+  it('não marca seleção vazia nem seleção que já contém comentário', () => {
+    editorTextoRico.setContent('<p>Texto para comentário.</p>');
+    modulo().adicionar(ID, { index: 0, length: 5 });
+
+    expect(modulo().adicionar('outro', { index: 3, length: 0 })).to.equal(false);
+    expect(modulo().adicionar('outro', { index: 3, length: 6 })).to.equal(false);
+    expect(modulo().existe('outro')).to.equal(false);
+  });
+
+  it('remove a marcação mantendo o texto', () => {
+    editorTextoRico.setContent('<p>Texto para comentário.</p>');
+    modulo().adicionar(ID, { index: 0, length: 5 });
+
+    expect(modulo().remover(ID)).to.equal(true);
+    expect(html_().includes('<comentario')).to.equal(false);
+    expect(editorTextoRico.quill!.getText()).to.equal('Texto para comentário.\n');
+    expect(modulo().getTextoComentario(ID)).to.equal('');
+  });
+
+  it('deixa de existir quando o trecho é apagado por inteiro', () => {
+    editorTextoRico.setContent('<p>Texto para comentário.</p>');
+    modulo().adicionar(ID, { index: 0, length: 5 });
+
+    editorTextoRico.quill!.deleteText(0, 3, 'user');
+    expect(modulo().existe(ID)).to.equal(true);
+
+    editorTextoRico.quill!.deleteText(0, 2, 'user');
+    expect(modulo().existe(ID)).to.equal(false);
+  });
+
+  it('informa a posição inicial, o texto com espaços e os ids presentes', () => {
+    editorTextoRico.setContent('<p>Antes texto depois.</p>');
+    modulo().adicionar(ID, { index: 5, length: 7 });
+
+    expect(modulo().getIndice(ID)).to.equal(5);
+    expect(modulo().getTextoComentario(ID)).to.equal(' texto ');
+    expect(modulo().getIds()).to.deep.equal([ID]);
+  });
+
+  it('trata como um conjunto o trecho dividido em parágrafos e por revisão', () => {
+    editorTextoRico.setContent(
+      `<p>Um <comentario id-sequencia-comentario="${ID}">dois</comentario></p>` +
+        `<p><comentario id-sequencia-comentario="${ID}">três <del usuario="F" date="2026-11-04 10:00:00" id-revisao="r1">quatro</del></comentario> fim</p>`
+    );
+
+    expect(modulo().findNodesById(ID).length).to.be.greaterThan(1);
+    expect(modulo().getIndice(ID)).to.equal(3);
+    expect(modulo().getTextoComentario(ID)).to.equal('doistrês quatro');
+    expect(modulo().getRanges(ID)).to.deep.equal([
+      { index: 3, length: 4 },
+      { index: 8, length: 11 },
+    ]);
+
+    expect(modulo().removerPorIds([ID])).to.equal(true);
+    expect(modulo().existe(ID)).to.equal(false);
+    expect(html_().includes('<del')).to.equal(true);
+  });
+
+  it('não cola a marcação de comentário copiada do editor', async () => {
+    editorTextoRico.setContent('<p>Início fim.</p>');
+    editorTextoRico.quill!.setSelection(7, 0);
+
+    const clipboardData = new DataTransfer();
+    clipboardData.setData('text/html', `<p><comentario id-sequencia-comentario="${ID}">texto comentado</comentario></p>`);
+    clipboardData.setData('text/plain', 'texto comentado');
+    editorTextoRico.quill!.root.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, cancelable: true, clipboardData }));
+    await new Promise(resolve => setTimeout(resolve, 0));
+
+    expect(editorTextoRico.quill!.getText()).to.include('texto comentado');
+    expect(html_().includes('<comentario')).to.equal(false);
+    expect(modulo().existe(ID)).to.equal(false);
+  });
+
+  ['bem', 'bem '].forEach(textoSelecionado => {
+    it(`copia exatamente o texto comentado, sem a marcação: "${textoSelecionado}"`, () => {
+      editorTextoRico.setContent(`<p>Tudo <comentario id-sequencia-comentario="${ID}">bem</comentario> depois.</p>`);
+      editorTextoRico.quill!.setSelection(5, textoSelecionado.length);
+
+      const clipboardData = new DataTransfer();
+      const copyEvent = new ClipboardEvent('copy', { bubbles: true, cancelable: true, clipboardData });
+      editorTextoRico.quill!.root.dispatchEvent(copyEvent);
+
+      expect(copyEvent.defaultPrevented).to.equal(true);
+      expect(clipboardData.getData('text/plain')).to.equal(textoSelecionado);
+      expect(clipboardData.getData('text/html').includes('<comentario')).to.equal(false);
+    });
+  });
+
+  it('não aceita a marcação fora da justificação', async () => {
+    editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico></lexml-eta-editor-texto-rico>`);
+    editorTextoRico.setContent(`<p><comentario id-sequencia-comentario="${ID}">Texto</comentario></p>`);
+
+    expect(html_().includes('<comentario')).to.equal(false);
+  });
+});
+
+describe('removeMarcacaoComentario', () => {
+  it('desembrulha as tags, inclusive aninhadas e em vários fragmentos, preservando o texto e as demais marcas', () => {
+    const entrada =
+      '<p>A <comentario id-sequencia-comentario="s1">b <b>c</b></comentario> d</p>' +
+      '<p><comentario id-sequencia-comentario="s1">e <del id-revisao="r">f</del></comentario>' +
+      '<comentario id-sequencia-comentario="s2"><comentario id-sequencia-comentario="s3">g</comentario></comentario></p>';
+
+    expect(removeMarcacaoComentario(entrada)).to.equal('<p>A b <b>c</b> d</p><p>e <del id-revisao="r">f</del>g</p>');
+  });
+
+  it('retira o atributo e a classe do destaque deixados em outros elementos', () => {
+    expect(removeMarcacaoComentario('<p><span id-sequencia-comentario="s1" class="comentario-selecionado">x</span></p>')).to.equal('<p><span>x</span></p>');
+  });
+
+  it('devolve inalterado o HTML sem marcação', () => {
+    const entrada = '<p>Texto <b>sem</b> comentário &amp; com entidade.</p>';
+    expect(removeMarcacaoComentario(entrada)).to.equal(entrada);
   });
 });
