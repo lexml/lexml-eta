@@ -330,6 +330,76 @@ export const editorTextoRicoCss = html`
       content: none;
     }
 
+    .ql-toolbar button.ql-lexml-eta-comentario:disabled,
+    .ql-toolbar button.ql-lexml-eta-comentario:disabled:hover,
+    .ql-toolbar button.ql-lexml-eta-comentario:disabled:focus {
+      cursor: default;
+      opacity: 0.45;
+    }
+
+    .lexml-eta-editor-texto-rico .ql-editor comentario {
+      background-color: #fff8c5;
+    }
+
+    .lexml-eta-editor-texto-rico .ql-editor comentario.comentario-selecionado {
+      background-color: #fdd663;
+      border-radius: 2px;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.28);
+    }
+
+    /* Espaço do ícone, só no último fragmento do trecho. */
+    .lexml-eta-editor-texto-rico .ql-editor comentario[data-comentario-fragmento-final] {
+      margin-right: 22px;
+    }
+
+    .lexml-eta-editor-texto-rico.ql-container {
+      position: relative;
+    }
+
+    .lexml-eta-editor-texto-rico .comentarios-texto-overlay {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 6;
+      overflow: hidden;
+    }
+
+    .lexml-eta-editor-texto-rico .comentario-texto-icone {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 16px;
+      height: 16px;
+      padding: 0;
+      border: 0;
+      background-color: transparent;
+      cursor: pointer;
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .lexml-eta-editor-texto-rico .comentario-texto-icone__svg {
+      width: 14px;
+      height: 14px;
+      display: block;
+      pointer-events: none;
+    }
+
+    .lexml-eta-editor-texto-rico .comentario-texto-icone__fundo {
+      fill: #fff8c5;
+    }
+
+    .lexml-eta-editor-texto-rico .comentario-texto-icone__contorno {
+      fill: #111827;
+    }
+
+    .lexml-eta-editor-texto-rico .comentario-texto-icone:hover .comentario-texto-icone__fundo,
+    .lexml-eta-editor-texto-rico .comentario-texto-icone--selecionado .comentario-texto-icone__fundo {
+      fill: #fdd663;
+    }
+
     .lexml-eta-editor-texto-rico .ql-tooltip input:invalid {
       color: red;
     }

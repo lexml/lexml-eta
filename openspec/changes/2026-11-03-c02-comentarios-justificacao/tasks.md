@@ -9,10 +9,10 @@
 
 ## 3. Editor de texto rico
 
-- [ ] 3.1 Acrescentar o botão "Adicionar comentário" à barra de ferramentas (ícone, título e estado habilitado só com seleção sem comentário) e emitir `abrir-modal-comentario` com o trecho e o intervalo. Verificar com testes de componente: desabilitado sem seleção, desabilitado com seleção já comentada, evento emitido com seleção válida.
-- [ ] 3.2 Expor a API (`adicionarComentario`, `removerComentario`, `possuiComentario`, `getTextoComentario`, `getIndiceComentario`, `posicionarCursorComentario`, `registrarComentarioRemovido`, `destacarComentario`) e o conjunto de ids removidos aplicado a cada `text-change` e limpo em `setContent`. Verificar com testes de componente, incluindo desfazer depois de remover sem recriar a marcação.
-- [ ] 3.3 Destaque do trecho (amarelo claro; amarelo escuro sob o cursor, em todos os fragmentos) e emissão de `comentario-selecionado` na mudança de seleção, mais o CSS. Verificar com testes de componente: classe no trecho sob o cursor, evento com o id, evento sem id ao sair.
-- [ ] 3.4 Ícone ao fim do trecho (último fragmento), reposicionado em rolagem, redimensionamento e mudança de texto, que emite `comentario-selecionado` pedindo a abertura da aba; cursor antes e depois do ícone continua dentro e fora do trecho. Verificar com testes de componente (botão criado por sequência, clique emite o evento, ícone some ao remover a sequência).
+- [x] 3.1 Acrescentar o botão "Adicionar comentário" à barra de ferramentas (ícone, título e estado habilitado só com seleção sem comentário) e emitir `abrir-modal-comentario` com o trecho e o intervalo. Verificar com testes de componente: desabilitado sem seleção, desabilitado com seleção já comentada, evento emitido com seleção válida.
+- [x] 3.2 Expor a API (`adicionarComentario`, `removerComentario`, `possuiComentario`, `getTextoComentario`, `getIndiceComentario`, `posicionarCursorComentario`, `registrarComentarioRemovido`, `destacarComentario`) e o conjunto de ids removidos aplicado a cada `text-change` e limpo em `setContent`. Verificar com testes de componente, incluindo desfazer depois de remover sem recriar a marcação.
+- [x] 3.3 Destaque do trecho (amarelo claro; amarelo escuro sob o cursor, em todos os fragmentos) e emissão de `comentario-selecionado` na mudança de seleção, mais o CSS. Verificar com testes de componente: classe no trecho sob o cursor, evento com o id, evento sem id ao sair.
+- [x] 3.4 Ícone ao fim do trecho (último fragmento), reposicionado em rolagem, redimensionamento e mudança de texto, que emite `comentario-selecionado` pedindo a abertura da aba; cursor antes e depois do ícone continua dentro e fora do trecho. Verificar com testes de componente (botão criado por sequência, clique emite o evento, ícone some ao remover a sequência).
 
 ## 4. Comentário e revisão
 

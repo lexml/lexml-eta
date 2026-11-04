@@ -510,3 +510,306 @@ describe('removeMarcacaoComentario', () => {
     expect(removeMarcacaoComentario(entrada)).to.equal(entrada);
   });
 });
+
+describe('Comentários no editor de texto rico', () => {
+  const ID = 'sc123';
+  const botaoComentario = (): HTMLButtonElement => editorTextoRico.querySelector('button.ql-lexml-eta-comentario') as HTMLButtonElement;
+  const aguardarSelecao = (): Promise<unknown> => new Promise(resolve => setTimeout(resolve, 0));
+  // Destaque e revisão rodam em setTimeout e reagendam o quadro dos ícones: espera alguns ciclos.
+  const aguardarIcones = async (): Promise<void> => {
+    for (let i = 0; i < 3; i++) {
+      await new Promise(resolve => setTimeout(resolve, 0));
+      await new Promise(resolve => requestAnimationFrame(resolve));
+    }
+  };
+  const selecionar = async (index: number, length = 0): Promise<void> => {
+    editorTextoRico.quill!.setSelection(index, length, 'silent');
+    editorTextoRico.onSelectionChange({ index, length });
+    await aguardarSelecao();
+  };
+  const ouvir = (evento: string): any[] => {
+    const detalhes: any[] = [];
+    editorTextoRico.addEventListener(evento, ev => detalhes.push((ev as CustomEvent).detail));
+    return detalhes;
+  };
+  const selecionados = (): string[] => Array.from(editorTextoRico.quill!.root.querySelectorAll('comentario.comentario-selecionado')).map(el => el.textContent ?? '');
+
+  beforeEach(async () => {
+    editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico modo="justificativa"></lexml-eta-editor-texto-rico>`);
+  });
+
+  describe('Botão da barra de ferramentas', () => {
+    it('existe com o título "Adicionar comentário" e fica desabilitado sem seleção', async () => {
+      editorTextoRico.setContent('<p>Texto para comentário.</p>');
+      await selecionar(3);
+
+      expect(!!botaoComentario()).to.equal(true);
+      expect(botaoComentario().title).to.equal('Adicionar comentário');
+      expect(botaoComentario().disabled).to.equal(true);
+    });
+
+    it('fica desabilitado quando a seleção inclui parte de um trecho comentado', async () => {
+      editorTextoRico.setContent(`<p>Texto <comentario id-sequencia-comentario="${ID}">para</comentario> comentário.</p>`);
+      await selecionar(0, 8);
+
+      expect(botaoComentario().disabled).to.equal(true);
+    });
+
+    it('com seleção sem comentário, fica habilitado e emite abrir-modal-comentario com o trecho e o intervalo', async () => {
+      editorTextoRico.setContent('<p>Texto para comentário.</p>');
+      await selecionar(6, 4);
+      const eventos = ouvir('abrir-modal-comentario');
+
+      expect(botaoComentario().disabled).to.equal(false);
+      botaoComentario().click();
+
+      expect(eventos).to.have.length(1);
+      expect(eventos[0].range).to.deep.equal({ index: 6, length: 4 });
+      expect(eventos[0].texto).to.equal('para');
+    });
+
+    it('continua habilitado e usa a última seleção quando pressionar o botão tira o foco do editor', async () => {
+      editorTextoRico.setContent('<p>Texto para comentário.</p>');
+      editorTextoRico.quill!.focus();
+      await selecionar(6, 4);
+      editorTextoRico.quill!.blur();
+      editorTextoRico.onSelectionChange(null);
+      await aguardarSelecao();
+      const eventos = ouvir('abrir-modal-comentario');
+
+      expect(editorTextoRico.quill!.getSelection()).to.equal(null);
+      expect(botaoComentario().disabled).to.equal(false);
+      botaoComentario().click();
+
+      expect(eventos).to.have.length(1);
+      expect(eventos[0].range).to.deep.equal({ index: 6, length: 4 });
+    });
+
+    it('não existe fora da justificação', async () => {
+      editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico></lexml-eta-editor-texto-rico>`);
+      expect(!!botaoComentario()).to.equal(false);
+    });
+  });
+
+  describe('API do editor', () => {
+    it('adiciona, consulta e remove o comentário', () => {
+      editorTextoRico.setContent('<p>Antes texto depois.</p>');
+
+      expect(editorTextoRico.adicionarComentario(ID, { index: 6, length: 5 })).to.equal(true);
+      expect(editorTextoRico.possuiComentario(ID)).to.equal(true);
+      expect(editorTextoRico.getIdsComentarios()).to.deep.equal([ID]);
+      expect(editorTextoRico.getTextoComentario(ID)).to.equal('texto');
+      expect(editorTextoRico.getIndiceComentario(ID)).to.equal(6);
+
+      expect(editorTextoRico.removerComentario(ID)).to.equal(true);
+      expect(editorTextoRico.possuiComentario(ID)).to.equal(false);
+      expect(editorTextoRico.quill!.getText()).to.equal('Antes texto depois.\n');
+    });
+
+    it('preserva a marcação ao carregar o texto e a mantém no texto do editor', () => {
+      editorTextoRico.setContent(`<p><comentario id-sequencia-comentario="${ID}">Texto comentado</comentario></p>`);
+      editorTextoRico.updateApenasTexto();
+
+      expect(editorTextoRico.getTextoComentario(ID)).to.equal('Texto comentado');
+      expect(editorTextoRico.texto).to.include(`<comentario id-sequencia-comentario="${ID}">Texto comentado</comentario>`);
+    });
+
+    it('posiciona o cursor no início do trecho e o destaca', () => {
+      editorTextoRico.setContent('<p>Antes texto depois.</p>');
+      editorTextoRico.adicionarComentario(ID, { index: 6, length: 5 });
+      editorTextoRico.quill!.setSelection(0, 0);
+
+      expect(editorTextoRico.posicionarCursorComentario(ID)).to.equal(true);
+      expect(editorTextoRico.quill!.getSelection()).to.deep.equal({ index: 6, length: 0 });
+      expect(selecionados()).to.deep.equal(['texto']);
+      expect(editorTextoRico.posicionarCursorComentario('inexistente')).to.equal(false);
+    });
+
+    it('destacarComentario destaca todos os fragmentos e, sem id, retira o destaque, sem emitir evento', () => {
+      editorTextoRico.setContent(`<p><comentario id-sequencia-comentario="${ID}">um</comentario></p><p><comentario id-sequencia-comentario="${ID}">dois</comentario></p>`);
+      const eventos = ouvir('comentario-selecionado');
+
+      expect(editorTextoRico.destacarComentario(ID)).to.equal(true);
+      expect(selecionados()).to.deep.equal(['um', 'dois']);
+
+      editorTextoRico.destacarComentario(undefined);
+      expect(selecionados()).to.deep.equal([]);
+      expect(eventos).to.have.length(0);
+    });
+
+    it('desfazer depois de apagar o trecho de uma sequência removida devolve o texto sem a marcação', () => {
+      editorTextoRico.setContent('<p>Antes texto depois.</p>');
+      const quill = editorTextoRico.quill as any;
+      editorTextoRico.adicionarComentario(ID, { index: 6, length: 5 });
+      quill.history.cutoff();
+      quill.deleteText(6, 5, 'user');
+      editorTextoRico.registrarComentarioRemovido(ID);
+      quill.history.cutoff();
+
+      quill.history.undo();
+
+      expect(quill.getText()).to.equal('Antes texto depois.\n');
+      expect(editorTextoRico.possuiComentario(ID)).to.equal(false);
+    });
+
+    it('desfazer depois de excluir a sequência não recria a marcação', () => {
+      editorTextoRico.setContent('<p>Antes texto depois.</p>');
+      const quill = editorTextoRico.quill as any;
+      editorTextoRico.adicionarComentario(ID, { index: 6, length: 5 });
+      quill.history.cutoff();
+      editorTextoRico.removerComentario(ID);
+      editorTextoRico.registrarComentarioRemovido(ID);
+      quill.history.cutoff();
+
+      quill.history.undo();
+
+      expect(editorTextoRico.possuiComentario(ID)).to.equal(false);
+    });
+
+    it('um id registrado como removido volta a valer ao ser adicionado de novo, e setContent limpa o registro', () => {
+      editorTextoRico.setContent('<p>Antes texto depois.</p>');
+      editorTextoRico.registrarComentarioRemovido(ID);
+      editorTextoRico.adicionarComentario(ID, { index: 6, length: 5 });
+      editorTextoRico.quill!.insertText(0, 'x', 'user');
+      expect(editorTextoRico.possuiComentario(ID)).to.equal(true);
+
+      editorTextoRico.registrarComentarioRemovido('outro');
+      editorTextoRico.setContent('<p><comentario id-sequencia-comentario="outro">Texto</comentario></p>');
+      editorTextoRico.quill!.insertText(0, 'x', 'user');
+      expect(editorTextoRico.possuiComentario('outro')).to.equal(true);
+    });
+  });
+
+  describe('Destaque do trecho sob o cursor', () => {
+    beforeEach(() => {
+      editorTextoRico.setContent(`<p>Antes <comentario id-sequencia-comentario="${ID}">texto</comentario> depois.</p>`);
+    });
+
+    it('destaca o trecho sob o cursor e emite comentario-selecionado com o id', async () => {
+      const eventos = ouvir('comentario-selecionado');
+      await selecionar(8);
+
+      expect(selecionados()).to.deep.equal(['texto']);
+      expect(eventos[eventos.length - 1]).to.deep.include({ idSequenciaComentario: ID, abrirAbaComentarios: false });
+    });
+
+    it('considera o trecho com o cursor no início dele', async () => {
+      await selecionar(6);
+      expect(selecionados()).to.deep.equal(['texto']);
+    });
+
+    it('fora do trecho, retira o destaque e emite o evento sem id', async () => {
+      await selecionar(8);
+      const eventos = ouvir('comentario-selecionado');
+      await selecionar(14);
+
+      expect(selecionados()).to.deep.equal([]);
+      expect(eventos).to.have.length(1);
+      expect(eventos[0].idSequenciaComentario).to.equal(undefined);
+    });
+
+    it('mantém o destaque quando o editor perde o foco', async () => {
+      await selecionar(8);
+      const eventos = ouvir('comentario-selecionado');
+      editorTextoRico.onSelectionChange(null);
+      await aguardarSelecao();
+
+      expect(selecionados()).to.deep.equal(['texto']);
+      expect(eventos).to.have.length(0);
+    });
+
+    it('exibe o trecho em amarelo claro e, destacado, em amarelo escuro', () => {
+      const comentario = editorTextoRico.quill!.root.querySelector('comentario') as HTMLElement;
+      expect(getComputedStyle(comentario).backgroundColor).to.equal('rgb(255, 248, 197)');
+      comentario.classList.add('comentario-selecionado');
+      expect(getComputedStyle(comentario).backgroundColor).to.equal('rgb(253, 214, 99)');
+    });
+
+    it('o texto entregue não leva o destaque nem o atributo do último fragmento', async () => {
+      await selecionar(8);
+      await aguardarIcones();
+      editorTextoRico.updateApenasTexto();
+
+      expect(editorTextoRico.texto).to.include(`<comentario id-sequencia-comentario="${ID}">texto</comentario>`);
+    });
+  });
+
+  describe('Ícone ao fim do trecho', () => {
+    const icones = (): HTMLButtonElement[] => Array.from(editorTextoRico.querySelectorAll<HTMLButtonElement>('.comentario-texto-icone'));
+
+    it('cria um ícone por sequência e o remove quando a sequência deixa de ter trecho', async () => {
+      editorTextoRico.setContent('<p><comentario id-sequencia-comentario="a">um</comentario> e <comentario id-sequencia-comentario="b">dois</comentario></p>');
+      await aguardarIcones();
+      expect(icones().map(b => b.dataset.idSequenciaComentario)).to.deep.equal(['a', 'b']);
+
+      editorTextoRico.removerComentario('a');
+      await aguardarIcones();
+      expect(icones().map(b => b.dataset.idSequenciaComentario)).to.deep.equal(['b']);
+    });
+
+    it('reserva o espaço do ícone só no último fragmento do trecho dividido por exclusão', async () => {
+      editorTextoRico.setContent('<p>Teste par<del usuario="Fulano" date="2026-08-12 13:49:00" id-revisao="r1">alele</del>pipedo</p>');
+      editorTextoRico.adicionarComentario(ID, { index: 11, length: 6 });
+      await aguardarIcones();
+
+      const fragmentos = Array.from(editorTextoRico.quill!.root.querySelectorAll<HTMLElement>(`comentario[id-sequencia-comentario="${ID}"]`));
+      expect(fragmentos.length).to.equal(2);
+      expect(fragmentos[0].hasAttribute('data-comentario-fragmento-final')).to.equal(false);
+      expect(fragmentos[1].hasAttribute('data-comentario-fragmento-final')).to.equal(true);
+      expect(getComputedStyle(fragmentos[1]).marginRight).to.equal('22px');
+      expect(editorTextoRico.ajustaHtml(editorTextoRico.quill!.root.innerHTML).includes('data-comentario-fragmento-final')).to.equal(false);
+    });
+
+    it('o clique no ícone destaca o trecho e emite comentario-selecionado pedindo a aba', async () => {
+      editorTextoRico.setContent(`<p>Antes <comentario id-sequencia-comentario="${ID}">texto</comentario> depois.</p>`);
+      await aguardarIcones();
+      const eventos = ouvir('comentario-selecionado');
+
+      icones()[0].click();
+
+      expect(selecionados()).to.deep.equal(['texto']);
+      expect(eventos).to.have.length(1);
+      expect(eventos[0]).to.deep.include({ idSequenciaComentario: ID, abrirAbaComentarios: true });
+    });
+
+    it('o clique e as setas de cada lado do ícone deixam o cursor dentro ou fora do trecho', async () => {
+      editorTextoRico.setContent(`<p><comentario id-sequencia-comentario="${ID}">fortale</comentario>za</p>`);
+      await aguardarIcones();
+
+      const botaoRect = icones()[0].getBoundingClientRect();
+      const comentario = editorTextoRico.quill!.root.querySelector('comentario') as HTMLElement;
+      const textoComentario = comentario.lastChild as Text;
+      const textoPosterior = comentario.nextSibling as Text;
+      const rectDe = (no: Text, i: number): DOMRect => {
+        const range = document.createRange();
+        range.setStart(no, i);
+        range.setEnd(no, i + 1);
+        return range.getBoundingClientRect();
+      };
+      const ultimoRect = rectDe(textoComentario, textoComentario.data.length - 1);
+      const proximoRect = rectDe(textoPosterior, 0);
+      const cursorDentro = (): boolean => comentario.contains(document.getSelection()?.getRangeAt(0).startContainer ?? null);
+      const clique = (x: number, rect: DOMRect): void => {
+        editorTextoRico.quill!.root.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, button: 0, clientX: x, clientY: rect.top + rect.height / 2 }));
+      };
+
+      clique(Math.min(botaoRect.left - 0.5, ultimoRect.left + ultimoRect.width * 0.75), ultimoRect);
+      expect(editorTextoRico.quill!.getSelection()?.index).to.equal(7);
+      expect(cursorDentro()).to.equal(true);
+
+      clique(proximoRect.left + 1, proximoRect);
+      expect(editorTextoRico.quill!.getSelection()?.index).to.equal(7);
+      expect(cursorDentro()).to.equal(false);
+
+      const setaEsquerda = new KeyboardEvent('keydown', { key: 'ArrowLeft', bubbles: true, cancelable: true });
+      editorTextoRico.quill!.root.dispatchEvent(setaEsquerda);
+      expect(setaEsquerda.defaultPrevented).to.equal(true);
+      expect(cursorDentro()).to.equal(true);
+
+      const setaDireita = new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true, cancelable: true });
+      editorTextoRico.quill!.root.dispatchEvent(setaDireita);
+      expect(setaDireita.defaultPrevented).to.equal(true);
+      expect(cursorDentro()).to.equal(false);
+    });
+  });
+});
