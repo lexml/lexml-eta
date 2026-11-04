@@ -51,13 +51,18 @@ A barra de ferramentas da justificação SHALL ter o botão "Adicionar comentár
 
 ### Requirement: Adicionar comentário a partir de marca de revisão
 
-O quadro de detalhes de uma marca de revisão da justificação SHALL ter o botão "Adicionar comentário" quando nenhuma parte do texto dessa revisão estiver comentada. O botão SHALL selecionar todo o texto da revisão (todos os seus trechos, sem o texto comum entre eles) e seguir o fluxo de adicionar comentário.
+O quadro de detalhes de uma marca de revisão da justificação SHALL ter o botão "Adicionar comentário" quando nenhuma parte do texto dessa revisão estiver comentada. O botão SHALL selecionar o trecho contínuo da revisão onde está o clique, inclusive as partes encostadas com outra formatação, e seguir o fluxo de adicionar comentário. Trechos da mesma revisão separados por texto comum MUST NOT entrar na seleção, porque o texto comum entre eles ficaria comentado.
 
 #### Scenario: Comentar uma revisão
 
 - **WHEN** o usuário abre o quadro de uma inclusão em revisão e clica em "Adicionar comentário"
 - **THEN** o modal "Adicionar comentário" é aberto com o texto incluído como trecho selecionado
 - **AND** ao confirmar, o texto incluído fica destacado como comentado
+
+#### Scenario: Revisão em trechos separados por texto comum
+
+- **WHEN** uma revisão tem dois trechos separados por texto sem revisão e o usuário clica em "Adicionar comentário" no quadro do primeiro
+- **THEN** o modal é aberto apenas com o texto do primeiro trecho
 
 #### Scenario: Revisão já comentada
 

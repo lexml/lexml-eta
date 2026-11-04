@@ -55,7 +55,7 @@ Como na emenda (`9a727c57`): a cada mudança de texto, o componente raiz verific
 
 ### Revisão: portar `1a50302d` sobre a c01
 
-O `moduloRevisao` ganha o botão "Adicionar comentário" no quadro (oculto se algum trecho da revisão já tiver comentário), que seleciona todos os trechos da revisão e emite `abrir-modal-comentario`. A aceitação e a rejeição de revisão dentro do trecho comentado passam a preservar a formatação de comentário (a emenda usa um caminho por delta quando a revisão tem comentário, `revisarComDeltaSeguro`). O CSS combina `comentario` com `ins`/`del`: o fundo amarelo fica no `comentario` e o traço da exclusão é repetido nele, como na emenda.
+O `moduloRevisao` ganha o botão "Adicionar comentário" no quadro (oculto se algum trecho da revisão já tiver comentário), que seleciona o trecho contínuo da revisão sob o clique (uma seleção do Quill não aceita intervalos separados) e emite `abrir-modal-comentario`. Excluir em revisão um trecho comentado passa a ler o texto apagado de `oldContent`, com os formatos dele: o desfazer feito pelo `onTextChange` pode levar junto o comentário criado no mesmo passo do histórico. A aceitação e a rejeição de revisão dentro do trecho comentado passam a preservar a formatação de comentário (a emenda usa um caminho por delta quando a revisão tem comentário, `revisarComDeltaSeguro`). O CSS combina `comentario` com `ins`/`del`: o fundo amarelo fica no `comentario` e o traço da exclusão é repetido nele, como na emenda.
 
 ### Texto ao host sem marcação
 

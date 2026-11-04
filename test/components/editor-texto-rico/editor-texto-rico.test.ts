@@ -813,3 +813,171 @@ describe('Comentários no editor de texto rico', () => {
     });
   });
 });
+
+describe('Comentário e marcas de revisão na justificação', () => {
+  const ID = 'sc123';
+  const marca = (tag: string, id: string, texto: string): string => `<${tag} usuario="Teste" date="2026-05-19 13:00:00" id-revisao="${id}">${texto}</${tag}>`;
+  const revisao = (): any => (editorTextoRico.quill as any).revisao;
+  const botaoComentarioRevisao = (): HTMLButtonElement | null => document.body.querySelector('#button-adicionar-comentario-revisao');
+  const abrirQuadro = (el: Element): void => {
+    el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+  };
+  const ouvirAbrirModal = (): any[] => {
+    const detalhes: any[] = [];
+    editorTextoRico.addEventListener('abrir-modal-comentario', ev => detalhes.push((ev as CustomEvent).detail));
+    return detalhes;
+  };
+
+  beforeEach(async () => {
+    editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico modo="justificativa"></lexml-eta-editor-texto-rico>`);
+  });
+
+  afterEach(() => {
+    document.body.querySelectorAll('.tooltip-revisao').forEach(el => el.remove());
+    revisao()?.setEmRevisao(false);
+  });
+
+  describe('Botão "Adicionar comentário" no quadro da revisão', () => {
+    it('seleciona o texto da revisão e emite abrir-modal-comentario', () => {
+      editorTextoRico.setContent(`<p>Texto ${marca('del', 'rev1', 'excluido')} normal.</p>`);
+      const eventos = ouvirAbrirModal();
+
+      abrirQuadro(editorTextoRico.quill!.root.querySelector('del')!);
+      expect(!!botaoComentarioRevisao()?.querySelector('#comentario-plus')).to.equal(true);
+      botaoComentarioRevisao()!.click();
+
+      expect(eventos).to.have.length(1);
+      expect(eventos[0]).to.deep.include({ modo: 'justificativa', texto: 'excluido' });
+      expect(eventos[0].range).to.deep.equal({ index: 6, length: 8 });
+      expect(editorTextoRico.quill!.getSelection()).to.deep.equal({ index: 6, length: 8 });
+    });
+
+    it('seleciona os trechos contíguos da revisão, mesmo com formatação diferente', () => {
+      editorTextoRico.setContent(`<p>A ${marca('del', 'rev1', 'Também revoga ')}<b>${marca('del', 'rev1', 'o regime')}</b> fim</p>`);
+      const eventos = ouvirAbrirModal();
+
+      abrirQuadro(editorTextoRico.quill!.root.querySelector('b del')!);
+      botaoComentarioRevisao()!.click();
+
+      expect(eventos[0].range).to.deep.equal({ index: 2, length: 22 });
+      expect(eventos[0].texto).to.equal('Também revoga o regime');
+    });
+
+    it('não seleciona o texto comum entre trechos separados da mesma revisão', () => {
+      editorTextoRico.setContent(`<p>${marca('del', 'rev1', 'primeiro')} normal ${marca('del', 'rev1', 'segundo')}</p>`);
+      const eventos = ouvirAbrirModal();
+
+      abrirQuadro(editorTextoRico.quill!.root.querySelector('del')!);
+      botaoComentarioRevisao()!.click();
+
+      expect(eventos[0].range).to.deep.equal({ index: 0, length: 'primeiro'.length });
+      expect(eventos[0].texto).to.equal('primeiro');
+    });
+
+    it('não aparece quando parte do texto da revisão já está comentada', () => {
+      editorTextoRico.setContent(`<p>Texto ${marca('del', 'rev1', 'excluido')} normal.</p>`);
+      editorTextoRico.adicionarComentario(ID, { index: 6, length: 4 });
+
+      abrirQuadro(editorTextoRico.quill!.root.querySelector('del')!);
+
+      expect(!!document.body.querySelector('.tooltip-revisao')).to.equal(true);
+      expect(!!botaoComentarioRevisao()).to.equal(false);
+    });
+
+    it('não aparece fora da justificação', async () => {
+      editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico></lexml-eta-editor-texto-rico>`);
+      editorTextoRico.setContent(`<p>Texto ${marca('del', 'rev1', 'excluido')} normal.</p>`);
+
+      abrirQuadro(editorTextoRico.quill!.root.querySelector('del')!);
+
+      expect(!!document.body.querySelector('.tooltip-revisao')).to.equal(true);
+      expect(!!botaoComentarioRevisao()).to.equal(false);
+    });
+  });
+
+  describe('Comentário preservado pela revisão', () => {
+    it('excluir em revisão um trecho comentado mantém o comentário sobre o texto excluído', async () => {
+      editorTextoRico.setContent('<p>Texto comentado normal.</p>');
+      editorTextoRico.adicionarComentario(ID, { index: 0, length: 15 });
+      revisao().setEmRevisao(true);
+
+      editorTextoRico.quill!.deleteText(6, 16, 'user');
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      const ops = editorTextoRico.quill!.getContents(6, 16).ops ?? [];
+      expect(ops.some((op: any) => op.attributes?.comentario === ID && op.attributes?.removed)).to.equal(true);
+      expect(ops.some((op: any) => !op.attributes?.comentario && op.attributes?.removed)).to.equal(true);
+      expect(editorTextoRico.getTextoComentario(ID)).to.equal('Texto comentado');
+    });
+
+    it('palavra comentada dividida por uma exclusão em revisão continua inteira no trecho', async () => {
+      const texto = 'malasessadaasdasdsdasduada';
+      editorTextoRico.setContent(`<p>${texto}</p>`);
+      editorTextoRico.adicionarComentario(ID, { index: 0, length: texto.length });
+      revisao().setEmRevisao(true);
+
+      editorTextoRico.quill!.deleteText(10, 4, 'user');
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      expect(editorTextoRico.getTextoComentario(ID)).to.equal(texto);
+    });
+
+    it('aceitar uma inclusão dentro do trecho comentado mantém o comentário', async () => {
+      editorTextoRico.setContent('<p>Texto base.</p>');
+      editorTextoRico.adicionarComentario(ID, { index: 0, length: 10 });
+      revisao().setEmRevisao(true);
+
+      editorTextoRico.quill!.insertText(6, 'novo ', 'user');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      revisao().revisar([editorTextoRico.quill!.root.querySelector('ins')], true);
+
+      expect(!!editorTextoRico.quill!.root.querySelector('ins')).to.equal(false);
+      expect(editorTextoRico.getTextoComentario(ID)).to.equal('Texto novo base');
+    });
+
+    it('rejeitar uma exclusão dentro do trecho comentado mantém o comentário', async () => {
+      editorTextoRico.setContent('<p>Texto base.</p>');
+      editorTextoRico.adicionarComentario(ID, { index: 0, length: 10 });
+      revisao().setEmRevisao(true);
+
+      editorTextoRico.quill!.deleteText(6, 4, 'user');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      revisao().revisar([editorTextoRico.quill!.root.querySelector('del')], false);
+
+      expect(!!editorTextoRico.quill!.root.querySelector('del')).to.equal(false);
+      expect(editorTextoRico.getTextoComentario(ID)).to.equal('Texto base');
+    });
+
+    it('aceitar uma exclusão dentro do trecho comentado retira só o texto excluído', async () => {
+      editorTextoRico.setContent('<p>Texto base.</p>');
+      editorTextoRico.adicionarComentario(ID, { index: 0, length: 10 });
+      revisao().setEmRevisao(true);
+
+      editorTextoRico.quill!.deleteText(5, 5, 'user');
+      await new Promise(resolve => setTimeout(resolve, 0));
+      revisao().revisar([editorTextoRico.quill!.root.querySelector('del')], true);
+
+      expect(editorTextoRico.quill!.getText()).to.equal('Texto.\n');
+      expect(editorTextoRico.getTextoComentario(ID)).to.equal('Texto');
+    });
+
+    // O Quill decide a ordem de aninhamento entre del e comentario: o elemento interno precisa mostrar o traço e o fundo amarelo.
+    it('mantém o traço da exclusão sobre o fundo do comentário', async () => {
+      editorTextoRico.setContent('<p>Texto comentado normal.</p>');
+      editorTextoRico.adicionarComentario(ID, { index: 0, length: 15 });
+      revisao().setEmRevisao(true);
+      editorTextoRico.quill!.deleteText(6, 9, 'user');
+      await new Promise(resolve => setTimeout(resolve, 0));
+
+      const interno = editorTextoRico.quill!.root.querySelector('del comentario, comentario del') as HTMLElement;
+      expect(!!interno).to.equal(true);
+      const externo = interno.parentElement!.closest(interno.tagName === 'DEL' ? 'comentario' : 'del') as HTMLElement;
+      const fundoVisivel = (el: HTMLElement): string => getComputedStyle(el).backgroundColor;
+
+      expect(getComputedStyle(interno).backgroundImage).to.contain('linear-gradient');
+      // Amarelo claro, ou escuro se o cursor ficou no trecho.
+      expect(['rgb(255, 248, 197)', 'rgb(253, 214, 99)']).to.include(interno.tagName === 'DEL' ? fundoVisivel(externo) : fundoVisivel(interno));
+      expect(interno.tagName === 'DEL' ? fundoVisivel(interno) : 'rgba(0, 0, 0, 0)').to.equal('rgba(0, 0, 0, 0)');
+    });
+  });
+});

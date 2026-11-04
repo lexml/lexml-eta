@@ -16,8 +16,8 @@
 
 ## 4. Comentário e revisão
 
-- [ ] 4.1 No `moduloRevisao`, botão "Adicionar comentário" no quadro da revisão, oculto quando algum trecho da revisão já está comentado, que seleciona todos os trechos da revisão (sem o texto comum entre eles) e emite `abrir-modal-comentario`. Verificar com testes de componente portados da emenda ("adicionar comentario a partir do tooltip", "nao deveria selecionar texto normal entre fragmentos", "nao deveria exibir botao ... quando revisao ja possuir comentario").
-- [ ] 4.2 Preservar a marcação de comentário ao aceitar e rejeitar revisão dentro do trecho e ao excluir em modo de revisão um trecho comentado; CSS de `comentario` com `ins`/`del` (fundo no comentário, traço da exclusão repetido). Verificar com testes de componente (aceitar inclusão, rejeitar exclusão, excluir em revisão) e com os testes de revisão existentes sem regressão.
+- [x] 4.1 No `moduloRevisao`, botão "Adicionar comentário" no quadro da revisão, oculto quando algum trecho da revisão já está comentado, que seleciona o trecho contínuo da revisão sob o clique (sem o texto comum entre trechos separados) e emite `abrir-modal-comentario`. Verificar com testes de componente portados da emenda ("adicionar comentario a partir do tooltip", "nao deveria selecionar texto normal entre fragmentos", "nao deveria exibir botao ... quando revisao ja possuir comentario").
+- [x] 4.2 Preservar a marcação de comentário ao aceitar e rejeitar revisão dentro do trecho e ao excluir em modo de revisão um trecho comentado; CSS de `comentario` com `ins`/`del` (fundo no comentário, traço da exclusão repetido). Verificar com testes de componente (aceitar inclusão, rejeitar exclusão, excluir em revisão) e com os testes de revisão existentes sem regressão.
 
 ## 5. Aba e modais
 

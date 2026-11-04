@@ -4,6 +4,10 @@
 
 import { generateUUID } from '../../util/uuid';
 import PrivateQuill from '../../internal/quill/private-quill';
+import { iconeComentario } from '../../../assets/icons/icons';
+
+type IntervaloRevisao = { index: number; length: number };
+type TipoRevisao = 'added' | 'removed';
 
 /* eslint-disable prefer-const */
 const Delta = PrivateQuill.import('delta');
@@ -276,28 +280,125 @@ class ModuloRevisao extends Module {
   revisar(elementosRevisao: HTMLElement[], aceitar: boolean, todos = false) {
     if (!this.emRevisao) return;
 
-    elementosRevisao
-      .filter(el => this.isTagRevisao(el))
-      .forEach(elRevisao => {
-        const isTagIns = elRevisao.tagName === 'INS';
-        const blot = PrivateQuill.find(elRevisao);
-        this.ignorarEventoTextChange = true;
-
-        if (blot !== null) {
-          if ((aceitar && !isTagIns) || (!aceitar && isTagIns)) {
-            const index = this.quill.getIndex(blot);
-            const length = blot.length();
-            this.quill.updateContents(new Delta().retain(index).delete(length), 'user');
-          } else {
-            blot.format(isTagIns ? 'added' : 'removed', false, 'user');
-          }
-        }
-      });
+    const elementos = elementosRevisao.filter(el => this.isTagRevisao(el));
+    // Pelo blot, o Quill perde o formato de comentário do trecho que fica: com comentário, a revisão é resolvida por delta.
+    if (elementos.some(el => this.revisaoPossuiComentario(el))) {
+      this.revisarPorDelta(elementos, aceitar);
+    } else {
+      elementos.forEach(el => this.revisarElementoPorBlot(el, aceitar));
+    }
 
     //força o revisar quando é "todos" e ainda sobrou revisões no quill
     if (todos && this.getRevisoes().length > 0) {
       this.revisar(this.getRevisoes(), aceitar);
     }
+  }
+
+  private revisarElementoPorBlot(elRevisao: HTMLElement, aceitar: boolean) {
+    const isTagIns = elRevisao.tagName === 'INS';
+    const blot = PrivateQuill.find(elRevisao);
+    this.ignorarEventoTextChange = true;
+
+    if (blot !== null) {
+      if ((aceitar && !isTagIns) || (!aceitar && isTagIns)) {
+        const index = this.quill.getIndex(blot);
+        const length = blot.length();
+        this.quill.updateContents(new Delta().retain(index).delete(length), 'user');
+      } else {
+        blot.format(isTagIns ? 'added' : 'removed', false, 'user');
+      }
+    }
+  }
+
+  // Remonta o conteúdo: o texto que fica perde só o formato da revisão; o que sai é descartado.
+  private revisarPorDelta(elementos: HTMLElement[], aceitar: boolean) {
+    const chaves = new Set<string>();
+    elementos.forEach(el => {
+      const tipo = this.getTipoRevisao(el);
+      const id = this.getIdRevisao(el);
+      tipo && id ? chaves.add(`${tipo}:${id}`) : this.revisarElementoPorBlot(el, aceitar);
+    });
+    if (!chaves.size) return;
+
+    let houveAlteracao = false;
+    const ops: any[] = [];
+    this.quill.getContents().ops.forEach((op: any) => {
+      const tipo: TipoRevisao | null = op.attributes?.added ? 'added' : op.attributes?.removed ? 'removed' : null;
+      if (!tipo || !chaves.has(`${tipo}:${this.getIdRevisaoFromValue(op.attributes[tipo])}`)) {
+        ops.push(op);
+        return;
+      }
+
+      houveAlteracao = true;
+      if (aceitar === (tipo === 'removed')) return;
+
+      const { [tipo]: _formatoRevisao, ...attributes } = op.attributes;
+      ops.push(Object.keys(attributes).length ? { insert: op.insert, attributes } : { insert: op.insert });
+    });
+    if (!houveAlteracao) return;
+
+    const range = this.quill.getSelection();
+    this.ignorarEventoTextChange = true;
+    this.quill.setContents(new Delta(ops), 'user');
+    range && this.quill.setSelection(Math.min(range.index, this.quill.getLength() - 1), 0, PrivateQuill.sources.SILENT);
+  }
+
+  private get moduloComentario() {
+    return this.quill.options.formats?.includes('comentario') ? this.quill.comentarios : undefined;
+  }
+
+  private revisaoPossuiComentario(elRevisao: HTMLElement): boolean {
+    const moduloComentario = this.moduloComentario;
+    return !!moduloComentario && this.getRangesRevisao(elRevisao).some(range => moduloComentario.rangePossuiComentario(range));
+  }
+
+  // Trechos de mesmo tipo e id-revisao; intervalos encostados formam um só.
+  private getRangesRevisao(elRevisao: HTMLElement): IntervaloRevisao[] {
+    const tipo = this.getTipoRevisao(elRevisao);
+    const id = this.getIdRevisao(elRevisao);
+    if (!tipo || !id) {
+      const blot = PrivateQuill.find(elRevisao);
+      return blot ? [{ index: this.quill.getIndex(blot), length: blot.length() }] : [];
+    }
+
+    const ranges: IntervaloRevisao[] = [];
+    let index = 0;
+    this.quill.getContents().ops.forEach((op: any) => {
+      const length = typeof op.insert === 'string' ? op.insert.length : 1;
+      if (this.getIdRevisaoFromValue(op.attributes?.[tipo]) === id) {
+        const anterior = ranges[ranges.length - 1];
+        anterior && anterior.index + anterior.length === index ? (anterior.length += length) : ranges.push({ index, length });
+      }
+      index += length;
+    });
+    return ranges;
+  }
+
+  // Trechos separados por texto comum não cabem numa seleção: vale o trecho contínuo que contém o elemento.
+  private getRangeRevisaoDoElemento(elRevisao: HTMLElement): IntervaloRevisao | undefined {
+    const blot = PrivateQuill.find(elRevisao);
+    const indice = blot ? this.quill.getIndex(blot) : -1;
+    return this.getRangesRevisao(elRevisao).find(range => indice >= range.index && indice < range.index + range.length);
+  }
+
+  private getTipoRevisao(elRevisao: HTMLElement): TipoRevisao | null {
+    return elRevisao.tagName === 'INS' ? 'added' : elRevisao.tagName === 'DEL' ? 'removed' : null;
+  }
+
+  private getIdRevisao(elRevisao: HTMLElement): string {
+    return elRevisao.getAttribute('id-revisao') || '';
+  }
+
+  private getIdRevisaoFromValue(value?: string): string {
+    return value ? `${value}`.split('|')[2] || '' : '';
+  }
+
+  private adicionarComentarioNaRevisao(elRevisao: HTMLElement) {
+    const range = this.getRangeRevisaoDoElemento(elRevisao);
+    if (!range || this.moduloComentario?.rangePossuiComentario(range)) return;
+
+    this.quill.setSelection(range.index, range.length, PrivateQuill.sources.USER);
+    (this.quill.root.closest('lexml-eta-editor-texto-rico') as any)?.emitirAbrirModalComentario?.(range);
   }
 
   padTo2Digits(num: number): string {
@@ -311,6 +412,7 @@ class ModuloRevisao extends Module {
     tooltip.classList.add('tooltip-revisao');
 
     const data = new Date(elRevisao.getAttribute('date') || '');
+    const exibirBotaoComentario = !!this.moduloComentario && !this.revisaoPossuiComentario(elRevisao);
 
     tooltip.innerHTML = `
         <style>
@@ -350,6 +452,10 @@ class ModuloRevisao extends Module {
           width: 24px;
           height: 24px;
         }
+        .tooltip-revisao__actions #button-adicionar-comentario-revisao svg {
+          width: 14px;
+          height: 14px;
+        }
         .tooltip-revisao button:hover {
           background-color: #ddd;
         }
@@ -385,6 +491,11 @@ class ModuloRevisao extends Module {
               <path d="M10.97 4.97a.75.75 0 0 1 1.07 1.05l-3.99 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.267.267 0 0 1 .02-.022z"/>
             </svg>
           </button>
+          ${
+            exibirBotaoComentario
+              ? `<button id="button-adicionar-comentario-revisao" aria-label="Adicionar comentário" title="Adicionar comentário">${iconeComentario}</button>`
+              : ''
+          }
         </div>
       </div>
       `;
@@ -400,16 +511,22 @@ class ModuloRevisao extends Module {
 
     tooltip.querySelector('#button-rejeitar-revisao')!.addEventListener('click', (event: any) => fnActionRevisao(event, false));
     tooltip.querySelector('#button-aceitar-revisao')!.addEventListener('click', (event: any) => fnActionRevisao(event, true));
+    tooltip.querySelector('#button-adicionar-comentario-revisao')?.addEventListener('click', (event: any) => {
+      event.stopPropagation();
+      this.adicionarComentarioNaRevisao(elRevisao);
+      // Sem devolver o foco ao editor: o modal do comentário vai abrir.
+      closeTooltip(event, false);
+    });
 
     this.ajustaPosicaoTooltip(tooltip, elRevisao);
 
-    const closeTooltip = (e: Event) => {
+    const closeTooltip = (e: Event, restaurarFoco = true) => {
       if (e.type === 'click') {
         limpaTooltip();
       } else if (e.type === 'keydown' && (e as KeyboardEvent).key === 'Escape') {
         limpaTooltip();
       }
-      setTimeout(() => this.quill.root.focus(), 0);
+      restaurarFoco && setTimeout(() => this.quill.root.focus(), 0);
     };
 
     const limpaTooltip = () => {
@@ -670,21 +787,21 @@ class ModuloRevisao extends Module {
         acc.ops.push({ retain: op.retain, attributes: { ...(op.attributes || {}) } });
         idx += op.retain;
       } else if (op.delete) {
-        // Para refazer trechos removidos em modo de revisão é preciso identificar o que está sendo removido
-        const contentDeletedRange = quill.getContents(idx, op.delete);
+        // Para refazer trechos removidos em modo de revisão é preciso identificar o que está sendo removido.
+        // Lido do conteúdo anterior e com os formatos dele: o desfazer acima pode ter levado junto uma formatação
+        // fundida no mesmo passo do histórico (ex.: o comentário recém-criado).
+        const contentDeletedRange = oldContent.slice(idx, idx + op.delete);
         contentDeletedRange.ops.forEach(op2 => {
           if (op2.insert && op2.attributes?.added) {
             // Deixa remover conteúdo adicionado em modo de revisão
-            acc.ops.push({ delete: op2.insert.length });
-          } else if (op2.insert && !op2.attributes?.added) {
+            acc.ops.push({ delete: typeof op2.insert === 'string' ? op2.insert.length : 1 });
+          } else {
             // Não deixa remover conteúdo adicionado FORA modo de revisão
             // Formata como removido em modo de revisão
-            acc.ops.push({ retain: op2.insert.length, attributes: { removed: this.buildAttributes(id) } });
-            idx += op2.insert.length;
-            numCaracteresRemovidos += op2.insert.length;
-          } else {
-            acc.ops.push({ retain: op2.retain || op2.delete, attributes: { removed: this.buildAttributes(id) } });
-            idx += op2.retain || op2.delete;
+            const tamanho = typeof op2.insert === 'string' ? op2.insert.length : 1;
+            acc.ops.push({ retain: tamanho, attributes: { ...(op2.attributes || {}), removed: this.buildAttributes(id) } });
+            idx += tamanho;
+            numCaracteresRemovidos += tamanho;
           }
         });
       } else if (op.insert && !op.attributes?.added) {

@@ -347,6 +347,14 @@ export const editorTextoRicoCss = html`
       box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.28);
     }
 
+    /* Dentro de uma exclusão, o fundo do comentário cobriria o traço do del: o traço é repetido nele. */
+    .lexml-eta-editor-texto-rico .ql-editor del comentario {
+      background-image: linear-gradient(#d93025, #d93025);
+      background-position: 0 55%;
+      background-repeat: repeat-x;
+      background-size: 100% 2px;
+    }
+
     /* Espaço do ícone, só no último fragmento do trecho. */
     .lexml-eta-editor-texto-rico .ql-editor comentario[data-comentario-fragmento-final] {
       margin-right: 22px;
