@@ -272,7 +272,7 @@ Em modo de revisão, o sistema SHALL manter a articulação do arquivo na versã
 - **THEN** o arquivo salvo não contém `RevisoesArticulacao` nem o registro `Usuarios`
 
 ### Requirement: Revisão de alteração de texto
-Quando o texto ou o título de um dispositivo é alterado em revisão, o sistema SHALL gravar na articulação o texto e o título revisados e, na revisão `alterado`, o estado anterior do dispositivo como filho de `RevisaoArticulacao`: um dispositivo do mesmo tipo do dispositivo revisado, sem `id`, com o texto anterior e, quando havia título, com o `TituloDispositivo` anterior. A ausência de `TituloDispositivo` nesse filho SHALL significar que o dispositivo não tinha título. O sistema SHALL NOT gravar um parágrafo solto como filho da revisão.
+Quando o texto, o título ou, na pena, o rótulo de um dispositivo é alterado em revisão, o sistema SHALL gravar na articulação o texto, o título e o rótulo revisados e, na revisão `alterado`, o estado anterior do dispositivo como filho de `RevisaoArticulacao`: um dispositivo do mesmo tipo do dispositivo revisado, sem `id`, com o texto anterior e, quando havia título, com o `TituloDispositivo` anterior. A ausência de `TituloDispositivo` nesse filho SHALL significar que o dispositivo não tinha título. Quando o dispositivo revisado é uma pena, o filho SHALL conter também o `Rotulo` anterior. O sistema SHALL NOT gravar um parágrafo solto como filho da revisão.
 
 #### Scenario: Texto de inciso alterado
 - **WHEN** o usuário, em modo de revisão, altera o texto do inciso II do artigo 4 e salva
@@ -309,6 +309,22 @@ Quando o texto ou o título de um dispositivo é alterado em revisão, o sistema
 #### Scenario: Título restaurado ao valor original
 - **WHEN** o usuário, em modo de revisão, altera o título e o restaura ao valor original antes de salvar
 - **THEN** o arquivo salvo não contém revisão para esse dispositivo
+
+#### Scenario: Rótulo da pena alterado
+- **WHEN** o usuário, em modo de revisão, troca o rótulo de uma pena de "Pena –" para "Infração –" e salva
+- **THEN** a articulação contém a pena com o `Rotulo` "Infração –", e a revisão `alterado` contém como filho uma `Pena`, sem `id`, com o `Rotulo` "Pena –" e o texto da pena
+
+#### Scenario: Só o texto da pena alterado
+- **WHEN** o usuário, em modo de revisão, altera só o texto de uma pena e salva
+- **THEN** a revisão `alterado` contém como filho uma `Pena`, sem `id` e sem `Rotulo`, com o texto anterior
+
+#### Scenario: Pena excluída em revisão
+- **WHEN** o usuário, em modo de revisão, remove uma pena e salva
+- **THEN** a revisão `excluido` contém como filho a `Pena` removida, com `id` `_<base>-exc<n>`, `Rotulo` e texto
+
+#### Scenario: Esquema do LexEdit
+- **WHEN** o arquivo contém essas revisões de pena
+- **THEN** o `lexedit.xsd` aceita `Pena` como filho de `RevisaoArticulacao`; o `jsonix-lexml` 2.1.0 descarta esse filho sem erro, então a gravação depende do `jsonix-lexml` 2.2.0
 
 ### Requirement: Revisão de movimentação
 Quando um dispositivo é movido em revisão, o sistema SHALL registrar `movido;<posicaoOriginal>`, onde a posição original é o sequencial, iniciando em 1, que o dispositivo ocupava antes da movimentação. Para artigos, o sequencial SHALL contar todos os artigos da articulação; para os demais dispositivos, SHALL contar todos os filhos do pai original, de qualquer tipo.
@@ -467,6 +483,25 @@ Enquanto houver ao menos uma revisão da hierarquia não resolvida, o sistema SH
 #### Scenario: Pendência ausente após resolver as revisões
 - **WHEN** o usuário aceita ou rejeita todas as revisões da hierarquia e salva
 - **THEN** a lista de pendências não contém esse item
+
+### Requirement: Serialização da pena
+O sistema SHALL gravar a pena de um dispositivo no elemento `Pena` desse dispositivo, depois dos seus filhos, com o identificador `<identificador do dono>_pena`, o `Rotulo` no formato "<rótulo> –" e o texto em `p`. A pena SHALL NOT ser gravada entre os filhos do dispositivo. A pena do artigo SHALL ser gravada no `Caput`. A gravação SHALL valer também para penas dentro de bloco de alteração de norma, e o arquivo SHALL sobreviver à conversão em XML pelo conversor LexML validada com o esquema.
+
+#### Scenario: Pena de parágrafo com incisos
+- **WHEN** o § 2º do art. 2 tem os incisos I e II e a pena "Pena –" com o texto "reclusão, de 6 (seis) a 14 (quatorze) anos, e multa." e o usuário salva
+- **THEN** o `Paragrafo` `art2_par2` contém os incisos e, depois deles, o elemento `Pena` `art2_par2_pena` com `Rotulo` "Pena –" e esse texto em `p`
+
+#### Scenario: Pena do artigo
+- **WHEN** o art. 1 tem pena e o usuário salva
+- **THEN** a pena é gravada no `Caput` `art1_cpt`, com o identificador `art1_cpt_pena`
+
+#### Scenario: Pena em bloco de alteração
+- **WHEN** um artigo de bloco de alteração tem o caput omissis e uma pena, e o usuário salva
+- **THEN** o `Caput` do artigo do bloco contém o texto omitido e a `Pena`
+
+#### Scenario: Conversão pelo conversor LexML
+- **WHEN** o arquivo com penas é convertido em XML pelo conversor, validado com o esquema e convertido de volta
+- **THEN** as penas, com identificador, rótulo e texto, são preservadas na ida e na volta
 
 ### Requirement: Serialização da justificação
 Ao salvar, o sistema SHALL gravar a justificação do documento em edição em `ProjetoNorma/Justificacao/PartePrincipal`, com o conteúdo rico no subconjunto HTML do LexML. O sistema SHALL NOT gravar `Justificacao` quando a justificação não tiver conteúdo nem no modo anexo de parecer. O arquivo salvo SHALL ser válido pelo esquema LexML.

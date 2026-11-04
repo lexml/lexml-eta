@@ -121,8 +121,16 @@ Quando um dispositivo referenciado é renumerado por qualquer ação estrutural 
 - **THEN** o texto do link é recalculado por inteiro para refletir a nova cadeia
 
 #### Scenario: Referência "enxuta" só muda se a posição local mudar
-- **WHEN** o texto da remissão não tem qualificador explícito (ex.: "inciso I" sozinho, ou "parágrafo único", referindo-se a um irmão do mesmo pai)
+- **WHEN** o texto da remissão não tem qualificador explícito (ex.: "inciso I" sozinho, ou "parágrafo único", referindo-se a um irmão do mesmo pai) e o tipo do dispositivo de destino não mudou
 - **THEN** o texto só é atualizado se a posição ordinal do alvo dentro do seu pai imediato mudar, ou se a quantidade de irmãos do mesmo tipo mudar de/para um único elemento — nunca ganha uma cadeia de qualificadores que não tinha originalmente, e nunca alterna entre a forma "único" e a forma numerada sem uma mudança real na contagem de irmãos do mesmo tipo
+
+#### Scenario: Destino que muda de tipo recebe a cadeia completa
+- **WHEN** o texto da remissão não tem qualificador explícito nem sufixo contextual, e o dispositivo de destino muda de tipo (ex.: a remissão "art. 2º" e o art. 2º vira, por TAB, o parágrafo único do art. 1º)
+- **THEN** o texto do link é recalculado por inteiro, com a cadeia completa até o artigo (ex.: "parágrafo único do art. 1º"), mesmo quando a origem está no mesmo artigo do destino
+
+#### Scenario: Destino que volta ao tipo anterior
+- **WHEN** a mudança de tipo do destino é desfeita (undo ou SHIFT_TAB) e ele volta a ser um artigo
+- **THEN** o texto do link volta à forma do artigo (ex.: "art. 2º")
 
 #### Scenario: "Parágrafo único" permanece único quando nenhum irmão é de fato adicionado
 - **WHEN** um dispositivo é o único de seu tipo entre os filhos de seu pai (ex.: o único parágrafo de um artigo) e qualquer ação estrutural em outra parte do documento dispara a sincronização de remissões, sem que um segundo dispositivo do mesmo tipo seja de fato adicionado como irmão

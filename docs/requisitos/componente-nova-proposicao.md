@@ -24,8 +24,8 @@ A aplicação informa a casa legislativa do editor (`casaLegislativaEditor`); o 
 | `SF` | LexEdit | `senado.federal`, `congresso.nacional`, `federal` (só a MPV, e apenas como referência do PLV) |
 | `CD` | Infoleg Editor | `camara.deputados`, `congresso.nacional`, `federal` (só a MPV, e apenas como referência do PLV) |
 
-- **RN-00 — Siglas de nova proposição.** Na espécie Proposição, a lista de siglas contém os tipos das autoridades da casa (`senado.federal` ou `camara.deputados`, e `congresso.nacional`) que **não** são substitutivos nem subemendas substitutivas (`tipoRelacaoSubstitutivo` = `aceita substitutivo` ou `não aceita substitutivo`). A MPV (`federal`) não entra. Ordenação: tipos **ativos** primeiro e **inativos** depois, cada grupo em ordem alfabética da sigla. Os inativos aparecem em cinza e têm o tratamento da RN-18.
-- **RN-00a — Siglas da proposição referenciada (substitutivo e subemenda).** A lista contém todas as siglas, ativas ou inativas, de tipos do vocabulário da casa com `tipoRelacaoSubstitutivo` = `aceita substitutivo`, independentemente do tipo do substitutivo, com a mesma ordenação e o mesmo destaque da RN-00 (ativas e inativas, cada grupo em ordem alfabética; inativas em cinza). A URN da proposição referenciada usa a autoridade do tipo escolhido. Não há atributo de "tipos referenciáveis" no vocabulário (removido na issue #1056).
+- **RN-00 — Siglas de nova proposição.** Na espécie Proposição, a lista de siglas contém os tipos das autoridades da casa (`senado.federal` ou `camara.deputados`, e `congresso.nacional`) que **não** são substitutivos nem subemendas substitutivas (`tipoRelacaoSubstitutivo` = `aceita substitutivo` ou `não aceita substitutivo`). A MPV (`federal`) não entra. Só tipos **ativos** são oferecidos (ordem alfabética da sigla): sigla inativa não inicia proposição nova.
+- **RN-00a — Siglas da proposição referenciada (substitutivo e subemenda).** A lista contém todas as siglas, ativas ou inativas, de tipos do vocabulário da casa com `tipoRelacaoSubstitutivo` = `aceita substitutivo`, independentemente do tipo do substitutivo, **uma única vez cada** (sigla repetida em mais de um tipo, como PLS e PLC, aparece uma só vez), com ativas antes das inativas (cada grupo em ordem alfabética; inativas em cinza). A URN da proposição referenciada usa a autoridade do tipo escolhido e, para sigla que existe como lei ordinária e complementar, o tipo definido pelo atributo `complementar` da verificação (seção 9). Não há atributo de "tipos referenciáveis" no vocabulário (removido na issue #1056).
 - **RN-00b — PLV.** A referência é sempre a MPV (RN-03), única utilização da autoridade `federal`.
 
 ## 2. Fluxo principal
@@ -63,7 +63,7 @@ Regras da tela:
 - **RN-04 — Verificar** (g3 em substitutivo ou subemenda, e g4). O botão é habilitado quando sigla, número e ano estão preenchidos. Ao acionar, verifica a existência do documento e, existindo, preenche a ementa.
 - **RN-05 — Ementa.** Somente leitura. É apagada quando qualquer campo de identificação do grupo muda.
 - **RN-06 — Continuar.** Só é permitido com a sigla escolhida (g3 e, na `CD` em substitutivo ou subemenda, também g2), com o destino válido (RN-19) e, quando a espécie exige referência (Substitutivo, Subemenda substitutiva ou PLV), com o documento referenciado verificado e existente.
-- **RN-18 — Sigla inativa em nova proposição.** A sigla inativa é selecionável. Ao escolhê-la, exibe-se um alerta abaixo da seleção informando que a sigla está inativa e não deve ser usada para iniciar um texto novo. O alerta não bloqueia **Continuar** nem restringe as opções da Tela 2.
+- **RN-18 — Sigla inativa (removida).** Não há mais alerta de sigla inativa: em nova proposição só há siglas ativas (RN-00). Siglas inativas continuam disponíveis para partir do texto de outra proposição e para a proposição referenciada (RN-00a); abrir e editar documentos de sigla inativa não muda.
 - **RN-19 — Destino (g5).** O padrão é Comissão em Substitutivo e Subemenda substitutiva, e Plenário nos demais casos. Não existe "Plenário via comissão". Em Comissão, a comissão é obrigatória e escolhida de uma lista obtida da URL de comissões da configuração; o placeholder de casa da URL é preenchido pela autoridade da URN do novo documento (`SF`, `CD` ou `CN` para `congresso.nacional`). Com falha na obtenção da lista, a opção Comissão fica indisponível (só Plenário), e o padrão em substitutivo passa a ser Plenário. No `SF`, o destino alimenta o sufixo opcional do serviço de epígrafe (5.1). O componente de destino do `lexml-eta` é reaproveitado, com os ajustes necessários; o `lexml-eta` deixa de ter esse componente (ver [Pontos em aberto](#7-pontos-em-aberto)).
 - **RN-20 — Forma de apresentação (g6).** A caixa vem marcada em Substitutivo e Subemenda substitutiva e desmarcada em Proposição; o usuário pode alterá-la. O valor vai em `anexoParecer`.
 
@@ -78,7 +78,7 @@ Pergunta: "Como você quer iniciar?" — opções (seleção única):
 | 1 | Texto vazio | — |
 | 2 | Importar documento (DOCX, TXT ou LexML) | Exibe o campo **Arquivo** (seleção de arquivo), que aceita DOCX, TXT e LexML, de até 5 MB. O LexML pode estar em XML ou em JSON (formato JSONIX, o mesmo usado pelo componente ao abrir um documento). |
 | 3 | Texto do(a) *\<documento referenciado\>* | Só é oferecida em Substitutivo, Subemenda substitutiva ou PLV. Exibe o alerta "Texto estruturado não disponível para edição" quando for o caso. |
-| 4 | Texto de outra proposição | Exibe sigla (escolhida entre todas as siglas do vocabulário da casa do editor, ativas e inativas, inclusive a MPV) + número + ano, **Verificar**, o alerta de indisponibilidade e a ementa (somente leitura). Aceita qualquer sigla, ativa ou inativa. |
+| 4 | Texto de outra proposição | Exibe sigla (escolhida entre todas as siglas do vocabulário da casa do editor, ativas e inativas, inclusive a MPV, uma vez cada) + número + ano, **Verificar**, o alerta de indisponibilidade e a ementa (somente leitura). Aceita qualquer sigla, ativa ou inativa. |
 
 Botões: **Continuar**, **Voltar**, **Cancelar**.
 
@@ -153,7 +153,7 @@ Sufixos de versão previstos: `@apresentacao.substitutivo`, `@aprovacao.substitu
 O componente depende dos seguintes atributos do tipo do documento (`vocabulario/`):
 
 - **`tipoRelacaoSubstitutivo`:** `aceita substitutivo` | `não aceita substitutivo` | `é substitutivo` | `é subemenda substitutiva` (base das listas de siglas, RN-00, RN-00a e g2).
-- **`ativo`** (booleano, padrão `true`): tipos inativos (ex.: PLS, PLC) aparecem ao final das listas, em cinza; em nova proposição são selecionáveis, com alerta (RN-18). Deve haver apenas uma entrada ativa por sigla + autoridade na visão de uma casa.
+- **`ativo`** (booleano, padrão `true`): tipos inativos (ex.: PLS, PLC) não são oferecidos em nova proposição; aparecem ao final das listas de proposição referenciada e de outra proposição, em cinza (RN-00a). Deve haver apenas uma entrada ativa por sigla + autoridade na visão de uma casa.
 - **Modelo de preâmbulo** associado ao tipo (ver seção 5.2).
 - **[backlog]** Permitir parametrizar o complemento do vocabulário.
 
@@ -173,7 +173,7 @@ O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreamb
 
 1. A espécie padrão é Proposição; Subemenda substitutiva só é oferecida na `CD`; g2 só aparece na `CD`.
 2. Em Proposição, o número é `s/n` e não há Verificar; em Substitutivo e Subemenda, o número é editável e há Verificar e ementa.
-3. Em Proposição, a lista de siglas traz os tipos não substitutivos da casa e de CN, com os inativos ao final em cinza; a sigla inativa é selecionável e exibe alerta sem bloquear.
+3. Em Proposição, a lista de siglas traz os tipos não substitutivos da casa e de CN, com os inativos ao final em cinza; a lista só tem tipos ativos.
 4. Em PLV, g4 identifica a MPV (sigla fixa) e a referência é obrigatória.
 5. O botão Verificar só habilita com sigla, número e ano preenchidos, e a ementa é apagada ao mudar qualquer um deles.
 6. O destino é sempre coletado: padrão Comissão em substitutivo/subemenda e Plenário nos demais; se a obtenção das comissões falhar, só Plenário.
@@ -215,7 +215,7 @@ O componente não tem efeito colateral: coleta e devolve um resultado por evento
 
 ### Verificação (g3, g4 e opção 4 da Tela 2)
 
-- `200`: JSON `{ "ementa": string, "textoEstruturadoDisponivel": boolean }`; campos extras são ignorados.
+- `200`: JSON `{ "ementa": string, "textoEstruturadoDisponivel": boolean, "complementar"?: boolean }`; campos extras são ignorados. `complementar` (padrão `false` quando ausente) só tem efeito em PLS e PLC: `true` faz a URN do documento referenciado e a do substitutivo do `SF` usarem `projeto.lei.complementar`; sem ele, `projeto.lei`.
 - `404`: documento inexistente.
 - Qualquer outro resultado (inclusive erro de rede): erro, documento não verificado, nova tentativa permitida.
 

@@ -19,15 +19,15 @@
     "lexml",
     "lexml-eta",
     "editor legislativo",
-    "editor de proposições legislativas",
+    "editor de proposiÃ§Ãµes legislativas",
     "editor de texto articulado"
   ],
   "files": [
     "dist"
   ],
   "scripts": {
-    "start": "rimraf out-tsc && npm run build && npm run copy:lexml-linker-wasm && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds\"",
-    "start:cache": "rimraf out-tsc && npm run build && npm run copy:lexml-linker-wasm && concurrently -k -r \"tsc --watch --preserveWatchOutput\" \"wds --cache\"",
+    "start": "tsc -p tsconfig.dev.json && npm run copy:lexml-linker-wasm && concurrently -k -r \"tsc -p tsconfig.dev.json --watch --preserveWatchOutput\" \"wds\"",
+    "start:clean": "rimraf out-tsc && npm start",
     "build": "tsc",
     "clean": "rimraf out-tsc && rimraf prod",
     "prepublish": "rimraf dist && rollup -c rollup.config.dist.js && npm run build:lexml-linker-worker-dist && npm run build:types && npm run validate:package",
