@@ -33,12 +33,14 @@ describe('Preâmbulo somente leitura', () => {
       cy.get(SEL_TEXTO_PREAMBULO).should('contain.text', TEXTO_PADRAO_PL);
     });
 
-    it('é bloqueado: digitar, apagar e remover não alteram o texto', () => {
+    it('é bloqueado e não editável: digitar, apagar e remover não alteram o texto nem o tornam a linha atual', () => {
       cy.get(SEL_PREAMBULO).should('have.attr', 'bloqueado', 'true');
-      // Marca a linha como atual (o clique sintético do Cypress não dispara selection-change no Quill).
+      cy.get(SEL_TEXTO_PREAMBULO).should('have.attr', 'contenteditable', 'false');
+      // O cursor não entra no preâmbulo (#1037): o menu não tem ações e a linha não fica ativa.
       cy.get(SEL_PREAMBULO).getOpcoesDeMenuDoDispositivo().should('not.exist');
       cy.get(SEL_TEXTO_PREAMBULO).type('abc{backspace}{backspace}{del}', { force: true });
       cy.get(SEL_TEXTO_PREAMBULO).should('have.text', TEXTO_PADRAO_PL);
+      cy.get(SEL_PREAMBULO).should('not.have.class', 'container__elemento--ativo');
     });
 
     it('não oferece ações no menu', () => {

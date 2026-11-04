@@ -121,7 +121,8 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
       posicao: pai ? pai.indexOf(dispositivo) : undefined,
       numero: dispositivo.numero,
     },
-    editavel: !isArticulacao(dispositivo),
+    // Epígrafe (linha da articulação) e preâmbulo não recebem o cursor.
+    editavel: !isArticulacao(dispositivo) && !isPreambulo(dispositivo),
     sendoEditado: false,
     uuid: dispositivo.uuid,
     uuid2: dispositivo.uuid2,
