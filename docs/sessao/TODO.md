@@ -4,7 +4,7 @@ Atualizado em 03/11/2026. Branch `feat/1034-correcao-datas` (a partir da `develo
 
 ## Em andamento
 
-- **#1034 — correção de datas** (OpenSpec `2026-11-04-c01-corrigir-datas-proposicao`): implementada em 04/11/2026 (10/10 tasks; `npm test` completo e Cypress `documento-articulado/*` 66/67, com a falha conhecida do `abertura-pena`). Falta commitar e arquivar. Decisões do usuário: `Proposicao.data` guarda a data do campo "Data" e nasce vazia; `Proposicao.dataUltimaModificacao` passa a ser o instante da obtenção (`xsd:dateTime` com fuso). BREAKING para o `lexeditweb-editor`.
+- **#1034 — correção de datas** (OpenSpec `2026-11-04-c01-corrigir-datas-proposicao`): implementada em 04/11/2026 (10/10 tasks; `npm test` completo e Cypress `documento-articulado/*` 66/67, com a falha conhecida do `abertura-pena`). Arquivada em 04/11/2026, com o sync em `campo-data-documento` e `modo-anexo-parecer`. Falta commitar. Decisões do usuário: `Proposicao.data` guarda a data do campo "Data" e nasce vazia; `Proposicao.dataUltimaModificacao` passa a ser o instante da obtenção (`xsd:dateTime` com fuso). BREAKING para o `lexeditweb-editor`.
 
 ## Próximas
 

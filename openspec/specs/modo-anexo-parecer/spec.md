@@ -30,11 +30,11 @@ No modo anexo de parecer, o sistema SHALL exibir, na mesma aba do modo normal, o
 
 #### Scenario: Proposição com local, autoria e data
 - **WHEN** a aplicação consumidora obtém a proposição no modo anexo de parecer com data informada e um parlamentar na autoria
-- **THEN** a proposição contém `local`, `autoria` e `dataUltimaModificacao` com os valores do formulário
+- **THEN** a proposição contém `local`, `autoria` e `data` com os valores do formulário
 
 #### Scenario: Proposição sem data informada
 - **WHEN** a aplicação consumidora obtém a proposição no modo anexo de parecer com "Não informar" selecionado
-- **THEN** `dataUltimaModificacao` da proposição é vazio
+- **THEN** `data` da proposição é vazio
 
 ### Requirement: Fecho e assinaturas no modo anexo de parecer
 Ao salvar no modo anexo de parecer, o sistema SHALL registrar local, data e autoria nos metadados do LexEdit e gerar a `ParteFinal` (`LocalDataFecho` e `AssinaturaTexto`) com as mesmas regras do modo normal. Ao abrir, SHALL aplicar a data, o local e a autoria registrados ao formulário.
