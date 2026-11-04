@@ -1,6 +1,6 @@
 ## 1. Modelo e regras
 
-- [ ] 1.1 Criar `src/model/comentario/comentario.ts` com `SequenciaComentario { id, comentarios }` e `Comentario { usuario: Usuario, data, texto }`, e `comentarioUtil.ts` com: criação de sequência e de comentário (id por `generateUUID`, data ISO com fuso), `isComentarioDoUsuario`, `podeEditar`, `podeExcluir` (autor e mais de um comentário), ordenação ("Ordem no texto" por posição recebida; "Mais recentes" pela data do último comentário, com desempate pela ordem de criação) e formatação dd/mm/aaaa hh:mm. Verificar com testes unitários novos em `test/model/comentario/` (`npm test`).
+- [x] 1.1 Criar `src/model/comentario/comentario.ts` com `SequenciaComentario { id, comentarios }` e `Comentario { usuario: Usuario, data, texto }`, e `comentarioUtil.ts` com: criação de sequência e de comentário (id por `generateUUID`, data ISO com fuso), `isComentarioDoUsuario`, `podeEditar`, `podeExcluir` (autor e mais de um comentário), ordenação ("Ordem no texto" por posição recebida; "Mais recentes" pela data do último comentário, com desempate pela ordem de criação) e formatação dd/mm/aaaa hh:mm. Verificar com testes unitários novos em `test/model/comentario/` (`npm test`).
 
 ## 2. Marcação no Quill
 
