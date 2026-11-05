@@ -107,6 +107,8 @@ export interface DadosLexEdit {
   comentarios?: SequenciaComentario[];
   // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
   revisoesLidas?: RevisaoArticulacaoLida[];
+  // Só na leitura: as sequências do arquivo por id da sequência; falta conferir quais têm trecho na justificação.
+  comentariosLidos?: Record<string, SequenciaComentario>;
   // Só na leitura: autor e data de cada `ins`/`del` da justificação, por `refIdRevisao`.
   revisoesTextuais?: Record<string, RevisaoTextualLida>;
 }

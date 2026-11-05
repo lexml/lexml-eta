@@ -318,7 +318,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     }
     this.localDoArquivo = dados.local;
     if (!this.anexoParecer) {
-      this._lexmlJustificativa.setContent(lerJustificacao(documento, dados.revisoesTextuais));
+      this._lexmlJustificativa.setContent(lerJustificacao(documento, dados.revisoesTextuais, dados.comentariosLidos));
+      // setContent não emite comentarios-alterados: só ficam as sequências cujo trecho existe no editor.
+      const idsNoTexto = new Set(this._lexmlJustificativa.getIdsComentarios());
+      this.sequenciasComentario = Object.values(dados.comentariosLidos ?? {}).filter(sequencia => idsNoTexto.has(sequencia.id));
       // setContent é silencioso: o alerta avaliado em inicializarEdicao e a aba "Notas" refletiriam o texto anterior.
       this.buildAlertaJustificativa();
       this._lexmlJustificativa.alertaGlobalRevisao();

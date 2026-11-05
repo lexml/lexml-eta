@@ -6,6 +6,7 @@ import { generateUUID } from '../../../../util/uuid';
 import { Usuario } from '../../../revisao/usuario';
 import { COMENTARIO_ID_ATTRIBUTE, COMENTARIO_TAG } from '../../../../components/editor-texto-rico/texto-rico-util';
 import type { RevisaoTextualLida } from '../documentoArticulado';
+import type { SequenciaComentario } from '../../../comentario/comentario';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -68,6 +69,12 @@ interface VarreduraRevisoes {
 
 export const PREFIXO_ID_REVISAO_TEXTUAL = '_rt';
 export const PREFIXO_ID_TRECHO_COMENTADO = '_tc';
+
+// `_tc<id>_<n>` → `<id>`; sem sufixo, o resto é o id (exemplo da especificação 08). Outro prefixo (dispositivo da articulação) não é trecho.
+export const idSequenciaDoRef = (ref: unknown): string | undefined => {
+  if (typeof ref !== 'string' || !ref.startsWith(PREFIXO_ID_TRECHO_COMENTADO)) return undefined;
+  return ref.slice(PREFIXO_ID_TRECHO_COMENTADO.length).replace(/_\d+$/, '') || undefined;
+};
 
 // O id gravado é `_rt<id-revisao>_<n>`; o id-revisao precisa caber num NCName.
 const ID_REVISAO_VALIDO = /^[A-Za-z0-9_.-]+$/;
@@ -302,6 +309,9 @@ const criaNotaRodape = (value: any): HTMLElement => {
   return el;
 };
 
+// Sequências com comentário no arquivo durante a leitura (lerJustificacao é síncrona); só um `span` `_tc` delas vira trecho comentado.
+let sequenciasLidas = new Set<string>();
+
 // `ins`/`del` levam o `id` gravado até lerJustificacao aplicar os atributos do editor.
 const criaInline = (content: any[] | undefined, comRevisoes = true): Node[] =>
   (content ?? []).flatMap((item): Node[] => {
@@ -315,7 +325,15 @@ const criaInline = (content: any[] | undefined, comRevisoes = true): Node[] =>
       marca.append(...criaInline(item.value?.content));
       return [marca];
     }
-    // Inline desconhecido (Remissao...): só o texto.
+    const idSequencia = tag === 'span' && comRevisoes ? idSequenciaDoRef(item.value?.id) : undefined;
+    if (idSequencia && sequenciasLidas.has(idSequencia)) {
+      const trecho = document.createElement(COMENTARIO_TAG);
+      trecho.setAttribute(COMENTARIO_ID_ATTRIBUTE, idSequencia);
+      trecho.append(...criaInline(item.value?.content, comRevisoes));
+      return [trecho];
+    }
+    // Inline desconhecido (Remissao...), `span` `_tc` sem sequência: só o texto.
+    if (tag === 'span' && item.value?.id?.startsWith?.(PREFIXO_ID_TRECHO_COMENTADO)) return criaInline(item.value?.content, comRevisoes);
     if (!tag || !TAGS_INLINE.has(tag)) return criaInline(item?.value?.content, comRevisoes);
     const el = document.createElement(tag);
     aplicaAtributos(el, item.value);
@@ -418,9 +436,10 @@ const criaBloco = (item: any): Node[] => {
 
 /**
  * HTML para o editor da justificação a partir de todas as `Justificacao` do documento; '' quando não há. Nunca lança erro.
- * `revisoesTextuais` (de lerMetadadoLexEdit) dá autor e data aos `ins`/`del`.
+ * `revisoesTextuais` (de lerMetadadoLexEdit) dá autor e data aos `ins`/`del`; `comentariosLidos`, as sequências que viram trecho comentado.
  */
-export const lerJustificacao = (documento: any, revisoesTextuais: Record<string, RevisaoTextualLida> = {}): string => {
+export const lerJustificacao = (documento: any, revisoesTextuais: Record<string, RevisaoTextualLida> = {}, comentariosLidos: Record<string, SequenciaComentario> = {}): string => {
+  sequenciasLidas = new Set(Object.keys(comentariosLidos));
   const justificacoes = documento?.value?.projetoNorma?.justificacao;
   const container = document.createElement('div');
   for (const justificacao of Array.isArray(justificacoes) ? justificacoes : []) {

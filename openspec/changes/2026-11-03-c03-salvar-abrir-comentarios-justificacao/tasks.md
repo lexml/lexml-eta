@@ -10,9 +10,9 @@
 
 ## 3. Leitura
 
-- [ ] 3.1 Em `buildProjetoNormaFromJsonix.ts`, `lerComentarios` tolerante e `DadosLexEdit.comentariosLidos`. Verificar com testes unitários: autor registrado e não registrado, data inválida, sequência sem comentário, ref de dispositivo, `p` em linhas.
-- [ ] 3.2 Em `lerJustificacao`, recriar `comentario` a partir do `span` `_tc` com sequência (com e sem sufixo) e desembrulhar os demais. Verificar com testes unitários, inclusive `span` de classe `p` em célula com um `span` `_tc` dentro.
-- [ ] 3.3 Em `abrirDocumentoArticulado`, aplicar as sequências depois do `setContent`, descartar as sem trecho e reavaliar o alerta. Verificar com testes de componente dos cenários de `abrir-documento-articulado` deste change, incluindo salvar, reabrir e salvar de novo com o mesmo resultado (`congelarRelogio()` de `test/doc/documentoArticulado.ts`).
+- [x] 3.1 Em `buildProjetoNormaFromJsonix.ts`, `lerComentarios` tolerante e `DadosLexEdit.comentariosLidos`. Verificar com testes unitários: autor registrado e não registrado, data inválida, sequência sem comentário, ref de dispositivo, `p` em linhas.
+- [x] 3.2 Em `lerJustificacao`, recriar `comentario` a partir do `span` `_tc` com sequência (com e sem sufixo) e desembrulhar os demais. Verificar com testes unitários, inclusive `span` de classe `p` em célula com um `span` `_tc` dentro.
+- [x] 3.3 Em `abrirDocumentoArticulado`, aplicar as sequências depois do `setContent`, descartar as sem trecho e reavaliar o alerta. Verificar com testes de componente dos cenários de `abrir-documento-articulado` deste change, incluindo salvar, reabrir e salvar de novo com o mesmo resultado (`congelarRelogio()` de `test/doc/documentoArticulado.ts`).
 
 ## 4. Integração com o conversor
 

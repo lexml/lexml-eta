@@ -14,9 +14,11 @@ import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
 import { DadosLexEdit, RevisaoArticulacaoLida, RevisaoTextualLida } from '../documentoArticulado';
 import { SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
+import { idSequenciaDoRef } from './justificacao';
 import { Usuario } from '../../../revisao/usuario';
 import { getOperacoesRevisao } from '../../../../redux/elemento/util/revisaoUtil';
-import { formatDateTime, parseIsoToDateTime } from '../../../../util/date-util';
+import { formatDateTime, formatDateTimeToIso, parseIsoToDateTime } from '../../../../util/date-util';
+import type { Comentario, SequenciaComentario } from '../../../comentario/comentario';
 
 let ultimoDispositivoCriado: Dispositivo;
 
@@ -240,6 +242,7 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const colegiadoApreciador = lerColegiadoApreciador(lexedit?.colegiadoApreciador);
   const revisoesLidas = lerRevisoesArticulacao(lexedit);
   const revisoesTextuais = lerRevisoesTextuais(lexedit);
+  const comentariosLidos = lerComentarios(lexedit);
   const outrosMetadados = lerOutrosMetadados(lexedit?.outrosMetadados);
   const anexos = lerAnexos(lexedit?.anexos);
   const dataUltimaModificacao = lerDataUltimaModificacao(lexedit?.dataUltimaModificacao);
@@ -255,6 +258,7 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
     ...(anexos && { anexos }),
     ...(revisoesLidas.length > 0 && { revisoesLidas }),
     ...(Object.keys(revisoesTextuais).length > 0 && { revisoesTextuais }),
+    ...(Object.keys(comentariosLidos).length > 0 && { comentariosLidos }),
   };
 };
 
@@ -366,6 +370,41 @@ export const lerRevisoesTextuais = (lexedit: any): Record<string, RevisaoTextual
         usuario: usuarios.get(refIdUsuario) ?? new Usuario(refIdUsuario || undefined, refIdUsuario || undefined),
         dataHora: (typeof lida.data === 'string' && parseIsoToDateTime(lida.data)) || formatDateTime(new Date()),
       };
+    });
+  return lidas;
+};
+
+// Texto puro de um `p` do comentário; elemento inline desconhecido contribui só com o texto.
+const textoPlano = (valor: any): string => {
+  if (typeof valor === 'string') return valor;
+  if (Array.isArray(valor)) return valor.map(textoPlano).join('');
+  if (!isObjeto(valor)) return '';
+  return textoPlano(valor.name ? valor.value : valor.content);
+};
+
+/**
+ * Sequências de comentários (especificação 08) tolerantes, indexadas pelo id da sequência (o ref sem `_tc` e sem o sufixo `_<n>`).
+ * Descarta a que não referencia um trecho `_tc` ou não tem comentário; autor sem registro vira usuário com o próprio id;
+ * data inválida vira o instante da abertura; os `p` são unidos por quebra de linha.
+ */
+export const lerComentarios = (lexedit: any): Record<string, SequenciaComentario> => {
+  const usuarios = lerUsuarios(lexedit?.usuarios);
+  const lidas: Record<string, SequenciaComentario> = {};
+  comoLista(lexedit?.comentarios?.sequenciaComentario)
+    .filter(isObjeto)
+    .forEach(lida => {
+      const id = idSequenciaDoRef(lida.refIdElementoComentado);
+      const comentarios = comoLista(lida.comentario)
+        .filter(isObjeto)
+        .map((c): Comentario => {
+          const refIdUsuario = textoNaoVazio(c.refIdUsuario) ? c.refIdUsuario : '';
+          return {
+            usuario: usuarios.get(refIdUsuario) ?? new Usuario(refIdUsuario || undefined, refIdUsuario || undefined),
+            data: lerDataUltimaModificacao(c.data) ?? formatDateTimeToIso(formatDateTime(new Date())),
+            texto: comoLista(c.p).map(textoPlano).join('\n'),
+          };
+        });
+      if (id && comentarios.length && !lidas[id]) lidas[id] = { id, comentarios };
     });
   return lidas;
 };
