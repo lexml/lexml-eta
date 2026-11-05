@@ -802,11 +802,26 @@ export class NovaProposicaoComponent extends LitElement {
           border: 1px solid var(--sl-color-gray-300, #ccc);
           border-radius: 4px;
           margin: 0 0 12px;
-          padding-top: 10px;
-          padding-bottom: 15px;
+          padding: 10px 12px 15px;
+          min-width: 0;
           display: flex;
           flex-direction: column;
           gap: 8px;
+        }
+        /* O componente se desenha no DOM do hospedeiro: fixa a legenda para não herdar estilos globais (ex.: Bootstrap). */
+        lexml-nova-proposicao legend {
+          display: block;
+          width: auto;
+          max-width: 100%;
+          float: none;
+          margin: 0;
+          padding: 0 4px;
+          border: 0;
+          font-size: inherit;
+          font-weight: 600;
+          line-height: inherit;
+          color: inherit;
+          white-space: normal;
         }
         lexml-nova-proposicao .np-botoes {
           display: flex;
