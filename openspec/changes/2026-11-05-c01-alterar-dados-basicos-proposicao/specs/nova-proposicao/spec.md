@@ -3,7 +3,7 @@
 ## ADDED Requirements
 
 ### Requirement: Modo de edição de dados básicos
-O componente SHALL oferecer um modo de edição de dados básicos, ativado pelo host junto com os dados iniciais: `urn` (obrigatória), `urnDocumentoReferenciado`, `colegiadoApreciador`, `outrosMetadados` e `anexoParecer`. Nesse modo, o componente SHALL exibir só a Tela 1, com o título "Alterar dados básicos" e os botões **Continuar** e **Cancelar**.
+O componente SHALL oferecer um modo de edição de dados básicos, ativado pelo host por `iniciarModoEdicao`, junto com os dados iniciais: `urn` (obrigatória), `urnDocumentoReferenciado`, `colegiadoApreciador` e `anexoParecer`. Nesse modo, o componente SHALL exibir só a Tela 1, com o título "Alterar dados básicos" e os botões **Continuar** e **Cancelar**.
 
 #### Scenario: Abrir em modo de edição
 - **WHEN** o host ativa o modo de edição com os dados de um PL do Senado
@@ -81,11 +81,11 @@ O modal de confirmação SHALL exibir "Ao alterar para um tipo de outra casa leg
 - **THEN** nenhum modal é exibido
 
 ### Requirement: Resultado do modo de edição
-No modo de edição, **Continuar** SHALL emitir o evento `dados-basicos-alterados`, distinto do evento de conclusão da nova proposição, com os mesmos dados deste exceto `texto`, e com os `outrosMetadados` recebidos nos dados iniciais. Epígrafe e preâmbulo SHALL ser obtidos como na criação.
+No modo de edição, **Continuar** SHALL emitir o evento `dados-basicos-alterados`, distinto do evento de conclusão da nova proposição, com os mesmos dados deste exceto `texto`; os outros metadados são tratados só pelo host. Epígrafe e preâmbulo SHALL ser obtidos como na criação.
 
 #### Scenario: Evento de edição
 - **WHEN** o usuário conclui o modo de edição
-- **THEN** o componente emite `dados-basicos-alterados` com `urn`, `epigrafe`, `preambulo`, `colegiadoDestino`, `anexoParecer`, `outrosMetadados` e, quando houver, `urnDocumentoReferenciado`, sem `texto`, e não emite o evento de conclusão da nova proposição
+- **THEN** o componente emite `dados-basicos-alterados` com `urn`, `epigrafe`, `preambulo`, `colegiadoDestino`, `anexoParecer` e, quando houver, `urnDocumentoReferenciado`, sem `texto`, e não emite o evento de conclusão da nova proposição
 
 ### Requirement: Reinício do componente
 O componente SHALL expor `reiniciar()`, que volta ao estado original: modo de criação, sem dados iniciais, Tela 1 com os valores padrão e nenhum dado informado pelo usuário. A configuração recebida SHALL ser mantida.

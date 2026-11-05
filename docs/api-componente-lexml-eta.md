@@ -97,7 +97,7 @@ Em Lit, a configuração pode ser passada por binding de propriedade: `<lexml-et
 
 ### 4.1 Ciclo de vida do documento: `novaProposicao`, `abrirDocumentoArticulado` e `fecharDocumento`
 
-São as **únicas** formas de iniciar, trocar ou encerrar a edição. Defina `lexmlEtaConfig` antes. Enquanto nenhum documento estiver iniciado, e depois de `fecharDocumento()`, o componente fica em **estado neutro**: todas as abas desabilitadas e a mensagem "aguardando inicialização".
+São as **únicas** formas de iniciar, trocar ou encerrar a edição (`alterarDadosBasicos`, seção 4.7, altera os dados básicos do documento em edição). Defina `lexmlEtaConfig` antes. Enquanto nenhum documento estiver iniciado, e depois de `fecharDocumento()`, o componente fica em **estado neutro**: todas as abas desabilitadas e a mensagem "aguardando inicialização".
 
 Todo método valida a entrada **antes de alterar o editor**: entrada inválida emite o evento `fatalError`, lança o erro e deixa o documento em edição como estava. Ao iniciar um documento, o estado do anterior (revisões, remissões, anexos, outros metadados, justificação, notas, o store Redux) é descartado por inteiro; a configuração da sessão é preservada. O componente **não** rastreia alterações pendentes: confirmar a perda de dados é responsabilidade do host.
 
@@ -179,6 +179,42 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `limparAlertas(): void` | Zera os alertas globais. |
 | `focusOnTab(nome: string): void` | Seleciona uma aba (por exemplo, `'lexml-eta-proposicao'`, `'justificativa'`, `'autoria'`). |
 
+### 4.7 `alterarDadosBasicos(dados: DadosBasicos): Promise<void>`
+
+Altera os dados básicos do documento em edição (tipo/URN, documento referenciado, colegiado, forma de apresentação, epígrafe, preâmbulo e outros metadados) **recarregando o documento**: ele é serializado, os dados são aplicados e o resultado é aberto como em `abrirDocumentoArticulado`. Texto, remissões, anexos, opções de impressão, data do fecho e `dataUltimaModificacaoDocumento` são mantidos; o histórico de desfazer/refazer é perdido, assim como o cursor e a rolagem. O fluxo previsto é o botão "Alterar dados básicos" (seção 6) → o host abre o `<lexml-nova-proposicao>` em modo de edição (seção 11) → o host chama este método com o resultado de `dados-basicos-alterados`.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `urn` | `string` | **Obrigatório.** Mesmas regras de `novaProposicao` (proposição suportada da casa do editor). |
+| `epigrafe` | `string` | **Obrigatório.** |
+| `preambulo` | `string` | **Obrigatório** (pode ser vazio). |
+| `urnDocumentoReferenciado` | `string?` | Ausente remove a referência do documento. |
+| `colegiadoApreciador` | `ColegiadoApreciador?` | Ausente assume o padrão (Plenário). Não é gravado no anexo de parecer. |
+| `outrosMetadados` | `Record<string, string>?` | Substitui os pares atuais. |
+| `anexoParecer` | `boolean?` | Padrão `false`. |
+
+Os dados informados **substituem todos** os dados básicos. Regras de aplicação:
+
+- a autoria é descartada quando a casa responsável (derivada da URN) muda;
+- a justificação, com as notas de rodapé, é descartada quando o documento passa a ser anexo de parecer; ao deixar de ser, a justificação fica vazia;
+- o local do fecho é recalculado a partir do colegiado.
+
+Como nos demais métodos, a entrada é validada **antes** de alterar o editor: a chamada é rejeitada (evento `fatalError` e `Error`, documento intacto) sem documento em edição, em modo de revisão, em documento de tipo não suportado, com dado obrigatório ausente ou com URN não permitida.
+
+```ts
+elLexmlEta.addEventListener('alteracao-dados-basicos-solicitada', (e: Event) => {
+  abrirModalEdicao((e as CustomEvent<DadosBasicos>).detail); // <lexml-nova-proposicao> em modo de edição
+});
+
+await elLexmlEta.alterarDadosBasicos({
+  urn: 'urn:lex:br:senado.federal:projeto.lei.complementar;plp:2026;999999',
+  epigrafe: 'PROJETO DE LEI COMPLEMENTAR Nº   , DE 2026',
+  preambulo: 'O CONGRESSO NACIONAL decreta:',
+  colegiadoApreciador: { siglaCasaLegislativa: 'SF', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' },
+  anexoParecer: false,
+});
+```
+
 ## 5. Configuração — `LexmlEtaConfig`
 
 | Campo | Tipo | Padrão | Descrição |
@@ -246,7 +282,8 @@ Todos são `CustomEvent` com `bubbles: true` e `composed: true`, emitidos no pr�
 | Evento | `detail` | Quando |
 |---|---|---|
 | `onrevisao` | `{ emRevisao: boolean }` | O usuário ativa ou desativa o modo de marcas de revisão. |
-| `fatalError` | `{ err: any }` | `novaProposicao` ou `abrirDocumentoArticulado` rejeitou a entrada ou falhou. |
+| `fatalError` | `{ err: any }` | `novaProposicao`, `abrirDocumentoArticulado` ou `alterarDadosBasicos` rejeitou a entrada ou falhou. |
+| `alteracao-dados-basicos-solicitada` | `DadosBasicos` (dados atuais: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoApreciador?`, `outrosMetadados`, `anexoParecer`) | O usuário clicou em "Alterar dados básicos", no início da aba "Data, Autoria e Impressão". O componente não altera o documento: cabe ao host coletar os dados novos e chamar `alterarDadosBasicos`. O botão fica desabilitado em modo de revisão e em tipo não suportado. |
 | `onchange` | `{ origemEvento: 'anexo' }` | O usuário importa, exclui, reordena ou altera o nome de um anexo. Alterar a lista ao abrir um arquivo não emite o evento. Outros formulários emitem `onchange` com outra `origemEvento`. |
 
 ## 7. Utilitários de arquivo
@@ -418,6 +455,24 @@ nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
 - **Placeholders.** `{sigla}` (maiúsculas), `{numero}` (sem zeros à esquerda) e `{ano}` nas duas URLs de proposição; `{casa}` (`SF`, `CD` ou `CN`) em `urlComissoes`.
 - **Verificação** (`200` `{ ementa, textoEstruturadoDisponivel, complementar? }`, `404` inexistente; `complementar`, opcional e `false` por padrão, indica PLS/PLC de lei complementar e define o tipo da URN do documento referenciado), **texto estruturado** (`200` JSONIX, `404` indisponível) e **comissões** (lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados): contrato completo na seção 9 do documento de requisitos.
 - **Evento `nova-proposicao-concluida`** — `detail`: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoDestino` (`{ tipoColegiado, siglaComissao? }`), `texto?` (JSONIX) e `anexoParecer`. **`nova-proposicao-cancelada`** não tem `detail`. Após concluir, o host decide quando fechar ou chamar `reiniciar()`.
+- **`reiniciar()`** volta o componente ao estado original (modo de criação, sem dados iniciais, Tela 1 com os padrões), mantendo a configuração. Chame-o a cada abertura do modal, para não herdar o estado da abertura anterior.
+- **Modo de edição de dados básicos.** Depois de `config`, chame `iniciarModoEdicao(dadosIniciais)` (reinicia o componente e ativa o modo; `iniciar()` reinicia em modo de criação) com os dados iniciais (`{ urn, urnDocumentoReferenciado?, colegiadoApreciador?, anexoParecer? }`, em geral o `detail` de `alteracao-dados-basicos-solicitada`). O componente mostra só a Tela 1 ("Alterar dados básicos"), considera verificado o documento referenciado inicial, mostra o número real do documento como texto fixo e, ao **Continuar**, pede confirmação (Sim/Não) se a casa muda (perda de autoria) ou se o documento passa a anexo de parecer (perda de justificação). Emite **`dados-basicos-alterados`** (`detail` de `nova-proposicao-concluida` sem `texto`), que o host repassa a `alterarDadosBasicos` (seção 4.7):
+
+  ```ts
+  nova.addEventListener('dados-basicos-alterados', async (e: Event) => {
+    const r = (e as CustomEvent<ResultadoAlteracaoDadosBasicos>).detail;
+    await elLexmlEta.alterarDadosBasicos({
+      urn: r.urn,
+      urnDocumentoReferenciado: r.urnDocumentoReferenciado,
+      epigrafe: r.epigrafe,
+      preambulo: r.preambulo,
+      colegiadoApreciador: { ...r.colegiadoDestino, siglaCasaLegislativa: casa },
+      outrosMetadados: outrosMetadadosDoHost, // não passam pelo componente de edição
+      anexoParecer: r.anexoParecer,
+    });
+    fecharModal();
+  });
+  ```
 - **Seleção de sigla e de comissão.** Usam o componente genérico `<lexml-eta-autocomplete-lista>` (`items: { value, label, inativo? }[]`, `value`, `placeholder`, `label`, `alturaMaxima` em px, `disabled`; evento `autocomplete-change` com `detail.value`, vazio quando a seleção é desfeita). A lista é flutuante, tem rolagem só vertical e omite o texto excedente; texto digitado que não é um item é apagado ao perder o foco (ou selecionado, se igual a exatamente um item).
 - **Importação de arquivo.** O tratamento real de DOCX/TXT/LexML ainda não existe: o componente valida extensão e tamanho (5 MB) e simula um erro de parser (Tela 3), sem chamar URL.
 - **Epígrafe e preâmbulo.** Enquanto o serviço de epígrafe (#1053) não existe, a epígrafe é a do caso padrão (`<TIPO> Nº   , DE <ANO>`, sem sufixo). Tipo sem texto padrão recebe `O CONGRESSO NACIONAL decreta:` com log de erro (regra do componente; a abertura de documentos não muda).

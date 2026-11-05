@@ -87,7 +87,7 @@ const montaOpcoesImpressao = (opcoes: OpcoesImpressao): MetadadoLexEdit['opcoesI
 });
 
 // Valor fora das enumerações do XSD assume o padrão da classe; a comissão só consta quando informada.
-const montaColegiadoApreciador = (colegiado?: ColegiadoApreciador): MetadadoLexEdit['colegiadoApreciador'] => {
+export const montaColegiadoApreciador = (colegiado?: ColegiadoApreciador): MetadadoLexEdit['colegiadoApreciador'] => {
   if (!colegiado) return undefined;
   const padrao = new ColegiadoApreciador();
   const siglaComissao = colegiado.siglaComissao?.trim();
@@ -152,7 +152,7 @@ const montaUsuarios = (daArticulacao: RevisoesLexEdit['usuarios'] | undefined, r
 };
 
 // Sem pares não há grupo; chave vazia ou valor não textual é descartado (o objeto vem do host).
-const montaOutrosMetadados = (outros?: Record<string, string>): MetadadoLexEdit['outrosMetadados'] => {
+export const montaOutrosMetadados = (outros?: Record<string, string>): MetadadoLexEdit['outrosMetadados'] => {
   const pares = Object.entries(outros ?? {}).filter(([chave, valor]) => chave.trim() && typeof valor === 'string');
   if (!pares.length) return undefined;
   return {
@@ -233,7 +233,7 @@ const montaMetadadoLexEdit = (
 };
 
 // Mesmo formato que o conversor jsonix-lexml 2.0.0 devolve no tojson, para a ida e volta comparar por igualdade.
-const montaMetadadoProprietario = (lexedit: MetadadoLexEdit): MetadadoProprietarioLexEdit => ({
+export const montaMetadadoProprietario = (lexedit: MetadadoLexEdit): MetadadoProprietarioLexEdit => ({
   TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
   fonte: NAMESPACE_LEXEDIT,
   any: [
@@ -321,7 +321,7 @@ const montaParteFinal = (dados?: DadosLexEdit): any => {
   };
 };
 
-const montaParteInicial = (projetoNorma: any): any => {
+export const montaParteInicial = (projetoNorma: any): any => {
   return {
     TYPE_NAME: 'br_gov_lexml__1.ParteInicial',
     epigrafe: {

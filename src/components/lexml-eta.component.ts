@@ -1,5 +1,6 @@
 import { Usuario } from '../model/revisao/usuario';
 import '@shoelace-style/shoelace/dist/components/badge/badge';
+import '@shoelace-style/shoelace/dist/components/button/button';
 import '@shoelace-style/shoelace/dist/components/tab-group/tab-group';
 import '@shoelace-style/shoelace/dist/components/tab-panel/tab-panel';
 import '@shoelace-style/shoelace/dist/components/tab/tab';
@@ -19,6 +20,7 @@ import {
   getNumero,
   getSigla,
   getCasaLegislativaResponsavel,
+  isSubstitutivo,
   isTipoDocumentoNaoSuportado,
   normalizarDataFecho,
   verificarUrnDaCasaDoEditor,
@@ -50,6 +52,8 @@ import { Anexo, Autoria, ColegiadoApreciador, Epigrafe, OpcoesImpressao, Parlame
 import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 import { PENDENCIA_DOCUMENTO_NAO_SUPORTADO } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { montaDocumentoNovaProposicao } from '../model/lexml/documento/modelo/montaDocumentoNovaProposicao';
+import { aplicarDadosBasicos, DadosBasicos } from '../model/lexml/documento/dadosBasicos';
+import { descricaoDocumento } from './nova-proposicao/descricaoDocumento';
 
 const ALERTA_TIPO_NAO_SUPORTADO = 'alerta-global-tipo-nao-suportado';
 
@@ -137,6 +141,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   @state()
   private totalAnexos = 0;
+
+  @state()
+  private emRevisao = false;
+
+  // Os dados básicos são campos simples; esta versão força a nova renderização do grupo ao abrir ou alterar o documento.
+  @state()
+  private versaoDadosBasicos = 0;
 
   // Para forçar atualização da interface
   @state()
@@ -281,6 +292,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this.emitirEventoFatalError(err);
       throw err;
     }
+    await this.abrirDocumentoLido(documento);
+  }
+
+  // Corpo comum de abrir e de alterar dados básicos: o documento já foi lido e validado.
+  private async abrirDocumentoLido(documento: DocumentoArticulado): Promise<void> {
     const dados = lerMetadadoLexEdit(documento);
     const params = new ParametrosEdicao();
     params.projetoNorma = documento as any;
@@ -312,6 +328,40 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.urnDocumentoReferenciado = dados.urnDocumentoReferenciado;
     this._dataUltimaModificacaoDocumento = dados.dataUltimaModificacao;
     this.aplicarAnexos(dados.anexos);
+    this.versaoDadosBasicos++;
+  }
+
+  /** Altera os dados básicos do documento em edição recarregando-o; recusa deixa o documento intacto e emite o erro fatal. */
+  async alterarDadosBasicos(dados: DadosBasicos): Promise<void> {
+    let documento: DocumentoArticulado;
+    try {
+      this.validarAlteracaoDadosBasicos(dados);
+      const serializado = this.getDocumentoArticulado();
+      documento = lerDocumentoArticulado(
+        aplicarDadosBasicos(serializado, dados, {
+          urnAtual: this.urn,
+          anexoParecerAtual: this.anexoParecer,
+          dataUltimaModificacao: this._dataUltimaModificacaoDocumento,
+        })
+      );
+    } catch (err) {
+      this.emitirEventoFatalError(err);
+      throw err;
+    }
+    await this.abrirDocumentoLido(documento);
+  }
+
+  private validarAlteracaoDadosBasicos(dados: DadosBasicos): void {
+    const ausente = (nome: string): Error => new Error(`Dado obrigatório ausente em alterarDadosBasicos: '${nome}'.`);
+    if (!this.documentoInicializado || !this.urn) throw new Error('Não há documento em edição para alterar os dados básicos.');
+    if (rootStore.getState().elementoReducer.emRevisao) throw new Error('Os dados básicos não podem ser alterados em modo de revisão.');
+    if (this.tipoNaoSuportado) throw new Error('O tipo deste documento não permite a alteração dos dados básicos.');
+    if (!dados || typeof dados !== 'object') throw new Error('Dados básicos não informados.');
+    if (typeof dados.urn !== 'string' || !dados.urn.trim()) throw ausente('urn');
+    if (typeof dados.epigrafe !== 'string' || !dados.epigrafe.trim()) throw ausente('epigrafe');
+    if (typeof dados.preambulo !== 'string') throw ausente('preambulo');
+    verificarUrnDaCasaDoEditor(dados.urn);
+    verificarUrnParaNovaProposicao(dados.urn);
   }
 
   private aplicarAnexos(anexos: Anexo[] = []): void {
@@ -494,6 +544,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   stateChanged(state: any): void {
+    this.emRevisao = !!state?.elementoReducer?.emRevisao;
     const revisaoAtivada = state?.elementoReducer?.ui?.events?.some((ev: StateEvent) => ev.stateType === StateType.RevisaoAtivada);
     const revisaoDesativada = state?.elementoReducer?.ui?.events?.some((ev: StateEvent) => ev.stateType === StateType.RevisaoDesativada);
     revisaoAtivada && this.mostrarDialogDisclaimerRevisao();
@@ -787,6 +838,72 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     mostrarDialogDisclaimerRevisao();
   }
 
+  private getCasaDoEditor(): 'SF' | 'CD' {
+    return this.lexmlEtaConfig?.casaLegislativaEditor === 'CD' ? 'CD' : 'SF';
+  }
+
+  private getDescricaoDocumento(): string {
+    try {
+      return descricaoDocumento(this.urn, this.urnDocumentoReferenciado, this.getCasaDoEditor());
+    } catch {
+      return '';
+    }
+  }
+
+  private getColegiadoDescricao(): string {
+    if (this.anexoParecer) return 'Não se aplica';
+    const colegiado = this.colegiadoApreciador;
+    if (colegiado?.tipoColegiado === 'Comissão') return colegiado.siglaComissao ? `Comissão (${colegiado.siglaComissao})` : 'Comissão';
+    return colegiado?.tipoColegiado ?? 'Plenário';
+  }
+
+  // O substitutivo do Senado não tem ano próprio: o da URN é o da proposição substituída.
+  private exibeAnoDocumento(): boolean {
+    return !(isSubstitutivo(this.urn) && getCasaLegislativaResponsavel(this.urn) === 'SF');
+  }
+
+  private getMotivoBloqueioDadosBasicos(): string {
+    if (this.tipoNaoSuportado) return 'O tipo deste documento não permite a alteração dos dados básicos.';
+    if (this.emRevisao) return 'Os dados básicos não podem ser alterados em modo de revisão.';
+    return '';
+  }
+
+  private renderDadosBasicos(): TemplateResult {
+    // Dependência explícita da versão: urn e colegiado não são propriedades reativas.
+    void this.versaoDadosBasicos;
+    if (!this.urn) return html``;
+    const motivo = this.getMotivoBloqueioDadosBasicos();
+    return html`
+      <div class="lexml-eta-dados-basicos" id="dados-basicos">
+        <div class="dados-basicos__descricao" id="dados-basicos-descricao">${this.getDescricaoDocumento()}</div>
+        ${this.exibeAnoDocumento() ? html`<div class="dados-basicos__linha" id="dados-basicos-ano"><b>Ano:</b> ${getAno(this.urn)}</div>` : ''}
+        <div class="dados-basicos__linha" id="dados-basicos-colegiado"><b>Colegiado apreciador:</b> ${this.getColegiadoDescricao()}</div>
+        <div class="dados-basicos__linha" id="dados-basicos-parecer"><b>Apresentado em parecer:</b> ${this.anexoParecer ? 'Sim' : 'Não'}</div>
+        <sl-button id="botao-alterar-dados-basicos" size="small" ?disabled=${!!motivo} @click=${this.solicitarAlteracaoDadosBasicos}>Alterar dados básicos</sl-button>
+        ${motivo ? html`<div class="dados-basicos__aviso" id="dados-basicos-aviso" role="status">${motivo}</div>` : ''}
+      </div>
+    `;
+  }
+
+  private solicitarAlteracaoDadosBasicos = (): void => {
+    if (this.getMotivoBloqueioDadosBasicos()) return;
+    this.dispatchEvent(new CustomEvent('alteracao-dados-basicos-solicitada', { bubbles: true, composed: true, detail: this.getDadosBasicosAtuais() }));
+  };
+
+  private getDadosBasicosAtuais(): DadosBasicos {
+    const norma = this.getDocumentoArticulado().value.projetoNorma.norma;
+    const preambulo: string[] = (norma.parteInicial?.preambulo?.p ?? []).map((p: any) => buildContent(p.content));
+    return {
+      urn: this.urn,
+      ...(this.urnDocumentoReferenciado && { urnDocumentoReferenciado: this.urnDocumentoReferenciado }),
+      epigrafe: buildContent(norma.parteInicial?.epigrafe?.content),
+      preambulo: preambulo.length > 1 ? preambulo.map(p => `<p>${p}</p>`).join('') : preambulo[0] ?? '',
+      ...(!this.anexoParecer && this.colegiadoApreciador && { colegiadoApreciador: { ...this.colegiadoApreciador } }),
+      outrosMetadados: { ...this.outrosMetadados },
+      anexoParecer: this.anexoParecer,
+    };
+  }
+
   private updateView(): void {
     this.updateState = new Date();
   }
@@ -886,6 +1003,28 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         }
         .tab-autoria__container {
           padding: 10px;
+        }
+        .lexml-eta-dados-basicos {
+          max-width: 700px;
+          margin-bottom: 20px;
+          padding: 20px;
+          background-color: var(--sl-color-gray-100);
+          box-shadow: var(--sl-shadow-x-large);
+        }
+        .dados-basicos__descricao {
+          font-weight: bold;
+          margin-bottom: 8px;
+        }
+        .dados-basicos__linha {
+          margin-bottom: 4px;
+        }
+        .dados-basicos__aviso {
+          margin-top: 8px;
+          font-size: 0.9em;
+          color: var(--sl-color-gray-700);
+        }
+        .lexml-eta-dados-basicos sl-button {
+          margin-top: 8px;
         }
         .notas-rodape {
           font-family: var(--eta-font-serif);
@@ -1018,6 +1157,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
               <div class="tab-autoria__container">
                 <div>
                   <br />
+                  ${this.renderDadosBasicos()}
                   <lexml-eta-data></lexml-eta-data>
                   <br />
                   <lexml-eta-autoria .parlamentares=${this.parlamentares} ?hidden=${this.tipoNaoSuportado}></lexml-eta-autoria>

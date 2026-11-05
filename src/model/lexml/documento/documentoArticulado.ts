@@ -255,7 +255,7 @@ export const criarDocumentoArticulado = (
 };
 
 /** O modelo usa HTML; o texto do Jsonix precisa conter os caracteres literais. */
-const decodificarTextoJsonix = (valor: any): void => {
+export const decodificarTextoJsonix = (valor: any): void => {
   if (!valor || typeof valor !== 'object') return;
   for (const [chave, conteudo] of Object.entries(valor)) {
     if (chave === 'content' && Array.isArray(conteudo)) {

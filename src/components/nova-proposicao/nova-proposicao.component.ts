@@ -1,6 +1,7 @@
 import '@shoelace-style/shoelace/dist/components/alert/alert';
 import '@shoelace-style/shoelace/dist/components/button/button';
 import '@shoelace-style/shoelace/dist/components/checkbox/checkbox';
+import '@shoelace-style/shoelace/dist/components/dialog/dialog';
 import '@shoelace-style/shoelace/dist/components/input/input';
 import '@shoelace-style/shoelace/dist/components/menu-item/menu-item';
 import '@shoelace-style/shoelace/dist/components/radio/radio';
@@ -10,14 +11,17 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { keyed } from 'lit/directives/keyed.js';
 import '../autocomplete/autocomplete-lista';
 import { getCasaLegislativaResponsavel } from '../../model/lexml/documento/urnUtil';
+import { ColegiadoApreciador } from '../../model/proposicao/proposicao';
 import { inicializarVocabulario } from '../../model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoDocumento, TipoRelacaoSubstitutivo } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { montaEpigrafePadrao } from './epigrafePadrao';
 import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
+import { lerDadosIdentificacao } from './lerDadosIdentificacao';
 import { isPlv, montaUrnNovaProposicao } from './montaUrnNovaProposicao';
 import { getPreambuloNovaProposicao } from './preambuloNovaProposicao';
 import {
   chaveTipo,
+  ehComplementar,
   getSiglasNovaProposicao,
   getSiglasOutraProposicao,
   getSiglasProposicaoReferenciada,
@@ -25,11 +29,34 @@ import {
   getTipoMpv,
   resolverTipoComplementar,
 } from './siglasNovaProposicao';
-import { ColegiadoDestino, DadosIdentificacao, EspecieDocumento, LIMITE_ARQUIVO_BYTES, ResultadoNovaProposicao, TipoColegiadoDestino } from './tiposNovaProposicao';
+import {
+  ColegiadoDestino,
+  DadosIdentificacao,
+  EspecieDocumento,
+  LIMITE_ARQUIVO_BYTES,
+  NumeroOriginal,
+  ResultadoAlteracaoDadosBasicos,
+  ResultadoNovaProposicao,
+  TipoColegiadoDestino,
+} from './tiposNovaProposicao';
 import { ConfigNovaProposicao, montaUrlComissoes, montaUrlProposicao, validarConfigNovaProposicao } from './urlsNovaProposicao';
 
 export const EVENTO_CONCLUIDA = 'nova-proposicao-concluida';
 export const EVENTO_CANCELADA = 'nova-proposicao-cancelada';
+export const EVENTO_DADOS_BASICOS_ALTERADOS = 'dados-basicos-alterados';
+
+export const MENSAGEM_PERDA_AUTORIA = 'Ao alterar para um tipo de outra casa legislativa a autoria informada será perdida. Deseja continuar?';
+export const MENSAGEM_PERDA_JUSTIFICACAO = 'Ao apresentar o documento em parecer, a justificação informada será perdida. Deseja continuar?';
+
+export type ModoNovaProposicao = 'criacao' | 'edicao';
+
+/** Dados atuais do documento, usados como ponto de partida no modo de edição (em geral, o `detail` de `alteracao-dados-basicos-solicitada`). */
+export interface DadosIniciaisEdicao {
+  urn: string;
+  urnDocumentoReferenciado?: string;
+  colegiadoApreciador?: Pick<ColegiadoApreciador, 'tipoColegiado' | 'siglaComissao'>;
+  anexoParecer?: boolean;
+}
 
 // Altura máxima das listas flutuantes (px): siglas = 126 (7 itens) + 50%.
 const ALTURA_LISTA_SIGLA = 189;
@@ -81,6 +108,8 @@ export class NovaProposicaoComponent extends LitElement {
   @state() private siglaComissao = '';
   @state() private anexoParecer = false;
   @state() private comissoesVersao = 0;
+  @state() private confirmando = false;
+  @state() private erroDadosIniciais = '';
 
   @state() private opcaoTexto: OpcaoTexto = 'vazio';
   @state() private arquivo?: File;
@@ -94,9 +123,21 @@ export class NovaProposicaoComponent extends LitElement {
   @state() private processando = false;
   @state() private errosConversao: string[] = [];
 
+  // Definidos só por iniciar/iniciarModoEdicao/reiniciar.
+  @state() modo: ModoNovaProposicao = 'criacao';
+  @state() dadosIniciais?: DadosIniciaisEdicao;
+
+  private numeroOriginal?: NumeroOriginal;
+
   constructor() {
     super();
     inicializarVocabulario('SF');
+  }
+
+  protected willUpdate(alteradas: Map<string, unknown>): void {
+    if ((alteradas.has('modo') || alteradas.has('dadosIniciais')) && this.modo === 'edicao' && this.dadosIniciais && this._config && !this.erroConfiguracao) {
+      void this.aplicarDadosIniciais();
+    }
   }
 
   createRenderRoot(): LitElement {
@@ -124,8 +165,25 @@ export class NovaProposicaoComponent extends LitElement {
     this.reiniciar();
   }
 
-  /** Descarta os dados informados e volta à Tela 1. */
+  /** Reinicia em modo de criação. Chame depois de `config`. */
+  iniciar(): void {
+    this.reiniciar();
+  }
+
+  /** Reinicia em modo de edição de dados básicos, preenchendo a Tela 1 com os dados iniciais. Chame depois de `config`. */
+  iniciarModoEdicao(dadosIniciais: DadosIniciaisEdicao): void {
+    this.reiniciar();
+    this.modo = 'edicao';
+    this.dadosIniciais = dadosIniciais;
+  }
+
+  /** Volta ao estado original: modo de criação, sem dados iniciais, Tela 1 com os padrões. A configuração é mantida. */
   reiniciar(): void {
+    this.modo = 'criacao';
+    this.dadosIniciais = undefined;
+    this.numeroOriginal = undefined;
+    this.confirmando = false;
+    this.erroDadosIniciais = '';
     this.tela = 1;
     this.especie = 'proposicao';
     this.chaveProposicao = '';
@@ -149,6 +207,96 @@ export class NovaProposicaoComponent extends LitElement {
     this.erroComunicacao = '';
     this.processando = false;
     this.errosConversao = [];
+  }
+
+  // ---------------------------------------------------------------- modo de edição
+
+  private async aplicarDadosIniciais(): Promise<void> {
+    const iniciais = this.dadosIniciais!;
+    let lidos;
+    try {
+      lidos = lerDadosIdentificacao(iniciais.urn, iniciais.urnDocumentoReferenciado, this.casa);
+    } catch (erro) {
+      this.erroDadosIniciais = (erro as Error).message;
+      return;
+    }
+    this.erroDadosIniciais = '';
+    const { dados, numeroOriginal } = lidos;
+    this.numeroOriginal = numeroOriginal;
+    this.tela = 1;
+    this.especie = dados.especie;
+    // Na proposição referenciada a lista tem uma entrada por sigla: a verificação diz se é lei complementar.
+    const complementar = !!dados.tipoProposicao && ehComplementar(dados.tipoProposicao);
+    const tipoNaLista = (dados.especie === 'proposicao' ? getSiglasNovaProposicao(this.casa) : getSiglasProposicaoReferenciada()).find(
+      t => t.sigla === dados.tipoProposicao?.sigla && t.urnAutoridade === dados.tipoProposicao?.urnAutoridade
+    );
+    this.chaveProposicao = tipoNaLista ? chaveTipo(tipoNaLista) : '';
+    this.numeroProposicao = dados.especie === 'proposicao' ? '' : dados.numeroProposicao;
+    this.anoProposicao = dados.anoProposicao;
+    this.chaveSubstitutivo = dados.tipoSubstitutivo ? chaveTipo(dados.tipoSubstitutivo) : '';
+    this.anoSubstitutivo = dados.tipoSubstitutivo ? dados.anoSubstitutivo : this.anoCorrente;
+    this.numeroMpv = dados.numeroMpv;
+    this.anoMpv = dados.anoMpv || this.anoCorrente;
+    // O documento referenciado inicial vale como verificado até o usuário mudar sigla, número ou ano.
+    const verificada: Verificacao = { estado: 'ok', ementa: '', textoEstruturadoDisponivel: true, complementar };
+    this.verificacaoProposicao = dados.especie === 'proposicao' ? verificacaoVazia() : verificada;
+    this.verificacaoMpv = this.plv ? verificada : verificacaoVazia();
+    const colegiado = iniciais.colegiadoApreciador;
+    this.tipoColegiado = colegiado?.tipoColegiado === 'Comissão' ? 'Comissão' : 'Plenário';
+    this.siglaComissao = this.tipoColegiado === 'Comissão' ? colegiado?.siglaComissao ?? '' : '';
+    this.anexoParecer = !!iniciais.anexoParecer;
+
+    // Comissão fora da lista (ou lista indisponível): o destino fica inválido até o usuário escolher outro.
+    await this.carregarComissoes(true);
+  }
+
+  private get emEdicao(): boolean {
+    return this.modo === 'edicao';
+  }
+
+  // O número real do documento só vale enquanto espécie e tipo não mudam.
+  private numeroFixoDe(tipo?: TipoDocumento): string {
+    const original = this.numeroOriginal;
+    return original && tipo && original.especie === this.especie && original.chaveTipo === chaveTipo(tipo) ? original.numero : 's/n';
+  }
+
+  private mensagensDePerda(urn: string): string[] {
+    const iniciais = this.dadosIniciais!;
+    const mensagens: string[] = [];
+    if (getCasaLegislativaResponsavel(urn) !== getCasaLegislativaResponsavel(iniciais.urn)) mensagens.push(MENSAGEM_PERDA_AUTORIA);
+    if (!iniciais.anexoParecer && this.anexoParecer) mensagens.push(MENSAGEM_PERDA_JUSTIFICACAO);
+    return mensagens;
+  }
+
+  private continuarEdicao(): void {
+    if (!this.tela1Valida) return;
+    const { urn } = montaUrnNovaProposicao(this.dados, this.numeroOriginal);
+    if (this.mensagensDePerda(urn).length) this.confirmando = true;
+    else this.concluirEdicao();
+  }
+
+  private concluirEdicao(): void {
+    this.confirmando = false;
+    // Sem texto: montarResultado só o inclui quando informado.
+    const detail: ResultadoAlteracaoDadosBasicos = this.montarResultado();
+    this.dispatchEvent(new CustomEvent(EVENTO_DADOS_BASICOS_ALTERADOS, { detail, bubbles: true, composed: true }));
+  }
+
+  private renderConfirmacao(): TemplateResult {
+    const urn = this.tela1Valida ? montaUrnNovaProposicao(this.dados, this.numeroOriginal).urn : '';
+    const mensagens = this.confirmando && urn ? this.mensagensDePerda(urn) : [];
+    return html`<sl-dialog id="np-confirmacao" label="Confirmação" ?open=${this.confirmando} @sl-request-close=${(e: Event): void => e.preventDefault()}>
+      ${mensagens.map(m => html`<p class="np-mensagem-perda">${m}</p>`)}
+      <sl-button slot="footer" id="np-confirmar-sim" variant="primary" @click=${(): void => this.concluirEdicao()}>Sim</sl-button>
+      <sl-button
+        slot="footer"
+        id="np-confirmar-nao"
+        @click=${(): void => {
+          this.confirmando = false;
+        }}
+        >Não</sl-button
+      >
+    </sl-dialog>`;
   }
 
   // ---------------------------------------------------------------- derivados da Tela 1
@@ -318,13 +466,14 @@ export class NovaProposicaoComponent extends LitElement {
     ></lexml-eta-autocomplete-lista>`;
   }
 
-  private async carregarComissoes(): Promise<void> {
+  // `manterDestino`: na abertura do modo de edição, lista indisponível não troca a Comissão inicial por Plenário.
+  private async carregarComissoes(manterDestino = false): Promise<void> {
     const casa = this.casaDasComissoes;
     if (!casa) return;
     if (!this.comissoesPorCasa.has(casa)) await this.buscarComissoes(casa);
     // Sem lista de comissões, só o Plenário é oferecido (inclusive como padrão do substitutivo).
     if (this.comissaoIndisponivel) {
-      this.tipoColegiado = 'Plenário';
+      if (!manterDestino) this.tipoColegiado = 'Plenário';
       this.limparComissao();
     } else if (this.siglaComissao && !this.comissoesDisponiveis.some(c => c.sigla === this.siglaComissao)) {
       // A casa do documento mudou: a comissão escolhida deixou de existir na lista.
@@ -484,7 +633,11 @@ export class NovaProposicaoComponent extends LitElement {
   }
 
   private concluir(texto?: unknown): void {
-    const { urn, urnDocumentoReferenciado } = montaUrnNovaProposicao(this.dados);
+    this.dispatchEvent(new CustomEvent(EVENTO_CONCLUIDA, { detail: this.montarResultado(texto), bubbles: true, composed: true }));
+  }
+
+  private montarResultado(texto?: unknown): ResultadoNovaProposicao {
+    const { urn, urnDocumentoReferenciado } = montaUrnNovaProposicao(this.dados, this.numeroOriginal);
     const colegiadoDestino: ColegiadoDestino = this.tipoColegiado === 'Comissão' ? { tipoColegiado: 'Comissão', siglaComissao: this.siglaComissao } : { tipoColegiado: 'Plenário' };
     const detail: ResultadoNovaProposicao = {
       urn,
@@ -495,7 +648,7 @@ export class NovaProposicaoComponent extends LitElement {
       ...(texto !== undefined && { texto }),
       anexoParecer: this.anexoParecer,
     };
-    this.dispatchEvent(new CustomEvent(EVENTO_CONCLUIDA, { detail, bubbles: true, composed: true }));
+    return detail;
   }
 
   // ---------------------------------------------------------------- renderização
@@ -596,7 +749,8 @@ export class NovaProposicaoComponent extends LitElement {
     const substitutivo = this.especie !== 'proposicao';
     const numeroFixo = this.especie === 'proposicao';
     return html`
-      <h3>Nova proposição</h3>
+      <h3 id="np-titulo">${this.emEdicao ? 'Alterar dados básicos' : 'Nova proposição'}</h3>
+      ${this.erroDadosIniciais ? this.aviso('np-erro-dados-iniciais', 'danger', this.erroDadosIniciais) : nothing}
 
       <fieldset id="np-g1">
         <legend>Espécie de documento</legend>
@@ -615,7 +769,7 @@ export class NovaProposicaoComponent extends LitElement {
             <legend>Identificação ${this.especie === 'subemenda' ? 'da subemenda substitutiva' : 'do substitutivo'}</legend>
             ${this.linhaIdentificacao(
               this.selectSiglas('np-sigla-substitutivo', this.siglasSubstitutivo, this.chaveSubstitutivo, c => this.onSiglaSubstitutivo(c)),
-              this.textoCinza('np-numero-substitutivo', 's/n'),
+              this.textoCinza('np-numero-substitutivo', this.numeroFixoDe(this.tipoSubstitutivo)),
               this.campoAno('np-ano-substitutivo', this.anoSubstitutivo, v => {
                 this.anoSubstitutivo = v;
               })
@@ -628,7 +782,7 @@ export class NovaProposicaoComponent extends LitElement {
         ${this.linhaIdentificacao(
           this.selectSiglas('np-sigla-proposicao', this.siglasProposicao, this.chaveProposicao, c => this.onSiglaProposicao(c)),
           numeroFixo
-            ? this.textoCinza('np-numero-proposicao', 's/n')
+            ? this.textoCinza('np-numero-proposicao', this.numeroFixoDe(this.tipoProposicao))
             : this.campoNumero('np-numero-proposicao', this.numeroProposicao, v => {
                 this.numeroProposicao = v;
                 this.verificacaoProposicao = verificacaoVazia();
@@ -689,9 +843,12 @@ export class NovaProposicaoComponent extends LitElement {
       </fieldset>
 
       <div class="np-botoes">
-        <sl-button id="np-continuar" variant="primary" ?disabled=${!this.tela1Valida} @click=${(): void => this.continuarTela1()}>Continuar</sl-button>
+        <sl-button id="np-continuar" variant="primary" ?disabled=${!this.tela1Valida} @click=${(): void => (this.emEdicao ? this.continuarEdicao() : this.continuarTela1())}
+          >Continuar</sl-button
+        >
         <sl-button id="np-cancelar" @click=${(): void => this.cancelar()}>Cancelar</sl-button>
       </div>
+      ${this.emEdicao ? this.renderConfirmacao() : nothing}
     `;
   }
 

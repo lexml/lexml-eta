@@ -15,7 +15,7 @@ export const chaveTipo = (tipo: TipoDocumento): string => `${tipo.urnAutoridade}
 // Uma entrada por sigla, a primeira da ordenação (ex.: PLS e PLC existem como lei ordinária e complementar).
 const unicasPorSigla = (tipos: TipoDocumento[]): TipoDocumento[] => tipos.filter((t, i) => tipos.findIndex(o => o.sigla === t.sigla) === i);
 
-const ehComplementar = (tipo: TipoDocumento): boolean => /^[^;]*\.complementar(;|$)/.test(tipo.urn);
+export const ehComplementar = (tipo: TipoDocumento): boolean => /^[^;]*\.complementar(;|$)/.test(tipo.urn);
 
 /** Para sigla com tipo ordinário e complementar na mesma autoridade, devolve o tipo indicado por `complementar`; senão, o próprio tipo. */
 export const resolverTipoComplementar = (tipo: TipoDocumento, complementar: boolean): TipoDocumento => {
