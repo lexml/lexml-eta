@@ -32,8 +32,8 @@
 
 ## 7. Teste E2E (Cypress)
 
-- [ ] 7.1 Criar `cypress/e2e/comentarios/comentarios-justificacao.cy.ts` (com `export {};`): abrir uma proposição, ir à justificação, selecionar um trecho pelo Quill (`quill.setSelection(..., 'user')` via `cy.window()`, `docs/guia-cypress.md`), clicar em "Adicionar comentário", preencher o modal e confirmar (botões `sl-button` por `dispatchEvent(new MouseEvent('click'))`); conferir o destaque, a sequência na aba e o alerta; responder; excluir a sequência e conferir que o destaque e o alerta somem. Verificar com `npm run cy:run:local -- --spec` no arquivo novo.
-- [ ] 7.2 Rodar os specs de revisão de texto existentes (`abertura-revisao-texto.cy.ts`, `revisao-texto-destaque.cy.ts` da c01) sem regressão.
+- [x] 7.1 Criar `cypress/e2e/comentarios/comentarios-justificacao.cy.ts` (com `export {};`): abrir uma proposição, ir à justificação, selecionar um trecho pelo Quill (`quill.setSelection(..., 'user')` via `cy.window()`, `docs/guia-cypress.md`), clicar em "Adicionar comentário", preencher o modal e confirmar (botões `sl-button` por `dispatchEvent(new MouseEvent('click'))`); conferir o destaque, a sequência na aba e o alerta; responder; excluir a sequência e conferir que o destaque e o alerta somem. Verificar com `npm run cy:run:local -- --spec` no arquivo novo.
+- [x] 7.2 Rodar os specs de revisão de texto existentes (`abertura-revisao-texto.cy.ts`, `revisao-texto-destaque.cy.ts` da c01) sem regressão.
 
 ## 8. Fechamento
 
