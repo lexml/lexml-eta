@@ -271,6 +271,48 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, { justificacao: lida })).to.deep.equal(salvo);
   });
 
+  it('Comentarios e span _tc montados à mão (com ins dentro e dois fragmentos) vão e voltam pelo CLI e validam no XSD', async () => {
+    const NS = 'http://www.lexml.gov.br/1.0';
+    const el = (localPart: string, value: any): any => ({ name: { namespaceURI: NS, localPart, prefix: '', key: `{${NS}}${localPart}`, string: `{${NS}}${localPart}` }, value });
+    const inline = (value: object, content: any[]): any => ({ TYPE_NAME: 'br_gov_lexml__1.GenInline', ...value, content });
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo: any = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { justificacao: '<p>x</p>', pendencias: ['Remover comentários.'] });
+    const blocos = salvo.value.projetoNorma.justificacao[0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento;
+    blocos.length = 0;
+    blocos.push(
+      el('p', inline({}, ['Antes ', el('span', inline({ id: '_tcabc_1' }, ['trecho ', el('ins', inline({ id: '_rtr1_1' }, ['inserido']))]))])),
+      el('p', inline({}, [el('span', inline({ id: '_tcabc_2' }, ['continua'])), ' fim.']))
+    );
+    const lexedit = salvo.value.metadado.metadadoProprietario[0].any[0].value;
+    const p = (texto: string): any => inline({}, [texto]);
+    lexedit.comentarios = {
+      TYPE_NAME: 'br_gov_lexml_lexedit__1.Comentarios',
+      sequenciaComentario: [
+        {
+          TYPE_NAME: 'br_gov_lexml_lexedit__1.SequenciaComentario',
+          refIdElementoComentado: '_tcabc_1',
+          comentario: [
+            { TYPE_NAME: 'br_gov_lexml_lexedit__1.Comentario', refIdUsuario: 'sf:fulano', data: '2026-05-11T15:51:00-03:00', p: [p('Linha 1'), p('Linha 2')] },
+            { TYPE_NAME: 'br_gov_lexml_lexedit__1.Comentario', refIdUsuario: 'sf:ciclano', data: '2026-05-12T16:10:00-03:00', p: [p('Resposta'), p('Outra')] },
+          ],
+        },
+      ],
+    };
+    lexedit.usuarios = {
+      TYPE_NAME: 'br_gov_lexml_lexedit__1.Usuarios',
+      usuario: [
+        { TYPE_NAME: 'br_gov_lexml_lexedit__1.Usuario', idUsuario: 'sf:fulano', nome: 'Fulano' },
+        { TYPE_NAME: 'br_gov_lexml_lexedit__1.Usuario', idUsuario: 'sf:ciclano', nome: 'Ciclano' },
+      ],
+    };
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(retorno.jsonix.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
+  });
+
   it('o XSD rejeita ids repetidos em ins/del da justificação', async () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const marca = (tag: string): string => `<${tag} usuario="Fulano" date="2026-05-11 15:51:00 " id-revisao="r1">x</${tag}>`;

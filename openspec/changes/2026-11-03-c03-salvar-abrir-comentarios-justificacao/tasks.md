@@ -1,6 +1,6 @@
 ## 1. Prova com o conversor
 
-- [ ] 1.1 Montar à mão um documento JSONIX com um trecho comentado em dois `span` `_tc<id>_1`/`_2` (um deles dentro de um `ins`) e um `lexedit:Comentarios` com dois `Comentario` de dois `p`, convertê-lo em XML e de volta com o CLI real (`JSONIX_LEXML_CLI`, conferindo a existência do arquivo de saída, porque o CLI sai com 0 em erro) e validar o XML com `schemas/lexedit.xsd`. Verificar que nada é descartado; se algo for, registrar no design.md e parar para decidir com o usuário.
+- [x] 1.1 Montar à mão um documento JSONIX com um trecho comentado em dois `span` `_tc<id>_1`/`_2` (um deles dentro de um `ins`) e um `lexedit:Comentarios` com dois `Comentario` de dois `p`, convertê-lo em XML e de volta com o CLI real (`JSONIX_LEXML_CLI`, conferindo a existência do arquivo de saída, porque o CLI sai com 0 em erro) e validar o XML com `schemas/lexedit.xsd`. Verificar que nada é descartado; se algo for, registrar no design.md e parar para decidir com o usuário.
 
 ## 2. Gravação
 
