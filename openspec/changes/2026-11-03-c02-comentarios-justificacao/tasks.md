@@ -21,9 +21,9 @@
 
 ## 5. Aba e modais
 
-- [ ] 5.1 Criar `lexml-eta-comentarios` (`src/components/comentarios/`): cabeçalho com ordenação, lista vazia, sequência (local, trecho, "Responder", excluir sequência), comentários (autor, data, texto com quebras de linha, "Editar" e "Excluir" conforme 1.1), destaque da sequência atual com rolagem, seleção por clique e setas, e eventos para o componente raiz. Verificar com testes de componente do componente novo.
-- [ ] 5.2 Modais de adicionar, editar e responder (trecho na adição, 500 caracteres com contador, "Comentar" desabilitado sem texto) e de confirmação das duas exclusões. Verificar com testes de componente.
-- [ ] 5.3 No `lexml-eta.component.ts`: aba "Comentários" antes de "Notas" fora do anexo de parecer, estado das sequências, tratamento dos eventos (criar com o usuário atual, responder, editar, excluir sequência e comentário), sincronização com o editor (remoção da sequência sem marcação a cada mudança de texto, destaque da sequência sob o cursor, abrir a aba ao criar e ao clicar no ícone, posicionar o cursor ao selecionar na aba) e descarte em `descartarDocumentoAtual`. Verificar com testes em `test/componente/lexml-eta/` para cada cenário da spec `comentarios`.
+- [x] 5.1 Criar `lexml-eta-comentarios` (`src/components/comentarios/`): cabeçalho com ordenação, lista vazia, sequência (local, trecho, "Responder", excluir sequência), comentários (autor, data, texto com quebras de linha, "Editar" e "Excluir" conforme 1.1), destaque da sequência atual com rolagem, seleção por clique e setas, e eventos para o componente raiz. Verificar com testes de componente do componente novo.
+- [x] 5.2 Modais de adicionar, editar e responder (trecho na adição, 500 caracteres com contador, "Comentar" desabilitado sem texto) e de confirmação das duas exclusões. Verificar com testes de componente.
+- [x] 5.3 No `lexml-eta.component.ts`: aba "Comentários" antes de "Notas" fora do anexo de parecer, estado das sequências, tratamento dos eventos (criar com o usuário atual, responder, editar, excluir sequência e comentário), sincronização com o editor (remoção da sequência sem marcação a cada mudança de texto, destaque da sequência sob o cursor, abrir a aba ao criar e ao clicar no ícone, posicionar o cursor ao selecionar na aba) e descarte em `descartarDocumentoAtual`. Verificar com testes em `test/componente/lexml-eta/` para cada cenário da spec `comentarios`.
 
 ## 6. Alerta, pendência e texto ao host
 

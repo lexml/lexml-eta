@@ -50,6 +50,7 @@ export { SufixosModalComponent } from './components/sufixos/sufixos.modal.compon
 export { AtalhosModalComponent } from './components/ajuda/atalhos.modal.component';
 export { OpcoesImpressaoComponent } from './components/opcoesImpressao/opcoesImpressao.component';
 export { AnexosComponent } from './components/anexos/anexos.component';
+export { ComentariosComponent } from './components/comentarios/comentarios.component';
 export { SwitchRevisaoComponent } from './components/switchRevisao/switch-revisao.component';
 export { SubstituicaoTermoComponent } from './components/substituicao-termo/substituicao-termo.component';
 export { Usuario } from './model/revisao/usuario';

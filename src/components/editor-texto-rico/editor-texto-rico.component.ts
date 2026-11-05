@@ -462,10 +462,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   // Ids de sequências excluídas: a cada mudança de texto a marcação deles é retirada, para o desfazer não recriá-la.
   private idsComentariosRemovidos = new Set<string>();
+  private chaveIdsComentarios?: string;
   private elBotaoAdicionarComentario?: HTMLButtonElement;
   private overlayIconesComentario?: HTMLElement;
   private containerRolagemComentario?: HTMLElement;
   private frameIconesComentario?: number;
+  private observadorTamanhoComentario?: ResizeObserver;
 
   private get comComentarios(): boolean {
     return this.modo === Modo.JUSTIFICATIVA;
@@ -523,6 +525,12 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
 
   public possuiComentario(idSequenciaComentario: string): boolean {
     return !!this.moduloComentario?.existe(idSequenciaComentario);
+  }
+
+  // Marcação sem sequência (ex.: falha no meio de uma operação): sai sem entrar no histórico e não volta ao desfazer.
+  public removerMarcacaoComentarios(ids: string[]): void {
+    ids.forEach(id => this.idsComentariosRemovidos.add(id));
+    this.moduloComentario?.removerPorIds(ids) && this.agendarAtualizacaoIconesComentario();
   }
 
   public getIdsComentarios(): string[] {
@@ -641,6 +649,9 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.containerRolagemComentario = ((this.quill as any).scrollingContainer || this.quill.root) as HTMLElement;
     this.containerRolagemComentario.addEventListener('scroll', this.agendarAtualizacaoIconesComentario);
     window.addEventListener('resize', this.agendarAtualizacaoIconesComentario);
+    // Também quando a aba da justificação passa a ser exibida: oculto, o editor não tem posição para os ícones.
+    this.observadorTamanhoComentario = new ResizeObserver(this.agendarAtualizacaoIconesComentario);
+    this.observadorTamanhoComentario.observe(quillContainer);
     this.agendarAtualizacaoIconesComentario();
   }
 
@@ -649,6 +660,7 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.quill?.root.removeEventListener('keydown', this.onKeyDownLimiteComentario, true);
     this.containerRolagemComentario?.removeEventListener('scroll', this.agendarAtualizacaoIconesComentario);
     window.removeEventListener('resize', this.agendarAtualizacaoIconesComentario);
+    this.observadorTamanhoComentario?.disconnect();
     this.frameIconesComentario && cancelAnimationFrame(this.frameIconesComentario);
   }
 
@@ -1022,6 +1034,8 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.configAbrindoTexto(false);
     this.notasRodape = notasRodape;
     this.atualizaAtributosRevisaoTextoRico();
+    // Carregar o texto não emite comentarios-alterados: quem carrega já conhece os comentários.
+    this.chaveIdsComentarios = [...this.getIdsComentarios()].sort().join('|');
 
     setTimeout(() => {
       this.quill!.history.clear();
@@ -1090,7 +1104,19 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.buildRevisoes();
     this.alertaGlobalRevisao();
     this.agendarAtualizacaoIconesComentario();
+    this.emitirComentariosAlterados();
   };
+
+  // Imediato (sem o atraso do onchange): a aba de comentários acompanha o trecho apagado ou desfeito.
+  private emitirComentariosAlterados(): void {
+    const ids = this.getIdsComentarios();
+    const chave = [...ids].sort().join('|');
+    if (chave === this.chaveIdsComentarios) {
+      return;
+    }
+    this.chaveIdsComentarios = chave;
+    this.dispatchEvent(new CustomEvent('comentarios-alterados', { bubbles: true, composed: true, detail: { ids } }));
+  }
 
   public alertaGlobalRevisao(): void {
     const id = 'alerta-global-revisao';
