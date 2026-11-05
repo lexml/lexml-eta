@@ -81,8 +81,12 @@ describe('lexml-nova-proposicao', () => {
       '/c/CN': { status: 200, corpo: COMISSOES },
       '/v/PL/12/2026': { status: 200, corpo: { ementa: 'Ementa do PL 12', textoEstruturadoDisponivel: true } },
       '/v/PL/13/2026': { status: 200, corpo: { ementa: 'Sem texto', textoEstruturadoDisponivel: false } },
+      '/v/PLS/7/2026': { status: 200, corpo: { ementa: 'Ementa do PLS 7', textoEstruturadoDisponivel: true, complementar: true } },
+      '/v/PLS/8/2026': { status: 200, corpo: { ementa: 'Ementa do PLS 8', textoEstruturadoDisponivel: true } },
       '/v/MPV/99/2026': { status: 200, corpo: { ementa: 'Ementa da MPV 99', textoEstruturadoDisponivel: true } },
       '/t/PL/12/2026': { status: 200, corpo: TEXTO },
+      '/t/PLS/7/2026': { status: 200, corpo: TEXTO },
+      '/t/PLS/8/2026': { status: 200, corpo: TEXTO },
       '/t/MPV/99/2026': { status: 200, corpo: TEXTO },
     };
     fetchOriginal = window.fetch;
@@ -144,17 +148,13 @@ describe('lexml-nova-proposicao', () => {
       expect(q<any>('np-anexo-parecer')!.checked).to.be.false;
     });
 
-    it('lista de siglas: ativos antes de inativos e sem a MPV', async () => {
+    it('lista de siglas: só ativas e sem a MPV', async () => {
       const textos = await textosItens('np-sigla-proposicao');
-      expect(textos).to.include.members(['PL', 'PLP', 'PLV', 'PLS']);
-      expect(textos).to.not.include('MPV');
-      expect(textos.indexOf('PLS')).to.be.greaterThan(textos.indexOf('PLV'));
+      expect(textos).to.include.members(['PL', 'PLP', 'PLV']);
+      expect(textos).to.not.include.members(['MPV', 'PLS', 'PLC']);
     });
 
-    it('sigla inativa exibe alerta sem bloquear; sigla ativa não exibe', async () => {
-      await escolherSigla('np-sigla-proposicao', 'PLS');
-      expect(existe('np-sigla-inativa')).to.be.true;
-      expect(botaoHabilitado('np-continuar')).to.be.true;
+    it('sem alerta de sigla inativa', async () => {
       await escolherSigla('np-sigla-proposicao', 'PL');
       expect(existe('np-sigla-inativa')).to.be.false;
     });
@@ -387,6 +387,36 @@ describe('lexml-nova-proposicao', () => {
       expect(r.detail.anexoParecer).to.be.true;
     });
 
+    it('substitutivo de PLS: lista com a sigla uma vez e URN conforme o atributo complementar', async () => {
+      const r = concluida();
+      await marcar('especie', 'substitutivo');
+      const siglas = await textosItens('np-sigla-proposicao');
+      expect(siglas.filter(x => x === 'PLS')).to.have.length(1);
+      await escolherSigla('np-sigla-proposicao', 'PLS');
+      await digitar('np-numero-proposicao', '7');
+      await clicar('np-proposicao-verificar');
+      await escolherComissao('CCJ');
+      await clicar('np-continuar');
+      await clicar('np-continuar');
+      const ano = new Date().getFullYear();
+      expect(r.detail.urnDocumentoReferenciado).to.equal(`urn:lex:br:senado.federal:projeto.lei.complementar;pls:${ano};7`);
+    });
+
+    it('substitutivo de PLS sem o atributo complementar usa projeto.lei; alterar o número descarta o valor', async () => {
+      await marcar('especie', 'substitutivo');
+      await escolherSigla('np-sigla-proposicao', 'PLS');
+      await digitar('np-numero-proposicao', '7');
+      await clicar('np-proposicao-verificar');
+      await digitar('np-numero-proposicao', '8');
+      expect(botaoHabilitado('np-continuar')).to.be.false;
+      await clicar('np-proposicao-verificar');
+      await escolherComissao('CCJ');
+      const r = concluida();
+      await clicar('np-continuar');
+      await clicar('np-continuar');
+      expect(r.detail.urnDocumentoReferenciado).to.contain('projeto.lei;pls:');
+    });
+
     it('texto não encontrado (404): alerta e Continuar desabilitado; trocar de opção reabilita', async () => {
       rotas['/t/PL/12/2026'] = { status: 404 };
       await irParaTela2Substitutivo();
@@ -424,6 +454,8 @@ describe('lexml-nova-proposicao', () => {
       const siglas = await textosItens('np-sigla-outra');
       expect(siglas).to.include.members(['PL', 'PLP', 'PLV', 'PLS', 'MPV']);
       expect(siglas.indexOf('PLS')).to.be.greaterThan(siglas.indexOf('MPV'));
+      expect(siglas.filter(x => x === 'PLS')).to.have.length(1);
+      expect(siglas.filter(x => x === 'PLC')).to.have.length(1);
       expect(siglas).to.deep.equal(await textosItens('np-sigla-outra'));
     });
 

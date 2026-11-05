@@ -16,7 +16,15 @@ import { montaEpigrafePadrao } from './epigrafePadrao';
 import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
 import { isPlv, montaUrnNovaProposicao } from './montaUrnNovaProposicao';
 import { getPreambuloNovaProposicao } from './preambuloNovaProposicao';
-import { chaveTipo, getSiglasNovaProposicao, getSiglasOutraProposicao, getSiglasProposicaoReferenciada, getSiglasSubstitutivo, getTipoMpv } from './siglasNovaProposicao';
+import {
+  chaveTipo,
+  getSiglasNovaProposicao,
+  getSiglasOutraProposicao,
+  getSiglasProposicaoReferenciada,
+  getSiglasSubstitutivo,
+  getTipoMpv,
+  resolverTipoComplementar,
+} from './siglasNovaProposicao';
 import { ColegiadoDestino, DadosIdentificacao, EspecieDocumento, LIMITE_ARQUIVO_BYTES, ResultadoNovaProposicao, TipoColegiadoDestino } from './tiposNovaProposicao';
 import { ConfigNovaProposicao, montaUrlComissoes, montaUrlProposicao, validarConfigNovaProposicao } from './urlsNovaProposicao';
 
@@ -36,6 +44,8 @@ interface Verificacao {
   estado: EstadoVerificacao;
   ementa: string;
   textoEstruturadoDisponivel: boolean;
+  // Só PLS/PLC: lei complementar (padrão false quando a resposta não traz o atributo).
+  complementar: boolean;
 }
 
 interface Comissao {
@@ -46,7 +56,7 @@ interface Comissao {
 
 type OpcaoTexto = 'vazio' | 'importar' | 'referenciado' | 'outra';
 
-const verificacaoVazia = (): Verificacao => ({ estado: 'nenhuma', ementa: '', textoEstruturadoDisponivel: true });
+const verificacaoVazia = (): Verificacao => ({ estado: 'nenhuma', ementa: '', textoEstruturadoDisponivel: true, complementar: false });
 
 @customElement('lexml-nova-proposicao')
 export class NovaProposicaoComponent extends LitElement {
@@ -180,11 +190,17 @@ export class NovaProposicaoComponent extends LitElement {
     return this.casa === 'CD' && this.especie !== 'proposicao';
   }
 
+  // Na referenciada, a sigla não distingue lei ordinária de complementar: quem decide é a verificação.
+  private get tipoProposicaoResolvido(): TipoDocumento | undefined {
+    const tipo = this.tipoProposicao;
+    return tipo && this.especie !== 'proposicao' ? resolverTipoComplementar(tipo, this.verificacaoProposicao.complementar) : tipo;
+  }
+
   private get dados(): DadosIdentificacao {
     return {
       casa: this.casa,
       especie: this.especie,
-      tipoProposicao: this.tipoProposicao,
+      tipoProposicao: this.tipoProposicaoResolvido,
       numeroProposicao: this.numeroProposicao,
       anoProposicao: this.anoProposicao,
       tipoSubstitutivo: this.grupoSubstitutivoVisivel ? this.tipoSubstitutivo : undefined,
@@ -192,10 +208,6 @@ export class NovaProposicaoComponent extends LitElement {
       numeroMpv: this.numeroMpv,
       anoMpv: this.anoMpv,
     };
-  }
-
-  private get siglaInativaSelecionada(): boolean {
-    return this.especie === 'proposicao' && !!this.tipoProposicao && !this.tipoProposicao.ativo;
   }
 
   // Casa cujas comissões são oferecidas: a da autoridade da URN do novo documento.
@@ -340,12 +352,17 @@ export class NovaProposicaoComponent extends LitElement {
   private async consultar(sigla: string, numero: string, ano: string): Promise<Verificacao> {
     try {
       const resposta = await fetch(montaUrlProposicao(this._config!.urlVerificacaoProposicao!, sigla, numero, ano));
-      if (resposta.status === 404) return { estado: 'inexistente', ementa: '', textoEstruturadoDisponivel: false };
-      if (resposta.status !== 200) return { estado: 'erro', ementa: '', textoEstruturadoDisponivel: false };
+      if (resposta.status === 404) return { estado: 'inexistente', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
+      if (resposta.status !== 200) return { estado: 'erro', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
       const corpo = await resposta.json();
-      return { estado: 'ok', ementa: String(corpo?.ementa ?? ''), textoEstruturadoDisponivel: corpo?.textoEstruturadoDisponivel !== false };
+      return {
+        estado: 'ok',
+        ementa: String(corpo?.ementa ?? ''),
+        textoEstruturadoDisponivel: corpo?.textoEstruturadoDisponivel !== false,
+        complementar: corpo?.complementar === true,
+      };
     } catch {
-      return { estado: 'erro', ementa: '', textoEstruturadoDisponivel: false };
+      return { estado: 'erro', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
     }
   }
 
@@ -621,7 +638,6 @@ export class NovaProposicaoComponent extends LitElement {
             this.verificacaoProposicao = verificacaoVazia();
           })
         )}
-        ${this.siglaInativaSelecionada ? this.aviso('np-sigla-inativa', 'warning', 'Esta sigla está inativa e não deve ser usada para iniciar um texto novo.') : nothing}
         ${substitutivo
           ? this.grupoVerificacao(
               'np-proposicao',

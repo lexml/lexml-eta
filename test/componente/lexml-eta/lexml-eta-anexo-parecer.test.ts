@@ -24,7 +24,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     expect(proposicao).not.to.have.property('notasRodape');
     expect(proposicao).to.have.property('local');
     expect(proposicao).to.have.property('autoria');
-    expect(proposicao).to.have.property('dataUltimaModificacao');
+    expect(proposicao).to.have.property('data');
   });
 
   it('deveria ocultar justificação e notas e exibir data e autoria no modo anexo de parecer', async () => {
@@ -101,7 +101,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     expect(proposicao).not.to.have.property('notasRodape');
     expect(proposicao.local).to.equal('Sala das Sessões');
     expect(proposicao.autoria).to.deep.equal({ parlamentares: [{ identificacao: '1' }] });
-    expect(proposicao.dataUltimaModificacao).to.equal('2026-08-19');
+    expect(proposicao.data).to.equal('2026-08-19');
     expect(proposicao.colegiadoApreciador).to.equal(colegiadoApreciador);
     expect(proposicao.opcoesImpressao).to.equal(opcoesImpressao);
   });
@@ -118,6 +118,6 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
 
     expect(() => (component as any).setProposicao(proposicao)).not.to.throw();
     expect((component as any)._lexmlJustificativa.texto).to.equal('');
-    expect((component as any)._lexmlData.data).to.equal(proposicao.dataUltimaModificacao);
+    expect((component as any)._lexmlData.data).to.equal(proposicao.data);
   });
 });

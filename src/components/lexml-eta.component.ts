@@ -335,7 +335,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.projetoNorma = this._lexmlEta?.getProjetoAtualizado();
 
     const proposicao = this.montarProposicaoPorUrn(this.urn);
-    proposicao.dataUltimaModificacao = this._lexmlData.data || undefined;
+    proposicao.data = this._lexmlData.data ?? '';
     proposicao.projetoNorma = this.projetoNorma;
     proposicao.justificativa = this._lexmlJustificativa.texto;
     proposicao.notasRodape = this._lexmlJustificativa.notasRodape;
@@ -484,9 +484,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.notasRodape = [];
     // Antes da primeira renderização os formulários ainda não existem.
     if (this._lexmlJustificativa) {
-      const vazia = new Proposicao();
-      vazia.dataUltimaModificacao = '';
-      this.setProposicao(vazia);
+      this.setProposicao(new Proposicao());
     }
   }
 
@@ -550,15 +548,13 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this._lexmlJustificativa.setTextoAntesRevisao(proposicao.justificativaAntesRevisao);
     this.notasRodape = proposicao.notasRodape || [];
     this._lexmlJustificativa.setContent(proposicao.justificativa || '', proposicao.notasRodape || []);
-    this._lexmlData.data = proposicao.dataUltimaModificacao;
+    this._lexmlData.data = proposicao.data;
     this._lexmlEta!.setRevisoes(proposicao.revisoes);
     this.aplicarAnexos(proposicao.anexos);
   }
 
   private resetaProposicao(params: ParametrosEdicao, aplicarPadroes = true): void {
     const proposicao = new Proposicao();
-    // Documento novo nasce com "Não informar"; o padrão do modelo é o instante atual.
-    proposicao.dataUltimaModificacao = '';
     proposicao.autoria = aplicarPadroes ? this.montarAutoriaPadrao() : new Autoria();
     proposicao.opcoesImpressao = aplicarPadroes ? this.montarOpcoesImpressaoPadrao() : new OpcoesImpressao();
     this.setProposicao(proposicao);

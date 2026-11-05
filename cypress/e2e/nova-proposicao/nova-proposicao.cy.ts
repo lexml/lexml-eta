@@ -88,6 +88,56 @@ describe('Nova proposição — componente no modal da demo', () => {
       });
   });
 
+  it('nova proposição só oferece siglas ativas e não exibe alerta de sigla inativa', () => {
+    abrirModal();
+    abrirLista('#np-sigla-proposicao');
+    cy.get('#np-sigla-proposicao .ac-lista li')
+      .then($itens => [...$itens].map(li => li.textContent!.trim()))
+      .should(siglas => {
+        expect(siglas).to.include.members(['PL', 'PLP']);
+        expect(siglas).to.not.include.members(['PLS', 'PLC']);
+      });
+    cy.get('#np-sigla-inativa').should('not.exist');
+  });
+
+  it('substitutivo: PLS aparece uma vez e o atributo complementar define a URN do documento referenciado', () => {
+    abrirModal();
+    marcarRadioSl('especie', 'substitutivo');
+    abrirLista('#np-sigla-proposicao');
+    cy.get('#np-sigla-proposicao .ac-lista li')
+      .then($itens => [...$itens].map(li => li.textContent!.trim()))
+      .should(siglas => expect(siglas.filter(s => s === 'PLS')).to.have.length(1));
+    escolherItemLista('#np-sigla-proposicao', 'PLS');
+    verificarProposicao('7', '2015');
+    ementaDeve('#np-proposicao-ementa', false);
+    escolherComissao('CCJ');
+    cy.get('#np-continuar').click();
+    marcarRadioSl('opcaoTexto', 'vazio');
+    cy.get('#np-continuar').click();
+
+    cy.get(`${MODAL}[open]`).should('not.exist');
+    lerSalvo().then(arquivo => {
+      expect(metadadoLexEdit(arquivo).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei.complementar;pls:2015;7');
+    });
+  });
+
+  it('substitutivo de PLS sem o atributo complementar usa projeto.lei', () => {
+    abrirModal();
+    marcarRadioSl('especie', 'substitutivo');
+    escolherItemLista('#np-sigla-proposicao', 'PLS');
+    verificarProposicao('8', '2015');
+    ementaDeve('#np-proposicao-ementa', false);
+    escolherComissao('CCJ');
+    cy.get('#np-continuar').click();
+    marcarRadioSl('opcaoTexto', 'vazio');
+    cy.get('#np-continuar').click();
+
+    cy.get(`${MODAL}[open]`).should('not.exist');
+    lerSalvo().then(arquivo => {
+      expect(metadadoLexEdit(arquivo).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei;pls:2015;8');
+    });
+  });
+
   it('sigla digitada que não é um item é apagada ao perder o foco', () => {
     abrirModal();
     digitarEmSl('#np-sigla-proposicao sl-input', 'xyz');

@@ -54,6 +54,11 @@ test('PL 3/2023 existe sem texto: verificação 200 com indicador falso e texto 
   assert.equal(tratarRequisicaoDemo('/demo-api/proposicoes/PL/3/2023/texto').status, 404);
 });
 
+test('PLS: complementar só é informado quando verdadeiro', () => {
+  assert.equal(corpo(tratarRequisicaoDemo('/demo-api/proposicoes/PLS/7/2015')).complementar, true);
+  assert.equal('complementar' in corpo(tratarRequisicaoDemo('/demo-api/proposicoes/PLS/8/2015')), false);
+});
+
 test('rota desconhecida da demo devolve 404', () => {
   assert.equal(tratarRequisicaoDemo('/demo-api/outra').status, 404);
 });

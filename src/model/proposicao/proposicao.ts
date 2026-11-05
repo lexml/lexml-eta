@@ -1,10 +1,12 @@
 import { Revisao } from '../revisao/revisao';
 import { NotaRodape } from '../../components/editor-texto-rico/notaRodape';
 import { ProjetoNorma } from '../lexml/documento/projetoNorma';
+import { formatDateTime, formatDateTimeToIso } from '../../util/date-util';
 
 export class Proposicao {
   // Metadados padronizados para o lexml-eta-proposicao
-  dataUltimaModificacao = new Date().toISOString();
+  // Instante da criação, que é o da obtenção: getProposicao sempre cria uma Proposicao nova.
+  dataUltimaModificacao = formatDateTimeToIso(formatDateTime(new Date()));
   aplicacao = '';
   versaoAplicacao = '';
   metadados: Metadados = {};
@@ -14,6 +16,8 @@ export class Proposicao {
   justificativa = '';
   justificativaAntesRevisao?: string;
   local = '';
+  // Data do campo "Data" (impressão do fecho), AAAA-MM-DD; vazia = "Não informar".
+  data = '';
   autoria = new Autoria();
   opcoesImpressao = new OpcoesImpressao();
   revisoes: Revisao[] = [];

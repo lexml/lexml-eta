@@ -441,6 +441,9 @@
         </xsd:complexType>
     </xsd:element>
 
+    <xsd:element name="br">
+        <xsd:complexType />
+    </xsd:element>
 
     <xsd:element name="table">
         <xsd:complexType>
@@ -616,6 +619,7 @@
             <xsd:element ref="ins" />
             <xsd:element ref="del" />
             <xsd:element ref="dfn" />
+            <xsd:element ref="br" />
             <xsd:element ref="NotaReferenciada" />
             <xsd:element ref="EmLinha" />
             <xsd:element ref="img" />
