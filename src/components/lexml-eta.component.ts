@@ -53,7 +53,7 @@ import { formatDateTime, formatDateTimeToIso } from '../util/date-util';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { Anexo, Autoria, ColegiadoApreciador, Epigrafe, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
 import { DocumentoArticulado, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
-import { PENDENCIA_DOCUMENTO_NAO_SUPORTADO } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
+import { PENDENCIA_COMENTARIOS, PENDENCIA_DOCUMENTO_NAO_SUPORTADO } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { montaDocumentoNovaProposicao } from '../model/lexml/documento/modelo/montaDocumentoNovaProposicao';
 
 const ALERTA_TIPO_NAO_SUPORTADO = 'alerta-global-tipo-nao-suportado';
@@ -86,7 +86,6 @@ const MENSAGEM_JUSTIFICACAO_NAO_INFORMADA = 'Não foi informado um texto de just
 
 const ALERTA_COMENTARIOS = 'alerta-global-comentarios';
 const MENSAGEM_ALERTA_COMENTARIOS = 'Este documento contém comentários e não deve ser protocolado até que sejam removidos.';
-const PENDENCIA_COMENTARIOS = 'Remover comentários.';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
@@ -244,7 +243,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       // Em tipo não suportado, colegiado e autoria saem vazios.
       ...(this.tipoNaoSuportado ? {} : { autoria: this._lexmlAutoria.getAutoriaAtualizada() }),
       ...(this.tipoNaoSuportado || !this.colegiadoApreciador ? {} : { colegiadoApreciador: this.colegiadoApreciador }),
-      ...(this.anexoParecer ? {} : { justificacao: this._lexmlJustificativa.texto }),
+      ...(this.anexoParecer ? {} : { justificacao: this._lexmlJustificativa.texto, comentarios: this.sequenciasComentario }),
       opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao,
       outrosMetadados: this.outrosMetadados,
       anexos: this._lexmlAnexos?.anexos,

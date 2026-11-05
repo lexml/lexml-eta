@@ -20,15 +20,17 @@ import { gerarIdRemissaoInvalida } from '../../../remissao/refId';
 import { removerSpanParchmentRemissao, substituirTextoRefForaDeLinks } from '../../../../util/html-util';
 import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit, RevisoesLexEdit } from '../documentoArticulado';
-import { getIdUsuario } from '../../../revisao/usuario';
+import { getIdUsuario, Usuario } from '../../../revisao/usuario';
+import type { SequenciaComentario } from '../../../comentario/comentario';
 import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
 import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
 import { formatarLocalDataFecho, isTipoDocumentoNaoSuportado } from '../urnUtil';
-import { JustificacaoMontada, montaJustificacao, RevisaoTextualMontada } from './justificacao';
+import { JustificacaoMontada, montaJustificacao, RevisaoTextualMontada, TrechoComentadoMontado } from './justificacao';
 import { coletarSituacaoNaNormaVigente, mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
 export const PENDENCIA_REVISAO_ARTICULACAO = 'Resolver marcas de revisão na articulação.';
+export const PENDENCIA_COMENTARIOS = 'Remover comentários.';
 export const PENDENCIA_REVISAO_TEXTO = 'Resolver marcas de revisão de texto.';
 export const PENDENCIA_DOCUMENTO_NAO_SUPORTADO = 'Este tipo de documento não é completamente suportado pelo editor.';
 
@@ -60,7 +62,8 @@ export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: str
       dados,
       idsRemissoesInvalidas,
       mesclarSituacaoNaNormaVigente(coletarSituacaoNaNormaVigente(projetoNorma.articulacao), dados?.revisoes?.situacaoDosExcluidos),
-      justificacao.revisoes
+      justificacao.revisoes,
+      justificacao.trechosComentados
     )
   );
   resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas, dados, justificacao);
@@ -139,10 +142,40 @@ const montaRevisoesTextuais = (revisoes: RevisaoTextualMontada[]): MetadadoLexEd
   revisaoTextual: revisoes.map(r => ({ TYPE_NAME: 'br_gov_lexml_lexedit__1.RevisaoTextual', refIdRevisao: r.id, refIdUsuario: getIdUsuario(r.usuario), data: r.data })),
 });
 
-// União por idUsuario: primeiro os das revisões da hierarquia, depois os das marcas de texto (design D5).
-const montaUsuarios = (daArticulacao: RevisoesLexEdit['usuarios'] | undefined, revisoesTextuais: RevisaoTextualMontada[]): RevisoesLexEdit['usuarios'] | undefined => {
+// Só as sequências com trecho na justificação, na ordem do primeiro fragmento; o ref é o id do fragmento _1 (design D2).
+const sequenciasGravadas = (sequencias: SequenciaComentario[] | undefined, trechos: TrechoComentadoMontado[]): Array<{ sequencia: SequenciaComentario; refId: string }> =>
+  trechos.flatMap((trecho, i) => {
+    if (trechos.findIndex(t => t.idSequencia === trecho.idSequencia) !== i) return [];
+    const sequencia = (sequencias ?? []).find(s => s.id === trecho.idSequencia);
+    return sequencia?.comentarios.length ? [{ sequencia, refId: trecho.id }] : [];
+  });
+
+// criarDocumentoArticulado decodifica todo `content`, então o texto puro do comentário precisa sair escapado.
+const escaparTexto = (texto: string): string => texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+// Cada linha vira um `p`; linha vazia vira `p` vazio.
+const montaComentarios = (gravadas: ReturnType<typeof sequenciasGravadas>): MetadadoLexEdit['comentarios'] => ({
+  TYPE_NAME: 'br_gov_lexml_lexedit__1.Comentarios',
+  sequenciaComentario: gravadas.map(({ sequencia, refId }) => ({
+    TYPE_NAME: 'br_gov_lexml_lexedit__1.SequenciaComentario',
+    refIdElementoComentado: refId,
+    comentario: sequencia.comentarios.map(c => ({
+      TYPE_NAME: 'br_gov_lexml_lexedit__1.Comentario',
+      refIdUsuario: getIdUsuario(c.usuario),
+      data: c.data,
+      p: c.texto.split(/\r?\n/).map(linha => ({ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: linha ? [escaparTexto(linha)] : [] })),
+    })),
+  })),
+});
+
+// União por idUsuario: primeiro os das revisões da hierarquia, depois os das marcas de texto e os dos comentários (design D5).
+const montaUsuarios = (
+  daArticulacao: RevisoesLexEdit['usuarios'] | undefined,
+  revisoesTextuais: RevisaoTextualMontada[],
+  dosComentarios: Usuario[] = []
+): RevisoesLexEdit['usuarios'] | undefined => {
   const usuario = [...(daArticulacao?.usuario ?? [])];
-  revisoesTextuais.forEach(({ usuario: u }) => {
+  [...revisoesTextuais.map(r => r.usuario), ...dosComentarios].forEach(u => {
     const idUsuario = getIdUsuario(u);
     if (!usuario.some(registrado => registrado.idUsuario === idUsuario)) {
       usuario.push({ TYPE_NAME: 'br_gov_lexml_lexedit__1.Usuario', idUsuario, nome: u.nome, ...(u.sigla && { sigla: u.sigla }) });
@@ -184,7 +217,8 @@ const montaMetadadoLexEdit = (
   dados: DadosLexEdit | undefined,
   idsRemissoesInvalidas: string[],
   situacao: SituacaoNaNormaVigente,
-  revisoesTextuais: RevisaoTextualMontada[]
+  revisoesTextuais: RevisaoTextualMontada[],
+  trechosComentados: TrechoComentadoMontado[]
 ): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
   // As do editor vêm antes da de remissões, como na especificação 13.
@@ -208,6 +242,11 @@ const montaMetadadoLexEdit = (
     lexedit.remissoesInternasInvalidas = { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idsRemissoesInvalidas.join(' ') };
     pendencias.push('Corrigir remissões internas inválidas.');
   }
+  const comentarios = sequenciasGravadas(dados?.comentarios, trechosComentados);
+  if (comentarios.length) {
+    lexedit.comentarios = montaComentarios(comentarios);
+    pendencias.push(PENDENCIA_COMENTARIOS);
+  }
   if (revisoesTextuais.length) {
     lexedit.revisoesTextuais = montaRevisoesTextuais(revisoesTextuais);
     pendencias.push(PENDENCIA_REVISAO_TEXTO);
@@ -217,7 +256,11 @@ const montaMetadadoLexEdit = (
     lexedit.revisoesArticulacao = dados!.revisoes!.revisoesArticulacao;
     pendencias.push(PENDENCIA_REVISAO_ARTICULACAO);
   }
-  const usuarios = montaUsuarios(temRevisoesArticulacao ? dados!.revisoes!.usuarios : undefined, revisoesTextuais);
+  const usuarios = montaUsuarios(
+    temRevisoesArticulacao ? dados!.revisoes!.usuarios : undefined,
+    revisoesTextuais,
+    comentarios.flatMap(({ sequencia }) => sequencia.comentarios.map(c => c.usuario))
+  );
   if (usuarios) lexedit.usuarios = usuarios;
   const situacaoNaNormaVigente = montaSituacaoNaNormaVigente(situacao);
   if (situacaoNaNormaVigente) lexedit.situacaoNaNormaVigente = situacaoNaNormaVigente;

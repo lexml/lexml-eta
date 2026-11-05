@@ -7,6 +7,7 @@ import { getAno, getNumero, getSigla, verificarUrnDaCasaDoEditor } from './urnUt
 import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } from '../../proposicao/proposicao';
 import { Usuario } from '../../revisao/usuario';
 import type { SituacaoNaNormaVigente } from './conversor/situacaoNaNormaVigente';
+import type { SequenciaComentario } from '../../comentario/comentario';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -43,6 +44,15 @@ export interface MetadadoLexEdit {
   anexos?: { TYPE_NAME: string; anexo: Array<Anexo & { TYPE_NAME: string }> };
   revisoesArticulacao?: RevisoesLexEdit['revisoesArticulacao'];
   usuarios?: RevisoesLexEdit['usuarios'];
+  // Uma SequenciaComentario por trecho comentado da justificação (especificação 08).
+  comentarios?: {
+    TYPE_NAME: string;
+    sequenciaComentario: Array<{
+      TYPE_NAME: string;
+      refIdElementoComentado: string;
+      comentario: Array<{ TYPE_NAME: string; refIdUsuario: string; data: string; p: Array<{ TYPE_NAME: string; content: string[] }> }>;
+    }>;
+  };
   // Um RevisaoTextual por `ins`/`del` da justificação (especificação 09).
   revisoesTextuais?: { TYPE_NAME: string; revisaoTextual: Array<{ TYPE_NAME: string; refIdRevisao: string; refIdUsuario: string; data: string }> };
 }
@@ -93,6 +103,8 @@ export interface DadosLexEdit {
   outrosMetadados?: Record<string, string>;
   anexos?: Anexo[];
   revisoes?: RevisoesLexEdit;
+  // Só na escrita: as sequências do editor; só as que têm trecho na justificação são gravadas.
+  comentarios?: SequenciaComentario[];
   // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
   revisoesLidas?: RevisaoArticulacaoLida[];
   // Só na leitura: autor e data de cada `ins`/`del` da justificação, por `refIdRevisao`.

@@ -4,9 +4,9 @@
 
 ## 2. Gravação
 
-- [ ] 2.1 Em `conversor/justificacao.ts`, montar `comentario` como `span` `_tc<id>_<n>` na varredura, com id substituto para id fora do padrão, ignorando a marca vazia, e devolver `trechosComentados` em `montaJustificacao`. Verificar com testes unitários: um fragmento, dois parágrafos, trecho com `ins` dentro e trecho dentro de `del`, trecho em célula de tabela, ids todos únicos.
-- [ ] 2.2 Acrescentar `comentarios` a `DadosLexEdit` e, em `montaMetadadoLexEdit`, o grupo `Comentarios` (só sequências com trecho, `refIdElementoComentado` no fragmento `_1`, linhas em `p`), os autores em `montaUsuarios` e a pendência "Remover comentários." na ordem nova. Verificar com testes unitários dos cenários de `salvar-documento-articulado` e `metadados-lexedit` deste change.
-- [ ] 2.3 Em `lexml-eta.component.ts#getDocumentoArticulado`, enviar as sequências (fora do anexo de parecer). Verificar com teste de componente que o documento salvo contém o `span` e o `Comentarios`.
+- [x] 2.1 Em `conversor/justificacao.ts`, montar `comentario` como `span` `_tc<id>_<n>` na varredura, com id substituto para id fora do padrão, ignorando a marca vazia, e devolver `trechosComentados` em `montaJustificacao`. Verificar com testes unitários: um fragmento, dois parágrafos, trecho com `ins` dentro e trecho dentro de `del`, trecho em célula de tabela, ids todos únicos.
+- [x] 2.2 Acrescentar `comentarios` a `DadosLexEdit` e, em `montaMetadadoLexEdit`, o grupo `Comentarios` (só sequências com trecho, `refIdElementoComentado` no fragmento `_1`, linhas em `p`), os autores em `montaUsuarios` e a pendência "Remover comentários." na ordem nova. Verificar com testes unitários dos cenários de `salvar-documento-articulado` e `metadados-lexedit` deste change.
+- [x] 2.3 Em `lexml-eta.component.ts#getDocumentoArticulado`, enviar as sequências (fora do anexo de parecer). Verificar com teste de componente que o documento salvo contém o `span` e o `Comentarios`.
 
 ## 3. Leitura
 
