@@ -44,8 +44,6 @@ export type { DadosNovaProposicao } from './components/lexml-eta.component';
 export { LexmlEtaConfig } from './model/lexmlEtaConfig';
 export type { DeleteAnexoCallback, ObterAnexoBlobCallback, ObterAnexoBlobResult, UploadAnexoCallback, VisualizarAnexoCallback } from './model/lexmlEtaConfig';
 export { AlertasComponent } from './components/alertas/alertas.component';
-export { AjudaComponent } from './components/ajuda/ajuda.component';
-export { AjudaModalComponent } from './components/ajuda/ajuda.modal.component';
 export { SufixosModalComponent } from './components/sufixos/sufixos.modal.componet';
 export { AtalhosModalComponent } from './components/ajuda/atalhos.modal.component';
 export { OpcoesImpressaoComponent } from './components/opcoesImpressao/opcoesImpressao.component';
