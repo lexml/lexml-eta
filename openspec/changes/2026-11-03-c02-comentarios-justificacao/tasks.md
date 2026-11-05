@@ -27,8 +27,8 @@
 
 ## 6. Alerta, pendência e texto ao host
 
-- [ ] 6.1 Alerta `alerta-global-comentarios` (INFO, pode fechar) reavaliado a cada mudança da lista, e pendência "Remover comentários." em `getPendenciasPreenchimento`. Verificar com testes de componente dos cenários do delta de `pendencias-proposicao`.
-- [ ] 6.2 `getProposicao().justificativa` sem as tags `comentario` (função da 2.2), mantendo `_lexmlJustificativa.texto` com a marcação. Verificar com teste de componente.
+- [x] 6.1 Alerta `alerta-global-comentarios` (INFO, pode fechar) reavaliado a cada mudança da lista, e pendência "Remover comentários." em `getPendenciasPreenchimento`. Verificar com testes de componente dos cenários do delta de `pendencias-proposicao`.
+- [x] 6.2 `getProposicao().justificativa` sem as tags `comentario` (função da 2.2), mantendo `_lexmlJustificativa.texto` com a marcação. Verificar com teste de componente.
 
 ## 7. Teste E2E (Cypress)
 

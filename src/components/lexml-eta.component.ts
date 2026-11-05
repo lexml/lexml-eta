@@ -40,6 +40,7 @@ import { resetarDocumentoAction } from '../model/lexml/acao/resetarDocumentoActi
 import { buildContent, getUrn, lerMetadadoLexEdit, lerSituacaoNaNormaVigente } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { lerJustificacao } from '../model/lexml/documento/conversor/justificacao';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
+import { removeMarcacaoComentario } from './editor-texto-rico/texto-rico-util';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
 import { AnexosComponent } from './anexos/anexos.component';
 import type { ComentariosComponent } from './comentarios/comentarios.component';
@@ -82,6 +83,10 @@ class ParametrosEdicao {
 
 // Mesmo texto no alerta, na pendência de preenchimento e na pendência gravada ao salvar.
 const MENSAGEM_JUSTIFICACAO_NAO_INFORMADA = 'Não foi informado um texto de justificação.';
+
+const ALERTA_COMENTARIOS = 'alerta-global-comentarios';
+const MENSAGEM_ALERTA_COMENTARIOS = 'Este documento contém comentários e não deve ser protocolado até que sejam removidos.';
+const PENDENCIA_COMENTARIOS = 'Remover comentários.';
 
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
@@ -350,7 +355,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const proposicao = this.montarProposicaoPorUrn(this.urn);
     proposicao.dataUltimaModificacao = this._lexmlData.data || undefined;
     proposicao.projetoNorma = this.projetoNorma;
-    proposicao.justificativa = this._lexmlJustificativa.texto;
+    // O host não recebe a marcação dos trechos comentados.
+    proposicao.justificativa = removeMarcacaoComentario(this._lexmlJustificativa.texto);
     proposicao.notasRodape = this._lexmlJustificativa.notasRodape;
     proposicao.autoria = this._lexmlAutoria.getAutoriaAtualizada();
     proposicao.opcoesImpressao = this._lexmlOpcoesImpressao.opcoesImpressao;
@@ -392,6 +398,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     // Verifica preenchimento da justificação
     if (this.isJustificacaoNaoInformada(proposicao.justificativa)) {
       pendenciasPreenchimento.push(MENSAGEM_JUSTIFICACAO_NAO_INFORMADA);
+    }
+
+    if (this.sequenciasComentario.length) {
+      pendenciasPreenchimento.push(PENDENCIA_COMENTARIOS);
     }
 
     const messagesCritical = rootStore.getState().elementoReducer.mensagensCritical;
@@ -642,6 +652,16 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   protected updated(changed: Map<string, unknown>): void {
     if (changed.has('documentoInicializado')) this.updateLayoutSplitPanel(true);
+    if (changed.has('sequenciasComentario')) this.atualizarAlertaComentarios();
+  }
+
+  private atualizarAlertaComentarios(): void {
+    const existe = rootStore.getState().elementoReducer.ui?.alertas?.some(alerta => alerta.id === ALERTA_COMENTARIOS);
+    if (this.sequenciasComentario.length && !existe) {
+      rootStore.dispatch(adicionarAlerta({ id: ALERTA_COMENTARIOS, tipo: TipoMensagem.INFO, mensagem: MENSAGEM_ALERTA_COMENTARIOS, podeFechar: true }));
+    } else if (!this.sequenciasComentario.length && existe) {
+      rootStore.dispatch(removerAlerta(ALERTA_COMENTARIOS));
+    }
   }
 
   // Documentação de tratamento de eventos no Lit

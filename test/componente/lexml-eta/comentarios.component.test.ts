@@ -2,6 +2,8 @@ import { expect, fixture, waitUntil } from '@open-wc/testing';
 import type { LexmlEtaComponent } from '../../../src';
 import '../../../src';
 import { Usuario } from '../../../src/model/revisao/usuario';
+import { TipoMensagem } from '../../../src/model/lexml/util/mensagem';
+import { rootStore } from '../../../src/redux/store';
 import { metadadoProprietarioLexEdit, novoDocumentoArticulado } from '../../doc/documentoArticulado';
 
 const FULANO = new Usuario('Fulano de Tal', 'sf:fulano', 'FT');
@@ -231,6 +233,65 @@ describe('ETA — comentários na justificação', () => {
       await component.updateComplete;
 
       expect(editor().getIdsComentarios()).to.deep.equal([id]);
+    });
+  });
+
+  describe('Alerta, pendência e texto ao host', () => {
+    const alertasComentarios = (): any[] => rootStore.getState().elementoReducer.ui?.alertas?.filter((a: any) => a.id === 'alerta-global-comentarios') ?? [];
+    const pendencias = (): string[] => component.getProposicao().pendenciasPreenchimento ?? [];
+
+    it('sem comentários não há alerta nem pendência', () => {
+      expect(alertasComentarios()).to.have.length(0);
+      expect(pendencias()).to.not.include('Remover comentários.');
+    });
+
+    it('o primeiro comentário exibe o alerta informativo e cria a pendência', async () => {
+      await comentar(0, 16, 'Comentário');
+
+      expect(alertasComentarios()).to.have.length(1);
+      expect(alertasComentarios()[0]).to.deep.include({
+        tipo: TipoMensagem.INFO,
+        mensagem: 'Este documento contém comentários e não deve ser protocolado até que sejam removidos.',
+        podeFechar: true,
+      });
+      expect(pendencias()).to.include('Remover comentários.');
+    });
+
+    it('duas sequências exibem um único alerta', async () => {
+      await comentar(0, 16, 'Primeiro');
+      await comentar(17, 6, 'Segundo');
+
+      expect(sequencias()).to.have.length(2);
+      expect(alertasComentarios()).to.have.length(1);
+    });
+
+    it('excluir a última sequência retira o alerta e a pendência', async () => {
+      await comentar(0, 16, 'Comentário');
+      clicar(cards()[0].querySelector('.comentario-sequencia__excluir'));
+      await confirmarExclusao();
+
+      expect(alertasComentarios()).to.have.length(0);
+      expect(pendencias()).to.not.include('Remover comentários.');
+    });
+
+    it('apagar todo o trecho comentado retira o alerta', async () => {
+      await comentar(0, 16, 'Comentário');
+      editor().quill.deleteText(0, 16, 'user');
+      await component.updateComplete;
+
+      expect(alertasComentarios()).to.have.length(0);
+    });
+
+    it('a justificação entregue ao host não tem a marcação; o editor a mantém', async () => {
+      const id = await comentar(0, 16, 'Comentário');
+      editor().updateApenasTexto();
+      const justificativa = component.getProposicao().justificativa ?? '';
+
+      expect(justificativa).to.include('Primeiro trecho');
+      expect(/<\s*comentario[\s>]/i.test(justificativa)).to.equal(false);
+      expect(justificativa.includes('id-sequencia-comentario')).to.equal(false);
+      expect(justificativa.includes('comentario-selecionado')).to.equal(false);
+      expect(editor().texto.includes(`id-sequencia-comentario="${id}"`)).to.equal(true);
     });
   });
 
