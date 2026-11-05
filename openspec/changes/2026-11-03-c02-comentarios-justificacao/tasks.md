@@ -37,6 +37,6 @@
 
 ## 8. Fechamento
 
-- [ ] 8.1 Rodar `npm test` completo e o lint só nos arquivos alterados, sem regressão.
-- [ ] 8.2 Registrar no `CLAUDE.md` (Quirks and Gotchas) o que não é óbvio do código: estado fora do Redux, conjunto de ids removidos e texto ao host sem marcação.
-- [ ] 8.3 Rodar `openspec validate 2026-11-03-c02-comentarios-justificacao --strict` sem erros.
+- [x] 8.1 Rodar `npm test` completo e o lint só nos arquivos alterados, sem regressão.
+- [x] 8.2 Registrar no `CLAUDE.md` (Quirks and Gotchas) o que não é óbvio do código: estado fora do Redux, conjunto de ids removidos e texto ao host sem marcação.
+- [x] 8.3 Rodar `openspec validate 2026-11-03-c02-comentarios-justificacao --strict` sem erros.
