@@ -18,7 +18,7 @@
 
 ## 4. Validação final
 
-- [ ] 4.1 Rodar `openspec validate 2026-11-06-c02-ocultar-identificacao-substitutivo-cd` e a suíte `test/componente/nova-proposicao/`; verificar que ambos passam sem erros
+- [x] 4.1 Rodar `openspec validate 2026-11-06-c02-ocultar-identificacao-substitutivo-cd` e a suíte `test/componente/nova-proposicao/`; verificar que ambos passam sem erros
 
 ## Workflow follow-up
 
