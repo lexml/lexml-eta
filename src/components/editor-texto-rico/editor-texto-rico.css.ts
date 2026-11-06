@@ -333,8 +333,15 @@ export const editorTextoRicoCss = html`
     .ql-toolbar button.ql-lexml-eta-comentario:disabled,
     .ql-toolbar button.ql-lexml-eta-comentario:disabled:hover,
     .ql-toolbar button.ql-lexml-eta-comentario:disabled:focus {
+      color: #9ca3af;
       cursor: default;
       opacity: 0.45;
+    }
+
+    .ql-toolbar button.ql-lexml-eta-comentario:disabled svg,
+    .ql-toolbar button.ql-lexml-eta-comentario:disabled:hover svg,
+    .ql-toolbar button.ql-lexml-eta-comentario:disabled:focus svg {
+      color: #9ca3af;
     }
 
     .lexml-eta-editor-texto-rico .ql-editor comentario {
@@ -347,8 +354,13 @@ export const editorTextoRicoCss = html`
       box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.28);
     }
 
+    .lexml-eta-editor-texto-rico .ql-editor comentario del {
+      background-color: inherit;
+    }
+
     /* Dentro de uma exclusão, o fundo do comentário cobriria o traço do del: o traço é repetido nele. */
     .lexml-eta-editor-texto-rico .ql-editor del comentario {
+      background-color: #fff8c5;
       background-image: linear-gradient(#d93025, #d93025);
       background-position: 0 55%;
       background-repeat: repeat-x;
@@ -369,7 +381,7 @@ export const editorTextoRicoCss = html`
       inset: 0;
       pointer-events: none;
       z-index: 6;
-      overflow: hidden;
+      overflow: visible;
     }
 
     .lexml-eta-editor-texto-rico .comentario-texto-icone {
@@ -382,10 +394,17 @@ export const editorTextoRicoCss = html`
       border: 0;
       background-color: transparent;
       cursor: pointer;
+      opacity: 1;
+      overflow: visible;
       pointer-events: auto;
+      z-index: 1;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+    }
+
+    .lexml-eta-editor-texto-rico .comentario-texto-icone::before {
+      display: none;
     }
 
     .lexml-eta-editor-texto-rico .comentario-texto-icone__svg {
@@ -401,6 +420,11 @@ export const editorTextoRicoCss = html`
 
     .lexml-eta-editor-texto-rico .comentario-texto-icone__contorno {
       fill: #111827;
+    }
+
+    .lexml-eta-editor-texto-rico .comentario-texto-icone:hover,
+    .lexml-eta-editor-texto-rico .comentario-texto-icone--selecionado {
+      background-color: transparent;
     }
 
     .lexml-eta-editor-texto-rico .comentario-texto-icone:hover .comentario-texto-icone__fundo,
