@@ -20,8 +20,8 @@
 
 ## 5. Teste E2E (Cypress)
 
-- [ ] 5.1 Gerar `demo/doc/teste_comentarios.json` pelo `getDocumentoArticulado()` real (não à mão), com um trecho comentado em dois parágrafos e uma resposta de outro usuário.
-- [ ] 5.2 Criar `cypress/e2e/documento-articulado/abertura-comentarios.cy.ts` (com `export {};`): abrir a fixture por `#fileUpload`, conferir o destaque dos dois fragmentos, a sequência com os dois autores e o alerta; salvar capturando o blob de `URL.createObjectURL` (como em `titulo-dispositivo.cy.ts`), reabrir e conferir a mesma sequência. Verificar com `npm run cy:run:local -- --spec` no arquivo novo.
+- [x] 5.1 Gerar `demo/doc/teste_comentarios.json` pelo `getDocumentoArticulado()` real (não à mão), com um trecho comentado em dois parágrafos e uma resposta de outro usuário.
+- [x] 5.2 Criar `cypress/e2e/documento-articulado/abertura-comentarios.cy.ts` (com `export {};`): abrir a fixture por `#fileUpload`, conferir o destaque dos dois fragmentos, a sequência com os dois autores e o alerta; salvar capturando o blob de `URL.createObjectURL` (como em `titulo-dispositivo.cy.ts`), reabrir e conferir a mesma sequência. Verificar com `npm run cy:run:local -- --spec` no arquivo novo.
 
 ## 6. Documentação e fechamento
 
