@@ -161,10 +161,10 @@ describe('Leitura da URN para a Tela 1 e descrição do documento', () => {
       return { urn, ref: urnDocumentoReferenciado };
     };
 
-    it('nova proposição, com flexão de gênero', () => {
+    it('proposição sem número, sem "Novo/Nova"', () => {
       inicializarVocabulario('SF');
-      expect(descricaoDocumento(urnDe('SF', { tipoProposicao: nova('SF', 'PEC') }).urn, undefined, 'SF')).to.equal('Nova Proposta de Emenda Constitucional (PEC)');
-      expect(descricaoDocumento(urnDe('SF', { tipoProposicao: nova('SF', 'PL') }).urn, undefined, 'SF')).to.equal('Novo Projeto de Lei (PL)');
+      expect(descricaoDocumento(urnDe('SF', { tipoProposicao: nova('SF', 'PEC') }).urn, undefined, 'SF')).to.equal('Proposta de Emenda Constitucional (PEC)');
+      expect(descricaoDocumento(urnDe('SF', { tipoProposicao: nova('SF', 'PL') }).urn, undefined, 'SF')).to.equal('Projeto de Lei (PL)');
     });
 
     it('proposição com número', () => {
@@ -191,7 +191,13 @@ describe('Leitura da URN para a Tela 1 e descrição do documento', () => {
     it('PLV sem número', () => {
       inicializarVocabulario('SF');
       const { urn, ref } = urnDe('SF', { tipoProposicao: nova('SF', 'PLV'), numeroMpv: '1200', anoMpv: '2026' });
-      expect(descricaoDocumento(urn, ref, 'SF')).to.equal('Novo Projeto de Lei de Conversão (MPV nº 1200, de 2026)');
+      expect(descricaoDocumento(urn, ref, 'SF')).to.equal('Projeto de Lei de Conversão (MPV nº 1200, de 2026)');
+    });
+
+    it('PLV com número', () => {
+      inicializarVocabulario('SF');
+      const { urn, ref } = urnDe('SF', { tipoProposicao: nova('SF', 'PLV'), numeroMpv: '1200', anoMpv: '2026' });
+      expect(descricaoDocumento(urn.replace(';999999', ';5'), ref, 'SF')).to.equal('Projeto de Lei de Conversão (PLV) nº 5, de 2026 (MPV nº 1200, de 2026)');
     });
   });
 });

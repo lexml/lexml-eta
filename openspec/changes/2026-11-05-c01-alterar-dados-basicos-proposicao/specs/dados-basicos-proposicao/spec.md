@@ -11,7 +11,7 @@ A aba "Data, Autoria e Impressão" SHALL exibir, antes dos demais grupos, o grup
 
 #### Scenario: Proposição em Plenário
 - **WHEN** o documento em edição é um PL do Senado de 2026, com colegiado Plenário e sem anexo de parecer
-- **THEN** o grupo exibe "Novo Projeto de Lei (PL)", ano 2026, colegiado "Plenário", "Apresentado em parecer: Não" e o botão habilitado
+- **THEN** o grupo exibe "Projeto de Lei (PL)", ano 2026, colegiado "Plenário", "Apresentado em parecer: Não" e o botão habilitado
 
 #### Scenario: Colegiado em comissão
 - **WHEN** o colegiado apreciador é Comissão com sigla `CCJ`
@@ -26,11 +26,11 @@ A aba "Data, Autoria e Impressão" SHALL exibir, antes dos demais grupos, o grup
 - **THEN** o grupo passa a exibir os dados novos
 
 ### Requirement: Descrição do documento
-A descrição SHALL ser derivada da URN e da URN do documento referenciado, com o nome do tipo por extenso e a flexão de gênero (Novo/Nova, ao/à). Documento sem número (`999999`) SHALL ser descrito como novo; documento com número SHALL ser descrito pela sigla, número e ano.
+A descrição SHALL ser derivada da URN e da URN do documento referenciado, com o nome do tipo por extenso, sem "Novo/Nova", e a flexão de gênero ao/à no substitutivo e na subemenda substitutiva. Documento sem número (`999999`) SHALL ser descrito pelo nome e sigla do tipo; documento com número SHALL ser descrito pela sigla, número e ano. No PLV, a MPV referenciada SHALL ser acrescentada entre parênteses; sem número, ela ocupa o lugar da sigla.
 
-#### Scenario: Nova proposição
+#### Scenario: Proposição sem número
 - **WHEN** a URN é de PEC sem número
-- **THEN** a descrição é "Nova Proposta de Emenda à Constituição (PEC)"
+- **THEN** a descrição é "Proposta de Emenda Constitucional (PEC)"
 
 #### Scenario: Proposição com número
 - **WHEN** a URN é de PL número 123 de 2026
@@ -50,7 +50,11 @@ A descrição SHALL ser derivada da URN e da URN do documento referenciado, com 
 
 #### Scenario: PLV
 - **WHEN** a URN é de PLV sem número cujo documento referenciado é a MPV nº 1.200, de 2026
-- **THEN** a descrição é "Novo Projeto de Lei de Conversão (MPV nº 1200, de 2026)"
+- **THEN** a descrição é "Projeto de Lei de Conversão (MPV nº 1200, de 2026)"
+
+#### Scenario: PLV com número
+- **WHEN** a URN é de PLV nº 5, de 2026, cujo documento referenciado é a MPV nº 1.200, de 2026
+- **THEN** a descrição é "Projeto de Lei de Conversão (PLV) nº 5, de 2026 (MPV nº 1200, de 2026)"
 
 ### Requirement: Solicitação de alteração ao host
 O botão "Alterar dados básicos" SHALL emitir ao host o evento `alteracao-dados-basicos-solicitada`, cujo `detail` contém os dados básicos atuais: `urn`, `urnDocumentoReferenciado` (quando houver), `epigrafe`, `preambulo`, `colegiadoApreciador` (quando houver), `outrosMetadados` e `anexoParecer`. O `lexml-eta` MUST NOT alterar o documento ao emitir o evento.

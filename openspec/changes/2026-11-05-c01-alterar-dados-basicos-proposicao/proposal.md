@@ -6,7 +6,7 @@ Os dados básicos de uma proposição em elaboração (tipo/URN, documento refer
 
 ## What Changes
 
-- Novo grupo "Dados básicos" no início da aba "Data, Autoria e Impressão" do `lexml-eta`: descrição do documento derivada da URN (com flexão de gênero), ano do documento (exceto no substitutivo do Senado), colegiado apreciador, "Apresentado em parecer" e o botão "Alterar dados básicos".
+- Novo grupo "Dados básicos" no início da aba "Data, Autoria e Impressão" do `lexml-eta`: descrição do documento derivada da URN (sem "Novo/Nova"; flexão ao/à no substitutivo), ano do documento (exceto no substitutivo do Senado), colegiado apreciador, "Apresentado em parecer" e o botão "Alterar dados básicos".
 - O botão emite um evento com os dados básicos atuais; o host abre o componente de edição e devolve os dados novos ao `lexml-eta`.
 - Em modo de revisão, o botão fica desabilitado, com mensagem informativa abaixo dele.
 - Novo método público `alterarDadosBasicos(dados)` no `lexml-eta`: recusa a chamada em modo de revisão e, fora dele, aplica os dados novos recarregando o documento atual, com as regras:

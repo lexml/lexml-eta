@@ -1,6 +1,6 @@
 import { expect, fixture, html } from '@open-wc/testing';
 import '../../../src';
-import type { LexmlEtaComponent } from '../../../src';
+import type { DadosBasicosComponent, LexmlEtaComponent } from '../../../src';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
 import { DadosBasicos } from '../../../src/model/lexml/documento/dadosBasicos';
 import { Autoria, Parlamentar } from '../../../src/model/proposicao/proposicao';
@@ -154,16 +154,23 @@ describe('LexmlEtaComponent — alterarDadosBasicos', () => {
 
 describe('LexmlEtaComponent — grupo "Dados básicos" da aba', () => {
   let component: LexmlEtaComponent;
-  const texto = (id: string): string => (component.querySelector(id)?.textContent ?? '').replace(/\s+/g, ' ').trim();
-  const botao = (): any => component.querySelector('#botao-alterar-dados-basicos');
-  const aviso = (): string | undefined => component.querySelector('#dados-basicos-aviso')?.textContent?.trim();
+  const grupo = (): DadosBasicosComponent => component.querySelector('lexml-eta-dados-basicos')!;
+  const noGrupo = (id: string): Element | null | undefined => grupo().shadowRoot?.querySelector(id);
+  const texto = (id: string): string => (noGrupo(id)?.textContent ?? '').replace(/\s+/g, ' ').trim();
+  const botao = (): any => noGrupo('#botao-alterar-dados-basicos');
+  const aviso = (): string | undefined => noGrupo('#dados-basicos-aviso')?.textContent?.trim();
+  // O grupo atualiza depois do lexml-eta.
+  const atualizado = async (): Promise<void> => {
+    await component.updateComplete;
+    await grupo().updateComplete;
+  };
 
   const abrir = async (urn: string, grupos: Record<string, unknown> = {}): Promise<void> => {
     const documento = novoDocumentoArticulado();
     documento.value.metadado.identificacao.urn = urn;
     documento.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit(grupos)];
     await component.abrirDocumentoArticulado(documento);
-    await component.updateComplete;
+    await atualizado();
   };
 
   beforeEach(async () => {
@@ -177,12 +184,19 @@ describe('LexmlEtaComponent — grupo "Dados básicos" da aba', () => {
 
   it('exibe descrição, ano, colegiado e forma de apresentação, com o botão habilitado', async () => {
     await abrir(URN_PL, { colegiadoApreciador: { TYPE_NAME: 'br_gov_lexml_lexedit__1.ColegiadoApreciador', siglaCasaLegislativa: 'SF', tipoColegiado: 'Plenário' } });
-    expect(texto('#dados-basicos-descricao')).to.equal('Novo Projeto de Lei (PL)');
+    expect(texto('#dados-basicos-descricao')).to.equal('Projeto de Lei (PL)');
     expect(texto('#dados-basicos-ano')).to.contain('2026');
     expect(texto('#dados-basicos-colegiado')).to.contain('Plenário');
     expect(texto('#dados-basicos-parecer')).to.contain('Não');
     expect(botao().disabled).to.be.false;
     expect(aviso()).to.be.undefined;
+  });
+
+  it('expõe a descrição do documento em getDescricaoDocumento, vazia depois de fechar', async () => {
+    await abrir(URN_PL);
+    expect(component.getDescricaoDocumento()).to.equal('Projeto de Lei (PL)');
+    component.fecharDocumento();
+    expect(component.getDescricaoDocumento()).to.equal('');
   });
 
   it('exibe a comissão com a sigla', async () => {
@@ -195,7 +209,20 @@ describe('LexmlEtaComponent — grupo "Dados básicos" da aba', () => {
   it('não exibe o ano no substitutivo do Senado', async () => {
     await abrir(`${URN_PL_NUMERADO}@apresentacao.substitutivo`, { urnDocumentoReferenciado: URN_PL_NUMERADO });
     expect(texto('#dados-basicos-descricao')).to.equal('Substitutivo ao Projeto de Lei (PL) nº 10, de 2025');
-    expect(component.querySelector('#dados-basicos-ano')).to.be.null;
+    expect(!!noGrupo('#dados-basicos-ano')).to.be.false;
+  });
+
+  it('exibe a referência e o colegiado informados em novaProposicao', async () => {
+    await component.novaProposicao({
+      urn: `${URN_PL_NUMERADO}@apresentacao.substitutivo`,
+      urnDocumentoReferenciado: URN_PL_NUMERADO,
+      epigrafe: 'SUBSTITUTIVO',
+      preambulo: '',
+      colegiadoApreciador: { siglaCasaLegislativa: 'SF', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' },
+    });
+    await atualizado();
+    expect(texto('#dados-basicos-descricao')).to.equal('Substitutivo ao Projeto de Lei (PL) nº 10, de 2025');
+    expect(texto('#dados-basicos-colegiado')).to.contain('Comissão (CCJ)');
   });
 
   it('o clique emite os dados atuais sem alterar o documento', async () => {
@@ -217,8 +244,8 @@ describe('LexmlEtaComponent — grupo "Dados básicos" da aba', () => {
   it('passa a exibir os dados novos depois da alteração', async () => {
     await abrir(URN_PL);
     await component.alterarDadosBasicos(dados({ urn: URN_PLP, anexoParecer: true, colegiadoApreciador: undefined }));
-    await component.updateComplete;
-    expect(texto('#dados-basicos-descricao')).to.equal('Novo Projeto de Lei Complementar (PLP)');
+    await atualizado();
+    expect(texto('#dados-basicos-descricao')).to.equal('Projeto de Lei Complementar (PLP)');
     expect(texto('#dados-basicos-parecer')).to.contain('Sim');
     expect(texto('#dados-basicos-colegiado')).to.contain('Não se aplica');
   });
@@ -226,11 +253,11 @@ describe('LexmlEtaComponent — grupo "Dados básicos" da aba', () => {
   it('desabilita o botão em modo de revisão, com a mensagem, e reabilita ao sair', async () => {
     await abrir(URN_PL);
     rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
-    await component.updateComplete;
+    await atualizado();
     expect(botao().disabled).to.be.true;
     expect(aviso()).to.equal('Os dados básicos não podem ser alterados em modo de revisão.');
     rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
-    await component.updateComplete;
+    await atualizado();
     expect(botao().disabled).to.be.false;
     expect(aviso()).to.be.undefined;
   });

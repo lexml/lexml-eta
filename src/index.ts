@@ -40,6 +40,7 @@ export { LexmlAutocomplete } from './components/lexml-autocomplete';
 export { AutocompleteListaComponent } from './components/autocomplete/autocomplete-lista';
 export type { ItemAutocompleteLista } from './components/autocomplete/autocomplete-lista';
 export { DataComponent } from './components/data/data.component';
+export { DadosBasicosComponent } from './components/dados-basicos/dados-basicos.component';
 export { LexmlEtaComponent } from './components/lexml-eta.component';
 export type { DadosNovaProposicao } from './components/lexml-eta.component';
 export type { DadosBasicos } from './model/lexml/documento/dadosBasicos';

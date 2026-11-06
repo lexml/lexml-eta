@@ -175,6 +175,7 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `getJustificativa(): string` | Texto (HTML) atual da justificação. |
 | `getEpigrafe(projetoNorma): Epigrafe` | Epígrafe extraída de um `projetoNorma`. |
 | `getEmentaFromProjetoNorma(projetoNorma): string` | Ementa extraída de um `projetoNorma`. |
+| `getDescricaoDocumento(): string` | Descrição do documento em edição, a mesma exibida no grupo "Dados básicos" da aba "Data, Autoria e Impressão" (ex.: `Projeto de Lei (PL)`, `Projeto de Lei (PL) nº 123, de 2026`, `Substitutivo ao Projeto de Lei (PL) nº 10, de 2025`, `Projeto de Lei de Conversão (MPV nº 1200, de 2026)`). Derivada da URN do documento e da URN do documento referenciado; não lança erro e devolve `''` sem documento em edição ou quando o tipo não é reconhecido. |
 | `getParlamentares(): Promise<Parlamentar[]>` / `getComissoes(sigla): Promise<Comissao[]>` | Consultas aos serviços configurados. Em geral não precisam ser chamadas diretamente. |
 | `limparAlertas(): void` | Zera os alertas globais. |
 | `focusOnTab(nome: string): void` | Seleciona uma aba (por exemplo, `'lexml-eta-proposicao'`, `'justificativa'`, `'autoria'`). |
