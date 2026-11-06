@@ -302,12 +302,11 @@ describe('Nova proposição — componente no modal da demo', () => {
     cy.get('.aguardando-inicializacao').should('exist');
   });
 
-  it('na Câmara, substitutivo usa a sigla do substitutivo e as comissões da CD', () => {
+  it('na Câmara, substitutivo deriva o tipo SBT, sem grupo de identificação próprio, e usa as comissões da CD', () => {
     cy.get('#casaEditor').select('CD');
     abrirModal();
     marcarRadioSl('especie', 'substitutivo');
-    cy.get('#np-g2').should('exist');
-    escolherItemLista('#np-sigla-substitutivo', 'SBT');
+    cy.get('#np-g2').should('not.exist');
     escolherItemLista('#np-sigla-proposicao', 'PL');
     verificarProposicao('5008', '2023');
     escolherComissao('CCJC');
@@ -323,12 +322,11 @@ describe('Nova proposição — componente no modal da demo', () => {
     });
   });
 
-  it('na Câmara, subemenda substitutiva usa a sigla SSP', () => {
+  it('na Câmara, subemenda substitutiva deriva o tipo SSP, sem grupo de identificação próprio', () => {
     cy.get('#casaEditor').select('CD');
     abrirModal();
     marcarRadioSl('especie', 'subemenda');
-    cy.get('#np-g2').should('exist');
-    escolherItemLista('#np-sigla-substitutivo', 'SSP');
+    cy.get('#np-g2').should('not.exist');
     escolherItemLista('#np-sigla-proposicao', 'PL');
     verificarProposicao('5008', '2023');
     escolherComissao('CCJC');

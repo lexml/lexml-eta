@@ -10,7 +10,7 @@
 
 ## 2. Teste E2E (Cypress)
 
-- [ ] 2.1 Em `cypress/e2e/nova-proposicao/nova-proposicao.cy.ts`, ajustar os dois casos da `CD`: remover `escolherItemLista('#np-sigla-substitutivo', ...)`, afirmar que `#np-g2` não existe e manter a verificação da URN (`substitutivo;sbt:\d{4};999999` e `subemenda.substitutiva;ssp:\d{4};999999`). A viabilidade foi avaliada: os casos já existem e usam o mesmo fluxo (`docs/guia-cypress.md`), então basta adaptá-los; verificar executando o spec (`cy:run:local`) com os dois casos passando e os demais do arquivo inalterados
+- [x] 2.1 Em `cypress/e2e/nova-proposicao/nova-proposicao.cy.ts`, ajustar os dois casos da `CD`: remover `escolherItemLista('#np-sigla-substitutivo', ...)`, afirmar que `#np-g2` não existe e manter a verificação da URN (`substitutivo;sbt:\d{4};999999` e `subemenda.substitutiva;ssp:\d{4};999999`). A viabilidade foi avaliada: os casos já existem e usam o mesmo fluxo (`docs/guia-cypress.md`), então basta adaptá-los; verificar executando o spec (`cy:run:local`) com os dois casos passando e os demais do arquivo inalterados
 
 ## 3. Documentação
 
