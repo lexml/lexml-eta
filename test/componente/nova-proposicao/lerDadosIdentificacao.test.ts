@@ -2,15 +2,15 @@ import { expect } from '@open-wc/testing';
 import { descricaoDocumento } from '../../../src/components/nova-proposicao/descricaoDocumento';
 import { lerDadosIdentificacao } from '../../../src/components/nova-proposicao/lerDadosIdentificacao';
 import { montaUrnNovaProposicao } from '../../../src/components/nova-proposicao/montaUrnNovaProposicao';
-import { getSiglasNovaProposicao, getSiglasProposicaoReferenciada, getSiglasSubstitutivo } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
+import { getSiglasNovaProposicao, getSiglasProposicaoReferenciada } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
 import { DadosIdentificacao } from '../../../src/components/nova-proposicao/tiposNovaProposicao';
-import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
+import { getVocabularioDaCasa, inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoRelacaoSubstitutivo } from '../../../src/model/lexml/documento/vocabulario/tiposVocabulario';
 
 const nova = (casa: CasaLegislativaEditor, sigla: string): any => getSiglasNovaProposicao(casa).find(t => t.sigla === sigla);
 const referenciada = (sigla: string): any => getSiglasProposicaoReferenciada().find(t => t.sigla === sigla);
 const substitutivoCd = (relacao: TipoRelacaoSubstitutivo.E_SUBSTITUTIVO | TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA, sigla: string): any =>
-  getSiglasSubstitutivo(relacao).find(t => t.sigla === sigla);
+  getVocabularioDaCasa().tiposDocumento.find(t => t.sigla === sigla && t.tipoRelacaoSubstitutivo === relacao);
 
 const dados = (casa: CasaLegislativaEditor, parcial: Partial<DadosIdentificacao>): DadosIdentificacao => ({
   casa,
@@ -56,7 +56,7 @@ describe('Leitura da URN para a Tela 1 e descrição do documento', () => {
           tipoProposicao: referenciada('PL'),
           numeroProposicao: '10',
           anoProposicao: '2025',
-          tipoSubstitutivo: substitutivoCd(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA, 'PEP'),
+          tipoSubstitutivo: substitutivoCd(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA, 'SSP'),
         }),
     },
   ];
@@ -98,13 +98,13 @@ describe('Leitura da URN para a Tela 1 e descrição do documento', () => {
       tipoProposicao: referenciada('PL'),
       numeroProposicao: '10',
       anoProposicao: '2025',
-      tipoSubstitutivo: substitutivoCd(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA, 'PEP'),
+      tipoSubstitutivo: substitutivoCd(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA, 'SSP'),
     });
     const { urn, urnDocumentoReferenciado } = montaUrnNovaProposicao(d);
     const { dados: lido } = lerDadosIdentificacao(urn, urnDocumentoReferenciado, 'CD');
     expect([lido.especie, lido.tipoSubstitutivo?.sigla, lido.anoSubstitutivo, lido.tipoProposicao?.sigla, lido.numeroProposicao, lido.anoProposicao]).to.deep.equal([
       'subemenda',
-      'PEP',
+      'SSP',
       '2026',
       'PL',
       '10',
@@ -150,7 +150,7 @@ describe('Leitura da URN para a Tela 1 e descrição do documento', () => {
       const { dados: lido, numeroOriginal } = lerDadosIdentificacao(urn, urnDocumentoReferenciado, 'CD');
       expect(numeroOriginal?.numero).to.equal('7');
       expect(montaUrnNovaProposicao(lido, numeroOriginal).urn).to.equal(urn);
-      const subemenda = { ...lido, especie: 'subemenda' as const, tipoSubstitutivo: substitutivoCd(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA, 'PEP') };
+      const subemenda = { ...lido, especie: 'subemenda' as const, tipoSubstitutivo: substitutivoCd(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA, 'SSP') };
       expect(montaUrnNovaProposicao(subemenda, numeroOriginal).urn).to.contain(';999999');
     });
   });
@@ -183,9 +183,9 @@ describe('Leitura da URN para a Tela 1 e descrição do documento', () => {
       inicializarVocabulario('CD');
       const comum = { tipoProposicao: referenciada('PL'), numeroProposicao: '10', anoProposicao: '2025' };
       const sbt = urnDe('CD', { ...comum, especie: 'substitutivo', tipoSubstitutivo: substitutivoCd(TipoRelacaoSubstitutivo.E_SUBSTITUTIVO, 'SBT') });
-      const pep = urnDe('CD', { ...comum, especie: 'subemenda', tipoSubstitutivo: substitutivoCd(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA, 'PEP') });
+      const ssp = urnDe('CD', { ...comum, especie: 'subemenda', tipoSubstitutivo: substitutivoCd(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA, 'SSP') });
       expect(descricaoDocumento(sbt.urn, sbt.ref, 'CD')).to.equal('Substitutivo (SBT) ao Projeto de Lei (PL) nº 10, de 2025');
-      expect(descricaoDocumento(pep.urn, pep.ref, 'CD')).to.equal('Subemenda Substitutiva (PEP) ao Projeto de Lei (PL) nº 10, de 2025');
+      expect(descricaoDocumento(ssp.urn, ssp.ref, 'CD')).to.equal('Subemenda Substitutiva (SSP) ao Projeto de Lei (PL) nº 10, de 2025');
     });
 
     it('PLV sem número', () => {

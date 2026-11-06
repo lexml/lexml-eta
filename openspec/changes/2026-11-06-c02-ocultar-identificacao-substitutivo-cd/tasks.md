@@ -2,11 +2,11 @@
 
 ## 1. Componente: tipo e ano derivados na CD
 
-- [ ] 1.1 Em `siglasNovaProposicao.ts`, criar a busca do tipo de substitutivo/subemenda da casa pela sigla (`SBT`/`SSP`), com erro que nomeia a sigla ausente; verificar com teste unitário dos casos `SBT`, `SSP` e sigla ausente (`modulosNovaProposicao.test.ts`)
-- [ ] 1.2 Em `nova-proposicao.component.ts`, derivar `tipoSubstitutivo` da espécie na `CD` (design D1/D4) e remover `chaveSubstitutivo`, `onSiglaSubstitutivo` e a exigência de g2 em `tela1Valida`; verificar que `Continuar` habilita na `CD` sem informar sigla ou ano do substitutivo e que o `SF` segue com `tipoSubstitutivo` indefinido
-- [ ] 1.3 Remover o fieldset `np-g2` da Tela 1 e o uso de `numeroFixoDe` para o substitutivo; verificar que `np-g2` não existe na `CD` (Substitutivo e Subemenda) nem no `SF`
-- [ ] 1.4 Garantir o ano (design D2): ano corrente na criação e ano da URN inicial na edição, mantido na troca de espécie e ao trocar o destino; verificar por testes de componente em `alterarDadosBasicos.component.test.ts` (substitutivo e subemenda da Câmara de 2025, troca de espécie, troca de destino, número real preservado na URN)
-- [ ] 1.5 Atualizar `novaProposicao.component.test.ts` (o teste "Tela 1 na CD" deixa de esperar `np-g2` e passa a conferir tipo `SBT`/`SSP` e ano corrente na URN do resultado) e o teste de `np-ano-substitutivo` em `alterarDadosBasicos.component.test.ts`; verificar com a execução dos testes de `test/componente/nova-proposicao/`
+- [x] 1.1 Em `siglasNovaProposicao.ts`, criar a busca do tipo de substitutivo/subemenda da casa pela sigla (`SBT`/`SSP`), com erro que nomeia a sigla ausente; verificar com teste unitário dos casos `SBT`, `SSP` e sigla ausente (`modulosNovaProposicao.test.ts`)
+- [x] 1.2 Em `nova-proposicao.component.ts`, derivar `tipoSubstitutivo` da espécie na `CD` (design D1/D4) e remover `chaveSubstitutivo`, `onSiglaSubstitutivo` e a exigência de g2 em `tela1Valida`; verificar que `Continuar` habilita na `CD` sem informar sigla ou ano do substitutivo e que o `SF` segue com `tipoSubstitutivo` indefinido
+- [x] 1.3 Remover o fieldset `np-g2` da Tela 1 e o uso de `numeroFixoDe` para o substitutivo; verificar que `np-g2` não existe na `CD` (Substitutivo e Subemenda) nem no `SF`
+- [x] 1.4 Garantir o ano (design D2): ano corrente na criação e ano da URN inicial na edição, mantido na troca de espécie e ao trocar o destino; verificar por testes de componente em `alterarDadosBasicos.component.test.ts` (substitutivo e subemenda da Câmara de 2025, troca de espécie, troca de destino, número real preservado na URN)
+- [x] 1.5 Atualizar `novaProposicao.component.test.ts` (o teste "Tela 1 na CD" deixa de esperar `np-g2` e passa a conferir tipo `SBT`/`SSP` e ano corrente na URN do resultado) e o teste de `np-ano-substitutivo` em `alterarDadosBasicos.component.test.ts`; verificar com a execução dos testes de `test/componente/nova-proposicao/`
 
 ## 2. Teste E2E (Cypress)
 

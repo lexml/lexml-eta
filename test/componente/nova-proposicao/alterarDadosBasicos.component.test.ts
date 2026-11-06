@@ -23,8 +23,10 @@ const URN_PL_SN = 'urn:lex:br:senado.federal:projeto.lei;pl:2026;999999';
 const URN_PL_10 = 'urn:lex:br:senado.federal:projeto.lei;pl:2025;10';
 const URN_PLV = 'urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;999999';
 const URN_MPV_99 = 'urn:lex:br:federal:medida.provisoria;mpv:2026;99';
-const URN_PEP_CD = 'urn:lex:br:camara.deputados:subemenda.substitutiva;pep:2026;999999';
+const URN_SSP_CD = 'urn:lex:br:camara.deputados:subemenda.substitutiva;ssp:2025;999999';
+const URN_SBT_CD_7 = 'urn:lex:br:camara.deputados:substitutivo;sbt:2025;7';
 const URN_PL_10_CD = 'urn:lex:br:camara.deputados:projeto.lei;pl:2025;10';
+const CONFIG_CD = { ...CONFIG, casaLegislativaEditor: 'CD' };
 
 describe('lexml-nova-proposicao — modo de edição de dados básicos', () => {
   let el: NovaProposicaoComponent;
@@ -162,15 +164,34 @@ describe('lexml-nova-proposicao — modo de edição de dados básicos', () => {
       expect(continuarHabilitado()).to.be.false;
     });
 
-    it('subemenda substitutiva da Câmara', async () => {
-      await abrirEdicao(
-        { urn: URN_PEP_CD, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário' }, anexoParecer: true },
-        { ...CONFIG, casaLegislativaEditor: 'CD' }
-      );
+    it('subemenda substitutiva da Câmara: sem grupo de identificação e com o ano da URN', async () => {
+      await abrirEdicao({ urn: URN_SSP_CD, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário' }, anexoParecer: true }, CONFIG_CD);
       expect(el.querySelector<any>('sl-radio[name="especie"][value="subemenda"]').checked).to.be.true;
-      expect(q<any>('np-ano-substitutivo')!.value).to.equal('2026');
+      expect(existe('np-g2')).to.be.false;
       expect(q<any>('np-numero-proposicao')!.value).to.equal('10');
       expect(continuarHabilitado()).to.be.true;
+      await clicar('np-continuar');
+      expect(emitidos(EVENTO_DADOS_BASICOS_ALTERADOS)[0].urn).to.equal(URN_SSP_CD);
+    });
+
+    it('substitutivo da Câmara: o número real e o ano da URN continuam na URN ao trocar o destino', async () => {
+      await abrirEdicao({ urn: URN_SBT_CD_7, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário' }, anexoParecer: true }, CONFIG_CD);
+      expect(existe('np-g2')).to.be.false;
+      await clicar('np-continuar');
+      expect(emitidos(EVENTO_DADOS_BASICOS_ALTERADOS)[0].urn).to.equal(URN_SBT_CD_7);
+    });
+
+    it('trocar a espécie na Câmara mantém o ano da URN inicial e volta o número a s/n', async () => {
+      rotas['/v/PL/10/2025'] = { status: 200, corpo: { ementa: 'Ementa do PL 10', textoEstruturadoDisponivel: true } };
+      await abrirEdicao({ urn: URN_SBT_CD_7, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário' }, anexoParecer: true }, CONFIG_CD);
+      el.querySelector<HTMLElement>('sl-radio[name="especie"][value="subemenda"]')!.click();
+      await atualizar();
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await digitar('np-numero-proposicao', '10');
+      await clicar('np-proposicao-verificar');
+      await marcarDestino('Plenário');
+      await clicar('np-continuar');
+      expect(emitidos(EVENTO_DADOS_BASICOS_ALTERADOS)[0].urn).to.equal('urn:lex:br:camara.deputados:subemenda.substitutiva;ssp:2025;999999');
     });
 
     it('URN inválida mostra o erro', async () => {

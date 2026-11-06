@@ -13,7 +13,7 @@ import '../autocomplete/autocomplete-lista';
 import { getCasaLegislativaResponsavel } from '../../model/lexml/documento/urnUtil';
 import { ColegiadoApreciador } from '../../model/proposicao/proposicao';
 import { inicializarVocabulario } from '../../model/lexml/documento/vocabulario';
-import { CasaLegislativaEditor, TipoDocumento, TipoRelacaoSubstitutivo } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
+import { CasaLegislativaEditor, TipoDocumento } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { montaEpigrafePadrao } from './epigrafePadrao';
 import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
 import { lerDadosIdentificacao } from './lerDadosIdentificacao';
@@ -25,8 +25,8 @@ import {
   getSiglasNovaProposicao,
   getSiglasOutraProposicao,
   getSiglasProposicaoReferenciada,
-  getSiglasSubstitutivo,
   getTipoMpv,
+  getTipoSubstitutivoCd,
   resolverTipoComplementar,
 } from './siglasNovaProposicao';
 import {
@@ -98,7 +98,7 @@ export class NovaProposicaoComponent extends LitElement {
   @state() private chaveProposicao = '';
   @state() private numeroProposicao = '';
   @state() private anoProposicao = this.anoCorrente;
-  @state() private chaveSubstitutivo = '';
+  // Sem campo na tela: ano corrente na criação e o da URN inicial na edição.
   @state() private anoSubstitutivo = this.anoCorrente;
   @state() private numeroMpv = '';
   @state() private anoMpv = this.anoCorrente;
@@ -189,7 +189,6 @@ export class NovaProposicaoComponent extends LitElement {
     this.chaveProposicao = '';
     this.numeroProposicao = '';
     this.anoProposicao = this.anoCorrente;
-    this.chaveSubstitutivo = '';
     this.anoSubstitutivo = this.anoCorrente;
     this.numeroMpv = '';
     this.anoMpv = this.anoCorrente;
@@ -233,7 +232,6 @@ export class NovaProposicaoComponent extends LitElement {
     this.chaveProposicao = tipoNaLista ? chaveTipo(tipoNaLista) : '';
     this.numeroProposicao = dados.especie === 'proposicao' ? '' : dados.numeroProposicao;
     this.anoProposicao = dados.anoProposicao;
-    this.chaveSubstitutivo = dados.tipoSubstitutivo ? chaveTipo(dados.tipoSubstitutivo) : '';
     this.anoSubstitutivo = dados.tipoSubstitutivo ? dados.anoSubstitutivo : this.anoCorrente;
     this.numeroMpv = dados.numeroMpv;
     this.anoMpv = dados.anoMpv || this.anoCorrente;
@@ -311,10 +309,6 @@ export class NovaProposicaoComponent extends LitElement {
     return this.especie === 'proposicao' ? getSiglasNovaProposicao(this.casa) : getSiglasProposicaoReferenciada();
   }
 
-  private get siglasSubstitutivo(): TipoDocumento[] {
-    return getSiglasSubstitutivo(this.especie === 'subemenda' ? TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA : TipoRelacaoSubstitutivo.E_SUBSTITUTIVO);
-  }
-
   private get tipoProposicao(): TipoDocumento | undefined {
     return this.siglasProposicao.find(t => chaveTipo(t) === this.chaveProposicao);
   }
@@ -328,11 +322,12 @@ export class NovaProposicaoComponent extends LitElement {
     return this.tipoOutra?.sigla ?? '';
   }
 
+  // Na CD o tipo do substitutivo/subemenda não é escolhido: SBT ou SSP conforme a espécie.
   private get tipoSubstitutivo(): TipoDocumento | undefined {
-    return this.siglasSubstitutivo.find(t => chaveTipo(t) === this.chaveSubstitutivo);
+    return this.documentoProprioCd && this.especie !== 'proposicao' ? getTipoSubstitutivoCd(this.especie) : undefined;
   }
 
-  private get grupoSubstitutivoVisivel(): boolean {
+  private get documentoProprioCd(): boolean {
     return this.casa === 'CD' && this.especie !== 'proposicao';
   }
 
@@ -349,7 +344,7 @@ export class NovaProposicaoComponent extends LitElement {
       tipoProposicao: this.tipoProposicaoResolvido,
       numeroProposicao: this.numeroProposicao,
       anoProposicao: this.anoProposicao,
-      tipoSubstitutivo: this.grupoSubstitutivoVisivel ? this.tipoSubstitutivo : undefined,
+      tipoSubstitutivo: this.tipoSubstitutivo,
       anoSubstitutivo: this.anoSubstitutivo,
       numeroMpv: this.numeroMpv,
       anoMpv: this.anoMpv,
@@ -390,7 +385,6 @@ export class NovaProposicaoComponent extends LitElement {
 
   private get tela1Valida(): boolean {
     if (!this.tipoProposicao || !this.anoPreenchido(this.anoProposicao)) return false;
-    if (this.grupoSubstitutivoVisivel && (!this.tipoSubstitutivo || !this.anoPreenchido(this.anoSubstitutivo))) return false;
     if (!this.destinoValido) return false;
     if (this.especie !== 'proposicao' && this.verificacaoProposicao.estado !== 'ok') return false;
     if (this.plv && this.verificacaoMpv.estado !== 'ok') return false;
@@ -410,7 +404,6 @@ export class NovaProposicaoComponent extends LitElement {
     if (especie === this.especie) return;
     this.especie = especie;
     this.chaveProposicao = '';
-    this.chaveSubstitutivo = '';
     this.numeroProposicao = '';
     this.verificacaoProposicao = verificacaoVazia();
     this.verificacaoMpv = verificacaoVazia();
@@ -423,12 +416,6 @@ export class NovaProposicaoComponent extends LitElement {
     this.chaveProposicao = chave;
     this.verificacaoProposicao = verificacaoVazia();
     this.verificacaoMpv = verificacaoVazia();
-    this.carregarComissoes();
-  }
-
-  private onSiglaSubstitutivo(chave: string): void {
-    if (chave === this.chaveSubstitutivo) return;
-    this.chaveSubstitutivo = chave;
     this.carregarComissoes();
   }
 
@@ -761,19 +748,6 @@ export class NovaProposicaoComponent extends LitElement {
           </sl-radio-group>`
         )}
       </fieldset>
-
-      ${this.grupoSubstitutivoVisivel
-        ? html`<fieldset id="np-g2">
-            <legend>Identificação ${this.especie === 'subemenda' ? 'da subemenda substitutiva' : 'do substitutivo'}</legend>
-            ${this.linhaIdentificacao(
-              this.selectSiglas('np-sigla-substitutivo', this.siglasSubstitutivo, this.chaveSubstitutivo, c => this.onSiglaSubstitutivo(c)),
-              this.textoCinza('np-numero-substitutivo', this.numeroFixoDe(this.tipoSubstitutivo)),
-              this.campoAno('np-ano-substitutivo', this.anoSubstitutivo, v => {
-                this.anoSubstitutivo = v;
-              })
-            )}
-          </fieldset>`
-        : nothing}
 
       <fieldset id="np-g3">
         <legend>Identificação da proposição</legend>
