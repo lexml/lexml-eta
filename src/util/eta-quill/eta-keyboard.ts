@@ -271,14 +271,27 @@ export class EtaKeyboard extends Keyboard {
     return true;
   }
 
+  // Pula as linhas não editáveis (epígrafe, preâmbulo); undefined quando não há linha editável na direção.
+  private linhaEditavel(linha: EtaContainerTable | undefined, direcao: 'prev' | 'next'): EtaContainerTable | undefined {
+    let atual = linha?.[direcao];
+    while (atual && !atual.editavel) atual = atual[direcao];
+    return atual;
+  }
+
+  private irParaInicio(linha: EtaContainerTable | undefined): void {
+    if (linha) this.quill.setIndex(this.quill.getIndex(linha.blotConteudo), PrivateQuill.sources.USER);
+  }
+
+  private irParaFim(linha: EtaContainerTable | undefined): void {
+    if (linha) this.quill.setIndex(this.quill.getIndex(linha.blotConteudo) + linha.blotConteudo.tamanho, PrivateQuill.sources.USER);
+  }
+
   private onTeclaArrowRight(ev: KeyboardEvent): void {
     const range: QuillRange = this.quill.getSelection(true);
     const [blotCursor, offset] = this.quill.getLine(range.index);
 
     if (offset === blotCursor.tamanho) {
-      if (blotCursor.linha.next) {
-        this.quill.setIndex(this.quill.getIndex(blotCursor.linha.next.blotConteudo), PrivateQuill.sources.USER);
-      }
+      this.irParaInicio(this.linhaEditavel(blotCursor.linha, 'next'));
       cancelarPropagacaoDoEvento(ev);
     }
   }
@@ -288,11 +301,7 @@ export class EtaKeyboard extends Keyboard {
     const [blotCursor, offset] = this.quill.getLine(range.index);
 
     if (offset === 0) {
-      if (blotCursor.linha.prev) {
-        const linhaAnt: EtaContainerTable = blotCursor.linha.prev;
-        const index: number = this.quill.getIndex(linhaAnt.blotConteudo) + linhaAnt.blotConteudo.tamanho;
-        this.quill.setIndex(index, PrivateQuill.sources.USER);
-      }
+      this.irParaFim(this.linhaEditavel(blotCursor.linha, 'prev'));
       cancelarPropagacaoDoEvento(ev);
     }
   }
@@ -302,11 +311,7 @@ export class EtaKeyboard extends Keyboard {
     const [blotCursor, offset] = this.quill.getLine(range.index);
 
     if (offset === 0 || this.quill.cursorDeTextoEstaSobreOmissis()) {
-      if (blotCursor.linha.prev) {
-        const linhaAnt: EtaContainerTable = blotCursor.linha.prev;
-        const index: number = this.quill.getIndex(linhaAnt.blotConteudo) + linhaAnt.blotConteudo.tamanho;
-        this.quill.setIndex(index, PrivateQuill.sources.USER);
-      }
+      this.irParaFim(this.linhaEditavel(blotCursor.linha, 'prev'));
       cancelarPropagacaoDoEvento(ev);
     }
 
@@ -320,9 +325,7 @@ export class EtaKeyboard extends Keyboard {
     const [blotCursor, offset] = this.quill.getLine(range.index);
 
     if (offset === blotCursor.tamanho || this.quill.cursorDeTextoEstaSobreOmissis()) {
-      if (blotCursor.linha.next) {
-        this.quill.setIndex(this.quill.getIndex(blotCursor.linha.next.blotConteudo), PrivateQuill.sources.USER);
-      }
+      this.irParaInicio(this.linhaEditavel(blotCursor.linha, 'next'));
       cancelarPropagacaoDoEvento(ev);
     }
 

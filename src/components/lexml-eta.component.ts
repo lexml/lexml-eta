@@ -82,7 +82,6 @@ const MENSAGEM_JUSTIFICACAO_NAO_INFORMADA = 'Não foi informado um texto de just
 @customElement('lexml-eta')
 export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @property({ type: Number }) totalAlertas = 0;
-  @property({ type: Boolean }) exibirAjuda = true;
   @property({ type: Array }) parlamentares: Parlamentar[] = [];
   // Pares chave/valor do host gravados no documento; ao abrir um arquivo, recebe os pares dele.
   @property({ type: Object }) outrosMetadados: Record<string, string> = {};
@@ -1035,27 +1034,11 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         </div>
         <div slot="end">
           <sl-tab-group id="tabs-direita">
-            ${this.tabIsVisible('comando')
-              ? html`
-                  <sl-tab slot="nav" panel="comando" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>
-                    <sl-icon name="code"></sl-icon>
-                    Comando
-                  </sl-tab>
-                `
-              : ''}
             ${this.tabIsVisible('notas')
               ? html`
                   <sl-tab slot="nav" panel="notas" title="Notas de rodapé" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>
                     <sl-icon name="footnote"></sl-icon>
                     Notas
-                  </sl-tab>
-                `
-              : ''}
-            ${this.tabIsVisible('dicas')
-              ? html`
-                  <sl-tab slot="nav" panel="dicas" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>
-                    <sl-icon name="lightbulb"></sl-icon>
-                    Dicas
                   </sl-tab>
                 `
               : ''}
@@ -1079,9 +1062,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
                   </sl-tab-panel>
                 `
               : ''}
-            <sl-tab-panel name="dicas" class="overflow-hidden">
-              <lexml-eta-ajuda></lexml-eta-ajuda>
-            </sl-tab-panel>
             <sl-tab-panel name="atalhos" class="overflow-hidden">
               <lexml-eta-atalhos></lexml-eta-atalhos>
             </sl-tab-panel>

@@ -88,7 +88,6 @@ Em Lit, a configuração pode ser passada por binding de propriedade: `<lexml-et
 |---|---|---|---|
 | `lexmlEtaConfig` | `LexmlEtaConfig` | `new LexmlEtaConfig()` | URLs de serviços e limites. Veja a seção 5. |
 | `parlamentares` | `Parlamentar[]` | `[]` | Lista usada na autoria. É **preenchida pelo próprio componente** ao iniciar um documento, a partir de `urlConsultaParlamentares`. |
-| `exibirAjuda` | `boolean` | `true` | Exibe o conteúdo de ajuda. |
 | `outrosMetadados` | `Record<string, string>` | `{}` | Pares chave/valor do host gravados no documento (`lexedit:OutrosMetadados`), também no modo `anexoParecer`. Os valores são sempre texto: para dados estruturados, grave um JSON serializado. `abrirDocumentoArticulado` substitui o valor pelos pares do arquivo (vazio se o arquivo não tiver o grupo), então o host deve lê-lo depois de abrir. |
 | `dataUltimaModificacaoDocumento` | `string \| undefined` | `undefined` | **Somente leitura.** Data e hora do último salvamento do documento aberto, como gravada em `lexedit:Metadado@dataUltimaModificacao` (`xsd:dateTime` com fuso, ex.: `2026-05-12T10:15:00-03:00`). Fica `undefined` quando o arquivo não tem o atributo ou ele é inválido, numa nova proposição e depois de `fecharDocumento()`. `getDocumentoArticulado()` não a altera: o documento devolvido traz o instante do novo salvamento. Não confundir com `Proposicao.dataUltimaModificacao` (seção 4.2), que é o campo "Data" do fecho. |
 | `totalAlertas` | `number` | `0` | Quantidade de alertas (somente leitura na prática; atualizada pelo componente). |

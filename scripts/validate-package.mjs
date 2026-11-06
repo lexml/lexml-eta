@@ -6,8 +6,6 @@ const packageJson = JSON.parse(readFileSync('package.json', 'utf8'));
 const declarationsPath = packageJson.types;
 const publicRuntimeValues = [
   'abrirArquivoDocumentoArticulado',
-  'AjudaComponent',
-  'AjudaModalComponent',
   'AlertasComponent',
   'AlterarLarguraImagemModalComponent',
   'AlterarLarguraTabelaColunaModalComponent',
@@ -55,8 +53,6 @@ const publicTypes = [
   'VisualizarAnexoCallback',
 ];
 const registeredCustomElements = [
-  'lexml-eta-ajuda',
-  'lexml-eta-ajuda-modal',
   'lexml-eta-alertas',
   'lexml-eta-alterar-largura-imagem-modal',
   'lexml-eta-alterar-largura-tabela-coluna-modal',
