@@ -35,4 +35,6 @@ export class LexmlEtaConfig {
   onObterAnexoBlob?: ObterAnexoBlobCallback;
   onVisualizarAnexo?: VisualizarAnexoCallback;
   tamanhoMaximoImagem = 2048; //2MB
+  // Com false, desliga a detecção automática de remissão externa e o worker do lexml-linker; um uso novo do linker deve respeitar este campo.
+  identificarRemissaoExterna = true;
 }

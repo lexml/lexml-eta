@@ -195,6 +195,7 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `tiposAnexos` | `{ codigo: string; nome: string }[]?` | — | Tipos que o campo de tipo do anexo aceita; "Não informado" (`nao.informado`) é sempre acrescentado. O campo está oculto por enquanto. Veja a seção 5.1. |
 | `onUploadAnexo`, `onDeleteAnexo`, `onObterAnexoBlob`, `onVisualizarAnexo` | funções? | — | Callbacks com os quais o host armazena e entrega os arquivos anexados. Veja a seção 5.1. |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
+| `identificarRemissaoExterna` | `boolean` | `true` | Detecção automática de remissões externas. Com `false`, o editor não roda a detecção nem inicia o worker do lexml-linker (seção 9). |
 
 O vocabulário da casa é (re)montado quando `lexmlEtaConfig` é atribuída com outra casa, portanto atribua a configuração **antes** de `novaProposicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). A casa restringe as siglas de proposição nova e as listas de tipos; URNs de normas citadas ou alteradas resolvem em qualquer autoridade (inclusive da outra casa), mas o documento em edição precisa ser da casa do editor (seção 4.1).
 
@@ -375,6 +376,8 @@ config.configuracaoPaginacao = { rangeArtigos: [{ numInicial: 1, numFinal: 100 }
 ### Detecção de remissões
 
 Remissões internas e externas são detectadas quando o usuário **sai** do dispositivo ou do editor. Chamar `getProposicao()` ou `getDocumentoArticulado()` aplica a detecção pendente antes de serializar, então o Salvar sempre devolve os links atualizados.
+
+Com `identificarRemissaoExterna: false`, só a detecção automática de remissões externas é desligada. Continuam funcionando a detecção automática de remissões internas, a criação e a edição manual de remissões externas pelo diálogo, a colagem de link e as remissões externas já existentes no documento, que são exibidas e gravadas normalmente.
 
 ## 10. Armadilhas conhecidas
 
