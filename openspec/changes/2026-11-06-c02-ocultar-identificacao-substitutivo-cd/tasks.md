@@ -14,7 +14,7 @@
 
 ## 3. Documentação
 
-- [ ] 3.1 Atualizar `docs/requisitos/componente-nova-proposicao.md` (g2, RN-01, RN-06, RN-12 e regra de ano) e `docs/requisitos/layout-tela-1-componente-nova-proposicao.txt`; verificar por busca de `g2` e "Identificação do substitutivo" que nenhuma menção restante contradiz a spec
+- [x] 3.1 Atualizar `docs/requisitos/componente-nova-proposicao.md` (g2, RN-01, RN-06, RN-12 e regra de ano) e `docs/requisitos/layout-tela-1-componente-nova-proposicao.txt`; verificar por busca de `g2` e "Identificação do substitutivo" que nenhuma menção restante contradiz a spec
 
 ## 4. Validação final
 
