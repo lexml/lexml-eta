@@ -168,7 +168,7 @@ export class DemoView extends LitElement {
     setBasePath('./');
     this.etaConfig = new LexmlEtaConfig();
     this.etaConfig.urlConsultaParlamentares = '/parlamentares';
-    this.etaConfig.identificarRemissaoExterna = false;
+    this.etaConfig.identificarRemissaoExterna = true;
     this.configurarAnexos();
   }
 
