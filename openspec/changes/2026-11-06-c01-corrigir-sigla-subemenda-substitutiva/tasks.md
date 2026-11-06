@@ -10,7 +10,7 @@
 
 Viável: já existe, em `cypress/e2e/nova-proposicao/nova-proposicao.cy.ts`, o caso "na Câmara, substitutivo usa a sigla do substitutivo e as comissões da CD", que serve de molde (`#casaEditor`, `escolherItemLista`, `verificarProposicao`, `lerSalvo`). Consultar `docs/guia-cypress.md` antes de escrever.
 
-- [ ] 2.1 Acrescentar o caso "na Câmara, subemenda substitutiva usa a sigla SSP" (espécie `subemenda`, sigla `SSP` em `#np-sigla-substitutivo`) e verificar que a URN salva casa com `/^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/`; executar o spec e confirmar que passa
+- [x] 2.1 Acrescentar o caso "na Câmara, subemenda substitutiva usa a sigla SSP" (espécie `subemenda`, sigla `SSP` em `#np-sigla-substitutivo`) e verificar que a URN salva casa com `/^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/`; executar o spec e confirmar que passa
 
 ## 3. Documentação e specs
 
