@@ -15,6 +15,8 @@ import { MPV_885_2019 } from '../assets/mpv_885_2019';
 import { lerJustificacao } from '../../src/model/lexml/documento/conversor/justificacao';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
 import { encodeHtml } from '../../src/util/string-util';
+import { SequenciaComentario } from '../../src/model/comentario/comentario';
+import { Usuario } from '../../src/model/revisao/usuario';
 import { Autoria, ColegiadoApreciador, MimeType } from '../../src/model/proposicao/proposicao';
 import { MPV_905_2019 } from '../doc/mpv_905_2019';
 import { MPV_1234_2024 } from '../doc/mpv_1234_2024';
@@ -311,6 +313,54 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(retorno.valido, retorno.erro).to.equal(true);
     expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
     expect(retorno.jsonix.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
+  });
+
+  it('os comentários da justificação (dois fragmentos, revisão dentro, resposta, autor também de revisão) vão e voltam pelo CLI e validam no XSD', async () => {
+    const ID = 'a1b2c3d4000040008000000000000001';
+    const FULANO = new Usuario('Fulano de Tal', 'sf:fulano', 'FT');
+    const CICLANO = new Usuario('Ciclano', 'sf:ciclano');
+    const sequencias: SequenciaComentario[] = [
+      {
+        id: ID,
+        comentarios: [
+          { usuario: FULANO, data: '2026-05-11T15:51:00-03:00', texto: 'Confirmar a fonte.\nVer o anexo.' },
+          { usuario: CICLANO, data: '2026-05-12T16:10:00-03:00', texto: 'Confirmado & ok <sim>.' },
+        ],
+      },
+    ];
+    const ins = `<ins usuario="Fulano de Tal" date="2026-05-11 15:51:00 " id-revisao="r1" id-usuario="sf:fulano" sigla-usuario="FT">incluído</ins>`;
+    const com = (conteudo: string): string => `<comentario id-sequencia-comentario="${ID}">${conteudo}</comentario>`;
+    const justificacao = `<p>Texto ${com(`comentado ${ins}`)}</p><p>${com('segundo parágrafo')} fim.</p>`;
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const dados = { justificacao, comentarios: sequencias };
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, dados);
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    // A validação com lexedit.xsd confere também a unicidade dos `id` de span, ins e del.
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include(`<span id="_tc${ID}_1">comentado <ins id="_rtr1_1">incluído</ins></span>`);
+    expect(retorno.xml).to.include(`<span id="_tc${ID}_2">segundo parágrafo</span>`);
+    expect(retorno.xml).to.include(`<lexedit:SequenciaComentario refIdElementoComentado="_tc${ID}_1">`);
+    expect(retorno.xml).to.match(
+      /<lexedit:Comentario refIdUsuario="sf:fulano" data="2026-05-11T15:51:00-03:00"><p>Confirmar a fonte.<\/p><p>Ver o anexo.<\/p><\/lexedit:Comentario>/
+    );
+    // O serializador do CLI escapa `&` e `<`, mas não `>`.
+    expect(retorno.xml).to.include('<p>Confirmado &amp; ok &lt;sim>.</p>');
+    expect(retorno.xml).to.include(
+      '<lexedit:Pendencias><lexedit:Pendencia>Remover comentários.</lexedit:Pendencia><lexedit:Pendencia>Resolver marcas de revisão de texto.</lexedit:Pendencia></lexedit:Pendencias>'
+    );
+    expect(retorno.xml.match(/<lexedit:Usuario idUsuario="sf:fulano"/g)).to.have.length(1);
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(retorno.jsonix.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
+
+    const lidos = lerMetadadoLexEdit(retorno.jsonix);
+    expect(Object.values(lidos.comentariosLidos!)).to.deep.equal(sequencias);
+    const lida = lerJustificacao(retorno.jsonix, lidos.revisoesTextuais, lidos.comentariosLidos);
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, { justificacao: lida, comentarios: Object.values(lidos.comentariosLidos!) })).to.deep.equal(
+      salvo
+    );
   });
 
   it('o XSD rejeita ids repetidos em ins/del da justificação', async () => {

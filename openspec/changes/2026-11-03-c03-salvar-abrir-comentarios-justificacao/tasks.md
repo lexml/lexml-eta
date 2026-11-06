@@ -16,7 +16,7 @@
 
 ## 4. Integração com o conversor
 
-- [ ] 4.1 Acrescentar a `documentoArticulado.integration.ts` o cenário de comentários (dois fragmentos, revisão dentro, resposta, autor também de revisão) com ida e volta pelo CLI real e validação pelo `lexedit.xsd`. Verificar com `npm run test:documento-articulado:xml`.
+- [x] 4.1 Acrescentar a `documentoArticulado.integration.ts` o cenário de comentários (dois fragmentos, revisão dentro, resposta, autor também de revisão) com ida e volta pelo CLI real e validação pelo `lexedit.xsd`. Verificar com `npm run test:documento-articulado:xml`.
 
 ## 5. Teste E2E (Cypress)
 
