@@ -22,11 +22,11 @@ No modo anexo de parecer, o sistema SHALL ocultar a aba de justificação e a ab
 - **THEN** a proposição não contém `justificativa`, `justificativaAntesRevisao` nem `notasRodape`
 
 ### Requirement: Data, autoria e impressão no modo anexo de parecer
-No modo anexo de parecer, o sistema SHALL exibir, na mesma aba do modo normal, os formulários de data, autoria e opções de impressão, e SHALL tratar seus valores como no modo normal. A aba SHALL ter o rótulo "Data, Autoria e Impressão".
+No modo anexo de parecer, o sistema SHALL exibir, na mesma aba do modo normal, os formulários de data, autoria e opções de impressão, e SHALL tratar seus valores como no modo normal. A aba SHALL ter o rótulo "Dados da proposição".
 
 #### Scenario: Formulários exibidos
 - **WHEN** o documento está no modo anexo de parecer
-- **THEN** a aba "Data, Autoria e Impressão" exibe os formulários de data, autoria e opções de impressão
+- **THEN** a aba "Dados da proposição" exibe os formulários de data, autoria e opções de impressão
 
 #### Scenario: Proposição com local, autoria e data
 - **WHEN** a aplicação consumidora obtém a proposição no modo anexo de parecer com data informada e um parlamentar na autoria

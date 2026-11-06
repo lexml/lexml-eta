@@ -11,7 +11,7 @@ O sistema SHALL exibir a aba "Anexos" imediatamente antes da aba "Avisos", com o
 
 #### Scenario: Aba antes de Avisos
 - **WHEN** o editor é inicializado
-- **THEN** a aba "Anexos" é exibida entre "Destino, Data, Autoria e Impressão" e "Avisos"
+- **THEN** a aba "Anexos" é exibida entre "Dados da proposição" e "Avisos"
 
 #### Scenario: Contador no rótulo
 - **WHEN** a lista tem três anexos
