@@ -63,7 +63,12 @@ describe('isSubstitutivo', () => {
   });
 
   it('subemenda substitutiva não é substitutivo', () => {
-    expect(isSubstitutivo('urn:lex:br:camara.deputados:subemenda.substitutiva;pep:2026;1')).to.equal(false);
+    expect(isSubstitutivo('urn:lex:br:camara.deputados:subemenda.substitutiva;ssp:2026;1')).to.equal(false);
+  });
+
+  it('subemenda substitutiva resolve com a sigla SSP e não com a anterior PEP', () => {
+    expect(getTipo('urn:lex:br:camara.deputados:subemenda.substitutiva;ssp:2026;1')?.sigla).to.equal('SSP');
+    expect(getTipo('urn:lex:br:camara.deputados:subemenda.substitutiva;pep:2026;1')).to.equal(undefined);
   });
 
   it('tipo ou autoridade não resolvidos', () => {

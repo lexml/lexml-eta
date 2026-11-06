@@ -57,7 +57,7 @@ const CAMARA: Record<string, Tipo> = {
   'projeto.lei.complementar;plp': ['Projeto de Lei Complementar', 'M', 'PLP', true],
   'projeto.resolucao;prc': ['Projeto de Resolução', 'M', 'PRC', true],
   'substitutivo;sbt': ['Substitutivo', 'M', 'SBT', true],
-  'subemenda.substitutiva;pep': ['Subemenda Substitutiva', 'F', 'PEP', true],
+  'subemenda.substitutiva;ssp': ['Subemenda Substitutiva', 'F', 'SSP', true],
 };
 
 const decreta = 'O CONGRESSO NACIONAL decreta:';
@@ -134,7 +134,7 @@ const CASAS: Casa[] = [
       PLP: ['camara.deputados', 'projeto.lei.complementar;plp'],
       PRC: ['camara.deputados', 'projeto.resolucao;prc'],
       SBT: ['camara.deputados', 'substitutivo;sbt'],
-      PEP: ['camara.deputados', 'subemenda.substitutiva;pep'],
+      SSP: ['camara.deputados', 'subemenda.substitutiva;ssp'],
       PRN: ['congresso.nacional', 'projeto.resolucao;prn'],
       PLN: ['congresso.nacional', 'projeto.lei;pln'],
       PLV: ['congresso.nacional', 'projeto.lei.conversao;plv'],
