@@ -14,9 +14,9 @@ Viável: já existe, em `cypress/e2e/nova-proposicao/nova-proposicao.cy.ts`, o c
 
 ## 3. Documentação e specs
 
-- [ ] 3.1 Atualizar `docs/requisitos/vocabulario.md` (seção 3.5, `pep`, e seção 6, "Referência da subemenda substitutiva (`pep`)") para `ssp`; verificar com busca que não restam `pep`/`PEP` fora do histórico em `openspec/changes/archive/`
-- [ ] 3.2 Atualizar o exemplo "Subemenda substitutiva" da change `2026-11-05-c01-alterar-dados-basicos-proposicao` (`specs/dados-basicos-proposicao/spec.md`, linhas 48-49) de `PEP` para `SSP`; verificar com busca que a change não cita mais `PEP`
-- [ ] 3.3 Validar a change com `openspec validate 2026-11-06-c01-corrigir-sigla-subemenda-substitutiva` e confirmar que passa sem erros
+- [x] 3.1 Atualizar `docs/requisitos/vocabulario.md` (seção 3.5, `pep`, e seção 6, "Referência da subemenda substitutiva (`pep`)") para `ssp`; verificar com busca que não restam `pep`/`PEP` fora do histórico em `openspec/changes/archive/`
+- [x] 3.2 Atualizar o exemplo "Subemenda substitutiva" da change `2026-11-05-c01-alterar-dados-basicos-proposicao` (`specs/dados-basicos-proposicao/spec.md`, linhas 48-49) de `PEP` para `SSP`; verificar com busca que a change não cita mais `PEP`
+- [x] 3.3 Validar a change com `openspec validate 2026-11-06-c01-corrigir-sigla-subemenda-substitutiva` e confirmar que passa sem erros
 
 ## Workflow follow-up
 

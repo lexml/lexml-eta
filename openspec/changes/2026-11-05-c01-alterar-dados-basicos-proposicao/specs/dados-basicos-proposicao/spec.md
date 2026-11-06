@@ -45,8 +45,8 @@ A descrição SHALL ser derivada da URN e da URN do documento referenciado, com 
 - **THEN** a descrição é "Substitutivo (SBT) ao Projeto de Lei (PL) nº 10, de 2025"
 
 #### Scenario: Subemenda substitutiva
-- **WHEN** a URN é de subemenda substitutiva de sigla `PEP` cujo documento referenciado é o PL nº 10, de 2025
-- **THEN** a descrição é "Subemenda Substitutiva (PEP) ao Projeto de Lei (PL) nº 10, de 2025"
+- **WHEN** a URN é de subemenda substitutiva de sigla `SSP` cujo documento referenciado é o PL nº 10, de 2025
+- **THEN** a descrição é "Subemenda Substitutiva (SSP) ao Projeto de Lei (PL) nº 10, de 2025"
 
 #### Scenario: PLV
 - **WHEN** a URN é de PLV sem número cujo documento referenciado é a MPV nº 1.200, de 2026
