@@ -39,7 +39,14 @@ import {
   ResultadoNovaProposicao,
   TipoColegiadoDestino,
 } from './tiposNovaProposicao';
-import { ConfigNovaProposicao, montaUrlComissoes, montaUrlProposicao, validarConfigNovaProposicao } from './urlsNovaProposicao';
+import {
+  ConfigNovaProposicao,
+  montaUrlComissoes,
+  montaUrlProposicao,
+  normalizaConsultaProposicao,
+  ResultadoVerificacaoProposicao,
+  validarConfigNovaProposicao,
+} from './urlsNovaProposicao';
 
 export const EVENTO_CONCLUIDA = 'nova-proposicao-concluida';
 export const EVENTO_CANCELADA = 'nova-proposicao-cancelada';
@@ -469,32 +476,46 @@ export class NovaProposicaoComponent extends LitElement {
 
   private async buscarComissoes(casa: string): Promise<void> {
     try {
-      const resposta = await fetch(montaUrlComissoes(this._config!.urlComissoes!, casa));
-      if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
-      const lista = (await resposta.json()) as Comissao[];
+      const lista = await this.obterComissoes(casa);
       this.comissoesPorCasa.set(
         casa,
-        (Array.isArray(lista) ? lista : []).filter(c => c.siglaCasaLegislativa === casa)
+        (Array.isArray(lista) ? (lista as Comissao[]) : []).filter(c => c.siglaCasaLegislativa === casa)
       );
     } catch {
       this.comissoesPorCasa.set(casa, 'indisponivel');
     }
   }
 
+  // Chamado pela configuração (e não solto) para preservar o `this` do host.
+  private async obterComissoes(casa: string): Promise<unknown> {
+    if (this._config!.onObterComissoes) return this._config!.onObterComissoes(casa);
+    const resposta = await fetch(montaUrlComissoes(this._config!.urlComissoes!, casa));
+    if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+    return resposta.json();
+  }
+
   // ---------------------------------------------------------------- verificação (RN-04, RN-05)
 
+  private verificacaoDe(corpo?: ResultadoVerificacaoProposicao): Verificacao {
+    return {
+      estado: 'ok',
+      ementa: String(corpo?.ementa ?? ''),
+      textoEstruturadoDisponivel: corpo?.textoEstruturadoDisponivel !== false,
+      complementar: corpo?.complementar === true,
+    };
+  }
+
   private async consultar(sigla: string, numero: string, ano: string): Promise<Verificacao> {
+    const inexistente: Verificacao = { estado: 'inexistente', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
     try {
+      if (this._config!.onVerificarProposicao) {
+        const resultado = await this._config!.onVerificarProposicao(normalizaConsultaProposicao(sigla, numero, ano));
+        return resultado ? this.verificacaoDe(resultado) : inexistente;
+      }
       const resposta = await fetch(montaUrlProposicao(this._config!.urlVerificacaoProposicao!, sigla, numero, ano));
-      if (resposta.status === 404) return { estado: 'inexistente', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
+      if (resposta.status === 404) return inexistente;
       if (resposta.status !== 200) return { estado: 'erro', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
-      const corpo = await resposta.json();
-      return {
-        estado: 'ok',
-        ementa: String(corpo?.ementa ?? ''),
-        textoEstruturadoDisponivel: corpo?.textoEstruturadoDisponivel !== false,
-        complementar: corpo?.complementar === true,
-      };
+      return this.verificacaoDe(await resposta.json());
     } catch {
       return { estado: 'erro', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
     }
@@ -571,6 +592,10 @@ export class NovaProposicaoComponent extends LitElement {
 
   private async buscarTexto(sigla: string, numero: string, ano: string): Promise<unknown | 'indisponivel' | 'erro'> {
     try {
+      if (this._config!.onObterTexto) {
+        const texto = await this._config!.onObterTexto(normalizaConsultaProposicao(sigla, numero, ano));
+        return texto === undefined || texto === null ? 'indisponivel' : texto;
+      }
       const resposta = await fetch(montaUrlProposicao(this._config!.urlTextoEstruturado!, sigla, numero, ano));
       if (resposta.status === 404) return 'indisponivel';
       if (resposta.status !== 200) return 'erro';

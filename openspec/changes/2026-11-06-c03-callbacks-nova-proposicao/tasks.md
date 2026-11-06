@@ -8,10 +8,10 @@
 
 ## 2. Origens de dados no componente
 
-- [ ] 2.1 Fazer `buscarComissoes` usar `onObterComissoes(casa)` quando existir, mantendo o filtro por `siglaCasaLegislativa` e `'indisponivel'` na rejeição; verificar com testes de componente em que o `fetch` não é chamado, em criação e no modo de edição (`alterarDadosBasicos.component.test.ts`)
-- [ ] 2.2 Fazer `consultar` usar `onVerificarProposicao({ sigla, numero, ano })` quando existir (`undefined` = inexistente, rejeição = erro, `textoEstruturadoDisponivel` verdadeiro por padrão, `complementar`); verificar com testes de componente para existente, inexistente, falha, valores normalizados (`pl`/`0012` chega como `PL`/`12`), PLS complementar e uso nos três grupos (referenciada, MPV e outra proposição)
-- [ ] 2.3 Fazer `buscarTexto` usar `onObterTexto({ sigla, numero, ano })` quando existir (`undefined` = indisponível, rejeição = erro); verificar com testes de componente para texto obtido no `detail`, indisponível (alerta e **Continuar** bloqueado) e falha (nova tentativa)
-- [ ] 2.4 Verificar com teste de componente que, com callback e URL informados, a URL não é chamada, e que as origens são independentes (callback numa e URL nas demais)
+- [x] 2.1 Fazer `buscarComissoes` usar `onObterComissoes(casa)` quando existir, mantendo o filtro por `siglaCasaLegislativa` e `'indisponivel'` na rejeição; verificar com testes de componente em que o `fetch` não é chamado, em criação e no modo de edição (`alterarDadosBasicos.component.test.ts`)
+- [x] 2.2 Fazer `consultar` usar `onVerificarProposicao({ sigla, numero, ano })` quando existir (`undefined` = inexistente, rejeição = erro, `textoEstruturadoDisponivel` verdadeiro por padrão, `complementar`); verificar com testes de componente para existente, inexistente, falha, valores normalizados (`pl`/`0012` chega como `PL`/`12`), PLS complementar e uso nos três grupos (referenciada, MPV e outra proposição)
+- [x] 2.3 Fazer `buscarTexto` usar `onObterTexto({ sigla, numero, ano })` quando existir (`undefined` = indisponível, rejeição = erro); verificar com testes de componente para texto obtido no `detail`, indisponível (alerta e **Continuar** bloqueado) e falha (nova tentativa)
+- [x] 2.4 Verificar com teste de componente que, com callback e URL informados, a URL não é chamada, e que as origens são independentes (callback numa e URL nas demais)
 
 ## 3. Importação de arquivo
 
