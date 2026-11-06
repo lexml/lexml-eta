@@ -11,7 +11,7 @@ import {
   resolverTipoComplementar,
 } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
 import { DadosIdentificacao } from '../../../src/components/nova-proposicao/tiposNovaProposicao';
-import { montaUrlComissoes, montaUrlProposicao, validarConfigNovaProposicao } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
+import { montaUrlComissoes, montaUrlProposicao, normalizaConsultaProposicao, validarConfigNovaProposicao } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoRelacaoSubstitutivo } from '../../../src/model/lexml/documento/vocabulario/tiposVocabulario';
 
@@ -218,6 +218,39 @@ describe('Módulos puros da nova proposição', () => {
         delete config[nome];
         expect(() => validarConfigNovaProposicao(config)).to.throw(nome);
       });
+    });
+
+    [
+      ['urlVerificacaoProposicao', 'onVerificarProposicao'],
+      ['urlTextoEstruturado', 'onObterTexto'],
+      ['urlComissoes', 'onObterComissoes'],
+    ].forEach(([url, callback]) => {
+      it(`callback ${callback} dispensa ${url}`, () => {
+        const config: any = { urlVerificacaoProposicao: '/a', urlTextoEstruturado: '/b', urlComissoes: '/c', [callback]: () => undefined };
+        delete config[url];
+        expect(() => validarConfigNovaProposicao(config)).to.not.throw();
+      });
+
+      it(`sem ${url} e sem ${callback} a mensagem nomeia a URL e o callback`, () => {
+        const config: any = { urlVerificacaoProposicao: '/a', urlTextoEstruturado: '/b', urlComissoes: '/c' };
+        delete config[url];
+        expect(() => validarConfigNovaProposicao(config)).to.throw(url);
+        expect(() => validarConfigNovaProposicao(config)).to.throw(callback);
+      });
+    });
+
+    it('só com callbacks (sem nenhuma URL) a configuração é válida e onImportarArquivo não é exigido', () => {
+      const config: any = { onVerificarProposicao: () => undefined, onObterTexto: () => undefined, onObterComissoes: () => [] };
+      expect(() => validarConfigNovaProposicao(config)).to.not.throw();
+    });
+
+    it('URL em branco não vale como informada', () => {
+      const config: any = { urlVerificacaoProposicao: '   ', urlTextoEstruturado: '/b', urlComissoes: '/c' };
+      expect(() => validarConfigNovaProposicao(config)).to.throw('urlVerificacaoProposicao');
+    });
+
+    it('normaliza sigla, número e ano da consulta', () => {
+      expect(normalizaConsultaProposicao(' pl ', '0012', ' 2026 ')).to.deep.equal({ sigla: 'PL', numero: '12', ano: '2026' });
     });
   });
 
