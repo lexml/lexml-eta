@@ -1,6 +1,6 @@
 import { ColegiadoApreciador } from '../../proposicao/proposicao';
 import { montaColegiadoApreciador, montaMetadadoProprietario, montaOutrosMetadados, montaParteInicial } from './conversor/buildJsonixFromProjetoNorma';
-import { decodificarTextoJsonix, DocumentoArticulado, MetadadoLexEdit } from './documentoArticulado';
+import { decodificarTextoJsonix, DocumentoArticulado, getEstruturaNorma, MetadadoLexEdit } from './documentoArticulado';
 import { getCasaLegislativaResponsavel } from './urnUtil';
 
 /** Dados básicos da proposição (tipo/URN, referência, colegiado, forma de apresentação, epígrafe, preâmbulo e outros metadados). */
@@ -40,7 +40,7 @@ const removerLexEditVazio = (documento: DocumentoArticulado): void => {
 export const aplicarDadosBasicos = (original: DocumentoArticulado, dados: DadosBasicos, contexto: ContextoDadosBasicos): DocumentoArticulado => {
   const documento = JSON.parse(JSON.stringify(original)) as DocumentoArticulado;
   const lexedit = getLexEdit(documento);
-  const norma = (documento.value.projetoNorma.norma ?? documento.value.projetoNorma['projeto']) as any;
+  const norma = getEstruturaNorma(documento);
   const anexoParecer = !!dados.anexoParecer;
 
   documento.value.metadado.identificacao.urn = dados.urn;

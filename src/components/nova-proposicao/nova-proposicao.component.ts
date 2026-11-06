@@ -17,7 +17,7 @@ import { CasaLegislativaEditor, TipoDocumento, TipoRelacaoSubstitutivo } from '.
 import { montaEpigrafePadrao } from './epigrafePadrao';
 import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
 import { lerDadosIdentificacao } from './lerDadosIdentificacao';
-import { isPlv, montaUrnNovaProposicao } from './montaUrnNovaProposicao';
+import { isPlv, montaUrnNovaProposicao, numeroOriginalVale } from './montaUrnNovaProposicao';
 import { getPreambuloNovaProposicao } from './preambuloNovaProposicao';
 import {
   chaveTipo,
@@ -254,10 +254,8 @@ export class NovaProposicaoComponent extends LitElement {
     return this.modo === 'edicao';
   }
 
-  // O número real do documento só vale enquanto espécie e tipo não mudam.
   private numeroFixoDe(tipo?: TipoDocumento): string {
-    const original = this.numeroOriginal;
-    return original && tipo && original.especie === this.especie && original.chaveTipo === chaveTipo(tipo) ? original.numero : 's/n';
+    return numeroOriginalVale(this.especie, tipo, this.numeroOriginal) ? this.numeroOriginal.numero : 's/n';
   }
 
   private mensagensDePerda(urn: string): string[] {

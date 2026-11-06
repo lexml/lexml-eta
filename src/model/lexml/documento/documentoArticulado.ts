@@ -148,6 +148,9 @@ export interface DocumentoArticulado {
   };
 }
 
+/** Estrutura do documento Jsonix: `norma` ou, em documentos antigos, `projeto`. */
+export const getEstruturaNorma = (documento: any): any => documento?.value?.projetoNorma?.norma ?? documento?.value?.projetoNorma?.projeto;
+
 export const validarIdentificacaoDocumento = (urn: unknown): void => {
   // A validação XSD usa anyURI; a posição do ano e do número precisa ser verificada aqui.
   if (typeof urn !== 'string' || !/^urn:lex:br:[^:\s]+:[^:\s]+:\d{4}(?:-\d{2}-\d{2})?;\d+(?:@[^!\s]+)?$/.test(urn)) {

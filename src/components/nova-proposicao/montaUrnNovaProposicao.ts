@@ -1,6 +1,6 @@
 import { TipoDocumento } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { chaveTipo, getTipoMpv } from './siglasNovaProposicao';
-import { DadosIdentificacao, NUMERO_NAO_NUMERADO, NumeroOriginal, SIGLA_PLV, SUFIXO_SUBSTITUTIVO_SF, UrnNovaProposicao } from './tiposNovaProposicao';
+import { DadosIdentificacao, EspecieDocumento, NUMERO_NAO_NUMERADO, NumeroOriginal, SIGLA_PLV, SUFIXO_SUBSTITUTIVO_SF, UrnNovaProposicao } from './tiposNovaProposicao';
 
 export const semZerosAEsquerda = (valor: string): string => (valor ?? '').trim().replace(/^0+(?=\d)/, '');
 
@@ -15,8 +15,11 @@ const urnMpv = (dados: DadosIdentificacao): string => {
 };
 
 // O número original só vale enquanto espécie e tipo do próprio documento (o substitutivo, na CD) forem os iniciais.
+export const numeroOriginalVale = (especie: EspecieDocumento, tipo: TipoDocumento | undefined, original?: NumeroOriginal): original is NumeroOriginal =>
+  !!original && !!tipo && original.especie === especie && original.chaveTipo === chaveTipo(tipo);
+
 const numeroDoDocumento = (dados: DadosIdentificacao, tipo: TipoDocumento, original?: NumeroOriginal): string =>
-  original && original.especie === dados.especie && original.chaveTipo === chaveTipo(tipo) ? original.numero : NUMERO_NAO_NUMERADO;
+  numeroOriginalVale(dados.especie, tipo, original) ? original.numero : NUMERO_NAO_NUMERADO;
 
 /** RN-11 a RN-14 e RN-22: URN do novo documento e do documento referenciado. */
 export const montaUrnNovaProposicao = (dados: DadosIdentificacao, numeroOriginal?: NumeroOriginal): UrnNovaProposicao => {
