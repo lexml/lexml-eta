@@ -33,14 +33,17 @@ export { AlterarLarguraImagemModalComponent } from './components/editor-texto-ri
 export { LexmlEtaProposicaoComponent } from './components/lexml-eta-proposicao.component';
 export { AutoriaComponent } from './components/autoria/autoria.component';
 export { NovaProposicaoComponent } from './components/nova-proposicao/nova-proposicao.component';
-export type { ResultadoNovaProposicao } from './components/nova-proposicao/tiposNovaProposicao';
+export type { ResultadoAlteracaoDadosBasicos, ResultadoNovaProposicao } from './components/nova-proposicao/tiposNovaProposicao';
+export type { DadosIniciaisEdicao } from './components/nova-proposicao/nova-proposicao.component';
 export type { ConfigNovaProposicao } from './components/nova-proposicao/urlsNovaProposicao';
 export { LexmlAutocomplete } from './components/lexml-autocomplete';
 export { AutocompleteListaComponent } from './components/autocomplete/autocomplete-lista';
 export type { ItemAutocompleteLista } from './components/autocomplete/autocomplete-lista';
 export { DataComponent } from './components/data/data.component';
+export { DadosBasicosComponent } from './components/dados-basicos/dados-basicos.component';
 export { LexmlEtaComponent } from './components/lexml-eta.component';
 export type { DadosNovaProposicao } from './components/lexml-eta.component';
+export type { DadosBasicos } from './model/lexml/documento/dadosBasicos';
 export { LexmlEtaConfig } from './model/lexmlEtaConfig';
 export type { DeleteAnexoCallback, ObterAnexoBlobCallback, ObterAnexoBlobResult, UploadAnexoCallback, VisualizarAnexoCallback } from './model/lexmlEtaConfig';
 export { AlertasComponent } from './components/alertas/alertas.component';

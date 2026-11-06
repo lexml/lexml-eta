@@ -25,6 +25,13 @@ export interface DadosIdentificacao {
   anoMpv: string;
 }
 
+/** Número real do documento lido da URN; só vale enquanto espécie e tipo do documento não mudam. */
+export interface NumeroOriginal {
+  numero: string;
+  especie: EspecieDocumento;
+  chaveTipo: string;
+}
+
 export interface UrnNovaProposicao {
   urn: string;
   urnDocumentoReferenciado?: string;
@@ -37,6 +44,9 @@ export interface ResultadoNovaProposicao extends UrnNovaProposicao {
   texto?: unknown;
   anexoParecer: boolean;
 }
+
+/** Resultado do modo de edição: os dados da nova proposição, sem o texto. */
+export type ResultadoAlteracaoDadosBasicos = Omit<ResultadoNovaProposicao, 'texto'>;
 
 export const NUMERO_NAO_NUMERADO = '999999';
 export const SUFIXO_SUBSTITUTIVO_SF = '@apresentacao.substitutivo';

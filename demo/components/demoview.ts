@@ -4,7 +4,7 @@ import { PL_5008_2023 } from '../doc/pl_5008_2023';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import { LexmlEtaConfig, LexmlEtaComponent, NovaProposicaoComponent, Usuario } from '../../src';
-import type { Anexo, ObterAnexoBlobResult, ResultadoNovaProposicao } from '../../src';
+import type { Anexo, DadosBasicos, DadosIniciaisEdicao, ObterAnexoBlobResult, ResultadoAlteracaoDadosBasicos, ResultadoNovaProposicao } from '../../src';
 import { RefProposicaoReduzida } from '../../src/model/proposicao/proposicao';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
@@ -156,6 +156,10 @@ export class DemoView extends LitElement {
   @state() modo = 'edicao';
   // O modal só existe no DOM enquanto aberto: não interfere em outros sl-dialog da página.
   @state() modalNovaProposicao = false;
+  // Dados básicos atuais enquanto o modal está em modo de edição; indefinido no modo de criação.
+  @state() dadosBasicosEmEdicao?: DadosIniciaisEdicao;
+  // Os outros metadados são do host: o componente de edição não os recebe nem os devolve.
+  private outrosMetadadosEmEdicao: Record<string, string> = {};
   @state() casa: 'SF' | 'CD' = 'SF';
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoReduzida();
@@ -289,10 +293,41 @@ export class DemoView extends LitElement {
     return `urn:lex:br:${autoridade}:projeto.lei;pl:2026;999999`;
   }
 
-  async novaProposicao(): Promise<void> {
+  // O componente é reiniciado a cada abertura: não herda a Tela 2 nem o modo da abertura anterior.
+  private async abrirModalNovaProposicao(dadosIniciais?: DadosIniciaisEdicao): Promise<void> {
+    this.dadosBasicosEmEdicao = dadosIniciais;
     this.modalNovaProposicao = true;
     await this.updateComplete;
     this.configurarNovaProposicao();
+    if (dadosIniciais) this.elNovaProposicao?.iniciarModoEdicao(dadosIniciais);
+    else this.elNovaProposicao?.iniciar();
+  }
+
+  async novaProposicao(): Promise<void> {
+    await this.abrirModalNovaProposicao();
+  }
+
+  private onAlteracaoDadosBasicosSolicitada(e: CustomEvent<DadosBasicos>): void {
+    this.outrosMetadadosEmEdicao = e.detail.outrosMetadados ?? {};
+    void this.abrirModalNovaProposicao(e.detail);
+  }
+
+  private onDadosBasicosAlterados(e: CustomEvent<ResultadoAlteracaoDadosBasicos>): void {
+    const { urn, urnDocumentoReferenciado, epigrafe, preambulo, colegiadoDestino, anexoParecer } = e.detail;
+    this.modalNovaProposicao = false;
+    this.dadosBasicosEmEdicao = undefined;
+    this.elLexmlEta
+      .alterarDadosBasicos({
+        urn,
+        urnDocumentoReferenciado,
+        epigrafe,
+        preambulo,
+        colegiadoApreciador: { ...colegiadoDestino, siglaCasaLegislativa: this.casa },
+        outrosMetadados: this.outrosMetadadosEmEdicao,
+        anexoParecer,
+      })
+      .then(() => this.atualizarProposicaoCorrente({ value: { metadado: { identificacao: { urn } } } }))
+      .catch(erro => window.alert((erro as Error).message || 'Não foi possível alterar os dados básicos.'));
   }
 
   private onNovaProposicaoConcluida(e: CustomEvent<ResultadoNovaProposicao>): void {
@@ -530,12 +565,17 @@ export class DemoView extends LitElement {
         </div>
       </div>
       <div class="nome-proposicao">${this.proposicaoCorrente.sigla ? `${this.proposicaoCorrente.sigla} ${this.proposicaoCorrente.numero}/${this.proposicaoCorrente.ano}` : ''}</div>
-      <lexml-eta .lexmlEtaConfig=${this.etaConfig} modo=${this.modo} @onrevisao=${this.onRevisao}></lexml-eta>
+      <lexml-eta
+        .lexmlEtaConfig=${this.etaConfig}
+        modo=${this.modo}
+        @onrevisao=${this.onRevisao}
+        @alteracao-dados-basicos-solicitada=${this.onAlteracaoDadosBasicosSolicitada}
+      ></lexml-eta>
       ${this.modalNovaProposicao
         ? html`<sl-dialog
             id="dialogNovaProposicao"
             open
-            label="Nova proposição"
+            label=${this.dadosBasicosEmEdicao ? 'Alterar dados básicos' : 'Nova proposição'}
             style="--width: 46rem"
             no-header
             @sl-hide=${(e: Event): void => {
@@ -544,8 +584,10 @@ export class DemoView extends LitElement {
           >
             <lexml-nova-proposicao
               @nova-proposicao-concluida=${this.onNovaProposicaoConcluida}
+              @dados-basicos-alterados=${this.onDadosBasicosAlterados}
               @nova-proposicao-cancelada=${(): void => {
                 this.modalNovaProposicao = false;
+                this.dadosBasicosEmEdicao = undefined;
               }}
             ></lexml-nova-proposicao>
           </sl-dialog>`

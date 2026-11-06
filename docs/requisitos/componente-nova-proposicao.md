@@ -190,9 +190,22 @@ O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreamb
 
 Decididos (não são mais pontos em aberto): a subemenda substitutiva da `CD` referencia a proposição original, com a referência ao substitutivo implícita (RN-22); formato da lista de comissões (seção 9); colegiado da epígrafe do substitutivo do `SF` (coletado em g5); serviços de verificação, de texto e de comissões (URLs configuráveis, seção 9); limite do arquivo importado (5 MB); siglas referenciáveis e de nova proposição (do vocabulário, RN-00 e RN-00a); inclusão de siglas inativas (sim, ao final, em cinza); MPV fora das listas de siglas, só como referência do PLV; tipos de proposição de cada casa (definidos nos vocabulários, não há mais lista a confirmar).
 
-## 8. Caso relacionado: alterar dados básicos do documento
+## 8. Modo de edição: alterar dados básicos do documento (#1051)
 
-Tem **especificação própria** e está fora do escopo deste componente. Diálogo "Alterar dados básicos do documento" com campos análogos aos da Tela 1 e botões **Ok** / **Cancelar**. Os efeitos sobre o texto já editado (preâmbulo, epígrafe, fecho) ainda precisam ser definidos.
+O componente também edita os dados básicos de um documento já em edição. O host chama `iniciarModoEdicao(dadosIniciais)` **depois** da `config` (a atribuição de `config` reinicia o componente e descarta o modo e os dados iniciais). O método reinicia o componente e ativa o modo de edição; `iniciar()` reinicia em modo de criação.
+
+`dadosIniciais`: `urn` (obrigatória), `urnDocumentoReferenciado`, `colegiadoApreciador` (`tipoColegiado`, `siglaComissao`) e `anexoParecer`; o `detail` de `alteracao-dados-basicos-solicitada` do `lexml-eta` serve como está.
+
+- Só a Tela 1, com o título "Alterar dados básicos"; **Continuar** e **Cancelar**.
+- A Tela 1 é preenchida a partir da URN (módulo `lerDadosIdentificacao`, inverso de `montaUrnNovaProposicao`): espécie, siglas, número e ano; destino e forma de apresentação vêm dos dados iniciais. O PLV é reconhecido pela sigla da URN; a MPV, pela URN do documento referenciado.
+- O documento referenciado inicial vale como **verificado** (sem consultar a URL) até o usuário mudar sigla, número ou ano.
+- O número real do documento (diferente de `999999`) é exibido como texto fixo e mantido na URN do resultado enquanto espécie e sigla não mudam; senão volta a `s/n`.
+- As comissões são carregadas ao abrir. Comissão inicial fora da lista (ou lista indisponível) deixa o destino inválido até o usuário escolher outro.
+- Ao **Continuar**, um único modal Sim/Não pede confirmação se a casa responsável muda ("Ao alterar para um tipo de outra casa legislativa a autoria informada será perdida. Deseja continuar?") e/ou se o documento passa a anexo de parecer ("Ao apresentar o documento em parecer, a justificação informada será perdida. Deseja continuar?"). **Não** mantém a Tela 1 sem emitir resultado.
+- O resultado é o evento `dados-basicos-alterados`, com o `detail` de `nova-proposicao-concluida` **sem `texto`**. **Cancelar** emite `nova-proposicao-cancelada`.
+- `reiniciar()` (público) volta ao estado original: modo de criação, sem dados iniciais, Tela 1 com os padrões; a configuração é mantida. O host deve chamá-lo a cada abertura do modal.
+
+Quem aplica o resultado é o host, com `alterarDadosBasicos` do `lexml-eta` (`docs/api-componente-lexml-eta.md`, seção 4.7).
 
 ## 9. Contrato com o host
 
@@ -246,3 +259,4 @@ O componente não tem efeito colateral: coleta e devolve um resultado por evento
   | `anexoParecer` | Booleano (g6). |
 
 - `nova-proposicao-cancelada`, sem `detail`.
+- `dados-basicos-alterados` (só no modo de edição, seção 8): mesmos campos de `nova-proposicao-concluida`, exceto `texto`.
