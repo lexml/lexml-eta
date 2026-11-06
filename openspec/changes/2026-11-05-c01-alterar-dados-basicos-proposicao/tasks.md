@@ -32,9 +32,9 @@
 
 ## 6. E2E (Cypress)
 
-- [ ] 6.1 Ampliar `cypress/e2e/nova-proposicao/nova-proposicao.cy.ts` com o reinício ao reabrir o modal e o modo de edição (preenchimento, Continuar sem verificar, modal de confirmação Sim/Não); verificar rodando só esse spec.
-- [ ] 6.2 Criar `cypress/e2e/nova-proposicao/alterar-dados-basicos.cy.ts` (com `export {};` no topo) cobrindo pelo demo: grupo "Dados básicos" exibido, alteração de colegiado com texto preservado, troca de casa com perda de autoria, passagem a anexo de parecer com perda da justificação e botão desabilitado em modo de revisão; verificar rodando só esse spec.
-- [ ] 6.3 Rodar apenas os specs E2E que envolvem o componente de nova proposição (`npx cypress run --env envName=local --spec "cypress/e2e/nova-proposicao/**"`), sem rodar a suíte E2E completa; verificar que todos passam.
+- [x] 6.1 Ampliar `cypress/e2e/nova-proposicao/nova-proposicao.cy.ts` com o reinício ao reabrir o modal e o modo de edição (preenchimento, Continuar sem verificar, modal de confirmação Sim/Não); verificar rodando só esse spec.
+- [x] 6.2 Criar `cypress/e2e/nova-proposicao/alterar-dados-basicos.cy.ts` (com `export {};` no topo) cobrindo pelo demo: grupo "Dados básicos" exibido, alteração de colegiado com texto preservado, troca de casa com perda de autoria, passagem a anexo de parecer com perda da justificação e botão desabilitado em modo de revisão; verificar rodando só esse spec.
+- [x] 6.3 Rodar apenas os specs E2E que envolvem o componente de nova proposição (`npx cypress run --env envName=local --spec "cypress/e2e/nova-proposicao/**"`), sem rodar a suíte E2E completa; verificar que todos passam.
 
 ## Workflow follow-up
 
