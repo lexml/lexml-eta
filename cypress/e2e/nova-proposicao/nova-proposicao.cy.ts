@@ -323,6 +323,25 @@ describe('Nova proposição — componente no modal da demo', () => {
     });
   });
 
+  it('na Câmara, subemenda substitutiva usa a sigla SSP', () => {
+    cy.get('#casaEditor').select('CD');
+    abrirModal();
+    marcarRadioSl('especie', 'subemenda');
+    cy.get('#np-g2').should('exist');
+    escolherItemLista('#np-sigla-substitutivo', 'SSP');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
+    verificarProposicao('5008', '2023');
+    escolherComissao('CCJC');
+    cy.get('#np-continuar').click();
+    cy.get('#np-continuar').click();
+
+    cy.get(`${MODAL}[open]`).should('not.exist');
+    cy.getContainerArtigoByNumero(1).should('exist');
+    lerSalvo().then(arquivo => {
+      expect(arquivo.value.metadado.identificacao.urn).to.match(/^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/);
+    });
+  });
+
   it('documento aberto de arquivo sem colegiado recebe o colegiado padrão (Plenário)', () => {
     cy.get('#fileUpload').selectFile('demo/doc/teste_opcoes_impressao.json', { force: true });
     cy.getContainerArtigoByNumero(1).should('exist');

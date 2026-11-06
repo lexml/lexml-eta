@@ -57,7 +57,7 @@ describe('Módulos puros da nova proposição', () => {
       const lista = getSiglasNovaProposicao('CD');
       const siglas = lista.map(t => t.sigla);
       expect(siglas).to.include.members(['PL', 'PLP', 'PEC', 'PRC', 'PLV']);
-      expect(siglas).to.not.include.members(['SBT', 'PEP', 'MPV']);
+      expect(siglas).to.not.include.members(['SBT', 'SSP', 'MPV']);
       expect(lista.some(t => t.urnAutoridade === 'senado.federal')).to.be.false;
     });
 
@@ -87,13 +87,13 @@ describe('Módulos puros da nova proposição', () => {
       const primeiroInativo = sf.findIndex(t => !t.ativo);
       expect(sf.slice(primeiroInativo).every(t => !t.ativo)).to.be.true;
       inicializarVocabulario('CD');
-      expect(getSiglasOutraProposicao().map(t => t.sigla)).to.include.members(['PL', 'SBT', 'PEP', 'MPV']);
+      expect(getSiglasOutraProposicao().map(t => t.sigla)).to.include.members(['PL', 'SBT', 'SSP', 'MPV']);
     });
 
     it('g2 da CD: substitutivo e subemenda substitutiva', () => {
       inicializarVocabulario('CD');
       expect(getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBSTITUTIVO).map(t => t.sigla)).to.deep.equal(['SBT']);
-      expect(getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA).map(t => t.sigla)).to.deep.equal(['PEP']);
+      expect(getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA).map(t => t.sigla)).to.deep.equal(['SSP']);
     });
   });
 
@@ -136,9 +136,9 @@ describe('Módulos puros da nova proposição', () => {
 
     it('subemenda substitutiva da CD referencia a proposição original', () => {
       inicializarVocabulario('CD');
-      const pep = getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA)[0];
-      const r = montaUrnNovaProposicao(dados('CD', { especie: 'subemenda', tipoProposicao: tipo('CD', 'PL', true), numeroProposicao: '12', tipoSubstitutivo: pep }));
-      expect(r.urn).to.equal('urn:lex:br:camara.deputados:subemenda.substitutiva;pep:2026;999999');
+      const ssp = getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA)[0];
+      const r = montaUrnNovaProposicao(dados('CD', { especie: 'subemenda', tipoProposicao: tipo('CD', 'PL', true), numeroProposicao: '12', tipoSubstitutivo: ssp }));
+      expect(r.urn).to.equal('urn:lex:br:camara.deputados:subemenda.substitutiva;ssp:2026;999999');
       expect(r.urnDocumentoReferenciado).to.equal('urn:lex:br:camara.deputados:projeto.lei;pl:2026;12');
     });
 

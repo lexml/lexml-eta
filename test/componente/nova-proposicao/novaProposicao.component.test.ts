@@ -324,9 +324,9 @@ describe('lexml-nova-proposicao', () => {
       expect(q<any>('np-numero-substitutivo')!.textContent).to.equal('s/n');
       const textos = await textosItens('np-sigla-substitutivo');
       expect(textos).to.include('SBT');
-      expect(textos).to.not.include('PEP');
+      expect(textos).to.not.include('SSP');
       await marcar('especie', 'subemenda');
-      expect(await textosItens('np-sigla-substitutivo')).to.include('PEP');
+      expect(await textosItens('np-sigla-substitutivo')).to.include('SSP');
     });
   });
 
