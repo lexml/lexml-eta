@@ -14,7 +14,7 @@
 ## 3. `lexml-eta`: método, evento e grupo "Dados básicos"
 
 - [x] 3.1 Extrair de `abrirDocumentoArticulado` o método privado de abertura a partir do documento lido e implementar `alterarDadosBasicos` (validação completa antes de alterar, recusa em revisão, sem documento e em tipo não suportado, `fatalError`, data da última modificação original); verificar com testes de componente em `test/componente/lexml-eta/` para sucesso, cada recusa (documento intacto) e preservação de texto, autoria, anexos e justificação.
-- [x] 3.2 Adicionar o grupo "Dados básicos" no início da aba "Data, Autoria e Impressão" (componente `lexml-eta-dados-basicos`, no padrão visual `fieldset`/`legend` dos demais grupos), com descrição, ano (exceto substitutivo SF), colegiado, "Apresentado em parecer" e o botão que emite `alteracao-dados-basicos-solicitada`; verificar com testes de componente do conteúdo do grupo, do `detail` do evento e da atualização após a alteração.
+- [x] 3.2 Adicionar o grupo "Dados básicos" no início da aba "Dados da proposição" (componente `lexml-eta-dados-basicos`, no padrão visual `fieldset`/`legend` dos demais grupos), com descrição, ano (exceto substitutivo SF), colegiado, "Apresentado em parecer" e o botão que emite `alteracao-dados-basicos-solicitada`; verificar com testes de componente do conteúdo do grupo, do `detail` do evento e da atualização após a alteração.
 - [x] 3.3 Desabilitar o botão em modo de revisão e em tipo não suportado, com a mensagem correspondente abaixo; verificar com testes de componente ativando e desativando a revisão e abrindo documento de tipo não suportado.
 - [x] 3.4 Documentar o método e o evento em `docs/api-componente-lexml-eta.md`; verificar que os exemplos batem com a assinatura implementada.
 

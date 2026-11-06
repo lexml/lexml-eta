@@ -23,11 +23,11 @@ describe('DadosBasicosComponent', () => {
     expect(texto(el, '#dados-basicos-parecer')).to.contain('Não');
   });
 
-  it('no anexo de parecer, o colegiado não se aplica', async () => {
+  it('no anexo de parecer, exibe o colegiado como nos demais documentos', async () => {
     const el = await fixture<DadosBasicosComponent>(
-      html`<lexml-eta-dados-basicos .urn=${URN_PL} .anexoParecer=${true} .colegiadoApreciador=${{ tipoColegiado: 'Plenário' }}></lexml-eta-dados-basicos>`
+      html`<lexml-eta-dados-basicos .urn=${URN_PL} .anexoParecer=${true} .colegiadoApreciador=${{ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }}></lexml-eta-dados-basicos>`
     );
-    expect(texto(el, '#dados-basicos-colegiado')).to.contain('Não se aplica');
+    expect(texto(el, '#dados-basicos-colegiado')).to.contain('Comissão (CCJ)');
     expect(texto(el, '#dados-basicos-parecer')).to.contain('Sim');
   });
 

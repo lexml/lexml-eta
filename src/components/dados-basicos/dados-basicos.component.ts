@@ -7,7 +7,7 @@ import { ColegiadoApreciador } from '../../model/proposicao/proposicao';
 /** Emitido no clique de "Alterar dados básicos" (não borbulha); o `lexml-eta` monta e emite o evento público. */
 export const EVENTO_ALTERAR_DADOS_BASICOS = 'alterar-dados-basicos';
 
-/** Grupo "Dados básicos" da aba "Data, Autoria e Impressão": só exibe os dados recebidos do `lexml-eta`. */
+/** Grupo "Dados básicos" da aba "Dados da proposição": só exibe os dados recebidos do `lexml-eta`. */
 @customElement('lexml-eta-dados-basicos')
 export class DadosBasicosComponent extends LitElement {
   @property() urn = '';
@@ -18,7 +18,6 @@ export class DadosBasicosComponent extends LitElement {
   @property() motivoBloqueio = '';
 
   private get colegiadoDescricao(): string {
-    if (this.anexoParecer) return 'Não se aplica';
     const colegiado = this.colegiadoApreciador;
     if (colegiado?.tipoColegiado === 'Comissão') return colegiado.siglaComissao ? `Comissão (${colegiado.siglaComissao})` : 'Comissão';
     return colegiado?.tipoColegiado ?? 'Plenário';

@@ -105,11 +105,12 @@ describe('Aplicação dos dados básicos ao documento serializado', () => {
     expect(lexedit).not.to.have.property('dataUltimaModificacao');
   });
 
-  it('anexo de parecer: sem colegiado', () => {
+  it('anexo de parecer: mantém o colegiado', () => {
     const original = salvarCompleto();
-    const lexedit = lexeditSalvo(aplicarDadosBasicos(original, dadosBasicos({ anexoParecer: true }), contexto()));
+    const colegiadoApreciador = { siglaCasaLegislativa: 'SF', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' } as any;
+    const lexedit = lexeditSalvo(aplicarDadosBasicos(original, dadosBasicos({ anexoParecer: true, colegiadoApreciador }), contexto()));
     expect(lexedit.anexoParecer).to.be.true;
-    expect(lexedit).not.to.have.property('colegiadoApreciador');
+    expect(lexedit.colegiadoApreciador).to.include({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
   });
 
   describe('exclusões', () => {

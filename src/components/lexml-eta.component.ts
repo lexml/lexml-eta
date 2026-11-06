@@ -866,7 +866,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       ...(this.urnDocumentoReferenciado && { urnDocumentoReferenciado: this.urnDocumentoReferenciado }),
       epigrafe: projetoNorma?.epigrafe ?? '',
       preambulo: projetoNorma?.preambulo?.texto ?? '',
-      ...(!this.anexoParecer && this.colegiadoApreciador && { colegiadoApreciador: { ...this.colegiadoApreciador } }),
+      ...(this.colegiadoApreciador && { colegiadoApreciador: { ...this.colegiadoApreciador } }),
       outrosMetadados: { ...this.outrosMetadados },
       anexoParecer: this.anexoParecer,
     };
@@ -1074,7 +1074,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           <sl-tab-group id="tabs-esquerda">
             <sl-tab slot="nav" panel="lexml-eta-proposicao" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>Texto</sl-tab>
             ${!this.anexoParecer ? html`<sl-tab slot="nav" panel="justificativa" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>Justificação</sl-tab>` : ''}
-            <sl-tab slot="nav" panel="autoria" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>Data, Autoria e Impressão</sl-tab>
+            <sl-tab slot="nav" panel="autoria" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>Dados da proposição</sl-tab>
             <sl-tab slot="nav" panel="anexos" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>Anexos${this.totalAnexos > 0 ? ` (${this.totalAnexos})` : ''}</sl-tab>
             <sl-tab slot="nav" panel="avisos" ?inert=${neutro} class=${neutro ? 'aba-neutra' : ''}>
               Avisos

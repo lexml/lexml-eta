@@ -50,8 +50,7 @@ export const aplicarDadosBasicos = (original: DocumentoArticulado, dados: DadosB
 
   lexedit.anexoParecer = anexoParecer;
 
-  // O anexo de parecer não tem colegiado apreciador.
-  const colegiado = anexoParecer ? undefined : montaColegiadoApreciador(dados.colegiadoApreciador);
+  const colegiado = montaColegiadoApreciador(dados.colegiadoApreciador);
   if (colegiado) lexedit.colegiadoApreciador = colegiado;
   else delete lexedit.colegiadoApreciador;
 

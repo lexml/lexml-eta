@@ -175,7 +175,7 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `getJustificativa(): string` | Texto (HTML) atual da justificação. |
 | `getEpigrafe(projetoNorma): Epigrafe` | Epígrafe extraída de um `projetoNorma`. |
 | `getEmentaFromProjetoNorma(projetoNorma): string` | Ementa extraída de um `projetoNorma`. |
-| `getDescricaoDocumento(): string` | Descrição do documento em edição, a mesma exibida no grupo "Dados básicos" da aba "Data, Autoria e Impressão" (ex.: `Projeto de Lei (PL)`, `Projeto de Lei (PL) nº 123, de 2026`, `Substitutivo ao Projeto de Lei (PL) nº 10, de 2025`, `Projeto de Lei de Conversão (MPV nº 1200, de 2026)`). Derivada da URN do documento e da URN do documento referenciado; não lança erro e devolve `''` sem documento em edição ou quando o tipo não é reconhecido. |
+| `getDescricaoDocumento(): string` | Descrição do documento em edição, a mesma exibida no grupo "Dados básicos" da aba "Dados da proposição" (ex.: `Projeto de Lei (PL)`, `Projeto de Lei (PL) nº 123, de 2026`, `Substitutivo ao Projeto de Lei (PL) nº 10, de 2025`, `Projeto de Lei de Conversão (MPV nº 1200, de 2026)`). Derivada da URN do documento e da URN do documento referenciado; não lança erro e devolve `''` sem documento em edição ou quando o tipo não é reconhecido. |
 | `getParlamentares(): Promise<Parlamentar[]>` / `getComissoes(sigla): Promise<Comissao[]>` | Consultas aos serviços configurados. Em geral não precisam ser chamadas diretamente. |
 | `limparAlertas(): void` | Zera os alertas globais. |
 | `focusOnTab(nome: string): void` | Seleciona uma aba (por exemplo, `'lexml-eta-proposicao'`, `'justificativa'`, `'autoria'`). |
@@ -284,7 +284,7 @@ Todos são `CustomEvent` com `bubbles: true` e `composed: true`, emitidos no pr�
 |---|---|---|
 | `onrevisao` | `{ emRevisao: boolean }` | O usuário ativa ou desativa o modo de marcas de revisão. |
 | `fatalError` | `{ err: any }` | `novaProposicao`, `abrirDocumentoArticulado` ou `alterarDadosBasicos` rejeitou a entrada ou falhou. |
-| `alteracao-dados-basicos-solicitada` | `DadosBasicos` (dados atuais: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoApreciador?`, `outrosMetadados`, `anexoParecer`) | O usuário clicou em "Alterar dados básicos", no início da aba "Data, Autoria e Impressão". O componente não altera o documento: cabe ao host coletar os dados novos e chamar `alterarDadosBasicos`. O botão fica desabilitado em modo de revisão e em tipo não suportado. |
+| `alteracao-dados-basicos-solicitada` | `DadosBasicos` (dados atuais: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoApreciador?`, `outrosMetadados`, `anexoParecer`) | O usuário clicou em "Alterar dados básicos", no início da aba "Dados da proposição". O componente não altera o documento: cabe ao host coletar os dados novos e chamar `alterarDadosBasicos`. O botão fica desabilitado em modo de revisão e em tipo não suportado. |
 | `onchange` | `{ origemEvento: 'anexo' }` | O usuário importa, exclui, reordena ou altera o nome de um anexo. Alterar a lista ao abrir um arquivo não emite o evento. Outros formulários emitem `onchange` com outra `origemEvento`. |
 
 ## 7. Utilitários de arquivo

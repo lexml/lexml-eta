@@ -7,7 +7,7 @@ Define como o `lexml-eta` exibe os dados básicos do documento em edição (tipo
 ## ADDED Requirements
 
 ### Requirement: Grupo de dados básicos
-A aba "Data, Autoria e Impressão" SHALL exibir, antes dos demais grupos, o grupo "Dados básicos" com: a descrição do documento, sem rótulo; o ano do documento, exceto no substitutivo do Senado; o colegiado apreciador; "Apresentado em parecer" (Sim ou Não); e o botão "Alterar dados básicos".
+A aba "Dados da proposição" SHALL exibir, antes dos demais grupos, o grupo "Dados básicos" com: a descrição do documento, sem rótulo; o ano do documento, exceto no substitutivo do Senado; o colegiado apreciador; "Apresentado em parecer" (Sim ou Não); e o botão "Alterar dados básicos".
 
 #### Scenario: Proposição em Plenário
 - **WHEN** o documento em edição é um PL do Senado de 2026, com colegiado Plenário e sem anexo de parecer
@@ -87,6 +87,10 @@ Ao aplicar os dados básicos alterados, o sistema SHALL manter o restante do doc
 #### Scenario: Troca de colegiado
 - **WHEN** o documento tem texto, autoria, anexos e justificação, e os dados básicos são alterados só no colegiado
 - **THEN** o documento continua com o mesmo texto, autoria, anexos e justificação, e com o colegiado novo
+
+#### Scenario: Passar a anexo de parecer com colegiado Comissão
+- **WHEN** os dados básicos de um documento com colegiado Plenário são alterados para colegiado Comissão com sigla `CCJ` e anexo de parecer
+- **THEN** o grupo "Dados básicos" exibe o colegiado como "Comissão (CCJ)", o `detail` de `alteracao-dados-basicos-solicitada` contém esse colegiado e o arquivo salvo grava `lexedit:ColegiadoApreciador` com a comissão
 
 #### Scenario: Desfazer após a alteração
 - **WHEN** os dados básicos são alterados e o usuário aciona desfazer

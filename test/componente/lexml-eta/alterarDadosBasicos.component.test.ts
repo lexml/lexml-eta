@@ -247,7 +247,19 @@ describe('LexmlEtaComponent — grupo "Dados básicos" da aba', () => {
     await atualizado();
     expect(texto('#dados-basicos-descricao')).to.equal('Projeto de Lei Complementar (PLP)');
     expect(texto('#dados-basicos-parecer')).to.contain('Sim');
-    expect(texto('#dados-basicos-colegiado')).to.contain('Não se aplica');
+    expect(texto('#dados-basicos-colegiado')).to.contain('Plenário');
+  });
+
+  it('ao passar a anexo de parecer com colegiado Comissão, mantém o colegiado na tela, no evento e no arquivo', async () => {
+    await abrir(URN_PL);
+    await component.alterarDadosBasicos(dados({ urn: URN_PL, anexoParecer: true }));
+    await atualizado();
+    expect(texto('#dados-basicos-colegiado')).to.contain('Comissão (CCJ)');
+    let detail: any;
+    component.addEventListener('alteracao-dados-basicos-solicitada', e => (detail = (e as CustomEvent).detail));
+    botao().click();
+    expect(detail.colegiadoApreciador).to.include({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
+    expect(lexeditSalvo(component.getDocumentoArticulado()).colegiadoApreciador).to.include({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
   });
 
   it('desabilita o botão em modo de revisão, com a mensagem, e reabilita ao sair', async () => {
