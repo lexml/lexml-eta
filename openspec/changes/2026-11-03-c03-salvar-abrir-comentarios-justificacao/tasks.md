@@ -25,6 +25,6 @@
 
 ## 6. Documentação e fechamento
 
-- [ ] 6.1 Atualizar `docs/extensao-formato-lexml/08-comentarios.md` (id de cada fragmento, casos particulares de leitura, implementado só para a justificação), a tabela de `00-especificacao-esquema-lexedit.md` e a fixture `scripts/fixtures-lexedit/08-comentarios.xml` com um trecho em dois fragmentos. Verificar com `npm run verify:xsd-lexedit`.
-- [ ] 6.2 Registrar no `CLAUDE.md` o padrão de gravação e leitura dos comentários (varredura única, ordem das pendências e descarte das sequências sem trecho).
-- [ ] 6.3 Rodar `npm test` completo e o lint só nos arquivos alterados, sem regressão, e `openspec validate 2026-11-03-c03-salvar-abrir-comentarios-justificacao --strict` sem erros.
+- [x] 6.1 Atualizar `docs/extensao-formato-lexml/08-comentarios.md` (id de cada fragmento, casos particulares de leitura, implementado só para a justificação), a tabela de `00-especificacao-esquema-lexedit.md` e a fixture `scripts/fixtures-lexedit/08-comentarios.xml` com um trecho em dois fragmentos. Verificar com `npm run verify:xsd-lexedit`.
+- [x] 6.2 Registrar no `CLAUDE.md` o padrão de gravação e leitura dos comentários (varredura única, ordem das pendências e descarte das sequências sem trecho).
+- [x] 6.3 Rodar `npm test` completo e o lint só nos arquivos alterados, sem regressão, e `openspec validate 2026-11-03-c03-salvar-abrir-comentarios-justificacao --strict` sem erros.

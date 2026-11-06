@@ -25,7 +25,7 @@ const conferirAlerta = (): void => {
   cy.get('lexml-eta-alertas').should($el => expect($el[0].shadowRoot?.textContent ?? '').to.include(ALERTA));
 };
 
-const abrir = (opcoes: string | { contents: Buffer; fileName: string }): void => {
+const abrir = (opcoes: string | { contents: ReturnType<typeof Cypress.Buffer.from>; fileName: string }): void => {
   cy.get('#fileUpload').selectFile(opcoes, { force: true });
   cy.getContainerArtigoByNumero(1).should('exist');
   cy.get('sl-tab[panel="justificativa"]').click();
