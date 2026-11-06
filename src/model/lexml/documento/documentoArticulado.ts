@@ -148,6 +148,9 @@ export interface DocumentoArticulado {
   };
 }
 
+/** Estrutura do documento Jsonix: `norma` ou, em documentos antigos, `projeto`. */
+export const getEstruturaNorma = (documento: any): any => documento?.value?.projetoNorma?.norma ?? documento?.value?.projetoNorma?.projeto;
+
 export const validarIdentificacaoDocumento = (urn: unknown): void => {
   // A validação XSD usa anyURI; a posição do ano e do número precisa ser verificada aqui.
   if (typeof urn !== 'string' || !/^urn:lex:br:[^:\s]+:[^:\s]+:\d{4}(?:-\d{2}-\d{2})?;\d+(?:@[^!\s]+)?$/.test(urn)) {
@@ -255,7 +258,7 @@ export const criarDocumentoArticulado = (
 };
 
 /** O modelo usa HTML; o texto do Jsonix precisa conter os caracteres literais. */
-const decodificarTextoJsonix = (valor: any): void => {
+export const decodificarTextoJsonix = (valor: any): void => {
   if (!valor || typeof valor !== 'object') return;
   for (const [chave, conteudo] of Object.entries(valor)) {
     if (chave === 'content' && Array.isArray(conteudo)) {

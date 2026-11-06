@@ -36,7 +36,7 @@ describe('LexmlEtaComponent - anexo de parecer', () => {
     expect(component.querySelector('sl-tab[panel="notas"]')).to.be.null;
     expect((component.querySelector('sl-tab-panel[name="justificativa"]') as HTMLElement).style.display).to.equal('none');
     expect(component.querySelector('sl-tab-panel[name="notas"]')).to.be.null;
-    expect(component.querySelector('sl-tab[panel="autoria"]')?.textContent?.trim()).to.equal('Data, Autoria e Impressão');
+    expect(component.querySelector('sl-tab[panel="autoria"]')?.textContent?.trim()).to.equal('Dados da proposição');
     expect((component.querySelector('lexml-eta-data')?.parentElement as HTMLElement).style.display).not.to.equal('none');
     expect((component.querySelector('lexml-eta-autoria')?.parentElement as HTMLElement).style.display).not.to.equal('none');
     expect(component.querySelector('lexml-eta-destino') === null).to.be.true;

@@ -6,7 +6,7 @@ Os dados básicos de uma proposição em elaboração (tipo/URN, documento refer
 
 ## What Changes
 
-- Novo grupo "Dados básicos" no início da aba "Data, Autoria e Impressão" do `lexml-eta`: descrição do documento derivada da URN (com flexão de gênero), ano do documento (exceto no substitutivo do Senado), colegiado apreciador, "Apresentado em parecer" e o botão "Alterar dados básicos".
+- Novo grupo "Dados básicos" no início da aba "Dados da proposição" do `lexml-eta`: descrição do documento derivada da URN (sem "Novo/Nova"; flexão ao/à no substitutivo), ano do documento (exceto no substitutivo do Senado), colegiado apreciador, "Apresentado em parecer" e o botão "Alterar dados básicos".
 - O botão emite um evento com os dados básicos atuais; o host abre o componente de edição e devolve os dados novos ao `lexml-eta`.
 - Em modo de revisão, o botão fica desabilitado, com mensagem informativa abaixo dele.
 - Novo método público `alterarDadosBasicos(dados)` no `lexml-eta`: recusa a chamada em modo de revisão e, fora dele, aplica os dados novos recarregando o documento atual, com as regras:
@@ -18,15 +18,18 @@ Os dados básicos de uma proposição em elaboração (tipo/URN, documento refer
 - Modo de edição de dados básicos no `lexml-nova-proposicao`: inicializado com os dados atuais, usa só a Tela 1 (Continuar/Cancelar), considera verificado o documento referenciado já informado, pede confirmação ao trocar para tipo de outra casa ou ao passar a anexo de parecer, e emite um evento próprio com os mesmos dados da nova proposição, exceto o texto.
 - `reiniciar()` do `lexml-nova-proposicao` passa a fazer parte do contrato: volta o componente ao estado original (modo de criação, sem dados iniciais, Tela 1 com os padrões).
 - Demo: suporta a alteração de dados básicos e reinicia o componente de nova proposição a cada abertura do modal.
+- A aba "Data, Autoria e Impressão" passa a se chamar "Dados da proposição".
 
 ## Capabilities
 
 ### New Capabilities
-- `dados-basicos-proposicao`: exibição dos dados básicos do documento na aba "Data, Autoria e Impressão", solicitação de alteração ao host e regras de aplicação dos dados alterados no documento em edição.
+- `dados-basicos-proposicao`: exibição dos dados básicos do documento na aba "Dados da proposição", solicitação de alteração ao host e regras de aplicação dos dados alterados no documento em edição.
 
 ### Modified Capabilities
 - `interface-lexml-eta`: o método `alterarDadosBasicos` entra entre os métodos públicos que alteram o documento em edição, com a rejeição em modo de revisão.
 - `nova-proposicao`: modo de edição de dados básicos e reinício do componente ao estado original.
+- `modo-anexo-parecer`: o rótulo da aba passa a ser "Dados da proposição".
+- `anexos-proposicao`: a aba "Anexos" fica entre "Dados da proposição" e "Avisos" (o texto citava o nome antigo "Destino, Data, Autoria e Impressão").
 
 ## Impact
 

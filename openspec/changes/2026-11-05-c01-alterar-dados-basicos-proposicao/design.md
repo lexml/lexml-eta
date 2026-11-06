@@ -92,6 +92,8 @@ Evento próprio no modo de edição para o host não precisar lembrar em que mod
 
 O grupo lê `emRevisao` do `rootStore` (o `stateChanged` já recebe `RevisaoAtivada`/`RevisaoDesativada`) e `tipoNaoSuportado`. A mensagem abaixo do botão muda conforme o motivo.
 
+O grupo é o componente `lexml-eta-dados-basicos` (shadow DOM, `fieldset`/`legend` como Autoria e Opções de impressão), só de exibição: recebe do `lexml-eta` `urn`, `descricao`, `colegiadoApreciador`, `anexoParecer` e `motivoBloqueio`, e no clique emite `alterar-dados-basicos` (sem borbulhar). O `lexml-eta` monta o `detail` (epígrafe e preâmbulo do modelo, `outrosMetadados`) e emite o evento público `alteracao-dados-basicos-solicitada`.
+
 ## Risks / Trade-offs
 
 - [Desfazer perdido após a alteração] → Aceito pelo usuário; documentado na spec.
