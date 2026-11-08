@@ -309,10 +309,8 @@ const criaNotaRodape = (value: any): HTMLElement => {
   return el;
 };
 
-// Sequências com comentário no arquivo durante a leitura (lerJustificacao é síncrona); só um `span` `_tc` delas vira trecho comentado.
-let sequenciasLidas = new Set<string>();
-
-// `ins`/`del` levam o `id` gravado até lerJustificacao aplicar os atributos do editor.
+// `ins`/`del` levam o `id` gravado até lerJustificacao aplicar os atributos do editor; todo `span` `_tc` vira
+// `comentario`, e lerJustificacao desembrulha os que não têm sequência.
 const criaInline = (content: any[] | undefined, comRevisoes = true): Node[] =>
   (content ?? []).flatMap((item): Node[] => {
     if (typeof item === 'string') return [document.createTextNode(item)];
@@ -326,13 +324,13 @@ const criaInline = (content: any[] | undefined, comRevisoes = true): Node[] =>
       return [marca];
     }
     const idSequencia = tag === 'span' && comRevisoes ? idSequenciaDoRef(item.value?.id) : undefined;
-    if (idSequencia && sequenciasLidas.has(idSequencia)) {
+    if (idSequencia) {
       const trecho = document.createElement(COMENTARIO_TAG);
       trecho.setAttribute(COMENTARIO_ID_ATTRIBUTE, idSequencia);
       trecho.append(...criaInline(item.value?.content, comRevisoes));
       return [trecho];
     }
-    // Inline desconhecido (Remissao...), `span` `_tc` sem sequência: só o texto.
+    // Inline desconhecido (Remissao...), `span` `_tc` sem id de sequência: só o texto.
     if (tag === 'span' && item.value?.id?.startsWith?.(PREFIXO_ID_TRECHO_COMENTADO)) return criaInline(item.value?.content, comRevisoes);
     if (!tag || !TAGS_INLINE.has(tag)) return criaInline(item?.value?.content, comRevisoes);
     const el = document.createElement(tag);
@@ -439,7 +437,6 @@ const criaBloco = (item: any): Node[] => {
  * `revisoesTextuais` (de lerMetadadoLexEdit) dá autor e data aos `ins`/`del`; `comentariosLidos`, as sequências que viram trecho comentado.
  */
 export const lerJustificacao = (documento: any, revisoesTextuais: Record<string, RevisaoTextualLida> = {}, comentariosLidos: Record<string, SequenciaComentario> = {}): string => {
-  sequenciasLidas = new Set(Object.keys(comentariosLidos));
   const justificacoes = documento?.value?.projetoNorma?.justificacao;
   const container = document.createElement('div');
   for (const justificacao of Array.isArray(justificacoes) ? justificacoes : []) {
@@ -460,5 +457,10 @@ export const lerJustificacao = (documento: any, revisoesTextuais: Record<string,
     nota.textContent = String(i + 1);
   });
   container.querySelectorAll(`ins[${ATRIBUTO_ID_GRAVADO}], del[${ATRIBUTO_ID_GRAVADO}]`).forEach(marca => aplicaAtributosRevisao(marca, revisoesTextuais));
+  // Trecho sem sequência no arquivo volta como texto comum.
+  const sequencias = new Set(Object.keys(comentariosLidos));
+  container.querySelectorAll(COMENTARIO_TAG).forEach(trecho => {
+    if (!sequencias.has(trecho.getAttribute(COMENTARIO_ID_ATTRIBUTE) ?? '')) trecho.replaceWith(...Array.from(trecho.childNodes));
+  });
   return container.innerHTML;
 };
