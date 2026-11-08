@@ -119,6 +119,10 @@ O sistema SHALL gravar o grupo `Usuarios` em `lexedit:Metadado` somente quando h
 - **WHEN** o usuário salva um documento sem revisões da hierarquia e com uma marca de revisão de texto na justificação
 - **THEN** o arquivo salvo contém `Usuarios` com o autor da marca, e não contém `RevisoesArticulacao`
 
+#### Scenario: Autores dos comentários
+- **WHEN** o usuário salva um documento com uma sequência de comentários de dois autores, um deles também autor de uma marca de revisão de texto
+- **THEN** o arquivo salvo contém `Usuarios` com os dois autores, cada um uma única vez
+
 ### Requirement: Revisões da hierarquia compatíveis com o conversor LexML
 O sistema SHALL gravar `RevisoesArticulacao` no formato tipado do conversor `jsonix-lexml`, conforme `schemas/lexedit.xsd`, incluindo o conteúdo filho de cada `RevisaoArticulacao` (dispositivo com o estado anterior, com o texto e o título anteriores, ou dispositivo excluído com sua hierarquia). O conversor SHALL converter o arquivo em XML sem erro e sem descartar nenhum atributo ou conteúdo das revisões.
 
@@ -457,3 +461,17 @@ O componente `LexmlEtaComponent` SHALL expor a propriedade pública somente leit
 #### Scenario: Salvar não altera a propriedade
 - **WHEN** o usuário abre um arquivo com `dataUltimaModificacao="2026-05-12T10:15:00-03:00"` e obtém o documento para salvar
 - **THEN** a propriedade `dataUltimaModificacaoDocumento` continua com `2026-05-12T10:15:00-03:00`
+
+### Requirement: Comentários compatíveis com o conversor LexML
+
+O sistema SHALL gravar `Comentarios` no formato tipado do conversor `jsonix-lexml`, conforme `schemas/lexedit.xsd`. O conversor SHALL converter o arquivo em XML sem erro e sem descartar nenhum `span` `_tc`, `SequenciaComentario`, `Comentario` ou atributo deles, e o XML gerado SHALL ser válido pelo `schemas/lexedit.xsd`, inclusive quanto à unicidade dos `id` dos `span`, `ins` e `del`.
+
+#### Scenario: Conversão para XML preserva os comentários
+
+- **WHEN** o usuário salva um documento com um trecho comentado em dois fragmentos e uma resposta, e o arquivo é convertido em XML pelo conversor
+- **THEN** o XML contém os dois `span` com `id` de prefixo `_tc` e um `lexedit:SequenciaComentario` com `refIdElementoComentado` e dois `lexedit:Comentario`, com `refIdUsuario`, `data` e os `p` do texto
+
+#### Scenario: XML válido pelo esquema do LexEdit
+
+- **WHEN** o XML gerado a partir de um documento com comentários sobre texto com marcas de revisão é validado com `schemas/lexedit.xsd`
+- **THEN** a validação não aponta erro, nem na parte LexML nem no conteúdo de `lexedit:Metadado`
