@@ -15,8 +15,8 @@
 
 ## 3. Importação de arquivo
 
-- [ ] 3.1 Fazer `converterArquivoImportado` usar `onImportarArquivo(arquivo)` quando existir, mantendo o erro simulado quando não existir; tratar `erros` não vazio (Tela 3), sucesso com `texto` (conclui), sem erros e sem texto (Tela 3 com mensagem própria) e rejeição (Tela 2 com mensagem de erro de comunicação da importação e nova tentativa); verificar com testes de componente para cada caso
-- [ ] 3.2 Verificar com teste de componente que o callback não é chamado para arquivo acima de 5 MB nem para extensão não aceita, e que sem callback o comportamento simulado dos testes existentes permanece
+- [x] 3.1 Fazer `converterArquivoImportado` usar `onImportarArquivo(arquivo)` quando existir, mantendo o erro simulado quando não existir; tratar `erros` não vazio (Tela 3), sucesso com `texto` (conclui), sem erros e sem texto (Tela 3 com mensagem própria) e rejeição (Tela 2 com mensagem de erro de comunicação da importação e nova tentativa); verificar com testes de componente para cada caso
+- [x] 3.2 Verificar com teste de componente que o callback não é chamado para arquivo acima de 5 MB nem para extensão não aceita, e que sem callback o comportamento simulado dos testes existentes permanece
 
 ## 4. Documentação
 

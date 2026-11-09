@@ -44,6 +44,7 @@ import {
   montaUrlComissoes,
   montaUrlProposicao,
   normalizaConsultaProposicao,
+  ResultadoImportacaoArquivo,
   ResultadoVerificacaoProposicao,
   validarConfigNovaProposicao,
 } from './urlsNovaProposicao';
@@ -71,6 +72,8 @@ const ALTURA_LISTA_COMISSAO = 192;
 
 const EXTENSOES_ARQUIVO = ['docx', 'txt', 'xml', 'json', 'lexml'];
 const ERRO_PARSER_SIMULADO = 'Erro simulado de conversão: o tratamento real do arquivo importado ainda não está disponível.';
+const ERRO_CONVERSOR_SEM_TEXTO = 'O conversor não devolveu o texto do documento.';
+const MENSAGEM_FALHA_IMPORTACAO = 'Não foi possível converter o arquivo. Tente novamente.';
 
 type EstadoVerificacao = 'nenhuma' | 'verificando' | 'ok' | 'inexistente' | 'erro';
 
@@ -584,9 +587,9 @@ export class NovaProposicaoComponent extends LitElement {
     }
   }
 
-  // Fronteira do tratamento real do arquivo (outra issue): hoje sempre devolve um erro simulado, sem chamar URL.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async converterArquivoImportado(_arquivo: File): Promise<{ texto?: unknown; erros: string[] }> {
+  // Sem o callback do host, o tratamento do arquivo é simulado: sempre um erro de parser, sem chamar URL.
+  private async converterArquivoImportado(arquivo: File): Promise<ResultadoImportacaoArquivo> {
+    if (this._config!.onImportarArquivo) return this._config!.onImportarArquivo(arquivo);
     return { erros: [ERRO_PARSER_SIMULADO] };
   }
 
@@ -613,10 +616,22 @@ export class NovaProposicaoComponent extends LitElement {
 
     if (this.opcaoTexto === 'importar') {
       this.processando = true;
-      const resultado = await this.converterArquivoImportado(this.arquivo!);
+      let resultado: ResultadoImportacaoArquivo | undefined;
+      try {
+        resultado = await this.converterArquivoImportado(this.arquivo!);
+      } catch {
+        resultado = undefined;
+      }
       this.processando = false;
-      if (resultado.erros.length) {
-        this.errosConversao = resultado.erros;
+      if (!resultado) {
+        // Falha de comunicação é transitória: permanece na Tela 2 para nova tentativa.
+        this.erroComunicacao = MENSAGEM_FALHA_IMPORTACAO;
+        return;
+      }
+      const erros = Array.isArray(resultado.erros) ? [...resultado.erros] : [];
+      if (!erros.length && (resultado.texto === undefined || resultado.texto === null)) erros.push(ERRO_CONVERSOR_SEM_TEXTO);
+      if (erros.length) {
+        this.errosConversao = erros;
         this.tela = 3;
         return;
       }

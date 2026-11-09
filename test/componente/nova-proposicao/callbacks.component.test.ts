@@ -267,6 +267,110 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
     });
   });
 
+  describe('importação (onImportarArquivo)', () => {
+    const selecionarArquivo = async (arquivo: File): Promise<void> => {
+      const input = q<any>('np-arquivo')!;
+      const dt = new DataTransfer();
+      dt.items.add(arquivo);
+      input.files = dt.files;
+      input.dispatchEvent(new Event('change'));
+      await atualizar();
+    };
+    const prepararImportacao = async (onImportarArquivo?: ConfigNovaProposicao['onImportarArquivo']): Promise<void> => {
+      await iniciar({ ...callbacks(), onImportarArquivo });
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'importar');
+    };
+    const arquivosRecebidos: File[] = [];
+    const registrando =
+      (resposta: () => unknown): ConfigNovaProposicao['onImportarArquivo'] =>
+      (arquivo): any => {
+        arquivosRecebidos.push(arquivo);
+        return resposta();
+      };
+
+    beforeEach(() => {
+      arquivosRecebidos.length = 0;
+    });
+
+    it('sucesso: recebe o arquivo e conclui com o texto devolvido', async () => {
+      await prepararImportacao(registrando(() => ({ texto: TEXTO, erros: [] })));
+      const r = concluida();
+      await selecionarArquivo(new File(['x'], 'minuta.docx'));
+      await clicar('np-continuar');
+      expect(arquivosRecebidos.map(a => a.name)).to.deep.equal(['minuta.docx']);
+      expect(r.detail.texto).to.deep.equal(TEXTO);
+      expect(r.detail.urn).to.contain('projeto.lei;pl:');
+      expect(urlsChamadas).to.deep.equal([]);
+    });
+
+    it('erros: Tela 3 com o nome do arquivo e a lista devolvida', async () => {
+      await prepararImportacao(registrando(() => ({ erros: ['Linha 3 inválida', 'Artigo sem número'] })));
+      const r = concluida();
+      await selecionarArquivo(new File(['x'], 'minuta.txt'));
+      await clicar('np-continuar');
+      expect(q('np-erros-titulo')!.textContent).to.contain('minuta.txt');
+      expect(Array.from(el.querySelectorAll('#np-erros li')).map(li => li.textContent)).to.deep.equal(['Linha 3 inválida', 'Artigo sem número']);
+      expect(r.detail).to.be.undefined;
+    });
+
+    it('sem erros e sem texto: Tela 3 com a mensagem do conversor, sem concluir e sem alterar o array do host', async () => {
+      const retorno = { erros: [] as string[] };
+      await prepararImportacao(registrando(() => retorno));
+      const r = concluida();
+      await selecionarArquivo(new File(['x'], 'minuta.docx'));
+      await clicar('np-continuar');
+      expect(q('np-erros')!.textContent).to.contain('O conversor não devolveu o texto do documento.');
+      expect(r.detail).to.be.undefined;
+      expect(retorno.erros).to.have.length(0);
+    });
+
+    it('rejeição e exceção síncrona: permanece na Tela 2 com erro de comunicação e permite nova tentativa', async () => {
+      const falhas = [
+        (): never => {
+          throw new Error('síncrona');
+        },
+        (): Promise<never> => Promise.reject(new Error('rejeitada')),
+      ];
+      for (const falha of falhas) {
+        let tentativas = 0;
+        await prepararImportacao(registrando(() => (++tentativas === 1 ? falha() : { texto: TEXTO, erros: [] })));
+        const r = concluida();
+        await selecionarArquivo(new File(['x'], 'minuta.docx'));
+        await clicar('np-continuar');
+        expect(existe('np-arquivo')).to.be.true;
+        expect(q('np-erro-texto')!.textContent).to.contain('Não foi possível converter o arquivo');
+        expect(existe('np-erros')).to.be.false;
+        expect(botaoHabilitado('np-continuar')).to.be.true;
+        await clicar('np-continuar');
+        expect(tentativas).to.equal(2);
+        expect(r.detail.texto).to.deep.equal(TEXTO);
+      }
+    });
+
+    it('arquivo acima de 5 MB ou de extensão não aceita não chama o callback', async () => {
+      await prepararImportacao(registrando(() => ({ texto: TEXTO, erros: [] })));
+      await selecionarArquivo(new File([new Uint8Array(5 * 1024 * 1024 + 1)], 'grande.docx'));
+      expect(existe('np-erro-arquivo')).to.be.true;
+      expect(botaoHabilitado('np-continuar')).to.be.false;
+      await clicar('np-continuar');
+      await selecionarArquivo(new File(['x'], 'imagem.png'));
+      expect(existe('np-erro-arquivo')).to.be.true;
+      expect(botaoHabilitado('np-continuar')).to.be.false;
+      await clicar('np-continuar');
+      expect(arquivosRecebidos).to.have.length(0);
+    });
+
+    it('sem o callback, a importação continua simulada e sem chamar URL', async () => {
+      await prepararImportacao(undefined);
+      await selecionarArquivo(new File(['x'], 'minuta.docx'));
+      await clicar('np-continuar');
+      expect(q('np-erros')!.textContent).to.contain('simulado');
+      expect(urlsChamadas).to.deep.equal([]);
+    });
+  });
+
   describe('precedência e independência das origens', () => {
     it('com callbacks e URLs informados, as URLs não são chamadas', async () => {
       await iniciar({ ...URLS, ...callbacks() });
