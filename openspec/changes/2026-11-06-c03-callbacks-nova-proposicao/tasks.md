@@ -28,4 +28,4 @@
 
 ## 6. Verificação final
 
-- [ ] 6.1 Rodar a suíte de testes da nova proposição (`test/componente/nova-proposicao/`) e `openspec validate 2026-11-06-c03-callbacks-nova-proposicao --strict`; verificar que passam sem falhas e que o lint dos arquivos alterados está limpo (apenas nos arquivos alterados)
+- [x] 6.1 Rodar a suíte de testes da nova proposição (`test/componente/nova-proposicao/`) e `openspec validate 2026-11-06-c03-callbacks-nova-proposicao --strict`; verificar que passam sem falhas e que o lint dos arquivos alterados está limpo (apenas nos arquivos alterados)
