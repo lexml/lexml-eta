@@ -24,7 +24,7 @@
 
 ## 5. Teste E2E (Cypress)
 
-- [ ] 5.1 Avaliar à luz de `docs/guia-cypress.md` e escrever `cypress/e2e/nova-proposicao/callbacks.cy.ts`: abrir o modal da demo, substituir `config` do `<lexml-nova-proposicao>` por callbacks com `cy.stub` (via `cy.window`, usando os auxiliares de `cypress/support/nova-proposicao.ts`) e conferir pela UI real a verificação com a ementa do stub, o texto no documento criado, a lista de comissões e a conclusão da importação; verificar com `npm run cy:run:local` limitado a esse spec. Se o `config` não puder ser substituído de forma estável em Cypress, registrar a decisão e manter a cobertura nos testes de componente das tarefas 2 e 3
+- [x] 5.1 Avaliar à luz de `docs/guia-cypress.md` e escrever `cypress/e2e/nova-proposicao/callbacks.cy.ts`: abrir o modal da demo, substituir `config` do `<lexml-nova-proposicao>` por callbacks com `cy.stub` (via `cy.window`, usando os auxiliares de `cypress/support/nova-proposicao.ts`) e conferir pela UI real a verificação com a ementa do stub, o texto no documento criado, a lista de comissões e a conclusão da importação; verificar com `npm run cy:run:local` limitado a esse spec. Se o `config` não puder ser substituído de forma estável em Cypress, registrar a decisão e manter a cobertura nos testes de componente das tarefas 2 e 3
 
 ## 6. Verificação final
 
