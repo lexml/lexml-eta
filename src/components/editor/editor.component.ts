@@ -1589,6 +1589,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   // Descarta o resultado se o texto mudou desde a chamada — evita aplicar offsets obsoletos.
   private async coordenarDeteccaoExterna(sourceUuid: number, texto: string): Promise<void> {
+    if (this.lexmlEtaConfig?.identificarRemissaoExterna === false) return;
+
     const matches = await lexmlLinkerClient.detectarRemissoesExternas(texto);
     if (!matches || matches.length === 0) return;
 

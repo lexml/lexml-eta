@@ -15,7 +15,7 @@ export const chaveTipo = (tipo: TipoDocumento): string => `${tipo.urnAutoridade}
 // Uma entrada por sigla, a primeira da ordenação (ex.: PLS e PLC existem como lei ordinária e complementar).
 const unicasPorSigla = (tipos: TipoDocumento[]): TipoDocumento[] => tipos.filter((t, i) => tipos.findIndex(o => o.sigla === t.sigla) === i);
 
-const ehComplementar = (tipo: TipoDocumento): boolean => /^[^;]*\.complementar(;|$)/.test(tipo.urn);
+export const ehComplementar = (tipo: TipoDocumento): boolean => /^[^;]*\.complementar(;|$)/.test(tipo.urn);
 
 /** Para sigla com tipo ordinário e complementar na mesma autoridade, devolve o tipo indicado por `complementar`; senão, o próprio tipo. */
 export const resolverTipoComplementar = (tipo: TipoDocumento, complementar: boolean): TipoDocumento => {
@@ -46,9 +46,18 @@ export const getSiglasProposicaoReferenciada = (): TipoDocumento[] =>
 /** Tela 2, "texto de outra proposição": todas as siglas do vocabulário da casa, ativas e inativas (inclui a MPV), uma vez cada. */
 export const getSiglasOutraProposicao = (): TipoDocumento[] => unicasPorSigla(ordenar(getVocabularioDaCasa().tiposDocumento.filter(t => t.sigla)));
 
-/** g2 (CD): tipos ativos de substitutivo ou de subemenda substitutiva. */
-export const getSiglasSubstitutivo = (relacao: TipoRelacaoSubstitutivo.E_SUBSTITUTIVO | TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA): TipoDocumento[] =>
-  ordenar(getVocabularioDaCasa().tiposDocumento.filter(t => t.sigla && t.ativo && t.tipoRelacaoSubstitutivo === relacao));
+const SIGLA_SUBSTITUTIVO_CD = {
+  substitutivo: { sigla: 'SBT', relacao: TipoRelacaoSubstitutivo.E_SUBSTITUTIVO },
+  subemenda: { sigla: 'SSP', relacao: TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA },
+} as const;
+
+/** CD: tipo fixo do substitutivo (SBT) ou da subemenda substitutiva (SSP); falha se ausente do vocabulário. */
+export const getTipoSubstitutivoCd = (especie: keyof typeof SIGLA_SUBSTITUTIVO_CD): TipoDocumento => {
+  const { sigla, relacao } = SIGLA_SUBSTITUTIVO_CD[especie];
+  const tipo = getVocabularioDaCasa().tiposDocumento.find(t => t.sigla === sigla && t.ativo && t.tipoRelacaoSubstitutivo === relacao);
+  if (!tipo) throw new Error(`Tipo ${sigla} não encontrado no vocabulário.`);
+  return tipo;
+};
 
 /** g4: a medida provisória do PLV (única utilização da autoridade `federal`). */
 export const getTipoMpv = (): TipoDocumento | undefined => getVocabularioDaCasa().tiposDocumento.find(t => t.sigla === 'MPV' && t.urnTipoDocumento === 'medida.provisoria');

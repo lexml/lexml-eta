@@ -38,7 +38,7 @@ export const camara: VocabularioAutoridade = {
     },
     {
       urnTipoDocumento: 'subemenda.substitutiva',
-      sigla: 'PEP',
+      sigla: 'SSP',
       descricao: 'Subemenda Substitutiva',
       genero: 'F',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA,

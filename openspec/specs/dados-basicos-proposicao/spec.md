@@ -1,17 +1,17 @@
-# Spec Delta
+# dados-basicos-proposicao Specification
 
 ## Purpose
 
 Define como o `lexml-eta` exibe os dados básicos do documento em edição (tipo, documento referenciado, colegiado, forma de apresentação), como solicita ao host a alteração desses dados e como aplica os dados alterados sem perder o restante do documento.
 
-## ADDED Requirements
+## Requirements
 
 ### Requirement: Grupo de dados básicos
-A aba "Data, Autoria e Impressão" SHALL exibir, antes dos demais grupos, o grupo "Dados básicos" com: a descrição do documento, sem rótulo; o ano do documento, exceto no substitutivo do Senado; o colegiado apreciador; "Apresentado em parecer" (Sim ou Não); e o botão "Alterar dados básicos".
+A aba "Dados da proposição" SHALL exibir, antes dos demais grupos, o grupo "Dados básicos" com: a descrição do documento, sem rótulo; o ano do documento, exceto no substitutivo do Senado; o colegiado apreciador; "Apresentado em parecer" (Sim ou Não); e o botão "Alterar dados básicos".
 
 #### Scenario: Proposição em Plenário
 - **WHEN** o documento em edição é um PL do Senado de 2026, com colegiado Plenário e sem anexo de parecer
-- **THEN** o grupo exibe "Novo Projeto de Lei (PL)", ano 2026, colegiado "Plenário", "Apresentado em parecer: Não" e o botão habilitado
+- **THEN** o grupo exibe "Projeto de Lei (PL)", ano 2026, colegiado "Plenário", "Apresentado em parecer: Não" e o botão habilitado
 
 #### Scenario: Colegiado em comissão
 - **WHEN** o colegiado apreciador é Comissão com sigla `CCJ`
@@ -26,11 +26,11 @@ A aba "Data, Autoria e Impressão" SHALL exibir, antes dos demais grupos, o grup
 - **THEN** o grupo passa a exibir os dados novos
 
 ### Requirement: Descrição do documento
-A descrição SHALL ser derivada da URN e da URN do documento referenciado, com o nome do tipo por extenso e a flexão de gênero (Novo/Nova, ao/à). Documento sem número (`999999`) SHALL ser descrito como novo; documento com número SHALL ser descrito pela sigla, número e ano.
+A descrição SHALL ser derivada da URN e da URN do documento referenciado, com o nome do tipo por extenso, sem "Novo/Nova", e a flexão de gênero ao/à no substitutivo e na subemenda substitutiva. Documento sem número (`999999`) SHALL ser descrito pelo nome e sigla do tipo; documento com número SHALL ser descrito pela sigla, número e ano. No PLV, a MPV referenciada SHALL ser acrescentada entre parênteses; sem número, ela ocupa o lugar da sigla.
 
-#### Scenario: Nova proposição
+#### Scenario: Proposição sem número
 - **WHEN** a URN é de PEC sem número
-- **THEN** a descrição é "Nova Proposta de Emenda à Constituição (PEC)"
+- **THEN** a descrição é "Proposta de Emenda Constitucional (PEC)"
 
 #### Scenario: Proposição com número
 - **WHEN** a URN é de PL número 123 de 2026
@@ -45,12 +45,16 @@ A descrição SHALL ser derivada da URN e da URN do documento referenciado, com 
 - **THEN** a descrição é "Substitutivo (SBT) ao Projeto de Lei (PL) nº 10, de 2025"
 
 #### Scenario: Subemenda substitutiva
-- **WHEN** a URN é de subemenda substitutiva de sigla `PEP` cujo documento referenciado é o PL nº 10, de 2025
-- **THEN** a descrição é "Subemenda Substitutiva (PEP) ao Projeto de Lei (PL) nº 10, de 2025"
+- **WHEN** a URN é de subemenda substitutiva de sigla `SSP` cujo documento referenciado é o PL nº 10, de 2025
+- **THEN** a descrição é "Subemenda Substitutiva (SSP) ao Projeto de Lei (PL) nº 10, de 2025"
 
 #### Scenario: PLV
 - **WHEN** a URN é de PLV sem número cujo documento referenciado é a MPV nº 1.200, de 2026
-- **THEN** a descrição é "Novo Projeto de Lei de Conversão (MPV nº 1200, de 2026)"
+- **THEN** a descrição é "Projeto de Lei de Conversão (MPV nº 1200, de 2026)"
+
+#### Scenario: PLV com número
+- **WHEN** a URN é de PLV nº 5, de 2026, cujo documento referenciado é a MPV nº 1.200, de 2026
+- **THEN** a descrição é "Projeto de Lei de Conversão (PLV) nº 5, de 2026 (MPV nº 1200, de 2026)"
 
 ### Requirement: Solicitação de alteração ao host
 O botão "Alterar dados básicos" SHALL emitir ao host o evento `alteracao-dados-basicos-solicitada`, cujo `detail` contém os dados básicos atuais: `urn`, `urnDocumentoReferenciado` (quando houver), `epigrafe`, `preambulo`, `colegiadoApreciador` (quando houver), `outrosMetadados` e `anexoParecer`. O `lexml-eta` MUST NOT alterar o documento ao emitir o evento.
@@ -83,6 +87,10 @@ Ao aplicar os dados básicos alterados, o sistema SHALL manter o restante do doc
 #### Scenario: Troca de colegiado
 - **WHEN** o documento tem texto, autoria, anexos e justificação, e os dados básicos são alterados só no colegiado
 - **THEN** o documento continua com o mesmo texto, autoria, anexos e justificação, e com o colegiado novo
+
+#### Scenario: Passar a anexo de parecer com colegiado Comissão
+- **WHEN** os dados básicos de um documento com colegiado Plenário são alterados para colegiado Comissão com sigla `CCJ` e anexo de parecer
+- **THEN** o grupo "Dados básicos" exibe o colegiado como "Comissão (CCJ)", o `detail` de `alteracao-dados-basicos-solicitada` contém esse colegiado e o arquivo salvo grava `lexedit:ColegiadoApreciador` com a comissão
 
 #### Scenario: Desfazer após a alteração
 - **WHEN** os dados básicos são alterados e o usuário aciona desfazer

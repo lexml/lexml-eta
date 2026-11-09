@@ -258,8 +258,12 @@ O sistema SHALL informar se uma URN é de um substitutivo, resolvendo o tipo na 
 - **THEN** a URN não é de substitutivo
 
 #### Scenario: Subemenda substitutiva
-- **WHEN** a URN é de `subemenda.substitutiva;pep` da `camara.deputados`
+- **WHEN** a URN é de `subemenda.substitutiva;ssp` da `camara.deputados`
 - **THEN** a URN não é de substitutivo
+
+#### Scenario: Sigla anterior da subemenda substitutiva
+- **WHEN** a URN é de `subemenda.substitutiva;pep` da `camara.deputados`
+- **THEN** o tipo não é resolvido e a URN não é de substitutivo
 
 #### Scenario: Tipo não resolvido
 - **WHEN** a URN tem uma autoridade ou um tipo que o vocabulário não conhece

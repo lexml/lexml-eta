@@ -327,12 +327,11 @@ describe('Nova proposição — componente no modal da demo', () => {
     cy.get('.aguardando-inicializacao').should('exist');
   });
 
-  it('na Câmara, substitutivo usa a sigla do substitutivo e as comissões da CD', () => {
+  it('na Câmara, substitutivo deriva o tipo SBT, sem grupo de identificação próprio, e usa as comissões da CD', () => {
     cy.get('#casaEditor').select('CD');
     abrirModal();
     marcarRadioSl('especie', 'substitutivo');
-    cy.get('#np-g2').should('exist');
-    escolherItemLista('#np-sigla-substitutivo', 'SBT');
+    cy.get('#np-g2').should('not.exist');
     escolherItemLista('#np-sigla-proposicao', 'PL');
     verificarProposicao('5008', '2023');
     escolherComissao('CCJC');
@@ -345,6 +344,95 @@ describe('Nova proposição — componente no modal da demo', () => {
       expect(arquivo.value.metadado.identificacao.urn).to.match(/^urn:lex:br:camara\.deputados:substitutivo;sbt:\d{4};999999$/);
       expect(metadadoLexEdit(arquivo).anexoParecer).to.equal(true);
       expect(metadadoLexEdit(arquivo).colegiadoApreciador).to.include({ tipoColegiado: 'Comissão', siglaComissao: 'CCJC' });
+    });
+  });
+
+  it('na Câmara, subemenda substitutiva deriva o tipo SSP, sem grupo de identificação próprio', () => {
+    cy.get('#casaEditor').select('CD');
+    abrirModal();
+    marcarRadioSl('especie', 'subemenda');
+    cy.get('#np-g2').should('not.exist');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
+    verificarProposicao('5008', '2023');
+    escolherComissao('CCJC');
+    cy.get('#np-continuar').click();
+    cy.get('#np-continuar').click();
+
+    cy.get(`${MODAL}[open]`).should('not.exist');
+    cy.getContainerArtigoByNumero(1).should('exist');
+    lerSalvo().then(arquivo => {
+      expect(arquivo.value.metadado.identificacao.urn).to.match(/^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/);
+    });
+  });
+
+  it('reabrir o modal depois de avançar à Tela 2 e cancelar mostra a Tela 1 nos padrões', () => {
+    abrirModal();
+    escolherItemLista('#np-sigla-proposicao', 'PL');
+    cy.get('#np-continuar').click();
+    cy.get('#np-cabecalho').should('exist');
+    cy.get('#np-cancelar').click();
+    cy.get(`${MODAL}[open]`).should('not.exist');
+
+    abrirModal();
+    cy.get('#np-cabecalho').should('not.exist');
+    cy.get('#np-titulo').should('have.text', 'Nova proposição');
+    cy.get('#np-sigla-proposicao sl-input').should('have.prop', 'value', '');
+    cy.get('sl-radio[name="especie"][value="proposicao"]').should('have.prop', 'checked', true);
+    deveEstarDesabilitado('#np-continuar');
+  });
+
+  describe('modo de edição de dados básicos', () => {
+    const DADOS_BASICOS = 'lexml-eta-dados-basicos';
+
+    const criarPl = (): void => {
+      abrirModal();
+      escolherItemLista('#np-sigla-proposicao', 'PL');
+      cy.get('#np-continuar').click();
+      cy.get('#np-continuar').click();
+      cy.get(`${MODAL}[open]`).should('not.exist');
+      cy.getContainerArtigoByNumero(1).should('exist');
+    };
+
+    const abrirAlteracao = (): void => {
+      cy.get('sl-tab[panel="autoria"]').click();
+      cy.get(DADOS_BASICOS).shadow().find('#botao-alterar-dados-basicos').click();
+      cy.get(`${MODAL}[open]`).should('exist');
+      cy.get('#np-titulo').should('have.text', 'Alterar dados básicos');
+    };
+
+    it('abre preenchido com os dados atuais e Continuar aplica a alteração sem passar pela Tela 2', () => {
+      criarPl();
+      abrirAlteracao();
+      cy.get('#np-sigla-proposicao sl-input').should('have.prop', 'value').and('match', /^PL\b/);
+      cy.get('sl-radio[name="destino"][value="Plenário"]').should('have.prop', 'checked', true);
+      cy.get('#np-anexo-parecer').should('have.prop', 'checked', false);
+      deveEstarHabilitado('#np-continuar');
+
+      marcarRadioSl('destino', 'Comissão');
+      escolherComissao('CCJ');
+      cy.get('#np-continuar').click();
+
+      cy.get('#np-cabecalho').should('not.exist');
+      cy.get(`${MODAL}[open]`).should('not.exist');
+      cy.get(DADOS_BASICOS).shadow().find('#dados-basicos-colegiado').should('contain.text', 'Comissão (CCJ)');
+    });
+
+    it('passar a anexo de parecer pede confirmação: Não mantém o modal e Sim aplica', () => {
+      criarPl();
+      abrirAlteracao();
+      cy.get('#np-anexo-parecer').shadow().find('input').click({ force: true });
+      cy.get('#np-anexo-parecer').should('have.prop', 'checked', true);
+      cy.get('#np-continuar').click();
+
+      cy.get('#np-confirmacao[open]').should('contain.text', 'Ao apresentar o documento em parecer, a justificação informada será perdida. Deseja continuar?');
+      cy.get('#np-confirmar-nao').click();
+      cy.get('#np-confirmacao[open]').should('not.exist');
+      cy.get(`${MODAL}[open]`).should('exist');
+
+      cy.get('#np-continuar').click();
+      cy.get('#np-confirmar-sim').click();
+      cy.get(`${MODAL}[open]`).should('not.exist');
+      cy.get(DADOS_BASICOS).shadow().find('#dados-basicos-parecer').should('contain.text', 'Sim');
     });
   });
 

@@ -318,15 +318,58 @@ describe('lexml-nova-proposicao', () => {
   describe('Tela 1 na CD', () => {
     beforeEach(() => iniciar({ ...CONFIG, casaLegislativaEditor: 'CD' }));
 
-    it('oferece subemenda e o grupo g2 com número s/n; siglas só do substitutivo', async () => {
+    const preencherSubstitutivo = async (especie: 'substitutivo' | 'subemenda'): Promise<void> => {
+      await marcar('especie', especie);
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await digitar('np-numero-proposicao', '12');
+      await digitar('np-ano-proposicao', '2026');
+      await clicar('np-proposicao-verificar');
+      await escolherComissao('CFT');
+    };
+
+    it('oferece subemenda e não exibe o grupo de identificação do substitutivo', async () => {
+      expect(!!el.querySelector('sl-radio[name="especie"][value="subemenda"]')).to.be.true;
       await marcar('especie', 'substitutivo');
-      expect(existe('np-g2')).to.be.true;
-      expect(q<any>('np-numero-substitutivo')!.textContent).to.equal('s/n');
-      const textos = await textosItens('np-sigla-substitutivo');
-      expect(textos).to.include('SBT');
-      expect(textos).to.not.include('PEP');
+      expect(existe('np-g2')).to.be.false;
       await marcar('especie', 'subemenda');
-      expect(await textosItens('np-sigla-substitutivo')).to.include('PEP');
+      expect(existe('np-g2')).to.be.false;
+    });
+
+    it('Continuar não exige sigla nem ano do substitutivo', async () => {
+      await preencherSubstitutivo('substitutivo');
+      expect(botaoHabilitado('np-continuar')).to.be.true;
+    });
+
+    [
+      { especie: 'substitutivo' as const, urn: /^urn:lex:br:camara\.deputados:substitutivo;sbt:\d{4};999999$/ },
+      { especie: 'subemenda' as const, urn: /^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/ },
+    ].forEach(({ especie, urn }) => {
+      it(`${especie}: a URN usa o tipo derivado e o ano corrente`, async () => {
+        const r: { detail?: any } = {};
+        el.addEventListener(EVENTO_CONCLUIDA, (e: Event) => (r.detail = (e as CustomEvent).detail));
+        await preencherSubstitutivo(especie);
+        await clicar('np-continuar');
+        await marcar('opcaoTexto', 'vazio');
+        await clicar('np-continuar');
+        expect(r.detail.urn).to.match(urn);
+        expect(r.detail.urn).to.contain(`:${new Date().getFullYear()};`);
+        expect(r.detail.urnDocumentoReferenciado).to.equal('urn:lex:br:camara.deputados:projeto.lei;pl:2026;12');
+      });
+    });
+
+    it('trocar a espécie troca o tipo do documento sem escolha de sigla', async () => {
+      const r: { detail?: any } = {};
+      el.addEventListener(EVENTO_CONCLUIDA, (e: Event) => (r.detail = (e as CustomEvent).detail));
+      await preencherSubstitutivo('substitutivo');
+      await marcar('especie', 'subemenda');
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await digitar('np-numero-proposicao', '12');
+      await clicar('np-proposicao-verificar');
+      await escolherComissao('CFT');
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'vazio');
+      await clicar('np-continuar');
+      expect(r.detail.urn).to.contain('subemenda.substitutiva;ssp:');
     });
   });
 

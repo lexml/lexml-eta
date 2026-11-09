@@ -39,7 +39,7 @@ A tela é organizada em grupos (g1 a g6). Os grupos exibidos dependem da espéci
 | Grupo | Conteúdo | Exibição |
 |---|---|---|
 | g1 — Espécie de documento | Seleção única: Proposição (padrão), Substitutivo, Subemenda substitutiva (só `CD`). | Sempre |
-| g2 — Identificação do substitutivo (ou subemenda) | Sigla + `s/n` + ano (padrão: ano corrente). | Só `CD`, nas espécies Substitutivo e Subemenda substitutiva |
+| g2 — Identificação do substitutivo (ou subemenda) | **Removido da tela.** Na `CD`, o tipo (SBT ou SSP) e o ano do documento novo são derivados (RN-12); o número é `s/n`. | Nunca |
 | g3 — Identificação da proposição | Sigla + número + ano. Em nova proposição: número `s/n`, sem **Verificar** e sem ementa. Em substitutivo ou subemenda: número editável, **Verificar** e ementa (somente leitura). | Sempre |
 | g4 — Identificação da medida provisória | MPV (fixa) + número + ano (padrão: ano corrente), **Verificar** e ementa (somente leitura). | Só quando a espécie é Proposição e a sigla de g3 é PLV |
 | g5 — Destino | Plenário ou Comissão; em Comissão, a comissão. | Sempre |
@@ -49,20 +49,20 @@ Botões: **Continuar**, **Cancelar**.
 
 Regras da tela:
 
-- **RN-01 — Espécie.** O tipo do documento deixa de ser uma lista própria e o indicativo de substitutivo deixa de existir na tela: a espécie (g1) e a sigla (g2 na `CD`; g3 nas demais situações) determinam o tipo. `tipoRelacaoSubstitutivo` só serve para filtrar as listas de siglas (RN-00, RN-00a e RN-19):
+- **RN-01 — Espécie.** O tipo do documento deixa de ser uma lista própria e o indicativo de substitutivo deixa de existir na tela: a espécie (g1) e, em Proposição e no substitutivo do `SF`, a sigla de g3 determinam o tipo; na `CD`, em Substitutivo e Subemenda substitutiva, o tipo é derivado da espécie, sem escolha do usuário. `tipoRelacaoSubstitutivo` só serve para filtrar as listas de siglas (RN-00, RN-00a e RN-19) e para localizar o tipo do substitutivo na `CD`:
 
   | Espécie | Origem do tipo do documento |
   |---|---|
   | Proposição | sigla de g3 |
   | Substitutivo, `SF` | proposição de g3 (o substitutivo usa a URN dela com versão; RN-13) |
-  | Substitutivo, `CD` | sigla de g2 (tipo com `tipoRelacaoSubstitutivo` = `é substitutivo`) |
-  | Subemenda substitutiva, `CD` | sigla de g2 (tipo com `tipoRelacaoSubstitutivo` = `é subemenda substitutiva`) |
+  | Substitutivo, `CD` | tipo `SBT` (sigla fixa, com `tipoRelacaoSubstitutivo` = `é substitutivo`) |
+  | Subemenda substitutiva, `CD` | tipo `SSP` (sigla fixa, com `tipoRelacaoSubstitutivo` = `é subemenda substitutiva`) |
 
 - **RN-02 — Proposição referenciada.** Em Substitutivo e Subemenda substitutiva, g3 identifica a proposição que recebe o documento; em Proposição, g3 identifica o próprio documento novo (sigla e ano; número `s/n`).
 - **RN-03 — PLV.** O PLV não aceita substitutivo, mas exige a referência à Medida Provisória: em Proposição com sigla PLV em g3, o grupo g4 identifica a MPV (sigla MPV fixa), que vai em `urnDocumentoReferenciado`.
 - **RN-04 — Verificar** (g3 em substitutivo ou subemenda, e g4). O botão é habilitado quando sigla, número e ano estão preenchidos. Ao acionar, verifica a existência do documento e, existindo, preenche a ementa.
 - **RN-05 — Ementa.** Somente leitura. É apagada quando qualquer campo de identificação do grupo muda.
-- **RN-06 — Continuar.** Só é permitido com a sigla escolhida (g3 e, na `CD` em substitutivo ou subemenda, também g2), com o destino válido (RN-19) e, quando a espécie exige referência (Substitutivo, Subemenda substitutiva ou PLV), com o documento referenciado verificado e existente.
+- **RN-06 — Continuar.** Só é permitido com a sigla de g3 escolhida, com o destino válido (RN-19) e, quando a espécie exige referência (Substitutivo, Subemenda substitutiva ou PLV), com o documento referenciado verificado e existente.
 - **RN-18 — Sigla inativa (removida).** Não há mais alerta de sigla inativa: em nova proposição só há siglas ativas (RN-00). Siglas inativas continuam disponíveis para partir do texto de outra proposição e para a proposição referenciada (RN-00a); abrir e editar documentos de sigla inativa não muda.
 - **RN-19 — Destino (g5).** O padrão é Comissão em Substitutivo e Subemenda substitutiva, e Plenário nos demais casos. Não existe "Plenário via comissão". Em Comissão, a comissão é obrigatória e escolhida de uma lista obtida da URL de comissões da configuração; o placeholder de casa da URL é preenchido pela autoridade da URN do novo documento (`SF`, `CD` ou `CN` para `congresso.nacional`). Com falha na obtenção da lista, a opção Comissão fica indisponível (só Plenário), e o padrão em substitutivo passa a ser Plenário. No `SF`, o destino alimenta o sufixo opcional do serviço de epígrafe (5.1). O componente de destino do `lexml-eta` é reaproveitado, com os ajustes necessários; o `lexml-eta` deixa de ter esse componente (ver [Pontos em aberto](#7-pontos-em-aberto)).
 - **RN-20 — Forma de apresentação (g6).** A caixa vem marcada em Substitutivo e Subemenda substitutiva e desmarcada em Proposição; o usuário pode alterá-la. O valor vai em `anexoParecer`.
@@ -142,7 +142,7 @@ urn:lex:br:camara.deputados:substitutivo;sbt:2026;999999
 Sufixos de versão previstos: `@apresentacao.substitutivo`, `@aprovacao.substitutivo`, `@aprovacao.substitutivo.decisao.terminativa`.
 
 - **RN-11 — Versão do substitutivo.** A identificação de substitutivo por sufixo de versão vale apenas para o `SF`: um substitutivo novo é sempre criado com `@apresentacao.substitutivo`. Os demais sufixos não são atribuídos por este componente.
-- **RN-12 — Substitutivo e subemenda na `CD`.** A `CD` não usa sufixo de versão: tem tipos de documento específicos (ex.: `sbt`, subemenda substitutiva), com `tipoRelacaoSubstitutivo` = `é substitutivo` / `é subemenda substitutiva`, escolhidos em g2. A URN usa o tipo e o ano de g2, o número `999999` e nenhum sufixo.
+- **RN-12 — Substitutivo e subemenda na `CD`.** A `CD` não usa sufixo de versão: tem tipos de documento específicos, com `tipoRelacaoSubstitutivo` = `é substitutivo` / `é subemenda substitutiva`. O tipo não é escolhido pelo usuário: é `SBT` no substitutivo e `SSP` na subemenda substitutiva, resolvidos pela sigla no vocabulário da casa (o componente falha, nomeando a sigla, se ela não existir). A URN usa esse tipo, o ano corrente, o número `999999` e nenhum sufixo; no modo de edição o ano é o da URN inicial (seção 8).
 - **RN-13 — Substitutivo do `SF`.** A URN é a mesma do documento de referência (g3), acrescida do sufixo `@apresentacao.substitutivo`; `urnDocumentoReferenciado` é a URN sem o sufixo.
 - **RN-14 — Demais documentos (inclusive substitutivos da `CD` e PLV).** São criados com o ano corrente e o número `999999`, indicando documento ainda não numerado, e não recebem versão na URN (ex.: `urn:lex:br:senado.federal:projeto.lei;pl:2026;999999`). No substitutivo e na subemenda da `CD` e no PLV, o documento referenciado vai em `urnDocumentoReferenciado`.
 - **RN-22 — Subemenda substitutiva.** Na `CD`, g3 identifica a proposição original (não o substitutivo); é ela que vai em `urnDocumentoReferenciado` e cujo texto a opção 3 da Tela 2 oferece. A referência ao substitutivo é implícita e não é coletada.
@@ -152,7 +152,7 @@ Sufixos de versão previstos: `@apresentacao.substitutivo`, `@aprovacao.substitu
 
 O componente depende dos seguintes atributos do tipo do documento (`vocabulario/`):
 
-- **`tipoRelacaoSubstitutivo`:** `aceita substitutivo` | `não aceita substitutivo` | `é substitutivo` | `é subemenda substitutiva` (base das listas de siglas, RN-00, RN-00a e g2).
+- **`tipoRelacaoSubstitutivo`:** `aceita substitutivo` | `não aceita substitutivo` | `é substitutivo` | `é subemenda substitutiva` (base das listas de siglas, RN-00 e RN-00a, e da busca dos tipos SBT e SSP na `CD`, RN-12).
 - **`ativo`** (booleano, padrão `true`): tipos inativos (ex.: PLS, PLC) não são oferecidos em nova proposição; aparecem ao final das listas de proposição referenciada e de outra proposição, em cinza (RN-00a). Deve haver apenas uma entrada ativa por sigla + autoridade na visão de uma casa.
 - **Modelo de preâmbulo** associado ao tipo (ver seção 5.2).
 - **[backlog]** Permitir parametrizar o complemento do vocabulário.
@@ -171,7 +171,7 @@ O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreamb
 
 ## 6. Critérios de aceite (resumo)
 
-1. A espécie padrão é Proposição; Subemenda substitutiva só é oferecida na `CD`; g2 só aparece na `CD`.
+1. A espécie padrão é Proposição; Subemenda substitutiva só é oferecida na `CD`; o grupo g2 não é exibido.
 2. Em Proposição, o número é `s/n` e não há Verificar; em Substitutivo e Subemenda, o número é editável e há Verificar e ementa.
 3. Em Proposição, a lista de siglas traz os tipos não substitutivos da casa e de CN, com os inativos ao final em cinza; a lista só tem tipos ativos.
 4. Em PLV, g4 identifica a MPV (sigla fixa) e a referência é obrigatória.
@@ -190,9 +190,23 @@ O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreamb
 
 Decididos (não são mais pontos em aberto): a subemenda substitutiva da `CD` referencia a proposição original, com a referência ao substitutivo implícita (RN-22); formato da lista de comissões (seção 9); colegiado da epígrafe do substitutivo do `SF` (coletado em g5); serviços de verificação, de texto e de comissões (URLs configuráveis, seção 9); limite do arquivo importado (5 MB); siglas referenciáveis e de nova proposição (do vocabulário, RN-00 e RN-00a); inclusão de siglas inativas (sim, ao final, em cinza); MPV fora das listas de siglas, só como referência do PLV; tipos de proposição de cada casa (definidos nos vocabulários, não há mais lista a confirmar).
 
-## 8. Caso relacionado: alterar dados básicos do documento
+## 8. Modo de edição: alterar dados básicos do documento (#1051)
 
-Tem **especificação própria** e está fora do escopo deste componente. Diálogo "Alterar dados básicos do documento" com campos análogos aos da Tela 1 e botões **Ok** / **Cancelar**. Os efeitos sobre o texto já editado (preâmbulo, epígrafe, fecho) ainda precisam ser definidos.
+O componente também edita os dados básicos de um documento já em edição. O host chama `iniciarModoEdicao(dadosIniciais)` **depois** da `config` (a atribuição de `config` reinicia o componente e descarta o modo e os dados iniciais). O método reinicia o componente e ativa o modo de edição; `iniciar()` reinicia em modo de criação.
+
+`dadosIniciais`: `urn` (obrigatória), `urnDocumentoReferenciado`, `colegiadoApreciador` (`tipoColegiado`, `siglaComissao`) e `anexoParecer`; o `detail` de `alteracao-dados-basicos-solicitada` do `lexml-eta` serve como está.
+
+- Só a Tela 1, com o título "Alterar dados básicos"; **Continuar** e **Cancelar**.
+- A Tela 1 é preenchida a partir da URN (módulo `lerDadosIdentificacao`, inverso de `montaUrnNovaProposicao`): espécie, siglas, número e ano; destino e forma de apresentação vêm dos dados iniciais. O PLV é reconhecido pela sigla da URN; a MPV, pela URN do documento referenciado.
+- O documento referenciado inicial vale como **verificado** (sem consultar a URL) até o usuário mudar sigla, número ou ano.
+- O número real do documento (diferente de `999999`) é exibido como texto fixo e mantido na URN do resultado enquanto espécie e sigla não mudam; senão volta a `s/n`. Na `CD`, em substitutivo e subemenda substitutiva, o número é mantido na URN sem ser exibido (não há g2).
+- Na `CD`, o ano do substitutivo ou da subemenda substitutiva é o da URN inicial, mantido ao trocar o destino ou a espécie; se a URN inicial não é de substitutivo nem de subemenda, é o ano corrente.
+- As comissões são carregadas ao abrir. Comissão inicial fora da lista (ou lista indisponível) deixa o destino inválido até o usuário escolher outro.
+- Ao **Continuar**, um único modal Sim/Não pede confirmação se a casa responsável muda ("Ao alterar para um tipo de outra casa legislativa a autoria informada será perdida. Deseja continuar?") e/ou se o documento passa a anexo de parecer ("Ao apresentar o documento em parecer, a justificação informada será perdida. Deseja continuar?"). **Não** mantém a Tela 1 sem emitir resultado.
+- O resultado é o evento `dados-basicos-alterados`, com o `detail` de `nova-proposicao-concluida` **sem `texto`**. **Cancelar** emite `nova-proposicao-cancelada`.
+- `reiniciar()` (público) volta ao estado original: modo de criação, sem dados iniciais, Tela 1 com os padrões; a configuração é mantida. O host deve chamá-lo a cada abertura do modal.
+
+Quem aplica o resultado é o host, com `alterarDadosBasicos` do `lexml-eta` (`docs/api-componente-lexml-eta.md`, seção 4.7).
 
 ## 9. Contrato com o host
 
@@ -246,3 +260,4 @@ O componente não tem efeito colateral: coleta e devolve um resultado por evento
   | `anexoParecer` | Booleano (g6). |
 
 - `nova-proposicao-cancelada`, sem `detail`.
+- `dados-basicos-alterados` (só no modo de edição, seção 8): mesmos campos de `nova-proposicao-concluida`, exceto `texto`.

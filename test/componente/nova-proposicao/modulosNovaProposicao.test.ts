@@ -7,7 +7,7 @@ import {
   getSiglasNovaProposicao,
   getSiglasOutraProposicao,
   getSiglasProposicaoReferenciada,
-  getSiglasSubstitutivo,
+  getTipoSubstitutivoCd,
   resolverTipoComplementar,
 } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
 import { DadosIdentificacao } from '../../../src/components/nova-proposicao/tiposNovaProposicao';
@@ -57,7 +57,7 @@ describe('Módulos puros da nova proposição', () => {
       const lista = getSiglasNovaProposicao('CD');
       const siglas = lista.map(t => t.sigla);
       expect(siglas).to.include.members(['PL', 'PLP', 'PEC', 'PRC', 'PLV']);
-      expect(siglas).to.not.include.members(['SBT', 'PEP', 'MPV']);
+      expect(siglas).to.not.include.members(['SBT', 'SSP', 'MPV']);
       expect(lista.some(t => t.urnAutoridade === 'senado.federal')).to.be.false;
     });
 
@@ -87,13 +87,19 @@ describe('Módulos puros da nova proposição', () => {
       const primeiroInativo = sf.findIndex(t => !t.ativo);
       expect(sf.slice(primeiroInativo).every(t => !t.ativo)).to.be.true;
       inicializarVocabulario('CD');
-      expect(getSiglasOutraProposicao().map(t => t.sigla)).to.include.members(['PL', 'SBT', 'PEP', 'MPV']);
+      expect(getSiglasOutraProposicao().map(t => t.sigla)).to.include.members(['PL', 'SBT', 'SSP', 'MPV']);
     });
 
-    it('g2 da CD: substitutivo e subemenda substitutiva', () => {
+    it('CD: tipo do substitutivo e da subemenda substitutiva derivado da espécie', () => {
       inicializarVocabulario('CD');
-      expect(getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBSTITUTIVO).map(t => t.sigla)).to.deep.equal(['SBT']);
-      expect(getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA).map(t => t.sigla)).to.deep.equal(['PEP']);
+      expect(getTipoSubstitutivoCd('substitutivo').sigla).to.equal('SBT');
+      expect(getTipoSubstitutivoCd('subemenda').sigla).to.equal('SSP');
+    });
+
+    it('CD: sigla ausente do vocabulário falha nomeando a sigla', () => {
+      inicializarVocabulario('SF');
+      expect(() => getTipoSubstitutivoCd('substitutivo')).to.throw('SBT');
+      expect(() => getTipoSubstitutivoCd('subemenda')).to.throw('SSP');
     });
   });
 
@@ -124,9 +130,9 @@ describe('Módulos puros da nova proposição', () => {
       expect(montar(pl, true).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei;pl:2026;7');
     });
 
-    it('substitutivo da CD: tipo e ano de g2, 999999, sem versão', () => {
+    it('substitutivo da CD: tipo SBT derivado, ano informado, 999999, sem versão', () => {
       inicializarVocabulario('CD');
-      const sbt = getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBSTITUTIVO)[0];
+      const sbt = getTipoSubstitutivoCd('substitutivo');
       const r = montaUrnNovaProposicao(
         dados('CD', { especie: 'substitutivo', tipoProposicao: tipo('CD', 'PL', true), numeroProposicao: '12', tipoSubstitutivo: sbt, anoSubstitutivo: '2026' })
       );
@@ -136,9 +142,9 @@ describe('Módulos puros da nova proposição', () => {
 
     it('subemenda substitutiva da CD referencia a proposição original', () => {
       inicializarVocabulario('CD');
-      const pep = getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA)[0];
-      const r = montaUrnNovaProposicao(dados('CD', { especie: 'subemenda', tipoProposicao: tipo('CD', 'PL', true), numeroProposicao: '12', tipoSubstitutivo: pep }));
-      expect(r.urn).to.equal('urn:lex:br:camara.deputados:subemenda.substitutiva;pep:2026;999999');
+      const ssp = getTipoSubstitutivoCd('subemenda');
+      const r = montaUrnNovaProposicao(dados('CD', { especie: 'subemenda', tipoProposicao: tipo('CD', 'PL', true), numeroProposicao: '12', tipoSubstitutivo: ssp }));
+      expect(r.urn).to.equal('urn:lex:br:camara.deputados:subemenda.substitutiva;ssp:2026;999999');
       expect(r.urnDocumentoReferenciado).to.equal('urn:lex:br:camara.deputados:projeto.lei;pl:2026;12');
     });
 

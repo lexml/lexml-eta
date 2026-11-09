@@ -87,7 +87,7 @@ A sigla é atributo do tipo.
 
 ### 3.5 Substitutivo
 
-O documento é **substitutivo** quando o `tipoRelacaoSubstitutivo` do seu tipo é `é substitutivo` (CD, `sbt`), ou quando é `aceita substitutivo` e a URN apresenta um evento com `substitutivo = 's'` (ex.: `urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo`). Nos demais casos, inclusive `é subemenda substitutiva` (CD, `pep`) e `não aceita substitutivo`, não é. O evento é o trecho da URN após o `@`, até o primeiro `;`, comparado com a `urn` dos `eventos` do vocabulário comum. A consulta parte da URN (C3, visão completa); tipo não resolvido resulta em falso.
+O documento é **substitutivo** quando o `tipoRelacaoSubstitutivo` do seu tipo é `é substitutivo` (CD, `sbt`), ou quando é `aceita substitutivo` e a URN apresenta um evento com `substitutivo = 's'` (ex.: `urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo`). Nos demais casos, inclusive `é subemenda substitutiva` (CD, `ssp`) e `não aceita substitutivo`, não é. O evento é o trecho da URN após o `@`, até o primeiro `;`, comparado com a `urn` dos `eventos` do vocabulário comum. A consulta parte da URN (C3, visão completa); tipo não resolvido resulta em falso.
 
 Os tipos de referência de um substitutivo não fazem parte do vocabulário (removidos na issue #1056).
 
@@ -165,7 +165,7 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `modelosE
 - Tipos de norma ficam no vocabulário, sem sigla, para referenciar; cada norma referenciável é declarada na autoridade que a emite.
 - `decreto.legislativo` e `resolucao` aparecem em mais de uma autoridade, com descrição e gênero idênticos. Senado e Câmara não precisam ter tipos correspondentes.
 - MPV tem autoridade `federal`; PLV, `congresso.nacional`.
-- Referência da subemenda substitutiva (`pep`): os tipos substitutivos.
+- Referência da subemenda substitutiva (`ssp`): os tipos substitutivos.
 - `atalhosUrn` e `eventos` são do vocabulário comum.
 - Norma citada ou alterada com autoridade da outra casa resolve pela visão completa; autoridade desconhecida fica sem resolver, sem tratamento especial.
 - Documento da outra casa é recusado ao abrir; a abertura para edição fica fora do escopo atual (exigiria definir a casa do documento, as listas de parlamentares e comissões e o tratamento da sigla).
