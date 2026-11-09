@@ -309,8 +309,8 @@ Nenhum outro tipo SHALL ter modelo.
 - **THEN** todos têm `modeloEpigrafeSubstitutivo` igual a `substitutivo` e nenhum tem `modeloEpigrafe`
 
 #### Scenario: Tipos da Câmara
-- **WHEN** a visão completa é consultada pelos tipos SBT e PEP de `camara.deputados`
-- **THEN** SBT tem `modeloEpigrafe` igual a `substitutivo` e PEP tem `modeloEpigrafe` igual a `subemenda.substitutiva`
+- **WHEN** a visão completa é consultada pelos tipos SBT e SSP de `camara.deputados`
+- **THEN** SBT tem `modeloEpigrafe` igual a `substitutivo` e SSP tem `modeloEpigrafe` igual a `subemenda.substitutiva`
 
 #### Scenario: PLV
 - **WHEN** a visão completa é consultada pelo tipo PLV de `congresso.nacional`

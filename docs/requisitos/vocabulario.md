@@ -99,7 +99,7 @@ Cada autoridade pode declarar uma lista de modelos de epígrafe (issue #1053), c
 |---|---|---|---|
 | `senado.federal` | `substitutivo` | `EMENDA Nº        {sufixo} (SUBSTITUTIVO)<br/>({dr.preposicao} {dr.descricao} nº {dr.numero}, de {dr.ano})` | `modeloEpigrafeSubstitutivo` de todos os tipos com `aceita substitutivo` |
 | `camara.deputados` | `substitutivo` | `SUBSTITUTIVO {dr.preposicaoMaiusculas} {dr.descricaoMaiusculas} Nº {dr.numero}, DE {dr.ano}` | `modeloEpigrafe` do SBT (`é substitutivo`) |
-| `camara.deputados` | `subemenda.substitutiva` | `SUBEMENDA SUBSTITUTIVA {dr.preposicaoMaiusculas} {dr.descricaoMaiusculas} Nº {dr.numero}, DE {dr.ano}` | `modeloEpigrafe` do PEP (`é subemenda substitutiva`) |
+| `camara.deputados` | `subemenda.substitutiva` | `SUBEMENDA SUBSTITUTIVA {dr.preposicaoMaiusculas} {dr.descricaoMaiusculas} Nº {dr.numero}, DE {dr.ano}` | `modeloEpigrafe` do SSP (`é subemenda substitutiva`) |
 | `congresso.nacional` | `plv` | `{descricaoMaiusculas} Nº {numero}, DE {ano}<br/>({dr.descricao} nº {dr.numero}, de {dr.ano})` | `modeloEpigrafe` do PLV |
 
 Os demais tipos usam o modelo padrão `{descricaoMaiusculas} Nº {numero}, DE {ano}`. A montagem (seleção do modelo, placeholders e formatação) está na spec `epigrafe-proposicao`.

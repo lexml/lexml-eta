@@ -30,7 +30,7 @@ describe('montaEpigrafe', () => {
 
     it('subemenda substitutiva da Câmara com documento referenciado feminino', () => {
       expect(
-        montaEpigrafe('urn:lex:br:camara.deputados:subemenda.substitutiva;pep:2025;999999', 'urn:lex:br:camara.deputados:proposta.emenda.constitucional;pec:2025;11')
+        montaEpigrafe('urn:lex:br:camara.deputados:subemenda.substitutiva;ssp:2025;999999', 'urn:lex:br:camara.deputados:proposta.emenda.constitucional;pec:2025;11')
       ).to.equal('SUBEMENDA SUBSTITUTIVA À PROPOSTA DE EMENDA CONSTITUCIONAL Nº 11, DE 2025');
     });
 

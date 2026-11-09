@@ -83,6 +83,20 @@ describe('Aplicação dos dados básicos ao documento serializado', () => {
     expect(norma(novo).parteInicial.preambulo.p[0].content).to.deep.equal(['O CONGRESSO NACIONAL decreta:']);
   });
 
+  it('epígrafe com quebra de linha e entidade XML (montaEpigrafe, #1053) vira elemento br e texto literal', () => {
+    const novo = aplicarDadosBasicos(
+      salvarCompleto(),
+      dadosBasicos({ epigrafe: 'EMENDA Nº - CCJ &amp; CAE (SUBSTITUTIVO)<br/>(ao Projeto de Lei nº 1.234, de 2026)' }),
+      contexto()
+    );
+    const content = norma(novo).parteInicial.epigrafe.content;
+    expect(content.map((e: any) => (typeof e === 'string' ? e : e.name.localPart))).to.deep.equal([
+      'EMENDA Nº - CCJ & CAE (SUBSTITUTIVO)',
+      'br',
+      '(ao Projeto de Lei nº 1.234, de 2026)',
+    ]);
+  });
+
   it('remove a referência e os outros metadados quando não informados', () => {
     const original = salvarCompleto();
     lexeditSalvo(original).urnDocumentoReferenciado = URN_MPV;

@@ -202,9 +202,9 @@ describe('modelos de epígrafe iniciais (visão completa)', () => {
     });
   });
 
-  it('na Câmara, SBT e PEP apontam para os seus modelos', () => {
+  it('na Câmara, SBT e SSP apontam para os seus modelos', () => {
     expect(tipoPorSigla('camara.deputados', 'SBT').modeloEpigrafe).to.equal('substitutivo');
-    expect(tipoPorSigla('camara.deputados', 'PEP').modeloEpigrafe).to.equal('subemenda.substitutiva');
+    expect(tipoPorSigla('camara.deputados', 'SSP').modeloEpigrafe).to.equal('subemenda.substitutiva');
   });
 
   it('no Congresso, o PLV aponta para o modelo plv', () => {
@@ -217,7 +217,7 @@ describe('modelos de epígrafe iniciais (visão completa)', () => {
       .filter(t => !(t.urnAutoridade === 'senado.federal' && t.tipoRelacaoSubstitutivo === TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO));
     expect(comModelo.map(t => `${t.urnAutoridade}:${t.urn}`)).to.deep.equal([
       'camara.deputados:substitutivo;sbt',
-      'camara.deputados:subemenda.substitutiva;pep',
+      'camara.deputados:subemenda.substitutiva;ssp',
       'congresso.nacional:projeto.lei.conversao;plv',
     ]);
     expect(temModelo(tipoPorSigla('camara.deputados', 'PL'))).to.equal(false);
