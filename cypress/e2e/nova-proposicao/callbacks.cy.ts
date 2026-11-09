@@ -58,9 +58,9 @@ describe('Nova proposição — callbacks opcionais na configuração', () => {
 
   it('substitutivo: ementa, comissão e texto vêm dos callbacks e nenhuma URL da demo é chamada', () => {
     textoDoBackendDaDemo().then(texto => {
-      const onVerificarProposicao = cy.stub().returns({ ementa: EMENTA_CALLBACK, textoEstruturadoDisponivel: true }).as('verificar');
-      const onObterTexto = cy.stub().returns(texto).as('texto');
-      const onObterComissoes = cy.stub().returns(COMISSOES_CALLBACK).as('comissoes');
+      const onVerificarProposicao = cy.stub().as('verificar').returns({ ementa: EMENTA_CALLBACK, textoEstruturadoDisponivel: true });
+      const onObterTexto = cy.stub().as('texto').returns(texto);
+      const onObterComissoes = cy.stub().as('comissoes').returns(COMISSOES_CALLBACK);
 
       abrirModal();
       configurarComCallbacks({ onVerificarProposicao, onObterTexto, onObterComissoes });
@@ -114,7 +114,7 @@ describe('Nova proposição — callbacks opcionais na configuração', () => {
 
   it('importação: o arquivo é entregue ao callback e o texto devolvido cria o documento', () => {
     textoDoBackendDaDemo().then(texto => {
-      const onImportarArquivo = cy.stub().returns({ texto, erros: [] }).as('importar');
+      const onImportarArquivo = cy.stub().as('importar').returns({ texto, erros: [] });
 
       abrirModal();
       configurarComCallbacks({ onImportarArquivo });
