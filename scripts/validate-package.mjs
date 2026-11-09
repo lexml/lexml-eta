@@ -41,19 +41,27 @@ const publicRuntimeValues = [
 ];
 const publicTypes = [
   'Anexo',
+  'ComissaoNovaProposicao',
   'ConfigNovaProposicao',
+  'ConsultaProposicao',
   'DadosBasicos',
   'DadosIniciaisEdicao',
   'DadosNovaProposicao',
   'DeleteAnexoCallback',
   'DocumentoArticulado',
+  'ImportarArquivoCallback',
   'ItemAutocompleteLista',
   'ObterAnexoBlobCallback',
   'ObterAnexoBlobResult',
+  'ObterComissoesCallback',
+  'ObterTextoCallback',
   'ResultadoAlteracaoDadosBasicos',
+  'ResultadoImportacaoArquivo',
   'ResultadoNovaProposicao',
+  'ResultadoVerificacaoProposicao',
   'TipoAnexo',
   'UploadAnexoCallback',
+  'VerificarProposicaoCallback',
   'VisualizarAnexoCallback',
 ];
 const registeredCustomElements = [
