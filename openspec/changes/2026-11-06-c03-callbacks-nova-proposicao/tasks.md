@@ -20,7 +20,7 @@
 
 ## 4. Documentação
 
-- [ ] 4.1 Atualizar a seção 11 de `docs/api-componente-lexml-eta.md` (configuração, callbacks, contrato de cada um, precedência sobre a URL, nota de importação) e a seção 9 de `docs/requisitos/componente-nova-proposicao.md`; verificar relendo que nenhuma frase ainda diz que as três URLs são sempre obrigatórias nem que a importação é sempre simulada
+- [x] 4.1 Atualizar a seção 11 de `docs/api-componente-lexml-eta.md` (configuração, callbacks, contrato de cada um, precedência sobre a URL, nota de importação) e a seção 9 de `docs/requisitos/componente-nova-proposicao.md`; verificar relendo que nenhuma frase ainda diz que as três URLs são sempre obrigatórias nem que a importação é sempre simulada
 
 ## 5. Teste E2E (Cypress)
 
