@@ -3,6 +3,7 @@ import { mesclar } from '../../../src/model/lexml/documento/vocabulario/mesclarV
 import { montarVocabulario, montarVocabularioCompleto } from '../../../src/model/lexml/documento/vocabulario/montarVocabulario';
 import {
   TextoPreambuloPadrao,
+  TipoDocumento,
   TipoDocumentoItem,
   TipoRelacaoSubstitutivo,
   VocabularioAutoridade,
@@ -65,6 +66,7 @@ describe('mesclar', () => {
     const v = mesclar(comum, [{ autoridade: { urn: 'a', descricao: 'A' } }]);
     expect(v.tiposDocumento).to.deep.equal([]);
     expect(v.preambulosPadrao).to.deep.equal([]);
+    expect(v.modelosEpigrafe).to.deep.equal([]);
     expect(v.eventos).to.deep.equal(comum.eventos);
     expect(v.atalhosUrn).to.deep.equal(comum.atalhosUrn);
   });
@@ -94,6 +96,44 @@ describe('mesclar', () => {
 
     it('sem a checagem de sigla única, ainda rejeita tipo duplicado', () => {
       expect(() => mesclar(comum, [autoridade('a', [lei, lei])], { siglaAtivaUnica: false })).to.throw(/tipo duplicado 'a:lei'/);
+    });
+
+    describe('modelos de epígrafe', () => {
+      const comModelos = (urn: string, tipos: TipoDocumentoItem[], codigos: string[]): VocabularioAutoridade => ({
+        ...autoridade(urn, tipos),
+        modelosEpigrafe: codigos.map(codigo => ({ codigo, modelo: `modelo ${codigo}` })),
+      });
+
+      it('carimba os modelos com a autoridade, mantendo o mesmo código em autoridades diferentes', () => {
+        const v = mesclar(comum, [comModelos('a', [], ['substitutivo']), comModelos('b', [], ['substitutivo'])]);
+        expect(v.modelosEpigrafe.map(m => [m.urnAutoridade, m.codigo])).to.deep.equal([
+          ['a', 'substitutivo'],
+          ['b', 'substitutivo'],
+        ]);
+      });
+
+      it('aceita tipo que aponta para modelo da própria autoridade', () => {
+        const tipo = { ...pl, modeloEpigrafe: 'x', modeloEpigrafeSubstitutivo: 'y' };
+        expect(() => mesclar(comum, [comModelos('a', [tipo], ['x', 'y'])])).not.to.throw();
+      });
+
+      it('rejeita código duplicado na mesma autoridade', () => {
+        expect(() => mesclar(comum, [comModelos('a', [], ['x', 'x'])])).to.throw(/modelo de epígrafe duplicado 'a:x'/);
+      });
+
+      it('rejeita modeloEpigrafe inexistente', () => {
+        expect(() => mesclar(comum, [comModelos('a', [{ ...pl, modeloEpigrafe: 'inexistente' }], [])])).to.throw(
+          /tipo 'a:projeto.lei;pl' aponta para o modelo de epígrafe inexistente 'inexistente'/
+        );
+      });
+
+      it('rejeita modeloEpigrafeSubstitutivo inexistente', () => {
+        expect(() => mesclar(comum, [comModelos('a', [{ ...pl, modeloEpigrafeSubstitutivo: 'y' }], ['x'])])).to.throw(/inexistente 'y'/);
+      });
+
+      it('não aceita modelo de outra autoridade', () => {
+        expect(() => mesclar(comum, [comModelos('a', [{ ...pl, modeloEpigrafe: 'x' }], []), comModelos('b', [], ['x'])])).to.throw(/inexistente 'x'/);
+      });
     });
 
     it('aceita sigla repetida entre ativo e inativo, e entre inativos', () => {
@@ -135,5 +175,52 @@ describe('montarVocabulario', () => {
         porUrn.set(t.urn, assinatura);
       });
     });
+  });
+});
+
+describe('modelos de epígrafe iniciais (visão completa)', () => {
+  const v = montarVocabularioCompleto();
+  const tiposDe = (autoridade: string): TipoDocumento[] => v.tiposDocumento.filter(t => t.urnAutoridade === autoridade);
+  const tipoPorSigla = (autoridade: string, sigla: string): TipoDocumento => tiposDe(autoridade).find(t => t.sigla === sigla)!;
+  const temModelo = (t: TipoDocumento): boolean => t.modeloEpigrafe !== undefined || t.modeloEpigrafeSubstitutivo !== undefined;
+
+  it('declara os modelos por autoridade', () => {
+    expect(v.modelosEpigrafe.map(m => `${m.urnAutoridade}:${m.codigo}`)).to.deep.equal([
+      'senado.federal:substitutivo',
+      'camara.deputados:substitutivo',
+      'camara.deputados:subemenda.substitutiva',
+      'congresso.nacional:plv',
+    ]);
+  });
+
+  it('no Senado, todo tipo que aceita substitutivo usa o modelo substitutivo só como substitutivo', () => {
+    const aceitam = tiposDe('senado.federal').filter(t => t.tipoRelacaoSubstitutivo === TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO);
+    expect(aceitam.length).to.be.greaterThan(0);
+    aceitam.forEach(t => {
+      expect(t.modeloEpigrafeSubstitutivo, t.urn).to.equal('substitutivo');
+      expect(t.modeloEpigrafe, t.urn).to.equal(undefined);
+    });
+  });
+
+  it('na Câmara, SBT e PEP apontam para os seus modelos', () => {
+    expect(tipoPorSigla('camara.deputados', 'SBT').modeloEpigrafe).to.equal('substitutivo');
+    expect(tipoPorSigla('camara.deputados', 'PEP').modeloEpigrafe).to.equal('subemenda.substitutiva');
+  });
+
+  it('no Congresso, o PLV aponta para o modelo plv', () => {
+    expect(tipoPorSigla('congresso.nacional', 'PLV').modeloEpigrafe).to.equal('plv');
+  });
+
+  it('nenhum outro tipo tem modelo', () => {
+    const comModelo = v.tiposDocumento
+      .filter(temModelo)
+      .filter(t => !(t.urnAutoridade === 'senado.federal' && t.tipoRelacaoSubstitutivo === TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO));
+    expect(comModelo.map(t => `${t.urnAutoridade}:${t.urn}`)).to.deep.equal([
+      'camara.deputados:substitutivo;sbt',
+      'camara.deputados:subemenda.substitutiva;pep',
+      'congresso.nacional:projeto.lei.conversao;plv',
+    ]);
+    expect(temModelo(tipoPorSigla('camara.deputados', 'PL'))).to.equal(false);
+    expect(temModelo(tipoPorSigla('federal', 'MPV'))).to.equal(false);
   });
 });

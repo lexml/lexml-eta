@@ -25,6 +25,7 @@ import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEG
 import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
 import { formatarLocalDataFecho, isTipoDocumentoNaoSuportado } from '../urnUtil';
 import { JustificacaoMontada, montaJustificacao, RevisaoTextualMontada } from './justificacao';
+import { montaConteudoEpigrafe } from './epigrafe';
 import { coletarSituacaoNaNormaVigente, mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
@@ -321,13 +322,16 @@ const montaParteFinal = (dados?: DadosLexEdit): any => {
   };
 };
 
+// A epígrafe chega como string (documento aberto) ou como `Conteudo` (montada à mão).
+const textoDoConteudo = (conteudo: any): string => (typeof conteudo === 'string' ? conteudo : conteudo?.texto ?? '');
+
 const montaParteInicial = (projetoNorma: any): any => {
   return {
     TYPE_NAME: 'br_gov_lexml__1.ParteInicial',
     epigrafe: {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       id: 'epigrafe',
-      content: projetoNorma.epigrafe ? buildStructuredContent(projetoNorma.epigrafe, 'texto') : [],
+      content: montaConteudoEpigrafe(textoDoConteudo(projetoNorma.epigrafe), trecho => buildStructuredContent(trecho as any, 'texto')),
     },
     ementa: {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',

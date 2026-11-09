@@ -7,6 +7,7 @@ import { TEXTO_OMISSIS } from '../../conteudo/textoOmissis';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../dispositivo/dispositivoLexmlFactory';
 import { getDispositivoAndFilhosAsLista } from '../../hierarquia/hierarquiaUtil';
 import { ProjetoNorma } from '../projetoNorma';
+import { lerConteudoEpigrafe } from './epigrafe';
 import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getPreambuloPadrao, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 import { Anexo, Autoria, ColegiadoApreciador, MimeType, OpcoesImpressao, Parlamentar, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO } from '../../../proposicao/proposicao';
@@ -379,7 +380,7 @@ const getMetadado = (documento: any): Metadado => {
 const getParteInicial = (documento: any, preservarTexto: boolean): ParteInicial => {
   const estrutura = documento?.value?.projetoNorma;
   const parteInicial = (estrutura?.norma ?? estrutura?.projeto)?.parteInicial;
-  const epigrafe = parteInicial?.epigrafe ? buildContent(parteInicial.epigrafe.content) : buildTextoEpigrafe(getUrn(documento));
+  const epigrafe = parteInicial?.epigrafe ? lerConteudoEpigrafe(parteInicial.epigrafe.content, buildContent) : buildTextoEpigrafe(getUrn(documento));
   const ementa = buildContent(parteInicial?.ementa?.content);
   const paragrafos = parteInicial?.preambulo?.p ?? [];
   const preambulo = paragrafos.length > 1 ? paragrafos.map(p => `<p>${buildContent(p.content)}</p>`).join('') : buildContent(paragrafos[0]?.content);
@@ -422,7 +423,7 @@ const buildDispositivoPreambulo = (texto: string, preservarTexto: boolean): Disp
 
 const buildTextoEpigrafeFromDocument = (documentoLexml: any): string => {
   const doc = documentoLexml.value.projetoNorma.norma || documentoLexml.value.projetoNorma.projeto;
-  const textoEpigrafe = buildContent(doc.parteInicial?.epigrafe?.content);
+  const textoEpigrafe = lerConteudoEpigrafe(doc.parteInicial?.epigrafe?.content, buildContent);
 
   return textoEpigrafe ? textoEpigrafe : buildTextoEpigrafe(getUrn(documentoLexml));
 };

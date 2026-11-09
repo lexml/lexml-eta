@@ -9,6 +9,7 @@ O vocabulário responde a perguntas sobre a **identificação de documentos legi
 - Dada uma **sigla** informada pelo host (PL, PEC, MPV...), qual tipo e qual URN provisória criar para uma proposição nova? (`buildUrnProposicao`)
 - Dada uma **URN**, qual é o tipo, o gênero, a sigla, a autoridade e o nome por extenso? (`getTipo`, `getSigla`, `getAutoridade`, `getNomeExtenso`)
 - Qual **texto padrão de preâmbulo** o documento recebe? (`getPreambuloPadrao`)
+- Qual **epígrafe** o documento novo recebe? (`montaEpigrafe`, a partir dos `modelosEpigrafe`)
 - Quais tipos podem ser a **referência de um substitutivo**?
 - Quais **normas notórias** têm nome próprio (Constituição, CLT, regimentos)? (`atalhosUrn`)
 
@@ -72,6 +73,8 @@ Cadastro dos tipos de documento: **proposições** (têm sigla) e **normas** (`l
 | `genero` | `M`/`F`, para concordância. |
 | `ativo` | Booleano, padrão `true` (proposições). Inativos (PLS, PLC...) só servem para referenciar, nunca para criar documento novo. |
 | `tipoRelacaoSubstitutivo` | `aceita substitutivo` \| `não aceita substitutivo` \| `é substitutivo` \| `é subemenda substitutiva`. |
+| `modeloEpigrafe` | Código de um modelo de epígrafe da mesma autoridade (seção 3.6); opcional. |
+| `modeloEpigrafeSubstitutivo` | Código do modelo usado só quando a URN é de substitutivo (seção 3.5); opcional. |
 
 Invariantes: **sigla única entre os tipos ativos de cada casa** (na visão completa, PL, PLP e PEC ativos se repetem entre Senado e Câmara); sigla pode se repetir entre inativos.
 
@@ -88,6 +91,19 @@ O documento é **substitutivo** quando o `tipoRelacaoSubstitutivo` do seu tipo �
 
 Os tipos de referência de um substitutivo não fazem parte do vocabulário (removidos na issue #1056).
 
+### 3.6 Modelos de epígrafe (`modelosEpigrafe`)
+
+Cada autoridade pode declarar uma lista de modelos de epígrafe (issue #1053), cada um com `codigo` e `modelo`. Na mesclagem, os modelos são carimbados com `urnAutoridade`. O código de um tipo (`modeloEpigrafe`/`modeloEpigrafeSubstitutivo`) se resolve **na autoridade do tipo**: o `substitutivo` do Senado e o da Câmara são modelos distintos. A mesclagem falha com código duplicado na mesma autoridade e com tipo que aponte para código inexistente na sua autoridade.
+
+| Autoridade | Código | Modelo | Tipos associados |
+|---|---|---|---|
+| `senado.federal` | `substitutivo` | `EMENDA Nº        {sufixo} (SUBSTITUTIVO)<br/>({dr.preposicao} {dr.descricao} nº {dr.numero}, de {dr.ano})` | `modeloEpigrafeSubstitutivo` de todos os tipos com `aceita substitutivo` |
+| `camara.deputados` | `substitutivo` | `SUBSTITUTIVO {dr.preposicaoMaiusculas} {dr.descricaoMaiusculas} Nº {dr.numero}, DE {dr.ano}` | `modeloEpigrafe` do SBT (`é substitutivo`) |
+| `camara.deputados` | `subemenda.substitutiva` | `SUBEMENDA SUBSTITUTIVA {dr.preposicaoMaiusculas} {dr.descricaoMaiusculas} Nº {dr.numero}, DE {dr.ano}` | `modeloEpigrafe` do PEP (`é subemenda substitutiva`) |
+| `congresso.nacional` | `plv` | `{descricaoMaiusculas} Nº {numero}, DE {ano}<br/>({dr.descricao} nº {dr.numero}, de {dr.ano})` | `modeloEpigrafe` do PLV |
+
+Os demais tipos usam o modelo padrão `{descricaoMaiusculas} Nº {numero}, DE {ano}`. A montagem (seleção do modelo, placeholders e formatação) está na spec `epigrafe-proposicao`.
+
 ## 4. Modelo-alvo e consultas
 
 ### 4.1 Estrutura
@@ -100,13 +116,15 @@ interface TipoDocumento {            // item de uma autoridade
   genero: string;
   ativo?: boolean;                   // padrão true
   tipoRelacaoSubstitutivo?: ...;
+  modeloEpigrafe?: string;           // código em modelosEpigrafe da autoridade
+  modeloEpigrafeSubstitutivo?: string;
 }
 // Mesclado (visão da casa ou completa), calculado em mesclar():
 //   tiposDocumento:        TipoDocumento + urnAutoridade + urn
 //   tiposDocumentoAtivos:  só as proposições ativas
 ```
 
-O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosUrn` e `eventos`. `tiposDocumentoAtivos` é **derivado** na mesclagem (a fonte única é `tiposDocumento` + `ativo`).
+O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `modelosEpigrafe`, `atalhosUrn` e `eventos`. `tiposDocumentoAtivos` é **derivado** na mesclagem (a fonte única é `tiposDocumento` + `ativo`).
 
 ### 4.2 Consultas
 
@@ -137,6 +155,7 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `atalhosU
 - **RV-16** `getTipo`, `getTipoDocumentoUrn` e `getSigla` SHALL resolver pela autoridade exata da URN na visão completa, sem usar outra autoridade; URN da outra casa resolve, e URN cuja autoridade+tipo não esteja em nenhuma autoridade não resolve.
 - **RV-17** O segmento de tipo da URN SHALL poder vir com ou sem sigla: sem sigla, e não sendo norma declarada, resolve para o tipo **ativo** com sigla da mesma autoridade (`senado.federal:projeto.lei` e `senado.federal:projeto.lei;pl` apontam para PL; `federal:medida.provisoria` e `federal:medida.provisoria;mpv`, para MPV).
 - **RV-18** Iniciar a edição de um documento com URN recebida (arquivo ou host) de autoridade fora da visão da casa SHALL falhar com a mensagem de documento de outra casa, antes de qualquer alteração do documento em edição; a proposição nova pela sigla SHALL NOT ser afetada.
+- **RV-19** Cada autoridade SHALL poder declarar modelos de epígrafe por código; o código de um tipo SHALL se resolver na autoridade do tipo, e a mesclagem SHALL falhar com código duplicado na autoridade ou referência a código inexistente (seção 3.6).
 
 ## 6. Decisões
 

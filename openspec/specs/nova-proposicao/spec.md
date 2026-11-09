@@ -56,8 +56,8 @@ O `detail` do evento de conclusão SHALL conter: `urn` (URN do novo documento); 
 - **WHEN** o usuário conclui com a opção de importação e o parser tem sucesso
 - **THEN** `texto` contém o documento articulado resultante do parser
 
-### Requirement: Epígrafe e preâmbulo fornecidos pelo vocabulário
-O componente SHALL obter `preambulo` do vocabulário (texto padrão por tipo e autoridade) e `epigrafe` do serviço de epígrafe do vocabulário (issue #1053), a partir de `urn`, `urnDocumentoReferenciado` e um sufixo opcional, e MUST depender apenas dessa interface. No `SF`, o componente SHALL informar o sufixo `- PLEN` quando o destino é Plenário e `- <sigla da comissão>` quando é Comissão; na `CD`, MUST NOT informar sufixo. Enquanto o serviço não estiver implementado, o componente SHALL gerar a epígrafe do caso padrão, sem sufixo, (`<TIPO DO DOCUMENTO POR EXTENSO EM MAIÚSCULAS> Nº   , DE <ANO>`, número em branco e ano corrente), sem alterar o contrato do evento. Quando o tipo não tiver texto padrão, o próprio componente SHALL aplicar o fallback do preâmbulo, sem alterar a função de obtenção do texto padrão nem a abertura de documentos.
+### Requirement: Epígrafe e preâmbulo obtidos do vocabulário
+O componente SHALL obter `preambulo` do vocabulário (texto padrão por tipo e autoridade) e `epigrafe` do serviço de epígrafe do vocabulário (`montaEpigrafe`), a partir de `urn`, `urnDocumentoReferenciado` e um sufixo opcional, e MUST depender apenas dessa interface. No `SF`, o componente SHALL informar o sufixo `- PLEN` quando o destino é Plenário e `- <sigla da comissão>` quando é Comissão; na `CD`, MUST NOT informar sufixo. Quando o tipo não tiver texto padrão, o próprio componente SHALL aplicar o fallback do preâmbulo, sem alterar a função de obtenção do texto padrão nem a abertura de documentos.
 
 #### Scenario: Epígrafe de substitutivo
 - **WHEN** o fluxo é concluído para um substitutivo
@@ -75,9 +75,9 @@ O componente SHALL obter `preambulo` do vocabulário (texto padrão por tipo e a
 - **WHEN** a casa é `CD`
 - **THEN** o componente chama o serviço de epígrafe sem sufixo
 
-#### Scenario: Serviço de epígrafe ainda não implementado
-- **WHEN** o fluxo é concluído e o serviço de epígrafe do vocabulário não está disponível
-- **THEN** a `epigrafe` do `detail` é a do caso padrão, com o tipo por extenso em maiúsculas, número em branco e o ano corrente
+#### Scenario: Proposição sem modelo de epígrafe
+- **WHEN** o fluxo é concluído para um PL não numerado do `SF` em 2026
+- **THEN** a `epigrafe` do `detail` é `PROJETO DE LEI Nº ` seguido de 7 espaços e de `, DE 2026`
 
 #### Scenario: Preâmbulo sem modelo
 - **WHEN** o tipo do documento não tem preâmbulo padrão no vocabulário

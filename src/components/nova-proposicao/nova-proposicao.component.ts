@@ -12,7 +12,7 @@ import '../autocomplete/autocomplete-lista';
 import { getCasaLegislativaResponsavel } from '../../model/lexml/documento/urnUtil';
 import { inicializarVocabulario } from '../../model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoDocumento, TipoRelacaoSubstitutivo } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
-import { montaEpigrafePadrao } from './epigrafePadrao';
+import { montaEpigrafeNovaProposicao } from './epigrafeNovaProposicao';
 import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
 import { isPlv, montaUrnNovaProposicao } from './montaUrnNovaProposicao';
 import { getPreambuloNovaProposicao } from './preambuloNovaProposicao';
@@ -489,7 +489,7 @@ export class NovaProposicaoComponent extends LitElement {
     const detail: ResultadoNovaProposicao = {
       urn,
       ...(urnDocumentoReferenciado && { urnDocumentoReferenciado }),
-      epigrafe: montaEpigrafePadrao(urn),
+      epigrafe: montaEpigrafeNovaProposicao(urn, urnDocumentoReferenciado, this.casa, colegiadoDestino),
       preambulo: getPreambuloNovaProposicao(urn),
       colegiadoDestino,
       ...(texto !== undefined && { texto }),

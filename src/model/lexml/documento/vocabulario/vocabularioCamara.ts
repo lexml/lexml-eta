@@ -28,14 +28,26 @@ export const camara: VocabularioAutoridade = {
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
     },
-    { urnTipoDocumento: 'substitutivo', sigla: 'SBT', descricao: 'Substitutivo', genero: 'M', tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.E_SUBSTITUTIVO },
+    {
+      urnTipoDocumento: 'substitutivo',
+      sigla: 'SBT',
+      descricao: 'Substitutivo',
+      genero: 'M',
+      tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.E_SUBSTITUTIVO,
+      modeloEpigrafe: 'substitutivo',
+    },
     {
       urnTipoDocumento: 'subemenda.substitutiva',
       sigla: 'PEP',
       descricao: 'Subemenda Substitutiva',
       genero: 'F',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA,
+      modeloEpigrafe: 'subemenda.substitutiva',
     },
+  ],
+  modelosEpigrafe: [
+    { codigo: 'substitutivo', modelo: 'SUBSTITUTIVO {dr.preposicaoMaiusculas} {dr.descricaoMaiusculas} Nº {dr.numero}, DE {dr.ano}' },
+    { codigo: 'subemenda.substitutiva', modelo: 'SUBEMENDA SUBSTITUTIVA {dr.preposicaoMaiusculas} {dr.descricaoMaiusculas} Nº {dr.numero}, DE {dr.ano}' },
   ],
   preambulosPadrao: [
     { urnTipoDocumento: 'projeto.lei', texto: TextoPreambuloPadrao.CONGRESSO_DECRETA },

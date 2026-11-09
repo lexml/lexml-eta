@@ -43,6 +43,8 @@ import { REJEITAR_REVISAO } from '../../src/model/lexml/acao/rejeitarRevisaoActi
 import { alterarRotuloPenaAction } from '../../src/model/lexml/acao/penaAction';
 import { LEXML_COM_PENAS } from '../doc/pena/lexml-com-penas';
 import { adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction } from '../../src/model/lexml/acao/atualizarTituloDispositivoAction';
+import { montaEpigrafe } from '../../src/model/lexml/documento/epigrafe';
+import { montaDocumentoNovaProposicao } from '../../src/model/lexml/documento/modelo/montaDocumentoNovaProposicao';
 
 describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
   for (const [nome, entrada] of [
@@ -59,6 +61,21 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
       expect(criarDocumentoArticulado(reaberto, reaberto.urn!)).to.deep.equal(salvo);
     });
   }
+
+  it('a quebra de linha da epígrafe vai e volta pelo CLI e valida no XSD', async () => {
+    const urn = 'urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;999999';
+    const epigrafe = montaEpigrafe(urn, 'urn:lex:br:federal:medida.provisoria;mpv:2026;1234');
+    const modelo = buildProjetoNormaFromJsonix(montaDocumentoNovaProposicao(urn, epigrafe, 'O CONGRESSO NACIONAL decreta:'), true);
+    const salvo = criarDocumentoArticulado(modelo, urn);
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include('<Epigrafe id="epigrafe">PROJETO DE LEI DE CONVERSÃO Nº        , DE 2026<br/>(Medida Provisória nº 1.234, de 2026)</Epigrafe>');
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(reaberto.epigrafe).to.equal(epigrafe);
+    expect(criarDocumentoArticulado(reaberto, urn)).to.deep.equal(salvo);
+  });
 
   it('comprova que o XSD rejeita um documento estruturalmente inválido', async () => {
     const entrada = novoDocumentoArticulado();

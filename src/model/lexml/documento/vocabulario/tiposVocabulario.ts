@@ -35,6 +35,14 @@ export interface TipoDocumentoItem {
   ativo?: boolean;
   // Padrão `não aceita substitutivo`.
   tipoRelacaoSubstitutivo?: TipoRelacaoSubstitutivo;
+  // Códigos de `modelosEpigrafe` da mesma autoridade; o de substitutivo só vale quando a URN é de substitutivo.
+  modeloEpigrafe?: string;
+  modeloEpigrafeSubstitutivo?: string;
+}
+
+export interface ModeloEpigrafeItem {
+  codigo: string;
+  modelo: string;
 }
 
 // `urnTipoDocumento` é o tipo da URN sem o `;sigla`.
@@ -63,6 +71,7 @@ export interface VocabularioAutoridade {
   autoridade: AutoridadeItem;
   tiposDocumento?: TipoDocumentoItem[];
   preambulosPadrao?: PreambuloPadraoItem[];
+  modelosEpigrafe?: ModeloEpigrafeItem[];
 }
 
 export interface VocabularioComum {
@@ -82,4 +91,5 @@ export interface Vocabulario extends VocabularioComum {
   tiposDocumento: TipoDocumento[];
   tiposDocumentoAtivos: TipoDocumento[];
   preambulosPadrao: ComAutoridade<PreambuloPadraoItem>[];
+  modelosEpigrafe: ComAutoridade<ModeloEpigrafeItem>[];
 }

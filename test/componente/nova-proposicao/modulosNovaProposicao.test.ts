@@ -1,6 +1,6 @@
 import { expect } from '@open-wc/testing';
 import { getPreambuloNovaProposicao, PREAMBULO_FALLBACK } from '../../../src/components/nova-proposicao/preambuloNovaProposicao';
-import { montaEpigrafePadrao } from '../../../src/components/nova-proposicao/epigrafePadrao';
+import { getSufixoEpigrafe } from '../../../src/components/nova-proposicao/epigrafeNovaProposicao';
 import { getIdentificacaoDocumento, getNovoOuNova } from '../../../src/components/nova-proposicao/identificacaoDocumento';
 import { montaUrnNovaProposicao } from '../../../src/components/nova-proposicao/montaUrnNovaProposicao';
 import {
@@ -192,9 +192,19 @@ describe('Módulos puros da nova proposição', () => {
     });
   });
 
-  it('epígrafe do caso padrão', () => {
-    inicializarVocabulario('SF');
-    expect(montaEpigrafePadrao('urn:lex:br:senado.federal:projeto.lei.complementar;plp:2026;999999')).to.equal('PROJETO DE LEI COMPLEMENTAR Nº   , DE 2026');
+  describe('sufixo da epígrafe', () => {
+    it('SF com destino Plenário', () => {
+      expect(getSufixoEpigrafe('SF', { tipoColegiado: 'Plenário' })).to.equal('- PLEN');
+    });
+
+    it('SF com destino Comissão', () => {
+      expect(getSufixoEpigrafe('SF', { tipoColegiado: 'Comissão', siglaComissao: 'CCJ' })).to.equal('- CCJ');
+    });
+
+    it('CD não tem sufixo, com qualquer destino', () => {
+      expect(getSufixoEpigrafe('CD', { tipoColegiado: 'Plenário' })).to.equal(undefined);
+      expect(getSufixoEpigrafe('CD', { tipoColegiado: 'Comissão', siglaComissao: 'CCJ' })).to.equal(undefined);
+    });
   });
 
   describe('URLs', () => {

@@ -13,9 +13,10 @@ export const congresso: VocabularioAutoridade = {
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
     },
     { urnTipoDocumento: 'projeto.lei', sigla: 'PLN', descricao: 'Projeto de Lei do Congresso Nacional', genero: 'M' },
-    { urnTipoDocumento: 'projeto.lei.conversao', sigla: 'PLV', descricao: 'Projeto de Lei de Conversão', genero: 'M' },
+    { urnTipoDocumento: 'projeto.lei.conversao', sigla: 'PLV', descricao: 'Projeto de Lei de Conversão', genero: 'M', modeloEpigrafe: 'plv' },
     { urnTipoDocumento: 'projeto.decreto.legislativo', sigla: 'PDN', descricao: 'Projeto de Decreto Legislativo do Congresso Nacional', genero: 'M' },
   ],
+  modelosEpigrafe: [{ codigo: 'plv', modelo: '{descricaoMaiusculas} Nº {numero}, DE {ano}<br/>({dr.descricao} nº {dr.numero}, de {dr.ano})' }],
   preambulosPadrao: [
     { urnTipoDocumento: 'projeto.lei', texto: TextoPreambuloPadrao.CONGRESSO_DECRETA },
     { urnTipoDocumento: 'projeto.lei.conversao', texto: TextoPreambuloPadrao.CONGRESSO_DECRETA },

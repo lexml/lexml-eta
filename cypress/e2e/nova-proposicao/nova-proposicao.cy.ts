@@ -44,6 +44,26 @@ describe('Nova proposição — componente no modal da demo', () => {
 
   const metadadoLexEdit = (arquivo: any): any => arquivo.value.metadado.metadadoProprietario[0].any[0].value;
 
+  // Epígrafe salva, com o elemento br como '<br/>' (#1053).
+  const epigrafeSalva = (arquivo: any): string =>
+    arquivo.value.projetoNorma.norma.parteInicial.epigrafe.content.map((e: any) => (typeof e === 'string' ? e : e.name.localPart === 'br' ? '<br/>' : '')).join('');
+
+  // A epígrafe exibida em duas linhas: o trecho de cima e o de baixo da quebra.
+  const epigrafeExibidaDeve = (primeira: string, segunda: string): void => {
+    cy.get('lexml-eta br.eta-quebra-linha').should('have.length', 1);
+    cy.get('lexml-eta br.eta-quebra-linha').then($br => {
+      const br = $br[0];
+      expect(br.previousSibling?.textContent).to.equal(primeira);
+      expect(br.nextSibling?.textContent).to.equal(segunda);
+      const topo = (no: Node): number => {
+        const range = br.ownerDocument.createRange();
+        range.selectNodeContents(no);
+        return range.getBoundingClientRect().top;
+      };
+      expect(topo(br.nextSibling!), 'segunda linha abaixo da primeira').to.be.greaterThan(topo(br.previousSibling!));
+    });
+  };
+
   beforeEach(() => {
     arquivosSalvos.length = 0;
     cy.visit('/');
@@ -207,11 +227,13 @@ describe('Nova proposição — componente no modal da demo', () => {
 
     cy.get(`${MODAL}[open]`).should('not.exist');
     cy.getContainerArtigoByNumero(1).should('exist');
+    epigrafeExibidaDeve('EMENDA Nº        - CCJ (SUBSTITUTIVO)', '(ao Projeto de Lei nº 5.008, de 2023)');
     lerSalvo().then(arquivo => {
       const lexedit = metadadoLexEdit(arquivo);
       expect(lexedit.anexoParecer).to.equal(true);
       expect(lexedit.urnDocumentoReferenciado).to.contain('projeto.lei;pl:2023;');
       expect(lexedit.colegiadoApreciador).to.include({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
+      expect(epigrafeSalva(arquivo)).to.equal('EMENDA Nº        - CCJ (SUBSTITUTIVO)<br/>(ao Projeto de Lei nº 5.008, de 2023)');
     });
   });
 
@@ -257,8 +279,11 @@ describe('Nova proposição — componente no modal da demo', () => {
 
     cy.get(`${MODAL}[open]`).should('not.exist');
     cy.getContainerArtigoByNumero(1).should('exist');
+    const ano = new Date().getFullYear();
+    epigrafeExibidaDeve(`PROJETO DE LEI DE CONVERSÃO Nº        , DE ${ano}`, '(Medida Provisória nº 1.089, de 2021)');
     lerSalvo().then(arquivo => {
       expect(arquivo.value.metadado.identificacao.urn).to.contain('congresso.nacional:projeto.lei.conversao;plv:');
+      expect(epigrafeSalva(arquivo)).to.equal(`PROJETO DE LEI DE CONVERSÃO Nº        , DE ${ano}<br/>(Medida Provisória nº 1.089, de 2021)`);
       expect(metadadoLexEdit(arquivo).urnDocumentoReferenciado).to.equal('urn:lex:br:federal:medida.provisoria;mpv:2021;1089');
     });
   });

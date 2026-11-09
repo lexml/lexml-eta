@@ -26,6 +26,7 @@ const publicRuntimeValues = [
   'lerDocumentoArticulado',
   'LexmlEtaProposicaoComponent',
   'MimeType',
+  'montaEpigrafe',
   'NovaProposicaoComponent',
   'nomeArquivoDocumentoArticulado',
   'OpcoesImpressaoComponent',

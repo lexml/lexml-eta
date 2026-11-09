@@ -364,7 +364,7 @@ describe('lexml-nova-proposicao', () => {
       await irParaTela2Proposicao();
       await clicar('np-continuar');
       expect(r.detail.urn).to.equal(`urn:lex:br:senado.federal:projeto.lei;pl:${new Date().getFullYear()};999999`);
-      expect(r.detail.epigrafe).to.contain('PROJETO DE LEI Nº');
+      expect(r.detail.epigrafe).to.equal(`PROJETO DE LEI Nº        , DE ${new Date().getFullYear()}`);
       expect(r.detail.preambulo).to.equal('O CONGRESSO NACIONAL decreta:');
       expect(r.detail.colegiadoDestino).to.deep.equal({ tipoColegiado: 'Plenário' });
       expect(r.detail.anexoParecer).to.be.false;
@@ -385,6 +385,20 @@ describe('lexml-nova-proposicao', () => {
       expect(r.detail.urn).to.contain('@apresentacao.substitutivo');
       expect(r.detail.colegiadoDestino).to.deep.equal({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
       expect(r.detail.anexoParecer).to.be.true;
+      expect(r.detail.epigrafe).to.equal(`EMENDA Nº        - CCJ (SUBSTITUTIVO)<br/>(ao Projeto de Lei nº 12, de ${new Date().getFullYear()})`);
+    });
+
+    it('substitutivo no SF com destino Plenário usa o sufixo - PLEN', async () => {
+      const r = concluida();
+      await marcar('especie', 'substitutivo');
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await digitar('np-numero-proposicao', '12');
+      await clicar('np-proposicao-verificar');
+      await marcar('destino', 'Plenário');
+      await clicar('np-continuar');
+      await clicar('np-continuar');
+      expect(r.detail.colegiadoDestino).to.deep.equal({ tipoColegiado: 'Plenário' });
+      expect(r.detail.epigrafe).to.equal(`EMENDA Nº        - PLEN (SUBSTITUTIVO)<br/>(ao Projeto de Lei nº 12, de ${new Date().getFullYear()})`);
     });
 
     it('substitutivo de PLS: lista com a sigla uma vez e URN conforme o atributo complementar', async () => {
@@ -489,6 +503,7 @@ describe('lexml-nova-proposicao', () => {
       await clicar('np-continuar');
       expect(chamadas).to.include('/t/MPV/99/2026');
       expect(r.detail.urnDocumentoReferenciado).to.contain('federal:medida.provisoria;mpv:');
+      expect(r.detail.epigrafe).to.equal(`PROJETO DE LEI DE CONVERSÃO Nº        , DE 2026<br/>(Medida Provisória nº 99, de 2026)`);
     });
 
     describe('importação simulada', () => {

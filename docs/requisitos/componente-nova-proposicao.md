@@ -159,9 +159,9 @@ O componente depende dos seguintes atributos do tipo do documento (`vocabulario/
 
 ### 5.1 Epígrafe
 
-Os modelos de epígrafe (por tipo, substitutivo, subemenda substitutiva e PLV) não são listados aqui: pertencem ao serviço de epígrafe do vocabulário, especificado e implementado na issue #1053.
+Os modelos de epígrafe (por tipo, substitutivo, subemenda substitutiva e PLV) não são listados aqui: pertencem ao serviço de epígrafe do vocabulário, implementado na issue #1053 (`montaEpigrafe`; modelos em `docs/requisitos/vocabulario.md`, seção 3.6).
 
-- **Serviço de epígrafe.** O componente usa o serviço do vocabulário (entrada: `urn`, `urnDocumentoReferenciado` e um **sufixo opcional**) quando ele já estiver implementado. No `SF`, o componente sempre informa o sufixo: `- PLEN` quando o destino é Plenário e `- <sigla da comissão>` quando é Comissão (ex.: `- CCJ`); na `CD`, não informa sufixo. Enquanto não estiver, o componente gera a epígrafe do **caso padrão** (sem sufixo), com o número em branco (o documento nasce não numerado, RN-14) e o ano corrente: `<TIPO DO DOCUMENTO POR EXTENSO EM MAIÚSCULAS> Nº   , DE <ANO>` (ex.: PROJETO DE LEI COMPLEMENTAR Nº    , DE 2026). Quando o serviço passar a existir, ele substitui a geração local sem mudar o contrato do evento.
+- **Serviço de epígrafe.** O componente usa o serviço do vocabulário, `montaEpigrafe`, com `urn`, `urnDocumentoReferenciado` e um **sufixo opcional**. No `SF`, o componente sempre informa o sufixo: `- PLEN` quando o destino é Plenário e `- <sigla da comissão>` quando é Comissão (ex.: `- CCJ`); na `CD`, não informa sufixo. Como o documento nasce não numerado (RN-14), o número sai em branco (7 espaços). Exemplo, no caso padrão: `PROJETO DE LEI COMPLEMENTAR Nº        , DE 2026`.
 - **RN-16 — Complemento de texto livre.** Em qualquer caso, o usuário pode adicionar um texto livre complementar (opcional), apresentado abaixo da epígrafe. Ele **não é coletado neste componente**: é informado depois, durante a edição da proposição (ex.: PROPOSTA DE EMENDA À CONSTITUIÇÃO Nº    , DE 2015 / TEXTO DESTACADO PARA RETORNAR À CÂMARA DOS DEPUTADOS COMO PROPOSIÇÃO AUTÔNOMA).
 
 ### 5.2 Preâmbulo
@@ -239,7 +239,7 @@ O componente não tem efeito colateral: coleta e devolve um resultado por evento
   |---|---|
   | `urn` | URN do novo documento (seção 4). |
   | `urnDocumentoReferenciado` | Em substitutivo, subemenda substitutiva e PLV. No substitutivo do `SF`, sem o sufixo de versão. |
-  | `epigrafe` | Do serviço de epígrafe do vocabulário (#1053, com o sufixo do destino no `SF`), quando implementado; senão, a epígrafe do caso padrão (5.1). |
+  | `epigrafe` | Do serviço de epígrafe do vocabulário (`montaEpigrafe`, #1053), com o sufixo do destino no `SF` (5.1). Pode conter `<br/>`. |
   | `preambulo` | De `getPreambuloPadrao` (5.2); o componente aplica o fallback (log de erro e `O CONGRESSO NACIONAL decreta:`) quando o tipo não tem modelo. |
   | `colegiadoDestino` | Sempre presente: tipo (Plenário ou Comissão) e, em Comissão, a sigla da comissão. |
   | `texto` | Documento articulado em JSONIX; só quando o texto vem de documento existente (importação, documento referenciado ou outra proposição). |

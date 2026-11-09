@@ -35,6 +35,7 @@ export { AutoriaComponent } from './components/autoria/autoria.component';
 export { NovaProposicaoComponent } from './components/nova-proposicao/nova-proposicao.component';
 export type { ResultadoNovaProposicao } from './components/nova-proposicao/tiposNovaProposicao';
 export type { ConfigNovaProposicao } from './components/nova-proposicao/urlsNovaProposicao';
+export { montaEpigrafe } from './model/lexml/documento/epigrafe';
 export { LexmlAutocomplete } from './components/lexml-autocomplete';
 export { AutocompleteListaComponent } from './components/autocomplete/autocomplete-lista';
 export type { ItemAutocompleteLista } from './components/autocomplete/autocomplete-lista';

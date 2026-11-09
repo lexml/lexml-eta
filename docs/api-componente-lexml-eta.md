@@ -105,7 +105,7 @@ Todo método valida a entrada **antes de alterar o editor**: entrada inválida e
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `urn` | `string` | **Obrigatório.** URN da nova proposição. Só proposições suportadas: tipo com sigla do vocabulário da casa do editor, de autoridade `senado.federal`, `camara.deputados` ou `congresso.nacional`. Normas, medidas provisórias (autoridade `federal`) e autoridade da outra casa são rejeitadas. Tipos inativos (PLS, PLC) são aceitos: o alerta fica a cargo do host. |
-| `epigrafe` | `string` | **Obrigatório.** Texto da epígrafe. |
+| `epigrafe` | `string` | **Obrigatório.** Texto da epígrafe, como XML de conteúdo da `Epigrafe`: entidades (`&amp;`) viram texto e `<br/>` é a quebra de linha. Em geral, vem de `montaEpigrafe` (seção 7.1). |
 | `preambulo` | `string` | **Obrigatório** (pode ser vazio; então vale o texto padrão do tipo, se houver). |
 | `urnDocumentoReferenciado` | `string?` | URN do documento referenciado (substitutivo, PLV); gravada em `lexedit:Metadado@urnDocumentoReferenciado`. |
 | `colegiadoApreciador` | `ColegiadoApreciador?` | Destino, em geral o `colegiadoDestino` do componente de nova proposição (seção 11). Sem ele, o documento criado fica sem colegiado e o `lexedit:ColegiadoApreciador` não é gravado; ao **abrir** um arquivo sem o elemento vale o padrão (Plenário). Não é editável no `lexml-eta` e o modo anexo de parecer não interfere. |
@@ -272,6 +272,33 @@ const doc = await abrirArquivoDocumentoArticulado();
 if (doc) await editor.abrirDocumentoArticulado(doc);
 ```
 
+### 7.1 Epígrafe da nova proposição: `montaEpigrafe(urn, urnDocumentoReferenciado?, sufixo?): string`
+
+Monta a epígrafe a partir dos modelos de epígrafe do vocabulário (issue #1053). O componente de nova proposição (seção 11) já a usa. O host chama `montaEpigrafe` diretamente quando monta a nova proposição por conta própria, antes de `novaProposicao`.
+
+- **Modelo.** Vem do tipo da URN: o de substitutivo, se a URN for de substitutivo e o tipo o tiver; senão, o modelo do tipo; senão, o padrão `{descricaoMaiusculas} Nº {numero}, DE {ano}`. Os tipos são resolvidos em todas as autoridades, sem depender de `casaLegislativaEditor`.
+- **Placeholders:**
+  - da URN: `{sigla}`, `{numero}`, `{ano}`, `{descricao}` e `{descricaoMaiusculas}`;
+  - do documento referenciado: os mesmos com o prefixo `dr.`, mais `{dr.preposicao}` e `{dr.preposicaoMaiusculas}` (`ao`/`à`, `AO`/`À`, pelo gênero do tipo);
+  - `{sufixo}`: texto livre, por exemplo `- CCJ`.
+
+  Dado inexistente vira string vazia.
+- **Formatação.**
+  - Os números têm ponto como separador de milhar.
+  - O número provisório `999999` vira 7 espaços, para preenchimento manual.
+  - O ano provisório `9999` vira vazio.
+  - Todo valor substituído, inclusive o sufixo, é codificado como texto XML (`&` → `&amp;`).
+- **Resultado.** É XML de conteúdo da `Epigrafe` e pode conter `<br/>`, como nos modelos do substitutivo do Senado e do PLV:
+
+```ts
+import { montaEpigrafe } from '@lexml/lexml-eta';
+
+montaEpigrafe('urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;999999', 'urn:lex:br:federal:medida.provisoria;mpv:2026;1234');
+// 'PROJETO DE LEI DE CONVERSÃO Nº        , DE 2026<br/>(Medida Provisória nº 1.234, de 2026)'
+```
+
+Os modelos estão em `docs/requisitos/vocabulario.md` (seção 3.6).
+
 ## 8. Modelos principais
 
 ```ts
@@ -419,7 +446,7 @@ nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
 - **Evento `nova-proposicao-concluida`** — `detail`: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoDestino` (`{ tipoColegiado, siglaComissao? }`), `texto?` (JSONIX) e `anexoParecer`. **`nova-proposicao-cancelada`** não tem `detail`. Após concluir, o host decide quando fechar ou chamar `reiniciar()`.
 - **Seleção de sigla e de comissão.** Usam o componente genérico `<lexml-eta-autocomplete-lista>` (`items: { value, label, inativo? }[]`, `value`, `placeholder`, `label`, `alturaMaxima` em px, `disabled`; evento `autocomplete-change` com `detail.value`, vazio quando a seleção é desfeita). A lista é flutuante, tem rolagem só vertical e omite o texto excedente; texto digitado que não é um item é apagado ao perder o foco (ou selecionado, se igual a exatamente um item).
 - **Importação de arquivo.** O tratamento real de DOCX/TXT/LexML ainda não existe: o componente valida extensão e tamanho (5 MB) e simula um erro de parser (Tela 3), sem chamar URL.
-- **Epígrafe e preâmbulo.** Enquanto o serviço de epígrafe (#1053) não existe, a epígrafe é a do caso padrão (`<TIPO> Nº   , DE <ANO>`, sem sufixo). Tipo sem texto padrão recebe `O CONGRESSO NACIONAL decreta:` com log de erro (regra do componente; a abertura de documentos não muda).
+- **Epígrafe e preâmbulo.** A epígrafe vem de `montaEpigrafe` (seção 7.1). No `SF`, o sufixo é `- PLEN` com destino Plenário e `- <sigla da comissão>` com destino Comissão; na `CD`, não há sufixo. Tipo sem texto padrão recebe `O CONGRESSO NACIONAL decreta:` com log de erro (regra do componente; a abertura de documentos não muda).
 
 ## 12. Referências
 

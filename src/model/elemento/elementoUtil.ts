@@ -76,8 +76,13 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
 };
 
 // O Quill não aceita bloco dentro da linha; o texto do dispositivo mantém os <p> para salvar.
-const textoParaExibicao = (dispositivo: Dispositivo): string | undefined =>
-  isPreambulo(dispositivo) && dispositivo.texto ? dispositivo.texto.replace(/<\/p>\s*<p>/gi, ' ').replace(/^\s*<p>|<\/p>\s*$/gi, '') : dispositivo.texto;
+// Na epígrafe, o <br/> vira o blot de quebra (o Break do Quill se remove); o texto mantém o <br/>.
+const textoParaExibicao = (dispositivo: Dispositivo): string | undefined => {
+  if (!dispositivo.texto) return dispositivo.texto;
+  if (isPreambulo(dispositivo)) return dispositivo.texto.replace(/<\/p>\s*<p>/gi, ' ').replace(/^\s*<p>|<\/p>\s*$/gi, '');
+  if (isArticulacao(dispositivo) && !dispositivo.pai) return dispositivo.texto.replace(/<br\s*\/?>/gi, '<br class="eta-quebra-linha">');
+  return dispositivo.texto;
+};
 
 export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarElementoAnterior = false): Elemento => {
   const pai = dispositivo.pai!;

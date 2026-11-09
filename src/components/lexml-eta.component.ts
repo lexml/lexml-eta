@@ -38,6 +38,7 @@ import { StateEvent, StateType } from '../redux/state';
 import { limparRevisaoAction } from '../model/lexml/acao/limparRevisoes';
 import { resetarDocumentoAction } from '../model/lexml/acao/resetarDocumentoAction';
 import { buildContent, getUrn, lerMetadadoLexEdit, lerSituacaoNaNormaVigente } from '../model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import { lerConteudoEpigrafe } from '../model/lexml/documento/conversor/epigrafe';
 import { lerJustificacao } from '../model/lexml/documento/conversor/justificacao';
 import { NOTA_RODAPE_CHANGE_EVENT, NOTA_RODAPE_REMOVE_EVENT, NotaRodape } from './editor-texto-rico/notaRodape';
 import { unsafeHTML } from 'lit-html/directives/unsafe-html.js';
@@ -367,7 +368,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   getEpigrafe(projetoNorma: any): Epigrafe {
     const epigrafe = new Epigrafe();
     const doc = projetoNorma.value.projetoNorma.norma || projetoNorma.value.projetoNorma.projeto;
-    epigrafe.texto = buildContent(doc.parteInicial?.epigrafe?.content);
+    epigrafe.texto = lerConteudoEpigrafe(doc.parteInicial?.epigrafe?.content, buildContent);
 
     return epigrafe;
   }
