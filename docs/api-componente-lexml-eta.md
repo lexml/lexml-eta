@@ -426,7 +426,7 @@ Com `identificarRemissaoExterna: false`, só a detecção automática de remiss�
 
 ## 11. Componente `<lexml-nova-proposicao>`
 
-Coleta a identificação do novo documento (espécie, sigla, proposição referenciada, destino e forma de apresentação) e o texto inicial, e **devolve o resultado por evento**: ele não cria o documento. Quem cria é o host, chamando `novaProposicao()` do `<lexml-eta>`. Especificação: `openspec/specs/nova-proposicao/spec.md` e `docs/requisitos/componente-nova-proposicao.md`.
+Coleta a identificação do novo documento (espécie, sigla, proposição referenciada, destino e forma de apresentação) e o texto inicial, e **devolve o resultado por evento**: ele não cria o documento. Quem cria é o host, chamando `novaProposicao()` do `<lexml-eta>`. Especificação: `openspec/specs/nova-proposicao/spec.md`.
 
 ```ts
 import type { ConfigNovaProposicao, ResultadoNovaProposicao } from '@lexml/lexml-eta';

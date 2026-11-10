@@ -39,7 +39,7 @@ A proposição é salva como um **PDF/A** com os metadados embutidos no arquivo 
 ## 2. Legenda
 
 - **Prioridade:** Essencial | Desejável
-- **Situação:** Implementado | Parcial | A implementar (especificado) | Depende de especificação
+- **Situação:** Implementado | Parcial | Em implementação | A implementar (especificado) | Depende de especificação
 - **Responsável:** `lexml-eta` | `eta-backend-services` | LexEdit | Infoleg Editor
 
 As prioridades e situações desta versão são uma proposta inicial, derivada dos requisitos de referência, das specs em `openspec/` e de uma leitura do código; devem ser validadas.
@@ -63,14 +63,14 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 | Remissões internas (detecção, atualização na renumeração, invalidação) | Essencial | Implementado | `openspec/specs/remissao-interna/` |
 | Remissões externas (criação manual e detecção automática pelo lexml-linker) | Desejável | Implementado | `openspec/specs/remissao-externa/`, `docs/planos/PLANO_INTEGRACAO_LEXML_LINKER_WASM.md` |
 | Colar texto articulado com apoio do parser | Essencial | Implementado | `colarTextoArticuladoDialog.ts`, `colarUtil.ts` |
-| Importar documento articulado (DOCX ou TXT) | Essencial | Depende de especificação | Requisitos gerais (João Lima), issue #1059 |
+| Importar documento articulado (DOCX ou TXT) | Essencial | Em implementação | Requisitos gerais (João Lima), issue #1059 |
 | Revisão do texto da justificação (marcar, aceitar, rejeitar) | Essencial | Implementado | `moduloRevisao.ts` |
 | Revisão da articulação (marcar, aceitar, rejeitar) | Essencial | Implementado | `aceitaRevisao.ts` |
 | Notas de rodapé na justificação | Desejável | Implementado | `moduloNotaRodape.ts` |
 | Paginação da articulação em documentos grandes | Desejável | Implementado | `openspec/specs/paginacao-articulacao/` |
 | Desfazer e refazer | Essencial | Implementado | `undo.ts`, `redo.ts` |
 | Modo de anexo de parecer | Essencial | Implementado | |
-| Alterar tipo da proposição (ex.: PL para PLP, MPV para PLV, PL para substitutivo ao PL) | Desejável | Depende de especificação | Issue #1051 |
+| Alterar tipo da proposição (ex.: PL para PLP, MPV para PLV, PL para substitutivo ao PL) | Desejável | Implementado | Issue #1051 |
 
 [↑ Voltar ao índice](#índice)
 
@@ -86,7 +86,7 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 | Substitutivo e demais metadados do LexEdit | Desejável | Implementado | `13-outros-metadados-do-lexedit.md`, issue #997 |
 | Gestão de anexos | Desejável | Implementado | `05-anexos.md` |
 | Justificação com conteúdo rico | Essencial | Implementado (a persistência está no item C) | `06-justificacao-e-conteudo-rico.md` |
-| Comentários | Desejável | A implementar (especificado) | Issue #972, `08-comentarios.md` |
+| Comentários | Desejável | Em implementação | Issue #972, `08-comentarios.md` |
 | Registro de usuários (autores de revisões e comentários) | Desejável | Implementado | `12-registro-usuarios.md` |
 
 [↑ Voltar ao índice](#índice)
@@ -107,7 +107,7 @@ As prioridades e situações desta versão são uma proposta inicial, derivada d
 | Salvar e abrir revisões da hierarquia | Desejável | Implementado | Issue #996 |
 | Salvar e abrir os demais metadados do LexEdit | Desejável | Implementado | Issue #997 |
 | Salvar e abrir anexos | Desejável | Implementado | `05-anexos.md` |
-| Salvar e abrir comentários | Desejável | A implementar (especificado) | Issue #972, `08-comentarios.md` |
+| Salvar e abrir comentários | Desejável | Em implementação | Issue #972, `08-comentarios.md` |
 | Validar a estrutura e converter para LexML (XML) | Essencial | Implementado | `test:documento-articulado:xml`, `schemas/lexedit.xsd` |
 
 [↑ Voltar ao índice](#índice)
@@ -198,6 +198,7 @@ Regras próprias de cada casa, independentes do componente que as implementa.
 | 6 | Quais funcionalidades de abrir, salvar, nomear, excluir e enviar a proposição cada aplicação já oferece? | E, F | | | |
 | 8 | Quais regras específicas da Câmara dos Deputados precisam ser levantadas? | Todas | CD | | |
 | 10 | Será necessário configurar a ordem padrão de escrita dos dispositivos nas remissões internas? | A | | | |
+| 11 | Com o destino definido no componente de nova proposição, o `lexml-eta` deixa de ter o componente de colegiado de destino: de onde o editor lê o destino ao abrir um documento e como fica o `ColegiadoApreciador` hoje salvo e aberto? | B, C | | | Mudança incompatível (**BREAKING**) para o host |
 
 [↑ Voltar ao índice](#índice)
 
