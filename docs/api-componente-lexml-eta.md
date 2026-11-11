@@ -336,7 +336,7 @@ montaEpigrafe('urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;9999
 // 'PROJETO DE LEI DE CONVERSÃO Nº        , DE 2026<br/>(Medida Provisória nº 1.234, de 2026)'
 ```
 
-Os modelos estão em `docs/requisitos/vocabulario.md` (seção 3.6).
+Os modelos estão em `docs/vocabulario.md` (seção 3.6).
 
 ## 8. Modelos principais
 
@@ -453,7 +453,7 @@ Com `identificarRemissaoExterna: false`, só a detecção automática de remiss�
 
 ## 11. Componente `<lexml-nova-proposicao>`
 
-Coleta a identificação do novo documento (espécie, sigla, proposição referenciada, destino e forma de apresentação) e o texto inicial, e **devolve o resultado por evento**: ele não cria o documento. Quem cria é o host, chamando `novaProposicao()` do `<lexml-eta>`. Especificação: `openspec/specs/nova-proposicao/spec.md` e `docs/requisitos/componente-nova-proposicao.md`.
+Coleta a identificação do novo documento (espécie, sigla, proposição referenciada, destino e forma de apresentação) e o texto inicial, e **devolve o resultado por evento**: ele não cria o documento. Quem cria é o host, chamando `novaProposicao()` do `<lexml-eta>`. Especificação: `openspec/specs/nova-proposicao/spec.md`.
 
 ```ts
 import type { ConfigNovaProposicao, ResultadoNovaProposicao } from '@lexml/lexml-eta';

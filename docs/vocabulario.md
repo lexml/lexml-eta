@@ -1,16 +1,16 @@
 # Vocabulário de URN: conceitos, estrutura e requisitos
 
-Estrutura e requisitos do vocabulário de URN (issue #1026), conforme implementado em `src/model/lexml/documento/vocabulario/` e `urnUtil.ts`.
+Estrutura e requisitos do vocabulário de URN, conforme implementado em `src/model/lexml/documento/vocabulario/` e `urnUtil.ts`.
 
 ## 1. Para que serve
 
 O vocabulário responde a perguntas sobre a **identificação de documentos legislativos** (URN LexML) para o editor:
 
-- Dada uma **sigla** informada pelo host (PL, PEC, MPV...), qual tipo e qual URN provisória criar para uma proposição nova? (`buildUrnProposicao`)
+- Dada uma **sigla** (PL, PEC, MPV...), qual é o tipo **ativo** correspondente, base da URN de uma proposição nova? (`getTipoPorSigla`)
 - Dada uma **URN**, qual é o tipo, o gênero, a sigla, a autoridade e o nome por extenso? (`getTipo`, `getSigla`, `getAutoridade`, `getNomeExtenso`)
 - Qual **texto padrão de preâmbulo** o documento recebe? (`getPreambuloPadrao`)
 - Qual **epígrafe** o documento novo recebe? (`montaEpigrafe`, a partir dos `modelosEpigrafe`)
-- Quais tipos podem ser a **referência de um substitutivo**?
+- O documento é um **substitutivo**? (`isSubstitutivo`)
 - Quais **normas notórias** têm nome próprio (Constituição, CLT, regimentos)? (`atalhosUrn`)
 
 ## 2. Anatomia de uma URN
@@ -41,12 +41,12 @@ O editor trabalha em **um** de dois modos, definido pelo host na inicialização
 
 Os módulos por autoridade são mesclados em **duas visões**, ambas em variáveis estáticas (o editor admite **uma só instância do componente por página**), consultadas pelas funções de `urnUtil` e de `consultasVocabulario` sem parâmetro:
 
-- **Visão da casa** (`getVocabularioDaCasa()`): as autoridades da tabela acima. O vocabulário do SF não contém nada da CD, e vice-versa. É inicializada pelo `LexmlEtaComponent` a partir de `LexmlEtaConfig.casaLegislativaEditor` (`inicializarVocabulario(casa)`, que reaproveita a visão quando a casa é a mesma). Atende às consultas **sem autoridade**: sigla, listagens e tipos de referência do substitutivo.
+- **Visão da casa** (`getVocabularioDaCasa()`): as autoridades da tabela acima. O vocabulário do SF não contém nada da CD, e vice-versa. É inicializada pelo `LexmlEtaComponent` a partir de `LexmlEtaConfig.casaLegislativaEditor` (`inicializarVocabulario(casa)`, que reaproveita a visão quando a casa é a mesma). Atende às consultas **sem autoridade**: sigla e listagens.
 - **Visão completa** (`getVocabularioCompleto()`): as quatro autoridades, montada uma vez e independente da casa. Atende às consultas **que partem de uma URN** (`getTipo`, `getSigla`, `getAutoridade`, `getTipoDocumentoUrn`, `getPreambuloPadrao`, nomes por extenso, `validaUrn`, `atalhosUrn`), para que uma norma da outra casa citada ou alterada (ex.: o Regimento Interno da Câmara no editor do SF) resolva e seja válida.
 
 A casa vem só do host, nunca da URN (a sigla da URN depende do vocabulário). `congresso` e `federal` entram nas duas casas.
 
-**Documento da outra casa:** abrir para edição um documento cuja URN seja de autoridade fora da visão da casa é **recusado** (`verificarUrnDaCasaDoEditor`), com a mensagem "Documento de outra casa legislativa não é suportado neste editor", antes de qualquer alteração do editor — em `lerDocumentoArticulado` (abertura de arquivo) e em `novaProposicao` (URN recebida do host), que além disso só aceita proposição suportada (ver a spec `interface-lexml-eta`). A abertura de documento da outra casa fica fora do escopo atual e pode ser retomada oportunamente.
+**Documento da outra casa:** abrir para edição um documento cuja URN seja de autoridade fora da visão da casa é **recusado** (`verificarUrnDaCasaDoEditor`), com a mensagem "Documento de outra casa legislativa não é suportado neste editor", antes de qualquer alteração do editor — em `lerDocumentoArticulado` (abertura de arquivo) e, para URN recebida do host, em `alterarDadosBasicos` e em `novaProposicao`, que além disso só aceita proposição suportada (ver a spec `interface-lexml-eta`). A abertura de documento da outra casa fica fora do escopo atual e pode ser retomada oportunamente.
 
 ### 3.2 Autoridade
 
@@ -88,8 +88,6 @@ A sigla é atributo do tipo.
 ### 3.5 Substitutivo
 
 O documento é **substitutivo** quando o `tipoRelacaoSubstitutivo` do seu tipo é `é substitutivo` (CD, `sbt`), ou quando é `aceita substitutivo` e a URN apresenta um evento com `substitutivo = 's'` (ex.: `urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo`). Nos demais casos, inclusive `é subemenda substitutiva` (CD, `ssp`) e `não aceita substitutivo`, não é. O evento é o trecho da URN após o `@`, até o primeiro `;`, comparado com a `urn` dos `eventos` do vocabulário comum. A consulta parte da URN (C3, visão completa); tipo não resolvido resulta em falso.
-
-Os tipos de referência de um substitutivo não fazem parte do vocabulário (removidos na issue #1056).
 
 ### 3.6 Modelos de epígrafe (`modelosEpigrafe`)
 
@@ -146,7 +144,6 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `modelosE
 - **RV-07** O vocabulário SHALL listar os tipos ativos e, separadamente, os inativos (C1).
 - **RV-08** O vocabulário SHALL identificar o tipo pela sigla (C2) e pela URN (C4), devolvendo o tipo e não só a URN.
 - **RV-09** O vocabulário SHALL informar, a partir da URN, se o documento é substitutivo (C3), segundo a seção 3.5; tipo não resolvido, subemenda substitutiva e tipo que não aceita substitutivo resultam em falso.
-- **RV-10** (removido na issue #1056) `tiposReferenciaveis` deixou de existir.
 - **RV-11** O preâmbulo padrão SHALL ser escolhido por tipo (sem sigla) + autoridade da URN; combinação fora da tabela não tem texto.
 - **RV-12** A nova proposição de MPV SHALL ter autoridade `federal` e a de PLV, `congresso.nacional`.
 - **RV-13** Os testes de vocabulário e de `urnUtil` SHALL rodar para as duas casas (SF e CD), reinicializando o vocabulário estático a cada caso.
@@ -165,18 +162,16 @@ O vocabulário mesclado também tem `autoridades`, `preambulosPadrao`, `modelosE
 - Tipos de norma ficam no vocabulário, sem sigla, para referenciar; cada norma referenciável é declarada na autoridade que a emite.
 - `decreto.legislativo` e `resolucao` aparecem em mais de uma autoridade, com descrição e gênero idênticos. Senado e Câmara não precisam ter tipos correspondentes.
 - MPV tem autoridade `federal`; PLV, `congresso.nacional`.
-- Referência da subemenda substitutiva (`ssp`): os tipos substitutivos.
 - `atalhosUrn` e `eventos` são do vocabulário comum.
 - Norma citada ou alterada com autoridade da outra casa resolve pela visão completa; autoridade desconhecida fica sem resolver, sem tratamento especial.
 - Documento da outra casa é recusado ao abrir; a abertura para edição fica fora do escopo atual (exigiria definir a casa do documento, as listas de parlamentares e comissões e o tratamento da sigla).
-- A Câmara tem PRC (Projeto de Resolução, aceita substitutivo).
+- A Câmara tem PRC (Projeto de Resolução) e PDL (Projeto de Decreto Legislativo), ambos aceitam substitutivo.
 - A marcação definitiva de `ativo` dos tipos que aceitam substitutivo depende do negócio.
 
 **Fora do escopo:** concordância de gênero do preâmbulo da MPV e tipos sem texto padrão.
 ## 7. Referências
 
 - `src/model/lexml/documento/vocabulario/` e `src/model/lexml/documento/urnUtil.ts`
-- `src/components/lexml-eta.component.ts` (`casaLegislativa`, `inicializaCasaLegislativa`; ponto de entrada de `casaLegislativaEditor`)
-- `openspec/changes/2026-10-19-c02-separar-vocabulario-por-autoridade/` e `openspec/changes/2026-10-22-c01-vocabulario-visao-completa-e-da-casa/`
-- `docs/requisitos/componente-nova-proposicao.md` (seções 1, 4, 5 e 6) e `docs/requisitos/pendencias.md`
+- `src/components/lexml-eta.component.ts` (ponto de entrada de `casaLegislativaEditor`: `inicializarVocabulario` no setter de `lexmlEtaConfig` e no construtor)
+- `openspec/specs/vocabulario-urn/spec.md` e `openspec/specs/nova-proposicao/spec.md`
 - `docs/estrutura-lexml.md` (formato da URN LexML)
