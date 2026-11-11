@@ -35,7 +35,17 @@ export { AutoriaComponent } from './components/autoria/autoria.component';
 export { NovaProposicaoComponent } from './components/nova-proposicao/nova-proposicao.component';
 export type { ResultadoAlteracaoDadosBasicos, ResultadoNovaProposicao } from './components/nova-proposicao/tiposNovaProposicao';
 export type { DadosIniciaisEdicao } from './components/nova-proposicao/nova-proposicao.component';
-export type { ConfigNovaProposicao } from './components/nova-proposicao/urlsNovaProposicao';
+export type {
+  ComissaoNovaProposicao,
+  ConfigNovaProposicao,
+  ConsultaProposicao,
+  ImportarArquivoCallback,
+  ObterComissoesCallback,
+  ObterTextoCallback,
+  ResultadoImportacaoArquivo,
+  ResultadoVerificacaoProposicao,
+  VerificarProposicaoCallback,
+} from './components/nova-proposicao/urlsNovaProposicao';
 export { montaEpigrafe } from './model/lexml/documento/epigrafe';
 export { LexmlAutocomplete } from './components/lexml-autocomplete';
 export { AutocompleteListaComponent } from './components/autocomplete/autocomplete-lista';

@@ -56,6 +56,7 @@ const CAMARA: Record<string, Tipo> = {
   'projeto.lei;pl': ['Projeto de Lei', 'M', 'PL', true],
   'projeto.lei.complementar;plp': ['Projeto de Lei Complementar', 'M', 'PLP', true],
   'projeto.resolucao;prc': ['Projeto de Resolução', 'M', 'PRC', true],
+  'projeto.decreto.legislativo;pdl': ['Projeto de Decreto Legislativo', 'M', 'PDL', true],
   'substitutivo;sbt': ['Substitutivo', 'M', 'SBT', true],
   'subemenda.substitutiva;ssp': ['Subemenda Substitutiva', 'F', 'SSP', true],
 };

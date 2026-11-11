@@ -39,7 +39,15 @@ import {
   ResultadoNovaProposicao,
   TipoColegiadoDestino,
 } from './tiposNovaProposicao';
-import { ConfigNovaProposicao, montaUrlComissoes, montaUrlProposicao, validarConfigNovaProposicao } from './urlsNovaProposicao';
+import {
+  ConfigNovaProposicao,
+  montaUrlComissoes,
+  montaUrlProposicao,
+  normalizaConsultaProposicao,
+  ResultadoImportacaoArquivo,
+  ResultadoVerificacaoProposicao,
+  validarConfigNovaProposicao,
+} from './urlsNovaProposicao';
 
 export const EVENTO_CONCLUIDA = 'nova-proposicao-concluida';
 export const EVENTO_CANCELADA = 'nova-proposicao-cancelada';
@@ -64,6 +72,8 @@ const ALTURA_LISTA_COMISSAO = 192;
 
 const EXTENSOES_ARQUIVO = ['docx', 'txt', 'xml', 'json', 'lexml'];
 const ERRO_PARSER_SIMULADO = 'Erro simulado de conversão: o tratamento real do arquivo importado ainda não está disponível.';
+const ERRO_CONVERSOR_SEM_TEXTO = 'O conversor não devolveu o texto do documento.';
+const MENSAGEM_FALHA_IMPORTACAO = 'Não foi possível converter o arquivo. Tente novamente.';
 
 type EstadoVerificacao = 'nenhuma' | 'verificando' | 'ok' | 'inexistente' | 'erro';
 
@@ -469,32 +479,46 @@ export class NovaProposicaoComponent extends LitElement {
 
   private async buscarComissoes(casa: string): Promise<void> {
     try {
-      const resposta = await fetch(montaUrlComissoes(this._config!.urlComissoes!, casa));
-      if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
-      const lista = (await resposta.json()) as Comissao[];
+      const lista = await this.obterComissoes(casa);
       this.comissoesPorCasa.set(
         casa,
-        (Array.isArray(lista) ? lista : []).filter(c => c.siglaCasaLegislativa === casa)
+        (Array.isArray(lista) ? (lista as Comissao[]) : []).filter(c => c.siglaCasaLegislativa === casa)
       );
     } catch {
       this.comissoesPorCasa.set(casa, 'indisponivel');
     }
   }
 
+  // Chamado pela configuração (e não solto) para preservar o `this` do host.
+  private async obterComissoes(casa: string): Promise<unknown> {
+    if (this._config!.onObterComissoes) return this._config!.onObterComissoes(casa);
+    const resposta = await fetch(montaUrlComissoes(this._config!.urlComissoes!, casa));
+    if (!resposta.ok) throw new Error(`HTTP ${resposta.status}`);
+    return resposta.json();
+  }
+
   // ---------------------------------------------------------------- verificação (RN-04, RN-05)
 
+  private verificacaoDe(corpo?: ResultadoVerificacaoProposicao): Verificacao {
+    return {
+      estado: 'ok',
+      ementa: String(corpo?.ementa ?? ''),
+      textoEstruturadoDisponivel: corpo?.textoEstruturadoDisponivel !== false,
+      complementar: corpo?.complementar === true,
+    };
+  }
+
   private async consultar(sigla: string, numero: string, ano: string): Promise<Verificacao> {
+    const inexistente: Verificacao = { estado: 'inexistente', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
     try {
+      if (this._config!.onVerificarProposicao) {
+        const resultado = await this._config!.onVerificarProposicao(normalizaConsultaProposicao(sigla, numero, ano));
+        return resultado ? this.verificacaoDe(resultado) : inexistente;
+      }
       const resposta = await fetch(montaUrlProposicao(this._config!.urlVerificacaoProposicao!, sigla, numero, ano));
-      if (resposta.status === 404) return { estado: 'inexistente', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
+      if (resposta.status === 404) return inexistente;
       if (resposta.status !== 200) return { estado: 'erro', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
-      const corpo = await resposta.json();
-      return {
-        estado: 'ok',
-        ementa: String(corpo?.ementa ?? ''),
-        textoEstruturadoDisponivel: corpo?.textoEstruturadoDisponivel !== false,
-        complementar: corpo?.complementar === true,
-      };
+      return this.verificacaoDe(await resposta.json());
     } catch {
       return { estado: 'erro', ementa: '', textoEstruturadoDisponivel: false, complementar: false };
     }
@@ -563,14 +587,18 @@ export class NovaProposicaoComponent extends LitElement {
     }
   }
 
-  // Fronteira do tratamento real do arquivo (outra issue): hoje sempre devolve um erro simulado, sem chamar URL.
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  private async converterArquivoImportado(_arquivo: File): Promise<{ texto?: unknown; erros: string[] }> {
+  // Sem o callback do host, o tratamento do arquivo é simulado: sempre um erro de parser, sem chamar URL.
+  private async converterArquivoImportado(arquivo: File): Promise<ResultadoImportacaoArquivo> {
+    if (this._config!.onImportarArquivo) return this._config!.onImportarArquivo(arquivo);
     return { erros: [ERRO_PARSER_SIMULADO] };
   }
 
   private async buscarTexto(sigla: string, numero: string, ano: string): Promise<unknown | 'indisponivel' | 'erro'> {
     try {
+      if (this._config!.onObterTexto) {
+        const texto = await this._config!.onObterTexto(normalizaConsultaProposicao(sigla, numero, ano));
+        return texto === undefined || texto === null ? 'indisponivel' : texto;
+      }
       const resposta = await fetch(montaUrlProposicao(this._config!.urlTextoEstruturado!, sigla, numero, ano));
       if (resposta.status === 404) return 'indisponivel';
       if (resposta.status !== 200) return 'erro';
@@ -588,10 +616,22 @@ export class NovaProposicaoComponent extends LitElement {
 
     if (this.opcaoTexto === 'importar') {
       this.processando = true;
-      const resultado = await this.converterArquivoImportado(this.arquivo!);
+      let resultado: ResultadoImportacaoArquivo | undefined;
+      try {
+        resultado = await this.converterArquivoImportado(this.arquivo!);
+      } catch {
+        resultado = undefined;
+      }
       this.processando = false;
-      if (resultado.erros.length) {
-        this.errosConversao = resultado.erros;
+      if (!resultado) {
+        // Falha de comunicação é transitória: permanece na Tela 2 para nova tentativa.
+        this.erroComunicacao = MENSAGEM_FALHA_IMPORTACAO;
+        return;
+      }
+      const erros = Array.isArray(resultado.erros) ? [...resultado.erros] : [];
+      if (!erros.length && (resultado.texto === undefined || resultado.texto === null)) erros.push(ERRO_CONVERSOR_SEM_TEXTO);
+      if (erros.length) {
+        this.errosConversao = erros;
         this.tela = 3;
         return;
       }

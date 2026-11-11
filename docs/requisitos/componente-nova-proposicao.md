@@ -10,7 +10,7 @@ O usuário cria uma nova proposição no editor. O componente coleta a identific
 - **Gatilho:** ação "Nova proposição".
 - **Pré-condições:**
   - A aplicação host informa, na configuração, a casa legislativa do editor (`casaLegislativaEditor`), que define as autoridades permitidas (ver [Casa legislativa e autoridades](#casa-legislativa-e-autoridades)).
-  - A aplicação host informa também as três URLs obrigatórias: de verificação da proposição, do texto estruturado e das comissões (ver [Contrato com o host](#9-contrato-com-o-host)). Sem qualquer uma delas, a inicialização falha.
+  - A aplicação host informa também, para cada uma das três origens de dados (verificação da proposição, texto estruturado e comissões), a URL ou o callback que a substitui (ver [Contrato com o host](#9-contrato-com-o-host)). Sem a URL e sem o callback de qualquer uma delas, a inicialização falha.
   - O vocabulário de tipos de documento não precisa estar carregado: o componente o inicializa para a casa informada, ao ser criado e a cada nova configuração, como faz o `lexml-eta`, e usa em todo o fluxo apenas o vocabulário da casa (`getVocabularioDaCasa()`; ver [Vocabulário](#5-vocabulário-de-tipos-de-documento)). Manter a mesma casa no componente e no `lexml-eta` é responsabilidade do editor (host).
 - **Pós-condição (sucesso):** o componente devolve ao host, por evento (`nova-proposicao-concluida`), o resultado com a URN do novo documento, a `urnDocumentoReferenciado` (quando houver), a epígrafe e o preâmbulo, o colegiado de destino, o texto inicial escolhido (quando parte de documento existente) e a forma de apresentação (`anexoParecer`) (ver [Contrato com o host](#9-contrato-com-o-host)). O componente não cria o documento: quem abre a edição é o host.
 - **Pós-condição (cancelamento):** o componente emite o evento próprio `nova-proposicao-cancelada`, sem resultado, e descarta os dados informados.
@@ -95,7 +95,7 @@ Regras da tela:
 - **RN-10 — Continuar**, conforme a opção:
   - Opção 1: conclui sem texto.
   - Opções 3 e 4: conclui com o texto da proposição escolhida.
-  - Opção 2: executa o parser do arquivo. Se passar, conclui com o resultado; se falhar, segue para a Tela 3.
+  - Opção 2: executa o parser do arquivo (o callback `onImportarArquivo`; sem ele, o tratamento é simulado e termina sempre em erro). Se passar, conclui com o resultado; se falhar, segue para a Tela 3.
 - **Voltar** retorna à Tela 1 preservando os dados informados.
 
 ### Tela 3 — Erro de conversão
@@ -188,7 +188,7 @@ O preâmbulo é calculado a partir de modelos do vocabulário, usando `getPreamb
 - **Destino no `lexml-eta`:** o `lexml-eta` deixa de ter o componente de colegiado de destino, porque o destino passa a ser definido aqui. Definir, na change de implementação, de onde o editor lê o destino ao abrir um documento e como fica o `ColegiadoApreciador` hoje salvo e aberto (change `2026-10-19-c01-metadados-lexedit-situacao-colegiado`); **BREAKING** para o host.
 - O serviço de epígrafe está na issue #1053 (ver 5.1).
 
-Decididos (não são mais pontos em aberto): a subemenda substitutiva da `CD` referencia a proposição original, com a referência ao substitutivo implícita (RN-22); formato da lista de comissões (seção 9); colegiado da epígrafe do substitutivo do `SF` (coletado em g5); serviços de verificação, de texto e de comissões (URLs configuráveis, seção 9); limite do arquivo importado (5 MB); siglas referenciáveis e de nova proposição (do vocabulário, RN-00 e RN-00a); inclusão de siglas inativas (sim, ao final, em cinza); MPV fora das listas de siglas, só como referência do PLV; tipos de proposição de cada casa (definidos nos vocabulários, não há mais lista a confirmar).
+Decididos (não são mais pontos em aberto): a subemenda substitutiva da `CD` referencia a proposição original, com a referência ao substitutivo implícita (RN-22); formato da lista de comissões (seção 9); colegiado da epígrafe do substitutivo do `SF` (coletado em g5); serviços de verificação, de texto e de comissões (URLs ou callbacks configuráveis, seção 9); limite do arquivo importado (5 MB); siglas referenciáveis e de nova proposição (do vocabulário, RN-00 e RN-00a); inclusão de siglas inativas (sim, ao final, em cinza); MPV fora das listas de siglas, só como referência do PLV; tipos de proposição de cada casa (definidos nos vocabulários, não há mais lista a confirmar).
 
 ## 8. Modo de edição: alterar dados básicos do documento (#1051)
 
@@ -217,18 +217,37 @@ O componente não tem efeito colateral: coleta e devolve um resultado por evento
 ```
 {
   casaLegislativaEditor: 'SF' | 'CD',  // padrão SF
-  urlVerificacaoProposicao: string,    // placeholders {sigla}, {numero}, {ano}
-  urlTextoEstruturado: string,         // placeholders {sigla}, {numero}, {ano}
-  urlComissoes: string                 // placeholder {casa}: SF | CD | CN
+  urlVerificacaoProposicao?: string,   // placeholders {sigla}, {numero}, {ano}
+  urlTextoEstruturado?: string,        // placeholders {sigla}, {numero}, {ano}
+  urlComissoes?: string,               // placeholder {casa}: SF | CD | CN
+  onVerificarProposicao?: (consulta) => resultado | undefined | Promise<...>,
+  onObterTexto?: (consulta) => texto | undefined | Promise<...>,
+  onObterComissoes?: (casa) => comissoes | Promise<...>,
+  onImportarArquivo?: (arquivo) => { texto?, erros } | Promise<...>
 }
 ```
 
 - Valores dos placeholders `{sigla}`, `{numero}` e `{ano}` (nas duas URLs): sigla em maiúsculas e número sem zeros à esquerda (ex.: `PL`, `12`, `2026`).
-- `urlVerificacaoProposicao`, `urlTextoEstruturado` e `urlComissoes` são **obrigatórias**: se faltar qualquer uma, a inicialização do componente falha com erro que identifica a URL ausente, e nenhuma tela é exibida. Só a casa tem padrão (`SF`).
+- Cada origem de dados (verificação, texto estruturado e comissões) exige a **URL ou o callback** correspondente: se faltar os dois em qualquer uma, a inicialização do componente falha com erro que identifica a URL ausente (e cita o callback alternativo), e nenhuma tela é exibida. `onImportarArquivo` não é exigido. Só a casa tem padrão (`SF`).
 - O componente inicializa o vocabulário para a casa informada ao ser criado e a cada nova configuração.
+
+### Callbacks opcionais
+
+O callback substitui a origem correspondente: existindo, é usado e a URL **não** é chamada (mesmo informada); não existindo, vale o comportamento da origem sem callback. Telas, regras de habilitação e resultado não mudam. Os callbacks devolvem resultados de domínio, não respostas HTTP, e podem ser síncronos ou assíncronos. Promise rejeitada ou exceção equivale a erro de rede, com os mesmos estados dos itens abaixo.
+
+| Callback | Recebe | Devolve | Equivalente nas URLs |
+|---|---|---|---|
+| `onVerificarProposicao` | `{ sigla, numero, ano }` normalizados (como nos placeholders) | `{ ementa, textoEstruturadoDisponivel?, complementar? }`; `undefined` se o documento não existe | `200` / `404` |
+| `onObterTexto` | `{ sigla, numero, ano }` normalizados | documento em JSONIX; `undefined` se o texto está indisponível | `200` / `404` |
+| `onObterComissoes` | casa (`SF`, `CD` ou `CN`) | lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados | `200` |
+| `onImportarArquivo` | o arquivo, já validado quanto a extensão e tamanho | `{ texto?, erros }` | sem equivalente |
+
+- `onImportarArquivo` não é chamado para arquivo recusado (acima de 5 MB ou de outro formato). Com `erros` não vazio, segue para a Tela 3. Com `erros` vazio, conclui com `texto`; sem `texto`, vai para a Tela 3 com a mensagem "O conversor não devolveu o texto do documento.". Se rejeitar a promise, o componente permanece na Tela 2 com mensagem de erro de comunicação e permite nova tentativa. Não há campo de avisos de conversão.
+- Sem `onImportarArquivo`, o tratamento do arquivo continua simulado: o componente valida extensão e tamanho e termina na Tela 3 com um erro de parser simulado, sem chamar URL.
 
 ### Verificação (g3, g4 e opção 4 da Tela 2)
 
+Por URL (sem `onVerificarProposicao`):
 - `200`: JSON `{ "ementa": string, "textoEstruturadoDisponivel": boolean, "complementar"?: boolean }`; campos extras são ignorados. `complementar` (padrão `false` quando ausente) só tem efeito em PLS e PLC: `true` faz a URN do documento referenciado e a do substitutivo do `SF` usarem `projeto.lei.complementar`; sem ele, `projeto.lei`.
 - `404`: documento inexistente.
 - Qualquer outro resultado (inclusive erro de rede): erro, documento não verificado, nova tentativa permitida.

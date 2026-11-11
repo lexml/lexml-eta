@@ -481,8 +481,26 @@ nova.addEventListener('nova-proposicao-concluida', (e: Event) => {
 nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
 ```
 
-- **Configuração.** As três URLs são **obrigatórias**: sem qualquer uma, a atribuição de `config` lança erro que nomeia a URL ausente e nenhuma tela é exibida. Só a casa tem padrão. O componente inicializa o vocabulário da casa ao ser criado e a cada nova configuração; manter a mesma casa no `<lexml-eta>` é responsabilidade do host.
+- **Configuração.** Cada origem de dados (verificação, texto estruturado e comissões) exige a **URL ou o callback** correspondente: sem os dois, a atribuição de `config` lança erro que nomeia a URL ausente (e cita o callback alternativo) e nenhuma tela é exibida. `onImportarArquivo` não é exigido. Só a casa tem padrão. O componente inicializa o vocabulário da casa ao ser criado e a cada nova configuração; manter a mesma casa no `<lexml-eta>` é responsabilidade do host.
 - **Placeholders.** `{sigla}` (maiúsculas), `{numero}` (sem zeros à esquerda) e `{ano}` nas duas URLs de proposição; `{casa}` (`SF`, `CD` ou `CN`) em `urlComissoes`.
+- **Callbacks opcionais.** Quando existe, o callback é usado no lugar da origem correspondente (a URL, mesmo informada, não é chamada); quando não existe, vale o comportamento por URL. Telas e resultado não mudam. Devolvem dados de domínio (não `Response`), de forma síncrona ou assíncrona; promise rejeitada ou exceção equivale a erro de rede:
+
+  ```ts
+  nova.config = {
+    casaLegislativaEditor: 'SF',
+    onVerificarProposicao: async ({ sigla, numero, ano }) => {
+      const r = await api.get(`/proposicoes/${sigla}/${numero}/${ano}`).catch(e => (e.response?.status === 404 ? undefined : Promise.reject(e)));
+      return r && { ementa: r.data.ementa, textoEstruturadoDisponivel: r.data.textoEstruturadoDisponivel };
+    },
+    onObterTexto: async ({ sigla, numero, ano }) => (await api.get(`/proposicoes/${sigla}/${numero}/${ano}/texto`)).data, // undefined = indisponível
+    onObterComissoes: async casa => (await api.get(`/comissoes/${casa}`)).data,
+    onImportarArquivo: async arquivo => converter(arquivo), // { texto?, erros }
+  } satisfies ConfigNovaProposicao;
+  ```
+
+  - `onVerificarProposicao` e `onObterTexto` recebem `{ sigla, numero, ano }` já normalizados (sigla em maiúsculas, número sem zeros à esquerda). Na verificação, `undefined` indica documento inexistente; no texto, `undefined` indica indisponível.
+  - `onObterComissoes` recebe a casa (`SF`, `CD` ou `CN`) e devolve a lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados. Vale também no modo de edição.
+  - `onImportarArquivo` recebe o arquivo já validado (DOCX, TXT ou LexML de até 5 MB; nunca é chamado para arquivo recusado) e devolve `{ texto?, erros }`. Com `erros`, o componente vai para a Tela 3; sem erros, conclui com `texto` (sem `texto`, a Tela 3 mostra que o conversor não devolveu o texto); se rejeitar, permanece na Tela 2 com erro de comunicação e nova tentativa. Não há campo de avisos de conversão.
 - **Verificação** (`200` `{ ementa, textoEstruturadoDisponivel, complementar? }`, `404` inexistente; `complementar`, opcional e `false` por padrão, indica PLS/PLC de lei complementar e define o tipo da URN do documento referenciado), **texto estruturado** (`200` JSONIX, `404` indisponível) e **comissões** (lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados): contrato completo na seção 9 do documento de requisitos.
 - **Evento `nova-proposicao-concluida`** — `detail`: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoDestino` (`{ tipoColegiado, siglaComissao? }`), `texto?` (JSONIX) e `anexoParecer`. **`nova-proposicao-cancelada`** não tem `detail`. Após concluir, o host decide quando fechar ou chamar `reiniciar()`.
 - **`reiniciar()`** volta o componente ao estado original (modo de criação, sem dados iniciais, Tela 1 com os padrões), mantendo a configuração. Chame-o a cada abertura do modal, para não herdar o estado da abertura anterior.
@@ -504,7 +522,7 @@ nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
   });
   ```
 - **Seleção de sigla e de comissão.** Usam o componente genérico `<lexml-eta-autocomplete-lista>` (`items: { value, label, inativo? }[]`, `value`, `placeholder`, `label`, `alturaMaxima` em px, `disabled`; evento `autocomplete-change` com `detail.value`, vazio quando a seleção é desfeita). A lista é flutuante, tem rolagem só vertical e omite o texto excedente; texto digitado que não é um item é apagado ao perder o foco (ou selecionado, se igual a exatamente um item).
-- **Importação de arquivo.** O tratamento real de DOCX/TXT/LexML ainda não existe: o componente valida extensão e tamanho (5 MB) e simula um erro de parser (Tela 3), sem chamar URL.
+- **Importação de arquivo.** O componente valida extensão e tamanho (5 MB) e entrega o arquivo a `onImportarArquivo`. Sem esse callback, o tratamento real de DOCX/TXT/LexML não existe: o componente simula um erro de parser (Tela 3), sem chamar URL.
 - **Epígrafe e preâmbulo.** A epígrafe vem de `montaEpigrafe` (seção 7.1). No `SF`, o sufixo é `- PLEN` com destino Plenário e `- <sigla da comissão>` com destino Comissão; na `CD`, não há sufixo. Tipo sem texto padrão recebe `O CONGRESSO NACIONAL decreta:` com log de erro (regra do componente; a abertura de documentos não muda).
 
 ## 12. Referências

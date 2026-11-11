@@ -29,6 +29,13 @@ export const camara: VocabularioAutoridade = {
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
     },
     {
+      urnTipoDocumento: 'projeto.decreto.legislativo',
+      sigla: 'PDL',
+      descricao: 'Projeto de Decreto Legislativo',
+      genero: 'M',
+      tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+    },
+    {
       urnTipoDocumento: 'substitutivo',
       sigla: 'SBT',
       descricao: 'Substitutivo',
