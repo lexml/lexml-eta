@@ -38,6 +38,17 @@ describe('ETA — quebra de linha na epígrafe', () => {
     expect(quebras[0].nextSibling?.textContent).to.equal('(segunda linha)');
   });
 
+  it('a primeira linha fica em negrito e a segunda não (#1060)', () => {
+    const quebra = epigrafe.blotConteudo.domNode.querySelector('br.eta-quebra-linha')!;
+    const primeira = quebra.previousSibling as HTMLElement;
+    const segunda = quebra.nextSibling!;
+    const peso = (no: Node): number => parseInt(getComputedStyle((no.nodeType === Node.TEXT_NODE ? no.parentElement : no) as Element).fontWeight);
+    expect(primeira.nodeName).to.equal('B');
+    expect(peso(primeira)).to.be.at.least(700);
+    expect(segunda.nodeType).to.equal(Node.TEXT_NODE);
+    expect(peso(segunda)).to.be.below(700);
+  });
+
   it('exibe os dois trechos em linhas diferentes', () => {
     const quebra = epigrafe.blotConteudo.domNode.querySelector('br.eta-quebra-linha')!;
     const topo = (no: Node): number => {
@@ -56,5 +67,6 @@ describe('ETA — quebra de linha na epígrafe', () => {
     const salvo: any = component.getDocumentoArticulado();
     const content = salvo.value.projetoNorma.norma.parteInicial.epigrafe.content;
     expect(content.map((e: any) => (typeof e === 'string' ? e : e.name.localPart))).to.deep.equal(['PRIMEIRA LINHA', 'br', '(segunda linha)']);
+    expect(JSON.stringify(content)).not.to.match(/"b"|strong/i);
   });
 });

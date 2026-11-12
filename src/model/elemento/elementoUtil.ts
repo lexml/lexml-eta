@@ -75,12 +75,18 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
   };
 };
 
+const textoEpigrafeParaExibicao = (texto: string): string => {
+  const [primeira, ...demais] = texto.split(/<br\s*\/?>/i);
+  const linhas = [primeira ? `<b>${primeira}</b>` : primeira, ...demais];
+  return linhas.join('<br class="eta-quebra-linha">');
+};
+
 // O Quill não aceita bloco dentro da linha; o texto do dispositivo mantém os <p> para salvar.
-// Na epígrafe, o <br/> vira o blot de quebra (o Break do Quill se remove); o texto mantém o <br/>.
+// Na epígrafe, o <br/> vira o blot de quebra (o Break do Quill se remove) e a primeira linha fica em negrito; o texto mantém o original.
 const textoParaExibicao = (dispositivo: Dispositivo): string | undefined => {
   if (!dispositivo.texto) return dispositivo.texto;
   if (isPreambulo(dispositivo)) return dispositivo.texto.replace(/<\/p>\s*<p>/gi, ' ').replace(/^\s*<p>|<\/p>\s*$/gi, '');
-  if (isArticulacao(dispositivo) && !dispositivo.pai) return dispositivo.texto.replace(/<br\s*\/?>/gi, '<br class="eta-quebra-linha">');
+  if (isArticulacao(dispositivo) && !dispositivo.pai) return textoEpigrafeParaExibicao(dispositivo.texto);
   return dispositivo.texto;
 };
 

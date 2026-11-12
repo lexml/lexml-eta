@@ -61,7 +61,15 @@ describe('Nova proposição — componente no modal da demo', () => {
         return range.getBoundingClientRect().top;
       };
       expect(topo(br.nextSibling!), 'segunda linha abaixo da primeira').to.be.greaterThan(topo(br.previousSibling!));
+      // Só a primeira linha em negrito (#1060).
+      expect(pesoDaFonte(br.previousSibling!), 'primeira linha em negrito').to.be.at.least(700);
+      expect(pesoDaFonte(br.nextSibling!), 'segunda linha sem negrito').to.be.below(700);
     });
+  };
+
+  const pesoDaFonte = (no: Node): number => {
+    const elemento = no.nodeType === Node.TEXT_NODE ? no.parentElement! : (no as Element);
+    return parseInt(elemento.ownerDocument.defaultView!.getComputedStyle(elemento).fontWeight);
   };
 
   beforeEach(() => {
@@ -92,6 +100,16 @@ describe('Nova proposição — componente no modal da demo', () => {
       expect(metadadoLexEdit(arquivo).colegiadoApreciador).to.include({ tipoColegiado: 'Plenário' });
       expect(metadadoLexEdit(arquivo).anexoParecer).to.equal(false);
     });
+    // Epígrafe de uma linha toda em negrito (#1060).
+    cy.get('lexml-eta .container__elemento--articulacao .texto__dispositivo')
+      .filter((_, el) => /^PROJETO DE LEI Nº/.test(el.textContent ?? ''))
+      .should('have.length', 1)
+      .find('b')
+      .should($b => {
+        expect($b).to.have.length(1);
+        expect($b.text()).to.match(/^PROJETO DE LEI Nº {8}, DE \d{4}$/);
+        expect(pesoDaFonte($b[0])).to.be.at.least(700);
+      });
   });
 
   it('lista de siglas é flutuante, tem no máximo 189 px e rola na vertical', () => {
