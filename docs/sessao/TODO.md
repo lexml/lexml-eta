@@ -1,10 +1,10 @@
 # TODO
 
-Atualizado em 29/10/2026. Branch `feat/992-salvar-pendencias-jsonix`.
+Atualizado em 11/11/2026. Branch `feat/972-comentarios`.
 
 ## Em andamento
 
-- Nenhuma tarefa em andamento. Aguardando a próxima issue.
+- **#972, comentários da justificação no padrão do lexml-emenda:** change `2026-11-11-c01-alinhar-comentarios-justificacao-lexml-emenda` aplicada (ícones, CSS e espaçamentos da aba e dos modais, textos da confirmação, seleção e rolagem, telas pequenas e painel lateral oculto até 768px). Grupos 1–5 validados pelo usuário; falta arquivar e commitar. Depois dela, a parte da articulação (`2026-11-08-c01` e `c02`).
 
 ## Próximas
 
