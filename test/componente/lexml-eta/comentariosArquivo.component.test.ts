@@ -149,7 +149,7 @@ describe('ETA — comentários da justificação no arquivo', () => {
 
       expect(sequencias()).to.have.length(1);
       expect(destacados()).to.equal(2);
-      clicar(cards()[0].querySelector('.comentario-sequencia__excluir'));
+      clicar(cards()[0].querySelector('.comentario-sequencia__acao--excluir'));
       await aba().updateComplete;
       clicar(aba().containerModais.querySelector('#btn-confirmar-exclusao'));
       await component.updateComplete;

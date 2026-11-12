@@ -163,6 +163,16 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
           <sl-icon name="x"></sl-icon>
         </sl-button>
       </div>
+      ${this.comComentarios
+        ? html`<div class="comentarios-mobile-toolbar">
+            <button type="button" class="comentarios-mobile-button" title="Comentários" @click=${this.abrirModalListaComentarios}>
+              <div class="comentarios-mobile-field_button">
+                <sl-icon name="chat-left-text" class="comentarios-mobile-button__icone"></sl-icon>
+                <span>Comentários</span>
+              </div>
+            </button>
+          </div>`
+        : ''}
       <div id="${this.id}-inner" class="lexml-eta-editor-texto-rico" @onTableInTable=${this.onTableInTable}></div>
       <lexml-eta-alterar-largura-tabela-coluna-modal id="lexml-alterar-largura-tabela-modal" tipo="tabela"></lexml-eta-alterar-largura-tabela-coluna-modal>
       <lexml-eta-alterar-largura-tabela-coluna-modal id="lexml-alterar-largura-coluna-modal" tipo="coluna"></lexml-eta-alterar-largura-tabela-coluna-modal>
@@ -492,6 +502,10 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
       return;
     }
     this.emitirAbrirModalComentario(range);
+  };
+
+  private abrirModalListaComentarios = (): void => {
+    this.dispatchEvent(new CustomEvent('abrir-modal-lista-comentarios', { bubbles: true, composed: true, detail: { modo: this.modo } }));
   };
 
   emitirAbrirModalComentario(range: IntervaloTexto): void {
@@ -982,9 +996,15 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
   addBotoesExtra = (): void => {
     const toolbarContainer = this.quill!.getModule('toolbar').container;
     const elRevisao = this.querySelector('.panel-revisao')!;
+    const elComentariosMobile = this.querySelector('.comentarios-mobile-toolbar');
 
     elRevisao.parentNode!.removeChild(elRevisao);
     toolbarContainer.appendChild(elRevisao);
+
+    if (elComentariosMobile) {
+      elComentariosMobile.parentNode!.removeChild(elComentariosMobile);
+      toolbarContainer.appendChild(elComentariosMobile);
+    }
   };
 
   configureTooltip = (): void => {

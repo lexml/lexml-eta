@@ -152,6 +152,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   @state()
   private idSequenciaComentarioAtual?: string;
+  private preservarSequenciaNaTrocaAba = false;
 
   // Para forçar atualização da interface
   @state()
@@ -631,6 +632,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   private MOBILE_WIDTH = 768;
+  // Até esta largura, os comentários são exibidos num modal, no lugar da aba.
+  private TABLET_WIDTH = 992;
   private splitPanelPosition = 67;
   private sizeMode = '';
 
@@ -691,6 +694,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
     this._tabsEsquerda?.addEventListener('sl-tab-show', (event: any) => {
       const tabName = event.detail.name;
+      if (!this.preservarSequenciaNaTrocaAba) {
+        this.limparSequenciaComentarioAtual();
+      }
       if (tabName === 'avisos') {
         const badge = (event.target as Element).querySelector('sl-badge');
         if (badge) {
@@ -699,6 +705,14 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       } else if (tabName === 'autoria') {
         // this.parlamentares.length === 0 && this.atualizaListaParlamentares();
         // this.comissoes?.length === 0 && this.atualizaListaComissoes();
+      }
+    });
+
+    this._tabsDireita?.addEventListener('sl-tab-show', (event: any) => {
+      if (event.detail.name === 'comentarios') {
+        this.idSequenciaComentarioAtual && this._lexmlComentarios?.rolarParaSequencia(this.idSequenciaComentarioAtual);
+      } else {
+        this.limparSequenciaComentarioAtual();
       }
     });
 
@@ -929,6 +943,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
           margin-right: 5px;
           font-size: 18px;
         }
+        sl-tab[panel='comentarios'] sl-icon {
+          transform: translateY(2px);
+        }
         .tab-autoria__container {
           padding: 10px;
         }
@@ -1024,6 +1041,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         @media (max-width: 768px) {
           sl-split-panel {
             --divider-width: 0px;
+            --min: 100%;
+            --max: 100%;
           }
         }
       </style>
@@ -1058,6 +1077,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
                 registro-evento="justificativa"
                 @onchange=${this.onChange}
                 @abrir-modal-comentario=${this.abrirModalAdicionarComentario}
+                @abrir-modal-lista-comentarios=${this.abrirModalListaComentarios}
                 @comentario-selecionado=${this.onComentarioSelecionado}
                 @comentarios-alterados=${this.sincronizarSequenciasComentario}
               ></lexml-eta-editor-texto-rico>
@@ -1187,15 +1207,48 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       return;
     }
     this.idSequenciaComentarioAtual = sequencia.id;
-    this._lexmlJustificativa.destacarComentario(sequencia.id);
-    this._tabsDireita?.show('comentarios');
+    this.exibirSequenciaAtualNaLista();
+    this.selecionarSequenciaAposCriacao(sequencia.id);
   };
+
+  // O cursor vai para o trecho criado; repete porque o editor ainda processa a marcação.
+  private selecionarSequenciaAposCriacao(idSequencia: string): void {
+    const selecionar = (): void => {
+      this._lexmlJustificativa?.posicionarCursorComentario(idSequencia);
+      if (this.sequenciasComentario.some(seq => seq.id === idSequencia)) {
+        this.idSequenciaComentarioAtual = idSequencia;
+        this._lexmlComentarios?.rolarParaSequencia(idSequencia);
+      }
+    };
+    requestAnimationFrame(() => {
+      selecionar();
+      setTimeout(selecionar, 80);
+    });
+  }
+
+  private exibirSequenciaAtualNaLista(): void {
+    if (window.innerWidth <= this.TABLET_WIDTH) {
+      this.abrirModalListaComentarios();
+      return;
+    }
+    this._tabsDireita?.show('comentarios');
+    this.idSequenciaComentarioAtual && this._lexmlComentarios?.rolarParaSequencia(this.idSequenciaComentarioAtual);
+  }
+
+  private abrirModalListaComentarios = (): void => {
+    this._lexmlComentarios?.abrirModalLista();
+  };
+
+  private limparSequenciaComentarioAtual(): void {
+    this.idSequenciaComentarioAtual = undefined;
+    this._lexmlJustificativa?.destacarComentario(undefined);
+  }
 
   private onComentarioSelecionado = (ev: CustomEvent): void => {
     const { idSequenciaComentario, abrirAbaComentarios } = ev.detail ?? {};
     this.idSequenciaComentarioAtual = this.sequenciasComentario.some(seq => seq.id === idSequenciaComentario) ? idSequenciaComentario : undefined;
     if (this.idSequenciaComentarioAtual && abrirAbaComentarios) {
-      this._tabsDireita?.show('comentarios');
+      this.exibirSequenciaAtualNaLista();
     }
   };
 
@@ -1205,8 +1258,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       return;
     }
     this.idSequenciaComentarioAtual = idSequencia;
+    // A troca de aba feita aqui não pode desfazer a seleção.
+    this.preservarSequenciaNaTrocaAba = true;
     this._tabsEsquerda?.show('justificativa');
+    setTimeout(() => (this.preservarSequenciaNaTrocaAba = false), 0);
     this._lexmlJustificativa.posicionarCursorComentario(idSequencia);
+    this._lexmlComentarios?.fecharModalLista();
   };
 
   private atualizarSequenciaComentario(idSequencia: string, atualizar: (seq: SequenciaComentario) => SequenciaComentario): void {

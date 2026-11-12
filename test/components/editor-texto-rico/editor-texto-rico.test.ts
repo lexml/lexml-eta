@@ -591,6 +591,30 @@ describe('Comentários no editor de texto rico', () => {
     });
   });
 
+  describe('Botão "Comentários" das telas pequenas', () => {
+    const botaoLista = (): HTMLButtonElement | null => editorTextoRico.querySelector('.comentarios-mobile-toolbar .comentarios-mobile-button');
+
+    it('fica na barra de ferramentas e emite abrir-modal-lista-comentarios', () => {
+      const eventos = ouvir('abrir-modal-lista-comentarios');
+
+      expect(!!botaoLista()?.closest('.ql-toolbar')).to.equal(true);
+      botaoLista()!.click();
+
+      expect(eventos).to.deep.equal([{ modo: 'justificativa' }]);
+    });
+
+    it('só aparece até 992px de largura', () => {
+      const display = getComputedStyle(editorTextoRico.querySelector('.comentarios-mobile-toolbar')!).display;
+      // Com float, o inline-block da media query é calculado como block.
+      expect(display !== 'none').to.equal(window.innerWidth <= 992);
+    });
+
+    it('não existe fora da justificação', async () => {
+      editorTextoRico = await fixture<EditorTextoRicoComponent>(html`<lexml-eta-editor-texto-rico></lexml-eta-editor-texto-rico>`);
+      expect(!!botaoLista()).to.equal(false);
+    });
+  });
+
   describe('API do editor', () => {
     it('adiciona, consulta e remove o comentário', () => {
       editorTextoRico.setContent('<p>Antes texto depois.</p>');

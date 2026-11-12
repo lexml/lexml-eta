@@ -32,6 +32,9 @@ const PLACEHOLDERS: Record<AcaoModal, string> = {
   editar: 'Atualize o texto do comentário...',
 };
 
+const AVISO_EXCLUIR_SEQUENCIA = 'Esta ação removerá todos os comentários e respostas associados ao trecho. Essa operação não poderá ser desfeita.';
+const AVISO_EXCLUIR_COMENTARIO = 'Esta ação removerá apenas este comentário da sequência. O trecho comentado e as demais respostas serão mantidos.';
+
 // Aba e modais dos comentários. Não guarda as sequências: recebe-as do componente raiz e devolve as ações por eventos.
 @customElement('lexml-eta-comentarios')
 export class ComentariosComponent extends LitElement {
@@ -45,6 +48,7 @@ export class ComentariosComponent extends LitElement {
   @state() private modal?: ModalComentario;
   @state() private textoModal = '';
   @state() private confirmacao?: Confirmacao;
+  @state() listaAberta = false;
 
   private resolverAdicao?: (texto?: string) => void;
 
@@ -78,34 +82,40 @@ export class ComentariosComponent extends LitElement {
   }
 
   protected updated(alteradas: PropertyValues): void {
-    render(html`${comentariosCss}${this.renderModalComentario()} ${this.renderConfirmacao()}`, this.containerModais, { host: this });
-    if ((alteradas.has('idSequenciaAtual') || alteradas.has('ordenacao')) && this.idSequenciaAtual) {
-      this.getCard(this.idSequenciaAtual)?.scrollIntoView?.({ block: 'nearest' });
+    render(html`${comentariosCss}${this.renderModalLista()} ${this.renderModalComentario()} ${this.renderConfirmacao()}`, this.containerModais, { host: this });
+    if ((alteradas.has('idSequenciaAtual') || alteradas.has('ordenacao') || (alteradas.has('listaAberta') && this.listaAberta)) && this.idSequenciaAtual) {
+      this.rolarParaSequencia(this.idSequenciaAtual);
     }
   }
 
   render(): TemplateResult {
+    return html`${comentariosCss}${this.renderLista()}`;
+  }
+
+  // A mesma lista serve à aba e ao modal das telas pequenas.
+  private renderLista(): TemplateResult {
     const sequencias = this.sequenciasOrdenadas;
     return html`
-      ${comentariosCss}
       <div class="comentarios">
         <div class="comentarios__cabecalho">
           <h4>Comentários</h4>
-          <select
-            class="comentarios__ordenacao"
-            aria-label="Ordenação dos comentários"
-            .value=${this.ordenacao}
-            @change=${(ev: Event): void => {
-              this.ordenacao = (ev.target as HTMLSelectElement).value as OrdenacaoComentarios;
-            }}
-          >
-            <option value="ordem-no-texto">Ordem no texto</option>
-            <option value="mais-recentes">Mais recentes</option>
-          </select>
+          <label class="comentarios__ordenacao-container">
+            <select
+              class="comentarios__ordenacao"
+              aria-label="Ordenação dos comentários"
+              .value=${this.ordenacao}
+              @change=${(ev: Event): void => {
+                this.ordenacao = (ev.target as HTMLSelectElement).value as OrdenacaoComentarios;
+              }}
+            >
+              <option value="ordem-no-texto">Ordem no texto</option>
+              <option value="mais-recentes">Mais recentes</option>
+            </select>
+          </label>
         </div>
         ${sequencias.length
           ? html`<div class="comentarios__lista">${sequencias.map(seq => this.renderSequencia(seq))}</div>`
-          : html`<span class="comentarios__vazio">Não há comentários registrados.</span>`}
+          : html`<span class="comentarios-texto-vazio">Não há comentários registrados.</span>`}
       </div>
     `;
   }
@@ -123,19 +133,19 @@ export class ComentariosComponent extends LitElement {
         @keydown=${(ev: KeyboardEvent): void => this.navegarPorTeclado(ev, seq.id)}
       >
         <div class="comentario-sequencia__topo">
-          <span class="comentario-sequencia__origem">Na justificação</span>
+          <span class="comentario-sequencia__origem comentario-sequencia__origem--justificativa">Na justificação</span>
           <span class="comentario-sequencia__acoes">
             <button
               type="button"
               class="comentario-sequencia__acao comentario-sequencia__responder"
               @click=${(): void => this.abrirModal({ acao: 'responder', idSequencia: seq.id })}
             >
-              <sl-icon name="reply"></sl-icon>
+              <span class="comentario-sequencia__seta" aria-hidden="true"></span>
               Responder
             </button>
             <button
               type="button"
-              class="comentario-sequencia__acao comentario-sequencia__excluir"
+              class="comentario-sequencia__acao comentario-sequencia__acao--excluir"
               title="Excluir sequência de comentários"
               aria-label="Excluir sequência de comentários"
               @click=${(): void => this.abrirConfirmacao({ idSequencia: seq.id })}
@@ -144,7 +154,11 @@ export class ComentariosComponent extends LitElement {
             </button>
           </span>
         </div>
-        <blockquote class="comentario-sequencia__trecho">${trecho || 'Trecho comentado não localizado.'}</blockquote>
+        <blockquote class="comentario-sequencia__trecho">
+          <span class="comentario-sequencia__trecho-conteudo">
+            <span class="comentario-sequencia__trecho-texto">${trecho || 'Trecho comentado não localizado.'}</span>
+          </span>
+        </blockquote>
         <div class="comentario-sequencia__comentarios">${seq.comentarios.map((comentario, indice) => this.renderComentario(seq, comentario, indice))}</div>
       </article>
     `;
@@ -167,6 +181,8 @@ export class ComentariosComponent extends LitElement {
                   ? html`<button
                       type="button"
                       class="comentario-item__acao comentario-item__editar"
+                      title="Editar comentário"
+                      aria-label="Editar comentário"
                       @click=${(): void => this.abrirModal({ acao: 'editar', idSequencia: seq.id, indice }, comentario.texto)}
                     >
                       <sl-icon name="pencil-square"></sl-icon>
@@ -174,7 +190,13 @@ export class ComentariosComponent extends LitElement {
                     </button>`
                   : ''}
                 ${excluivel
-                  ? html`<button type="button" class="comentario-item__acao comentario-item__excluir" @click=${(): void => this.abrirConfirmacao({ idSequencia: seq.id, indice })}>
+                  ? html`<button
+                      type="button"
+                      class="comentario-item__acao comentario-item__acao--excluir"
+                      title="Excluir comentário"
+                      aria-label="Excluir comentário"
+                      @click=${(): void => this.abrirConfirmacao({ idSequencia: seq.id, indice })}
+                    >
                       <sl-icon name="trash"></sl-icon>
                       Excluir
                     </button>`
@@ -185,6 +207,38 @@ export class ComentariosComponent extends LitElement {
       </section>
     `;
   }
+
+  private renderModalLista(): TemplateResult {
+    return html`
+      <sl-dialog
+        id="dlg-lista-comentarios"
+        class="comentario-dialog comentario-dialog--lista"
+        label="Comentários"
+        ?open=${this.listaAberta}
+        @sl-after-hide=${(ev: Event): void => {
+          if ((ev.target as SlDialog).id === 'dlg-lista-comentarios') this.listaAberta = false;
+        }}
+      >
+        <span slot="label" class="comentario-dialog__titulo-lista">
+          <sl-icon name="chat-left-text" aria-hidden="true"></sl-icon>
+          <span>Comentários</span>
+        </span>
+        ${this.listaAberta ? this.renderLista() : ''}
+        <div slot="footer" class="comentario-dialog__footer">
+          <sl-button id="btn-fechar-lista-comentarios" variant="primary" @click=${this.fecharModalLista}>Fechar</sl-button>
+        </div>
+      </sl-dialog>
+    `;
+  }
+
+  /** Modal com a lista de comentários, usado no lugar da aba em telas pequenas. */
+  abrirModalLista(): void {
+    this.listaAberta = true;
+  }
+
+  fecharModalLista = (): void => {
+    this.listaAberta = false;
+  };
 
   private renderModalComentario(): TemplateResult {
     const acao = this.modal?.acao ?? 'adicionar';
@@ -204,28 +258,36 @@ export class ComentariosComponent extends LitElement {
         }}
       >
         ${acao === 'adicionar' && this.modal?.trecho
-          ? html`<div class="comentario-modal__trecho">
+          ? html`<div class="comentario-modal__grupo">
               <span class="comentario-modal__label">Trecho selecionado</span>
-              <blockquote>${this.modal.trecho}</blockquote>
+              <div class="comentario-modal__trecho">
+                <span class="comentario-modal__trecho-conteudo">
+                  <span class="comentario-modal__trecho-texto">${this.modal.trecho}</span>
+                </span>
+              </div>
             </div>`
           : ''}
-        <label class="comentario-modal__label" for="textarea-comentario">Comentário</label>
-        <textarea
-          id="textarea-comentario"
-          class="comentario-modal__textarea"
-          maxlength=${TAMANHO_MAXIMO_COMENTARIO}
-          placeholder=${PLACEHOLDERS[acao]}
-          .value=${this.textoModal}
-          @input=${(ev: Event): void => {
-            this.textoModal = (ev.target as HTMLTextAreaElement).value;
-          }}
-        ></textarea>
-        <span class="comentario-modal__contador">${this.textoModal.length} / ${TAMANHO_MAXIMO_COMENTARIO} caracteres</span>
-        <sl-button slot="footer" id="btn-cancelar-comentario" @click=${this.fecharModal}>Cancelar</sl-button>
-        <sl-button slot="footer" id="btn-confirmar-comentario" variant="primary" .disabled=${!podeConfirmar} @click=${this.confirmarModal}>
-          <span slot="prefix" class="comentario-modal__icone">${unsafeHTML(iconeComentario)}</span>
-          Comentar
-        </sl-button>
+        <div class="comentario-modal__campo">
+          <label class="comentario-modal__label" for="textarea-comentario">Comentário</label>
+          <textarea
+            id="textarea-comentario"
+            class="comentario-modal__textarea"
+            maxlength=${TAMANHO_MAXIMO_COMENTARIO}
+            placeholder=${PLACEHOLDERS[acao]}
+            .value=${this.textoModal}
+            @input=${(ev: Event): void => {
+              this.textoModal = (ev.target as HTMLTextAreaElement).value;
+            }}
+          ></textarea>
+          <span class="comentario-modal__contador">${this.textoModal.length} / ${TAMANHO_MAXIMO_COMENTARIO} caracteres</span>
+        </div>
+        <div slot="footer" class="comentario-dialog__footer">
+          <sl-button id="btn-cancelar-comentario" variant="default" @click=${this.fecharModal}>Cancelar</sl-button>
+          <sl-button id="btn-confirmar-comentario" variant="primary" .disabled=${!podeConfirmar} @click=${this.confirmarModal}>
+            <span slot="prefix" class="comentario-modal__botao-icone">${unsafeHTML(iconeComentario)}</span>
+            Comentar
+          </sl-button>
+        </div>
       </sl-dialog>
     `;
   }
@@ -235,22 +297,29 @@ export class ComentariosComponent extends LitElement {
     return html`
       <sl-dialog
         id="dlg-excluir-comentario"
-        class="comentario-dialog"
+        class="comentario-dialog comentario-dialog--confirmacao"
         label="Confirmar exclusão"
         ?open=${!!this.confirmacao}
         @sl-after-hide=${(ev: Event): void => {
           if ((ev.target as SlDialog).id === 'dlg-excluir-comentario') this.confirmacao = undefined;
         }}
       >
-        <p class="comentario-confirmacao__titulo">${comentario ? 'Excluir este comentário?' : 'Excluir esta sequência de comentários?'}</p>
-        <p class="comentario-confirmacao__texto">
-          ${comentario ? 'Só este comentário será removido; o trecho comentado e as demais respostas continuam.' : 'Todos os comentários e respostas do trecho serão removidos.'}
-        </p>
-        <sl-button slot="footer" id="btn-cancelar-exclusao" @click=${(): void => (this.confirmacao = undefined)}>Cancelar</sl-button>
-        <sl-button slot="footer" id="btn-confirmar-exclusao" variant="danger" @click=${this.confirmarExclusao}>
-          <sl-icon slot="prefix" name="trash"></sl-icon>
-          Excluir
-        </sl-button>
+        <div class="comentario-confirmacao">
+          <span class="comentario-confirmacao__icone" aria-hidden="true">
+            <sl-icon name="trash"></sl-icon>
+          </span>
+          <div class="comentario-confirmacao__conteudo">
+            <span class="comentario-confirmacao__titulo">${comentario ? 'Excluir este comentário?' : 'Excluir esta sequência de comentários?'}</span>
+            <p class="comentario-confirmacao__texto">${comentario ? AVISO_EXCLUIR_COMENTARIO : AVISO_EXCLUIR_SEQUENCIA}</p>
+          </div>
+        </div>
+        <div slot="footer" class="comentario-dialog__footer">
+          <sl-button id="btn-cancelar-exclusao" variant="default" @click=${(): void => (this.confirmacao = undefined)}>Cancelar</sl-button>
+          <sl-button id="btn-confirmar-exclusao" variant="danger" @click=${this.confirmarExclusao}>
+            <sl-icon slot="prefix" name="trash"></sl-icon>
+            Excluir
+          </sl-button>
+        </div>
       </sl-dialog>
     `;
   }
@@ -327,14 +396,60 @@ export class ComentariosComponent extends LitElement {
     setTimeout(() => this.getCard(proxima.id)?.focus(), 0);
   }
 
+  /** Rola a lista visível até a sequência, com o card a 25% da altura. */
+  rolarParaSequencia(idSequencia: string): void {
+    void this.updateComplete.then(() => {
+      const rolar = (): void => {
+        const card = this.getCard(idSequencia);
+        card && isVisivel(card) && rolarCardParaPosicao(card, 0.25);
+      };
+      // O painel pode ainda estar oculto logo depois da troca de aba: novas tentativas até ele aparecer.
+      requestAnimationFrame(() => {
+        rolar();
+        requestAnimationFrame(rolar);
+        setTimeout(rolar, 80);
+        setTimeout(rolar, 200);
+      });
+    });
+  }
+
+  // A lista existe na aba e no modal: vale a do modal quando ele está aberto.
   private getCard(idSequencia: string): HTMLElement | null {
-    return this.querySelector(`[data-id-sequencia-comentario="${idSequencia}"]`);
+    const seletor = `[data-id-sequencia-comentario="${idSequencia}"]`;
+    const doModal = this.listaAberta ? this.containerModais.querySelector<HTMLElement>(`#dlg-lista-comentarios ${seletor}`) : null;
+    return doModal ?? this.querySelector(seletor);
   }
 
   private emitir(nome: string, detail: Record<string, unknown>): void {
     this.dispatchEvent(new CustomEvent(nome, { bubbles: true, composed: true, detail }));
   }
 }
+
+const isVisivel = (el: HTMLElement): boolean => el.offsetWidth > 0 || el.offsetHeight > 0 || el.getClientRects().length > 0;
+
+// Quem rola é a base do sl-tab-panel (shadow DOM); fora dele, o primeiro ancestral rolável.
+const getContainerRolagem = (card: HTMLElement): HTMLElement | undefined => {
+  const base = card.closest('sl-tab-panel')?.shadowRoot?.querySelector('[part~="base"]') as HTMLElement | null;
+  if (base?.clientHeight) {
+    return base;
+  }
+  for (let atual = card.parentElement; atual; atual = atual.parentElement) {
+    if (['auto', 'scroll', 'overlay'].includes(getComputedStyle(atual).overflowY) && atual.scrollHeight > atual.clientHeight) {
+      return atual;
+    }
+  }
+  return undefined;
+};
+
+const rolarCardParaPosicao = (card: HTMLElement, proporcaoAltura: number): void => {
+  const container = getContainerRolagem(card);
+  if (!container?.clientHeight) {
+    card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    return;
+  }
+  const topoNoContainer = card.getBoundingClientRect().top - container.getBoundingClientRect().top + container.scrollTop;
+  container.scrollTo({ top: Math.max(0, topoNoContainer - container.clientHeight * proporcaoAltura), behavior: 'smooth' });
+};
 
 declare global {
   interface HTMLElementTagNameMap {

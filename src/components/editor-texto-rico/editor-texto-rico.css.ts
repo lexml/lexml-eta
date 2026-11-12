@@ -344,6 +344,39 @@ export const editorTextoRicoCss = html`
       color: #9ca3af;
     }
 
+    .comentarios-mobile-toolbar {
+      display: none !important;
+      float: right;
+      width: auto !important;
+    }
+
+    .comentarios-mobile-button {
+      align-items: center;
+      cursor: pointer;
+      display: inline-flex;
+      font-size: 0.875rem;
+      gap: 4px;
+      margin: 0px 8px 4px;
+      width: auto !important;
+    }
+
+    .comentarios-mobile-button:hover {
+      background-color: var(--sl-color-neutral-100);
+      border-color: var(--sl-color-neutral-300);
+    }
+
+    .comentarios-mobile-field_button {
+      display: flex;
+    }
+
+    .comentarios-mobile-button__icone {
+      display: inline-flex;
+      align-items: center;
+      font-size: 16px;
+      margin-right: 5px;
+      margin-top: 3px;
+    }
+
     .lexml-eta-editor-texto-rico .ql-editor comentario {
       background-color: #fff8c5;
     }
@@ -365,6 +398,12 @@ export const editorTextoRicoCss = html`
       background-position: 0 55%;
       background-repeat: repeat-x;
       background-size: 100% 2px;
+    }
+
+    .lexml-eta-editor-texto-rico .ql-editor del comentario.comentario-selecionado {
+      background-color: #fdd663;
+      border-radius: 2px;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.28);
     }
 
     /* Espaço do ícone, só no último fragmento do trecho. */
@@ -457,6 +496,12 @@ export const editorTextoRicoCss = html`
       }
     }
 
+    @media (max-width: 992px) {
+      .comentarios-mobile-toolbar {
+        display: inline-block !important;
+      }
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;
@@ -466,6 +511,12 @@ export const editorTextoRicoCss = html`
       }
       .ql-snow .ql-editor img {
         max-width: 100%;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .comentarios-mobile-button span:not(.comentarios-mobile-button__icone) {
+        display: none;
       }
     }
   </style>

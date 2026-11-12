@@ -13,7 +13,7 @@ const TEXTO = 'Primeiro trecho e segundo trecho do texto.';
 const clicar = (el: Element | null): void => {
   el!.dispatchEvent(new MouseEvent('click', { bubbles: true, composed: true }));
 };
-const aguardar = (): Promise<unknown> => new Promise(resolve => setTimeout(resolve, 0));
+const aguardar = (ms = 0): Promise<unknown> => new Promise(resolve => setTimeout(resolve, ms));
 
 describe('ETA — comentários na justificação', () => {
   let component: LexmlEtaComponent;
@@ -37,7 +37,8 @@ describe('ETA — comentários na justificação', () => {
     editor().emitirAbrirModalComentario({ index, length });
     await preencherModal(texto);
     clicar(aba().containerModais.querySelector('#btn-confirmar-comentario'));
-    await aguardar();
+    // Depois de criar, a seleção do trecho é refeita após 80ms.
+    await aguardar(120);
     await component.updateComplete;
     return sequencias()[sequencias().length - 1]?.id;
   };
@@ -51,6 +52,8 @@ describe('ETA — comentários na justificação', () => {
   beforeEach(async () => {
     component = await fixture<LexmlEtaComponent>('<lexml-eta></lexml-eta>');
     (component as any).getParlamentares = async (): Promise<[]> => [];
+    // A largura da janela de teste varia: fixa o comportamento de tela grande (aba no lugar do modal).
+    (component as any).TABLET_WIDTH = 0;
     await component.abrirDocumentoArticulado(novoDocumentoArticulado());
     component.setUsuario(FULANO);
     editor().setContent(`<p>${TEXTO}</p>`);
@@ -88,7 +91,7 @@ describe('ETA — comentários na justificação', () => {
       expect(abaAtiva('tabs-direita')).to.equal('comentarios');
       expect(cards()).to.have.length(1);
       expect(cards()[0].classList.contains('comentario-sequencia--selecionada')).to.equal(true);
-      expect(cards()[0].querySelector('.comentario-sequencia__trecho')!.textContent).to.equal('Primeiro trecho ');
+      expect(cards()[0].querySelector('.comentario-sequencia__trecho-texto')!.textContent).to.equal('Primeiro trecho ');
       expect(cards()[0].querySelector('.comentario-item__editar')!.textContent).to.include('Editar');
     });
 
@@ -146,14 +149,14 @@ describe('ETA — comentários na justificação', () => {
       clicar(aba().containerModais.querySelector('#btn-confirmar-comentario'));
       await component.updateComplete;
 
-      clicar(cards()[0].querySelectorAll('.comentario-item')[1].querySelector('.comentario-item__excluir'));
+      clicar(cards()[0].querySelectorAll('.comentario-item')[1].querySelector('.comentario-item__acao--excluir'));
       await confirmarExclusao();
 
       expect(sequencias()[0].comentarios.map((c: any) => c.texto)).to.deep.equal(['Comentário inicial']);
     });
 
     it('excluir a sequência retira a sequência e o destaque, sem mudar o texto', async () => {
-      clicar(cards()[0].querySelector('.comentario-sequencia__excluir'));
+      clicar(cards()[0].querySelector('.comentario-sequencia__acao--excluir'));
       await confirmarExclusao();
 
       expect(sequencias()).to.have.length(0);
@@ -163,7 +166,7 @@ describe('ETA — comentários na justificação', () => {
     });
 
     it('cancelar a exclusão da sequência mantém a sequência e o destaque', async () => {
-      clicar(cards()[0].querySelector('.comentario-sequencia__excluir'));
+      clicar(cards()[0].querySelector('.comentario-sequencia__acao--excluir'));
       await aba().updateComplete;
       clicar(aba().containerModais.querySelector('#btn-cancelar-exclusao'));
       await component.updateComplete;
@@ -174,7 +177,7 @@ describe('ETA — comentários na justificação', () => {
 
     it('desfazer depois de excluir a sequência não recria o destaque', async () => {
       editor().quill.history.cutoff();
-      clicar(cards()[0].querySelector('.comentario-sequencia__excluir'));
+      clicar(cards()[0].querySelector('.comentario-sequencia__acao--excluir'));
       await confirmarExclusao();
       editor().quill.history.cutoff();
 
@@ -267,7 +270,7 @@ describe('ETA — comentários na justificação', () => {
 
     it('excluir a última sequência retira o alerta e a pendência', async () => {
       await comentar(0, 16, 'Comentário');
-      clicar(cards()[0].querySelector('.comentario-sequencia__excluir'));
+      clicar(cards()[0].querySelector('.comentario-sequencia__acao--excluir'));
       await confirmarExclusao();
 
       expect(alertasComentarios()).to.have.length(0);
@@ -348,6 +351,121 @@ describe('ETA — comentários na justificação', () => {
           .find(c => c.dataset.idSequenciaComentario === id)!
           .classList.contains('comentario-sequencia--selecionada')
       ).to.equal(true);
+    });
+  });
+
+  describe('Troca de aba e rolagem', () => {
+    const selecionadas = (): string[] =>
+      cards()
+        .filter(c => c.classList.contains('comentario-sequencia--selecionada'))
+        .map(c => c.dataset.idSequenciaComentario!);
+    const trechoDestacado = (): boolean => !!editor().quill.root.querySelector('comentario.comentario-selecionado');
+    const espionarRolagem = (): string[] => {
+      const chamadas: string[] = [];
+      aba().rolarParaSequencia = (id: string): void => {
+        chamadas.push(id);
+      };
+      return chamadas;
+    };
+
+    it('exibir outra aba no painel da direita desfaz a seleção e o destaque do trecho', async () => {
+      await comentar(0, 16, 'Comentário');
+      expect(selecionadas()).to.have.length(1);
+
+      (component as any)._tabsDireita.show('notas');
+      await component.updateComplete;
+
+      expect(selecionadas()).to.deep.equal([]);
+      expect(trechoDestacado()).to.equal(false);
+    });
+
+    it('exibir outra aba no painel da esquerda desfaz a seleção', async () => {
+      await comentar(0, 16, 'Comentário');
+
+      (component as any)._tabsEsquerda.show('avisos');
+      await component.updateComplete;
+
+      expect(selecionadas()).to.deep.equal([]);
+    });
+
+    it('voltar à aba de comentários rola até a sequência do trecho sob o cursor', async () => {
+      const id = await comentar(0, 16, 'Comentário');
+      (component as any)._tabsDireita.show('notas');
+      editor().onSelectionChange({ index: 2, length: 0 });
+      await aguardar();
+      const chamadas = espionarRolagem();
+
+      (component as any)._tabsDireita.show('comentarios');
+      await component.updateComplete;
+
+      expect(chamadas).to.include(id);
+    });
+
+    it('criar um comentário posiciona o cursor no trecho e rola até a nova sequência', async () => {
+      await comentar(0, 8, 'Primeiro');
+      const chamadas = espionarRolagem();
+
+      const id = await comentar(18, 7, 'Segundo');
+
+      expect(chamadas).to.include(id);
+      expect(editor().quill.getSelection()).to.deep.equal({ index: 18, length: 0 });
+      expect(selecionadas()).to.deep.equal([id]);
+    });
+  });
+
+  describe('Telas pequenas', () => {
+    const listaAberta = (): boolean => !!aba().containerModais.querySelector('#dlg-lista-comentarios')?.open;
+    const cardsDoModal = (): HTMLElement[] => Array.from(aba().containerModais.querySelectorAll('#dlg-lista-comentarios .comentario-sequencia'));
+
+    beforeEach(() => {
+      (component as any).TABLET_WIDTH = 100000;
+    });
+
+    it('criar um comentário abre o modal da lista com a nova sequência destacada', async () => {
+      const id = await comentar(0, 16, 'Comentário');
+      await aba().updateComplete;
+
+      expect(listaAberta()).to.equal(true);
+      expect(cardsDoModal().map(c => c.dataset.idSequenciaComentario)).to.deep.equal([id]);
+      expect(cardsDoModal()[0].classList.contains('comentario-sequencia--selecionada')).to.equal(true);
+    });
+
+    it('o botão "Comentários" da barra abre o modal da lista', async () => {
+      editor().querySelector('.comentarios-mobile-button').click();
+      await aba().updateComplete;
+
+      expect(listaAberta()).to.equal(true);
+      expect(aba().containerModais.querySelector('#dlg-lista-comentarios').textContent).to.include('Não há comentários registrados.');
+    });
+
+    it('o ícone do trecho abre o modal da lista com a sequência destacada', async () => {
+      const id = await comentar(18, 7, 'Segundo');
+      aba().fecharModalLista();
+      await aba().updateComplete;
+      (component as any)._tabsEsquerda.show('justificativa');
+      const seletor = `.comentario-texto-icone[data-id-sequencia-comentario="${id}"]`;
+      await waitUntil(() => !!editor().querySelector(seletor), 'o ícone não foi criado');
+
+      clicar(editor().querySelector(seletor));
+      await component.updateComplete;
+      await aba().updateComplete;
+
+      expect(listaAberta()).to.equal(true);
+      expect(cardsDoModal()[0].classList.contains('comentario-sequencia--selecionada')).to.equal(true);
+    });
+
+    it('selecionar uma sequência no modal fecha o modal e põe o cursor no trecho', async () => {
+      await comentar(0, 8, 'Primeiro');
+      await comentar(18, 7, 'Segundo');
+      await aba().updateComplete;
+      const card = cardsDoModal().find(c => c.dataset.idSequenciaComentario === sequencias()[0].id)!;
+
+      clicar(card.querySelector('.comentario-sequencia__trecho'));
+      await component.updateComplete;
+      await aba().updateComplete;
+
+      expect(listaAberta()).to.equal(false);
+      expect(editor().quill.getSelection()).to.deep.equal({ index: 0, length: 0 });
     });
   });
 

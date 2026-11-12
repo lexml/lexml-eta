@@ -17,6 +17,8 @@ const SEL_TEXTO = `${SEL_EDITOR}-inner > .ql-editor`;
 const SEL_BOTAO_COMENTARIO = `${SEL_EDITOR} button.ql-lexml-eta-comentario`;
 const SEL_MODAIS = '.comentarios-modais';
 const SEL_CARD = 'lexml-eta-comentarios .comentario-sequencia';
+const SEL_LISTA = `${SEL_MODAIS} #dlg-lista-comentarios`;
+const AVISO_EXCLUIR_SEQUENCIA = 'Esta ação removerá todos os comentários e respostas associados ao trecho. Essa operação não poderá ser desfeita.';
 
 // sl-button: o clique é disparado direto, sem depender do shadow DOM já renderizado.
 const clicarSlButton = (seletor: string): void => {
@@ -65,7 +67,7 @@ describe('Comentários na justificação', () => {
     selecionar('Primeiro trecho');
     cy.get(SEL_BOTAO_COMENTARIO).should('not.be.disabled').click();
 
-    cy.get(`${SEL_MODAIS} .comentario-modal__trecho blockquote`).should('have.text', 'Primeiro trecho');
+    cy.get(`${SEL_MODAIS} .comentario-modal__trecho-texto`).should('have.text', 'Primeiro trecho');
     preencherEConfirmar('Revisar a redação.');
 
     cy.get(`${SEL_TEXTO} comentario`).should('have.length', 1).and('have.text', 'Primeiro trecho');
@@ -81,8 +83,9 @@ describe('Comentários na justificação', () => {
       expect($textos.toArray().map(t => t.textContent)).to.deep.equal(['Revisar a redação.', 'De acordo.']);
     });
 
-    cy.get(`${SEL_CARD} .comentario-sequencia__excluir`).click();
+    cy.get(`${SEL_CARD} .comentario-sequencia__acao--excluir`).click();
     cy.get(`${SEL_MODAIS} .comentario-confirmacao__titulo`).should('be.visible').and('have.text', 'Excluir esta sequência de comentários?');
+    cy.get(`${SEL_MODAIS} .comentario-confirmacao__texto`).should('have.text', AVISO_EXCLUIR_SEQUENCIA);
     clicarSlButton(`${SEL_MODAIS} #btn-confirmar-exclusao`);
 
     cy.get(SEL_CARD).should('not.exist');
@@ -100,5 +103,45 @@ describe('Comentários na justificação', () => {
     cy.get(`${SEL_MODAIS} #textarea-comentario`).should('be.visible');
     clicarSlButton(`${SEL_MODAIS} #btn-cancelar-comentario`);
     cy.get(`${SEL_TEXTO} comentario`).should('not.exist');
+  });
+
+  it('exibir outra aba no painel da direita desfaz a seleção da sequência', () => {
+    selecionar('Primeiro trecho');
+    cy.get(SEL_BOTAO_COMENTARIO).click();
+    preencherEConfirmar('Revisar a redação.');
+    cy.get(`${SEL_CARD}.comentario-sequencia--selecionada`).should('have.length', 1);
+
+    cy.get('sl-tab[panel="notas"]').click();
+
+    cy.get(`${SEL_CARD}.comentario-sequencia--selecionada`).should('not.exist');
+    cy.get(`${SEL_TEXTO} comentario.comentario-selecionado`).should('not.exist');
+  });
+
+  describe('em tela pequena', () => {
+    beforeEach(() => {
+      cy.viewport(900, 800);
+    });
+
+    it('a lista é exibida num modal: ao comentar, pelo botão da barra e fechando ao selecionar', () => {
+      selecionar('Primeiro trecho');
+      cy.get(SEL_BOTAO_COMENTARIO).click();
+      preencherEConfirmar('Revisar a redação.');
+
+      cy.get(SEL_LISTA).should('have.attr', 'open');
+      cy.get(`${SEL_LISTA} .comentario-sequencia`).should('have.length', 1).and('have.class', 'comentario-sequencia--selecionada');
+
+      cy.get(`${SEL_LISTA} .comentario-sequencia__trecho`).click();
+      cy.get(SEL_LISTA).should('not.have.attr', 'open');
+
+      cy.get(`${SEL_EDITOR} .comentarios-mobile-button`).should('be.visible').click();
+      cy.get(SEL_LISTA).should('have.attr', 'open');
+      clicarSlButton('#btn-fechar-lista-comentarios');
+      cy.get(SEL_LISTA).should('not.have.attr', 'open');
+    });
+
+    it('o botão "Comentários" não aparece em tela grande', () => {
+      cy.viewport(1280, 800);
+      cy.get(`${SEL_EDITOR} .comentarios-mobile-button`).should('not.be.visible');
+    });
   });
 });

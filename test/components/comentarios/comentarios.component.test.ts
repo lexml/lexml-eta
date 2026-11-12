@@ -1,4 +1,4 @@
-import { expect, fixture, html } from '@open-wc/testing';
+import { expect, fixture, html, waitUntil } from '@open-wc/testing';
 import type { ComentariosComponent } from '../../../src';
 import '../../../src/components/comentarios/comentarios.component';
 import { Comentario, SequenciaComentario } from '../../../src/model/comentario/comentario';
@@ -63,11 +63,23 @@ describe('lexml-eta-comentarios', () => {
       const a = card('a');
 
       expect(a.querySelector('.comentario-sequencia__origem')!.textContent).to.equal('Na justificação');
-      expect(a.querySelector('.comentario-sequencia__trecho')!.textContent).to.equal('trecho A');
+      expect(a.querySelector('.comentario-sequencia__trecho-texto')!.textContent).to.equal('trecho A');
       expect(a.querySelector('.comentario-item__autor')!.textContent).to.equal('Fulano de Tal');
       expect(a.querySelector('.comentario-item__data')!.textContent).to.match(/^\d{2}\/\d{2}\/2026 \d{2}:\d{2}$/);
       expect(!!a.querySelector('.comentario-sequencia__responder')).to.equal(true);
-      expect(!!a.querySelector('.comentario-sequencia__excluir')).to.equal(true);
+      expect(!!a.querySelector('.comentario-sequencia__acao--excluir')).to.equal(true);
+    });
+
+    it('segue o padrão visual do lexml-emenda: seta no "Responder" e trecho em uma linha', async () => {
+      await montar();
+      const a = card('a');
+      const texto = a.querySelector('.comentario-sequencia__trecho-texto') as HTMLElement;
+
+      expect(!!a.querySelector('.comentario-sequencia__responder .comentario-sequencia__seta')).to.equal(true);
+      expect(!!a.querySelector('sl-icon[name="reply"]')).to.equal(false);
+      expect(a.querySelector('.comentario-sequencia__origem')!.classList.contains('comentario-sequencia__origem--justificativa')).to.equal(true);
+      expect(getComputedStyle(texto).textOverflow).to.equal('ellipsis');
+      expect(getComputedStyle(a).paddingTop).to.equal('14px');
     });
 
     it('preserva as quebras de linha do comentário', async () => {
@@ -80,7 +92,7 @@ describe('lexml-eta-comentarios', () => {
 
     it('trecho não localizado tem um texto de aviso', async () => {
       await montar([{ id: 'x', comentarios: SEQ_A.comentarios }]);
-      expect(card('x').querySelector('.comentario-sequencia__trecho')!.textContent).to.equal('Trecho comentado não localizado.');
+      expect(card('x').querySelector('.comentario-sequencia__trecho-texto')!.textContent).to.equal('Trecho comentado não localizado.');
     });
 
     it('"Editar" só para o autor; "Excluir" só para o autor e com mais de um comentário', async () => {
@@ -116,6 +128,25 @@ describe('lexml-eta-comentarios', () => {
       expect(card('a').classList.contains('comentario-sequencia--selecionada')).to.equal(true);
       expect(card('a').getAttribute('aria-selected')).to.equal('true');
       expect(card('b').classList.contains('comentario-sequencia--selecionada')).to.equal(false);
+    });
+
+    it('rola a lista até a sequência atual, com o card a um quarto da altura', async () => {
+      const muitas = Array.from({ length: 12 }, (_, i): SequenciaComentario => ({ id: `s${i}`, comentarios: SEQ_A.comentarios }));
+      const container = await fixture<HTMLElement>(
+        html`<div style="height: 300px; overflow-y: auto">
+          <lexml-eta-comentarios .sequencias=${muitas} .getTrecho=${(): string => 'trecho'} .getPosicao=${(id: string): number => Number(id.slice(1))}></lexml-eta-comentarios>
+        </div>`
+      );
+      componente = container.querySelector('lexml-eta-comentarios')!;
+      await componente.updateComplete;
+
+      componente.idSequenciaAtual = 's10';
+      await componente.updateComplete;
+      await waitUntil(() => container.scrollTop > 0, 'a lista não rolou');
+      await waitUntil(() => {
+        const topo = card('s10').getBoundingClientRect().top - container.getBoundingClientRect().top;
+        return Math.abs(topo - container.clientHeight * 0.25) < 2;
+      }, 'o card não ficou a um quarto da altura');
     });
   });
 
@@ -165,7 +196,7 @@ describe('lexml-eta-comentarios', () => {
 
       expect(dialogo('dlg-comentario').open).to.equal(true);
       expect(dialogo('dlg-comentario').label).to.equal('Adicionar comentário');
-      expect(componente.containerModais.querySelector('.comentario-modal__trecho blockquote')!.textContent).to.equal('trecho selecionado');
+      expect(componente.containerModais.querySelector('.comentario-modal__trecho-texto')!.textContent).to.equal('trecho selecionado');
       expect((componente.containerModais.querySelector('#textarea-comentario') as HTMLTextAreaElement).maxLength).to.equal(500);
       expect(botaoComentar().disabled).to.equal(true);
 
@@ -229,7 +260,7 @@ describe('lexml-eta-comentarios', () => {
       await montar();
       const eventos = ouvir('comentario-excluir-sequencia');
 
-      clicar(card('a').querySelector('.comentario-sequencia__excluir'));
+      clicar(card('a').querySelector('.comentario-sequencia__acao--excluir'));
       await componente.updateComplete;
       expect(dialogo('dlg-excluir-comentario').open).to.equal(true);
       expect(componente.containerModais.querySelector('.comentario-confirmacao__titulo')!.textContent).to.equal('Excluir esta sequência de comentários?');
@@ -242,7 +273,7 @@ describe('lexml-eta-comentarios', () => {
       await montar();
       const eventos = ouvir('comentario-excluir');
 
-      clicar(card('b').querySelectorAll('.comentario-item')[1].querySelector('.comentario-item__excluir'));
+      clicar(card('b').querySelectorAll('.comentario-item')[1].querySelector('.comentario-item__acao--excluir'));
       await componente.updateComplete;
       expect(componente.containerModais.querySelector('.comentario-confirmacao__titulo')!.textContent).to.equal('Excluir este comentário?');
 
@@ -251,10 +282,26 @@ describe('lexml-eta-comentarios', () => {
       expect(eventos).to.have.length(0);
       expect(dialogo('dlg-excluir-comentario').open).to.equal(false);
 
-      clicar(card('b').querySelectorAll('.comentario-item')[1].querySelector('.comentario-item__excluir'));
+      clicar(card('b').querySelectorAll('.comentario-item')[1].querySelector('.comentario-item__acao--excluir'));
       await componente.updateComplete;
       clicar(componente.containerModais.querySelector('#btn-confirmar-exclusao'));
       expect(eventos).to.deep.equal([{ idSequencia: 'b', indice: 1 }]);
+    });
+
+    it('exibe o aviso e o ícone de lixeira do lexml-emenda', async () => {
+      await montar();
+      const aviso = (): string => componente.containerModais.querySelector('.comentario-confirmacao__texto')!.textContent!;
+
+      clicar(card('a').querySelector('.comentario-sequencia__acao--excluir'));
+      await componente.updateComplete;
+      expect(aviso()).to.equal('Esta ação removerá todos os comentários e respostas associados ao trecho. Essa operação não poderá ser desfeita.');
+      expect(!!componente.containerModais.querySelector('.comentario-confirmacao__icone sl-icon[name="trash"]')).to.equal(true);
+      clicar(componente.containerModais.querySelector('#btn-cancelar-exclusao'));
+      await componente.updateComplete;
+
+      clicar(card('b').querySelectorAll('.comentario-item')[1].querySelector('.comentario-item__acao--excluir'));
+      await componente.updateComplete;
+      expect(aviso()).to.equal('Esta ação removerá apenas este comentário da sequência. O trecho comentado e as demais respostas serão mantidos.');
     });
   });
 });
