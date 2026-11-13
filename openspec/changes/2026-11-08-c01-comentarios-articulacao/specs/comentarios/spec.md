@@ -2,7 +2,7 @@
 
 ### Requirement: Adicionar comentário a dispositivo
 
-A barra de ferramentas do texto articulado SHALL ter o botão "Adicionar comentário". O botão SHALL estar habilitado só quando o cursor estiver num dispositivo que possa ser comentado e que ainda não tenha comentário. Podem ser comentados todos os dispositivos com identificador: artigos e seus desdobramentos, agrupadores, ementa, preâmbulo, pena e dispositivos de bloco de alteração. O omissis e o dispositivo excluído em revisão MUST NOT receber comentário novo. O título do botão desabilitado SHALL indicar o motivo. O botão SHALL abrir o modal "Adicionar comentário" com a identificação do dispositivo no lugar do trecho selecionado, e o modal SHALL seguir as mesmas regras do comentário na justificação: até 500 caracteres, contador, e "Comentar" desabilitado com o campo vazio. Ao confirmar, o sistema SHALL criar uma sequência com um comentário do usuário atual, com a data e a hora atuais, exibir o ícone de comentário no dispositivo, exibir a aba "Comentários" e destacar a nova sequência.
+A barra de ferramentas do texto articulado SHALL ter o botão "Adicionar comentário". O botão SHALL estar habilitado só quando o cursor estiver num dispositivo que possa ser comentado e que ainda não tenha comentário. Podem ser comentados todos os dispositivos com identificador: artigos e seus desdobramentos, agrupadores, ementa, preâmbulo, pena e dispositivos de bloco de alteração. O omissis e o dispositivo excluído em revisão MUST NOT receber comentário novo. O título do botão SHALL ser "Adicionar comentário" quando habilitado, "Este dispositivo já possui comentário" no dispositivo já comentado e "Selecione um dispositivo para adicionar comentário" nos demais casos. O botão SHALL abrir o modal "Adicionar comentário" com a identificação do dispositivo como trecho selecionado, e o modal SHALL seguir as mesmas regras do comentário na justificação: até 500 caracteres, contador, e "Comentar" desabilitado com o campo vazio. Ao confirmar, o sistema SHALL criar uma sequência com um comentário do usuário atual, com a data e a hora atuais, exibir o ícone de comentário no dispositivo, exibir a aba "Comentários" (em telas pequenas, o modal da lista) e destacar a nova sequência.
 
 #### Scenario: Comentar um dispositivo
 
@@ -18,7 +18,7 @@ A barra de ferramentas do texto articulado SHALL ter o botão "Adicionar coment�
 #### Scenario: Omissis
 
 - **WHEN** o cursor está num omissis
-- **THEN** o botão "Adicionar comentário" está desabilitado
+- **THEN** o botão "Adicionar comentário" está desabilitado, com o título "Selecione um dispositivo para adicionar comentário"
 
 #### Scenario: Dispositivo excluído em revisão
 
@@ -28,7 +28,7 @@ A barra de ferramentas do texto articulado SHALL ter o botão "Adicionar coment�
 #### Scenario: Ementa
 
 - **WHEN** o cursor está na ementa, que não tem comentário
-- **THEN** o botão "Adicionar comentário" está habilitado e o modal identifica o dispositivo como "Ementa"
+- **THEN** o botão "Adicionar comentário" está habilitado e o modal identifica o dispositivo como "ementa"
 
 #### Scenario: Cancelar
 
@@ -37,7 +37,7 @@ A barra de ferramentas do texto articulado SHALL ter o botão "Adicionar coment�
 
 ### Requirement: Indicador de comentário no dispositivo
 
-Um dispositivo com comentário SHALL exibir um ícone de comentário à direita da linha, depois dos demais ícones dessa posição (como o de diferenças). Clicar no ícone SHALL posicionar o cursor no dispositivo, exibir a aba "Comentários" e destacar a sequência do dispositivo. Excluir a sequência SHALL retirar o ícone.
+Um dispositivo com comentário SHALL exibir um ícone de comentário à direita da linha, depois dos demais ícones dessa posição (como o de diferenças). Clicar no ícone SHALL posicionar o cursor no dispositivo, exibir a aba "Comentários" (em telas pequenas, o modal da lista) e destacar a sequência do dispositivo. Excluir a sequência SHALL retirar o ícone.
 
 #### Scenario: Ícone ao lado do ícone de diferenças
 
@@ -46,7 +46,7 @@ Um dispositivo com comentário SHALL exibir um ícone de comentário à direita 
 
 #### Scenario: Clicar no ícone
 
-- **WHEN** a aba "Comentários" não está exibida e o usuário clica no ícone de comentário de um dispositivo
+- **WHEN** a janela tem mais de 992px de largura, a aba "Comentários" não está exibida e o usuário clica no ícone de comentário de um dispositivo
 - **THEN** a aba "Comentários" é exibida e a sequência do dispositivo fica destacada
 
 #### Scenario: Excluir a sequência
@@ -56,7 +56,7 @@ Um dispositivo com comentário SHALL exibir um ícone de comentário à direita 
 
 ### Requirement: Identificação do dispositivo comentado
 
-A sequência de um dispositivo SHALL exibir a identificação dele, por extenso a partir do artigo (ex.: "inciso I do § 2º do art. 3º"), ou o nome do elemento para ementa, preâmbulo, agrupador e pena. A identificação SHALL corresponder sempre ao rótulo atual do dispositivo: renumerar, mover ou transformar o dispositivo atualiza a identificação e mantém a sequência.
+A sequência de um dispositivo SHALL exibir a identificação dele, por extenso a partir do artigo (ex.: "inciso I do § 2º do art. 3º"), ou o nome do elemento para ementa ("ementa"), preâmbulo ("preâmbulo"), agrupador (ex.: "Capítulo II") e pena. Num dispositivo de bloco de alteração, a identificação dentro da norma alterada SHALL ser seguida do artigo do projeto que a contém (ex.: "Inciso I do art. 5º citado no art. 2º"). A identificação SHALL corresponder sempre ao rótulo atual do dispositivo: renumerar, mover ou transformar o dispositivo atualiza a identificação e mantém a sequência.
 
 #### Scenario: Renumeração
 
@@ -67,6 +67,17 @@ A sequência de um dispositivo SHALL exibir a identificação dele, por extenso 
 
 - **WHEN** o usuário comenta o Capítulo II
 - **THEN** a sequência é identificada como "Capítulo II"
+
+#### Scenario: Transformação
+
+- **WHEN** o parágrafo único do art. 1º tem comentário e o usuário o transforma em artigo
+- **THEN** a sequência continua na aba, com o ícone no novo artigo, identificada como "art. 2º"
+- **AND** desfazer a transformação devolve o parágrafo com a sequência e o ícone
+
+#### Scenario: Bloco de alteração
+
+- **WHEN** o usuário comenta o inciso I do art. 5º da norma alterada pelo art. 2º do projeto
+- **THEN** a sequência é identificada como "Inciso I do art. 5º citado no art. 2º"
 
 ### Requirement: Destaque da sequência do dispositivo sob o cursor
 
@@ -121,6 +132,76 @@ Excluir em modo de revisão um dispositivo comentado SHALL manter a sequência e
 - **THEN** o dispositivo volta com o ícone de comentário e a sequência continua na aba
 
 ## MODIFIED Requirements
+
+### Requirement: Sequência atual ao trocar de aba
+
+Exibir no painel da esquerda outra aba, ou no painel da direita uma aba diferente de "Comentários", SHALL desfazer a seleção da sequência atual e retirar o destaque do trecho comentado. Isso MUST NOT acontecer quando a troca de aba resulta de clicar numa sequência, que exibe a aba da justificação ou, para a articulação, a aba "Texto".
+
+#### Scenario: Trocar a aba da direita
+
+- **WHEN** uma sequência está destacada e o usuário exibe a aba "Notas"
+- **THEN** nenhuma sequência fica destacada e o trecho comentado perde o destaque de selecionado
+
+#### Scenario: Trocar a aba da esquerda
+
+- **WHEN** uma sequência está destacada e o usuário exibe a aba "Avisos"
+- **THEN** nenhuma sequência fica destacada
+
+#### Scenario: Clicar numa sequência com outra aba à esquerda
+
+- **WHEN** a aba "Texto" está exibida e o usuário clica numa sequência
+- **THEN** a aba da justificação é exibida e a sequência continua destacada
+
+#### Scenario: Clicar numa sequência da articulação com outra aba à esquerda
+
+- **WHEN** a aba da justificação está exibida e o usuário clica na sequência de um dispositivo
+- **THEN** a aba "Texto" é exibida e a sequência continua destacada
+
+### Requirement: Comentários em telas pequenas
+
+Com a janela de até 992px de largura, a barra da justificação SHALL exibir o botão "Comentários", que abre um modal com a lista de comentários (mesmo conteúdo da aba e botão "Fechar"). Com a janela de até 768px de largura, a barra do texto articulado SHALL exibir também o botão "Comentários", junto dos demais botões de telas pequenas, com o mesmo efeito; até 640px, ele SHALL exibir só o ícone. Nessa largura de até 992px, criar um comentário, clicar no ícone de um trecho comentado e clicar no ícone de comentário de um dispositivo SHALL abrir esse modal, no lugar de só exibir a aba "Comentários". Clicar numa sequência do modal SHALL fechá-lo e seguir a seleção da sequência na aba. Acima de 992px o botão da justificação MUST NOT ser exibido, e acima de 768px o do texto articulado também não. Com a janela de até 768px de largura, o painel da direita MUST NOT ser exibido.
+
+#### Scenario: Botão em tela pequena
+
+- **WHEN** a janela tem 900px de largura
+- **THEN** a barra da justificação exibe o botão "Comentários"
+- **AND** clicar nele abre o modal com a lista de comentários
+
+#### Scenario: Botão em tela grande
+
+- **WHEN** a janela tem 1280px de largura
+- **THEN** a barra da justificação não exibe o botão "Comentários"
+
+#### Scenario: Botão do texto articulado em tela de celular
+
+- **WHEN** a janela tem 700px de largura
+- **THEN** a barra do texto articulado exibe o botão "Comentários"
+- **AND** clicar nele abre o modal com a lista de comentários
+
+#### Scenario: Ícone do trecho em tela pequena
+
+- **WHEN** a janela tem 900px de largura e o usuário clica no ícone ao fim de um trecho comentado
+- **THEN** o modal com a lista de comentários é aberto, com a sequência do trecho destacada
+
+#### Scenario: Ícone do dispositivo em tela pequena
+
+- **WHEN** a janela tem 900px de largura e o usuário clica no ícone de comentário de um dispositivo
+- **THEN** o modal com a lista de comentários é aberto, com a sequência do dispositivo destacada
+
+#### Scenario: Criar comentário em tela pequena
+
+- **WHEN** a janela tem 900px de largura e o usuário cria um comentário
+- **THEN** o modal com a lista de comentários é aberto, com a nova sequência destacada
+
+#### Scenario: Selecionar sequência no modal
+
+- **WHEN** o modal da lista está aberto e o usuário clica numa sequência
+- **THEN** o modal é fechado e o cursor fica no objeto comentado
+
+#### Scenario: Painel da direita em tela de celular
+
+- **WHEN** a janela tem 700px de largura
+- **THEN** o painel da direita não é exibido e a lista de comentários continua acessível pelo botão "Comentários"
 
 ### Requirement: Aba de comentários
 
