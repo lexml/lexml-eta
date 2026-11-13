@@ -12,7 +12,7 @@ import { InfoTextoColado } from '../../redux/elemento/util/colarUtil';
 import { AdicionarAgrupadorArtigo } from '../../model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { adicionarAgrupadorArtigoDialog } from './adicionarAgrupadorArtigoDialog';
 import { SlButton, SlInput } from '@shoelace-style/shoelace';
-import { html, LitElement, TemplateResult } from 'lit';
+import { html, LitElement, PropertyValues, TemplateResult } from 'lit';
 import { unsafeHTML } from 'lit/directives/unsafe-html.js';
 import { customElement, property, query, state } from 'lit/decorators.js';
 import { connect } from 'pwa-helpers';
@@ -96,7 +96,8 @@ import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/seleci
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
-import { iconeRemissaoInterna } from '../../../assets/icons/icons';
+import { iconeComentario, iconeRemissaoInterna } from '../../../assets/icons/icons';
+import { EtaBlotOpcoesComentario } from '../../util/eta-quill/eta-blot-opcoes-comentario';
 import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
 import { MENSAGEM_REMISSAO_INVALIDA, MENSAGEM_REMISSAO_TEXTO_PRESERVADO } from '../../model/remissao/remissao';
@@ -197,6 +198,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   disconnectedCallback(): void {
+    clearTimeout(this.timerIndicadoresComentario);
     this.inscricoes.forEach((i: Subscription) => i.cancel());
     this.destroiQuill();
     super.disconnectedCallback();
@@ -206,6 +208,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   exibirBotoesParaTratarTodas = false;
 
   @state() private _temSelecao = false;
+
+  // uuid2 dos dispositivos com comentário, informado pelo componente raiz.
+  @property({ attribute: false }) uuid2DispositivosComentados: string[] = [];
+
+  @state() private elementoSelecionadoAtual?: Elemento;
+  private timerIndicadoresComentario?: ReturnType<typeof setTimeout>;
 
   render(): TemplateResult {
     return html`
@@ -338,6 +346,17 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             ${unsafeHTML(iconeRemissaoInterna)}
           </button>
 
+          <button
+            type="button"
+            class="button-comentario-articulacao"
+            title=${this.getTituloBotaoComentario()}
+            aria-label="Adicionar comentário"
+            ?disabled=${!this.podeAdicionarComentario}
+            @click=${this.abrirModalComentarioDispositivo}
+          >
+            ${unsafeHTML(iconeComentario)}
+          </button>
+
           <span id="pos-select-paginacao"></span>
 
           <lexml-eta-switch-revisao
@@ -353,6 +372,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
           <input type="button" @click=${this.artigoOndeCouber} class="${'ql-hidden'} btn--artigoOndeCouber" value="Propor artigo onde couber" title="Artigo onde couber"></input>
           <div class="mobile-buttons">
+            <button type="button" class="mobile-button btn-comentarios" title="Comentários" @click=${this.abrirModalListaComentarios}>
+              <sl-icon name="chat-left-text"></sl-icon>
+              <span>Comentários</span>
+            </button>
             <button class="mobile-button btn-dicas" title="Dicas" @click=${this.showAjudaModal}>
               <sl-icon name="lightbulb"></sl-icon>
               <span>Dicas</span>
@@ -838,6 +861,135 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     select.selectedIndex = indexPaginaSelecionada;
   }
 
+  protected updated(changed: PropertyValues): void {
+    if (changed.has('uuid2DispositivosComentados')) {
+      this.atualizarIndicadoresComentario();
+    }
+  }
+
+  private get uuid2sComentados(): Set<string> {
+    return new Set(this.uuid2DispositivosComentados);
+  }
+
+  private isComentado(uuid2?: string): boolean {
+    return !!uuid2 && this.uuid2sComentados.has(uuid2);
+  }
+
+  private isExcluidoEmRevisao(elemento: Elemento): boolean {
+    return (elemento.revisao as RevisaoElemento | undefined)?.stateType === StateType.ElementoRemovido;
+  }
+
+  private get podeAdicionarComentario(): boolean {
+    const elemento = this.elementoSelecionadoAtual;
+    return (
+      !!elemento?.lexmlId &&
+      !!elemento.uuid2 &&
+      elemento.tipo !== 'Articulacao' &&
+      elemento.tipo !== TipoDispositivo.omissis.tipo &&
+      !this.isExcluidoEmRevisao(elemento) &&
+      !this.isComentado(elemento.uuid2)
+    );
+  }
+
+  private getTituloBotaoComentario(): string {
+    if (this.podeAdicionarComentario) {
+      return 'Adicionar comentário';
+    }
+    return this.isComentado(this.elementoSelecionadoAtual?.uuid2) ? 'Este dispositivo já possui comentário' : 'Selecione um dispositivo para adicionar comentário';
+  }
+
+  private abrirModalComentarioDispositivo = (): void => {
+    const elemento = this.elementoSelecionadoAtual;
+    if (!this.podeAdicionarComentario || !elemento) {
+      return;
+    }
+    this.emitir('abrir-modal-comentario-dispositivo', { elemento, uuid2Dispositivo: elemento.uuid2 });
+  };
+
+  private abrirModalListaComentarios = (): void => {
+    this.emitir('abrir-modal-lista-comentarios', {});
+  };
+
+  private emitir(nome: string, detail: Record<string, unknown>): void {
+    this.dispatchEvent(new CustomEvent(nome, { bubbles: true, composed: true, detail }));
+  }
+
+  private getLinhasArticulacao(): EtaContainerTable[] {
+    const linhas: EtaContainerTable[] = [];
+    for (let linha = this.quill?.getPrimeiraLinha(); linha; linha = linha.next) {
+      linhas.push(linha);
+    }
+    return linhas;
+  }
+
+  // As linhas são recriadas por várias ações (transformar, rejeitar revisão, desfazer): o indicador é reaplicado em todas.
+  private atualizarIndicadoresComentario(): void {
+    if (!this._quill) {
+      return;
+    }
+    this.getLinhasArticulacao().forEach(linha => this.atualizarIndicadorComentarioLinha(linha, this.isComentado(linha.uuid2)));
+  }
+
+  private atualizarIndicadorComentarioLinha(linha: EtaContainerTable, comComentario: boolean): void {
+    if (!linha?.lexmlId || linha.tipo === 'Articulacao' || !linha.elemento) {
+      return;
+    }
+
+    const botao = linha.containerRevisao?.blotBotaoComentario ?? linha.containerOpcoes?.blotBotaoComentario;
+    if (!comComentario) {
+      botao?.remove();
+      linha.containerOpcoes?.vazio && linha.containerOpcoes.remove();
+      return;
+    }
+
+    // Fica por último na linha: no contêiner (de revisão ou de opções) que vier depois.
+    const containerFinal = this.getUltimoContainerDaLinha(linha);
+    if (botao && botao.parent === containerFinal && !botao.next) {
+      botao.atualizarElemento(linha.elemento);
+      return;
+    }
+    botao?.remove();
+
+    if (containerFinal) {
+      new EtaBlotOpcoesComentario(linha.elemento).insertInto(containerFinal);
+      linha.containerOpcoes?.vazio && linha.containerOpcoes.remove();
+      return;
+    }
+    linha.children.head.insertBefore(EtaQuillUtil.criarContainerOpcoes(linha.elemento, false, true), linha.containerDireito.prev);
+  }
+
+  private getUltimoContainerDaLinha(linha: EtaContainerTable): any {
+    const revisao = linha.containerRevisao;
+    const opcoes = linha.containerOpcoes;
+    if (!revisao || !opcoes) {
+      return revisao ?? opcoes;
+    }
+    return revisao.domNode.compareDocumentPosition(opcoes.domNode) & Node.DOCUMENT_POSITION_FOLLOWING ? opcoes : revisao;
+  }
+
+  /** uuid2 das linhas exibidas, na ordem do texto (inclui os excluídos em revisão). */
+  getUuid2sDasLinhas(): string[] {
+    return this.getLinhasArticulacao().map(linha => linha.uuid2);
+  }
+
+  /** Posiciona o cursor no dispositivo pelo uuid2; devolve false se ele não estiver na página exibida. */
+  posicionarCursorNoDispositivo(uuid2: string): boolean {
+    const linha = this._quill ? this.quill.getLinhaByUuid2(uuid2) : undefined;
+    if (!linha?.blotConteudo) {
+      return false;
+    }
+    this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+    this.quill.atualizarLinhaCorrente(linha);
+    this.elementoSelecionado(linha.uuid);
+    try {
+      this.quill.setSelection(this.quill.getIndex(linha.blotConteudo), 0, PrivateQuill.sources.SILENT);
+    } catch (error) {
+      // Mantém só a marcação da linha quando o índice não pode ser aplicado.
+    }
+    (linha.domNode as HTMLElement).scrollIntoView?.({ block: 'center' });
+    return true;
+  }
+
   private processarStateEvents(ui: any): void {
     const events: StateEvent[] = ui.events;
     const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
@@ -898,6 +1050,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarAtributos(event);
           if (ultimoEventoElementoSelecionado === event) {
             this.montarMenuContexto(event);
+            this.elementoSelecionadoAtual = event.elementos?.[0];
+            this.emitir('comentario-dispositivo-selecionado', { uuid2Dispositivo: this.elementoSelecionadoAtual?.uuid2 });
           }
           this.atualizarMensagemQuill(event);
           break;
@@ -968,6 +1122,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private processarPosLoopEventos(events: StateEvent[]): void {
     this.indicadorMarcaRevisao(events);
     this.indicadorTextoModificado(events);
+    if (this.uuid2DispositivosComentados.length) {
+      this.atualizarIndicadoresComentario();
+      // O ícone de diferenças pode ser criado depois deste ponto; a segunda passada mantém o comentário por último.
+      clearTimeout(this.timerIndicadoresComentario);
+      this.timerIndicadoresComentario = setTimeout(() => this.atualizarIndicadoresComentario(), 0);
+    }
     this.atualizarStatusBotoesRevisao();
 
     // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
@@ -1449,6 +1609,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.exibirDiferencas(event.detail.elemento);
     });
 
+    editorHtml.addEventListener('exibir-comentario-dispositivo', (event: any) => {
+      event.stopImmediatePropagation();
+      const uuid2 = event.detail.elemento?.uuid2;
+      if (uuid2) {
+        this.posicionarCursorNoDispositivo(uuid2);
+        this.emitir('comentario-dispositivo-selecionado', { uuid2Dispositivo: uuid2, abrirAbaComentarios: true });
+      }
+    });
+
     editorHtml.addEventListener('onmodalsufixos', (event: any) => {
       event.stopImmediatePropagation();
       this.exibirModalSufixos();
@@ -1735,6 +1904,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       } finally {
         concluirCarregamento();
       }
+      this.atualizarIndicadoresComentario();
       !isMudancaDePagina && this.quill.limparHistory();
       if (elementos.length > 1) {
         setTimeout(() => {
@@ -2020,8 +2190,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       const containerOpcoes = document.getElementById(EtaContainerOpcoes.className + uuid);
       if (containerOpcoes) {
         const linha = this.quill.getLinha(uuid);
-        linha?.containerOpcoes?.remove();
-        containerOpcoes.remove();
+        // Com comentário, o contêiner fica e só o ícone de diferenças sai.
+        if (linha?.containerOpcoes?.blotBotaoComentario) {
+          linha.containerOpcoes.blotBotaoExibirDiferencas?.remove();
+        } else {
+          linha?.containerOpcoes?.remove();
+          containerOpcoes.remove();
+        }
       }
     });
 

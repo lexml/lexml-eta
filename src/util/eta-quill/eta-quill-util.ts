@@ -22,6 +22,7 @@ import { EtaBlotRevisaoRecusar } from './eta-blot-revisao-recusar';
 import { isRevisaoComTextoAlterado, isRevisaoPrincipal } from '../../redux/elemento/util/revisaoUtil';
 import { EtaContainerOpcoes } from './eta-container-opcoes';
 import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
+import { EtaBlotOpcoesComentario } from './eta-blot-opcoes-comentario';
 import { TEXTO_OMISSIS } from '../../model/lexml/conteudo/textoOmissis';
 import { EtaBlotTituloDispositivo } from './eta-blot-titulo-dispositivo';
 
@@ -92,9 +93,10 @@ export class EtaQuillUtil {
     return etaContainerRevisao;
   }
 
-  static criarContainerOpcoes(elemento: Elemento): EtaContainerOpcoes {
+  static criarContainerOpcoes(elemento: Elemento, incluirDiff = true, incluirComentario = false): EtaContainerOpcoes {
     const etaContainerOpcoes: EtaContainerOpcoes = new EtaContainerOpcoes(elemento);
-    new EtaBlotOpcoesDiff(elemento).insertInto(etaContainerOpcoes);
+    incluirDiff && new EtaBlotOpcoesDiff(elemento).insertInto(etaContainerOpcoes);
+    incluirComentario && new EtaBlotOpcoesComentario(elemento).insertInto(etaContainerOpcoes);
     return etaContainerOpcoes;
   }
 

@@ -122,7 +122,7 @@ export class EtaQuill extends PrivateQuill {
   customClickHandler = (ev: MouseEvent): void => {
     try {
       let blot = EtaQuill.find(ev.target as HTMLElement);
-      if (['EtaBlotOpcoesDiff'].includes(blot.instanceBlotName)) {
+      if (['EtaBlotOpcoesDiff', 'EtaBlotOpcoesComentario'].includes(blot.instanceBlotName)) {
         return;
       }
       while (blot && blot.instanceBlotName !== 'EtaContainerTable') {

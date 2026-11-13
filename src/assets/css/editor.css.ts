@@ -62,6 +62,27 @@ export const editorStyles = html`
       color: #444444;
     }
 
+    #lx-eta-barra-ferramenta .button-comentario-articulacao {
+      color: #444444;
+    }
+
+    #lx-eta-barra-ferramenta .button-comentario-articulacao svg {
+      width: 16px;
+      height: 16px;
+      vertical-align: -2px;
+    }
+
+    #lx-eta-barra-ferramenta .button-comentario-articulacao .ql-fill {
+      fill: currentColor;
+    }
+
+    #lx-eta-barra-ferramenta .button-comentario-articulacao:disabled,
+    #lx-eta-barra-ferramenta .button-comentario-articulacao:disabled:hover {
+      color: #b9b9b9;
+      cursor: default;
+      opacity: 0.65;
+    }
+
     .lx-eta-rebate-180-graus {
       -moz-transform: scaleX(-1);
       -o-transform: scaleX(-1);
@@ -616,6 +637,10 @@ export const editorStyles = html`
       font-size: 18px;
     }
 
+    .mobile-button.btn-comentarios sl-icon {
+      transform: translateY(2px);
+    }
+
     .mobile-button span {
       vertical-align: 4px;
     }
@@ -635,6 +660,11 @@ export const editorStyles = html`
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;
+      }
+      .container__linha > .container__menu,
+      .container__linha > .container__revisao,
+      .container__linha > .container__opcoes {
+        align-self: center;
       }
       #chk-em-revisao span {
         display: none;
@@ -702,7 +732,8 @@ export const editorStyles = html`
       filter: invert(100%);
     }
 
-    .blot__opcoes_diff {
+    .blot__opcoes_diff,
+    .blot__opcoes_comentario {
       padding: 5px;
       border: 1px solid black;
       border-radius: 1rem;
@@ -716,6 +747,58 @@ export const editorStyles = html`
       background: url('assets/icons/plus-minus.svg') no-repeat center, white;
       background-size: 0.8rem;
       margin-right: 1.2px;
+    }
+
+    .blot__opcoes_comentario {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      display: inline-block;
+      position: relative;
+    }
+
+    #lx-eta-editor .ql-editor .blot__opcoes_comentario:focus,
+    #lx-eta-editor .ql-editor .blot__opcoes_comentario:focus-visible,
+    #lx-eta-editor .ql-editor .blot__opcoes_comentario:active {
+      outline: 0;
+      border: 0;
+      -webkit-box-shadow: none;
+      box-shadow: none;
+    }
+
+    .blot__opcoes_comentario::before,
+    .blot__opcoes_comentario::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 1rem;
+      height: 1rem;
+      display: block;
+      pointer-events: none;
+      transform: translate(-50%, -50%);
+    }
+
+    .blot__opcoes_comentario::before {
+      background-color: #fff8c5;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 1a1 1 0 0 0-1 1v11.586l2-2A2 2 0 0 1 4.414 11H14a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H2z'/%3E%3C/svg%3E")
+        center / contain no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2 1a1 1 0 0 0-1 1v11.586l2-2A2 2 0 0 1 4.414 11H14a1 1 0 0 0 1-1V2a1 1 0 0 0-1-1H2z'/%3E%3C/svg%3E")
+        center / contain no-repeat;
+    }
+
+    .blot__opcoes_comentario::after {
+      background-color: #111827;
+      -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z'/%3E%3Cpath d='M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6zm0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z'/%3E%3C/svg%3E")
+        center / contain no-repeat;
+      mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M14 1a1 1 0 0 1 1 1v8a1 1 0 0 1-1 1H4.414A2 2 0 0 0 3 11.586l-2 2V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z'/%3E%3Cpath d='M3 3.5a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9a.5.5 0 0 1-.5-.5zM3 6a.5.5 0 0 1 .5-.5h9a.5.5 0 0 1 0 1h-9A.5.5 0 0 1 3 6zm0 2.5a.5.5 0 0 1 .5-.5h5a.5.5 0 0 1 0 1h-5a.5.5 0 0 1-.5-.5z'/%3E%3C/svg%3E")
+        center / contain no-repeat;
+    }
+
+    .blot__opcoes_comentario:hover::before,
+    .container__elemento--ativo .blot__opcoes_comentario::before {
+      background-color: #fdd663;
     }
 
     .blot__opcoes_diff:hover {
