@@ -222,9 +222,11 @@ describe('Módulos puros da nova proposição', () => {
       expect(montaUrlComissoes('/comissoes/{casa}', 'CN')).to.equal('/comissoes/CN');
     });
 
-    ['urlVerificacaoProposicao', 'urlTextoEstruturado', 'urlComissoes'].forEach(nome => {
+    const URLS: any = { urlVerificacaoProposicao: '/a', urlTextoEstruturado: '/b', urlComissoes: '/c', urlImportacaoArquivo: '/d' };
+
+    ['urlVerificacaoProposicao', 'urlTextoEstruturado', 'urlComissoes', 'urlImportacaoArquivo'].forEach(nome => {
       it(`configuração sem ${nome} falha nomeando a URL`, () => {
-        const config: any = { urlVerificacaoProposicao: '/a', urlTextoEstruturado: '/b', urlComissoes: '/c' };
+        const config: any = { ...URLS };
         delete config[nome];
         expect(() => validarConfigNovaProposicao(config)).to.throw(nome);
       });
@@ -234,28 +236,34 @@ describe('Módulos puros da nova proposição', () => {
       ['urlVerificacaoProposicao', 'onVerificarProposicao'],
       ['urlTextoEstruturado', 'onObterTexto'],
       ['urlComissoes', 'onObterComissoes'],
+      ['urlImportacaoArquivo', 'onImportarArquivo'],
     ].forEach(([url, callback]) => {
       it(`callback ${callback} dispensa ${url}`, () => {
-        const config: any = { urlVerificacaoProposicao: '/a', urlTextoEstruturado: '/b', urlComissoes: '/c', [callback]: () => undefined };
+        const config: any = { ...URLS, [callback]: () => undefined };
         delete config[url];
         expect(() => validarConfigNovaProposicao(config)).to.not.throw();
       });
 
       it(`sem ${url} e sem ${callback} a mensagem nomeia a URL e o callback`, () => {
-        const config: any = { urlVerificacaoProposicao: '/a', urlTextoEstruturado: '/b', urlComissoes: '/c' };
+        const config: any = { ...URLS };
         delete config[url];
         expect(() => validarConfigNovaProposicao(config)).to.throw(url);
         expect(() => validarConfigNovaProposicao(config)).to.throw(callback);
       });
     });
 
-    it('só com callbacks (sem nenhuma URL) a configuração é válida e onImportarArquivo não é exigido', () => {
-      const config: any = { onVerificarProposicao: () => undefined, onObterTexto: () => undefined, onObterComissoes: () => [] };
+    it('só com callbacks (sem nenhuma URL) a configuração é válida', () => {
+      const config: any = { onVerificarProposicao: () => undefined, onObterTexto: () => undefined, onObterComissoes: () => [], onImportarArquivo: () => ({ erros: [] }) };
       expect(() => validarConfigNovaProposicao(config)).to.not.throw();
     });
 
+    it('sem a URL e sem o callback de importação a configuração é recusada', () => {
+      const config: any = { onVerificarProposicao: () => undefined, onObterTexto: () => undefined, onObterComissoes: () => [] };
+      expect(() => validarConfigNovaProposicao(config)).to.throw('urlImportacaoArquivo');
+    });
+
     it('URL em branco não vale como informada', () => {
-      const config: any = { urlVerificacaoProposicao: '   ', urlTextoEstruturado: '/b', urlComissoes: '/c' };
+      const config: any = { ...URLS, urlVerificacaoProposicao: '   ' };
       expect(() => validarConfigNovaProposicao(config)).to.throw('urlVerificacaoProposicao');
     });
 

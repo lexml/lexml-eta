@@ -10,7 +10,13 @@ import {
 } from '../../../src/components/nova-proposicao/nova-proposicao.component';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
-const CONFIG = { casaLegislativaEditor: 'SF', urlVerificacaoProposicao: '/v/{sigla}/{numero}/{ano}', urlTextoEstruturado: '/t/{sigla}/{numero}/{ano}', urlComissoes: '/c/{casa}' };
+const CONFIG = {
+  casaLegislativaEditor: 'SF',
+  urlVerificacaoProposicao: '/v/{sigla}/{numero}/{ano}',
+  urlTextoEstruturado: '/t/{sigla}/{numero}/{ano}',
+  urlComissoes: '/c/{casa}',
+  urlImportacaoArquivo: '/importacao',
+};
 const COMISSOES = [
   { siglaCasaLegislativa: 'SF', sigla: 'CCJ', nome: 'Comissão de Constituição, Justiça e Cidadania' },
   { siglaCasaLegislativa: 'SF', sigla: 'CAE', nome: 'Comissão de Assuntos Econômicos' },

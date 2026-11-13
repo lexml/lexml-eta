@@ -9,7 +9,7 @@ const COMISSOES = [
 ];
 const TEXTO = { value: { texto: 'jsonix do callback' } };
 const URN_PL_SN = 'urn:lex:br:senado.federal:projeto.lei;pl:2026;999999';
-const URLS = { urlVerificacaoProposicao: '/v/{sigla}/{numero}/{ano}', urlTextoEstruturado: '/t/{sigla}/{numero}/{ano}', urlComissoes: '/c/{casa}' };
+const URLS = { urlVerificacaoProposicao: '/v/{sigla}/{numero}/{ano}', urlTextoEstruturado: '/t/{sigla}/{numero}/{ano}', urlComissoes: '/c/{casa}', urlImportacaoArquivo: '/i' };
 
 describe('lexml-nova-proposicao — callbacks opcionais na configuração', () => {
   let el: NovaProposicaoComponent;
@@ -75,6 +75,10 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
     onObterTexto: (consulta): typeof TEXTO => {
       consultas.push({ origem: 'texto', arg: consulta });
       return TEXTO;
+    },
+    onImportarArquivo: (arquivo): { texto: typeof TEXTO; erros: string[] } => {
+      consultas.push({ origem: 'importacao', arg: arquivo });
+      return { texto: TEXTO, erros: [] };
     },
     ...sobrescrever,
   });
@@ -294,13 +298,14 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
       arquivosRecebidos.length = 0;
     });
 
-    it('sucesso: recebe o arquivo e conclui com o texto devolvido', async () => {
+    it('sucesso: recebe o arquivo e conclui com o texto devolvido em documentoImportado', async () => {
       await prepararImportacao(registrando(() => ({ texto: TEXTO, erros: [] })));
       const r = concluida();
       await selecionarArquivo(new File(['x'], 'minuta.docx'));
       await clicar('np-continuar');
       expect(arquivosRecebidos.map(a => a.name)).to.deep.equal(['minuta.docx']);
-      expect(r.detail.texto).to.deep.equal(TEXTO);
+      expect(r.detail.documentoImportado).to.deep.equal(TEXTO);
+      expect('texto' in r.detail).to.be.false;
       expect(r.detail.urn).to.contain('projeto.lei;pl:');
       expect(urlsChamadas).to.deep.equal([]);
     });
@@ -326,7 +331,7 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
       expect(retorno.erros).to.have.length(0);
     });
 
-    it('rejeição e exceção síncrona: permanece na Tela 2 com erro de comunicação e permite nova tentativa', async () => {
+    it('rejeição e exceção síncrona: permanece na Tela 2 com o alerta de falha e permite nova tentativa', async () => {
       const falhas = [
         (): never => {
           throw new Error('síncrona');
@@ -340,12 +345,12 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
         await selecionarArquivo(new File(['x'], 'minuta.docx'));
         await clicar('np-continuar');
         expect(existe('np-arquivo')).to.be.true;
-        expect(q('np-erro-texto')!.textContent).to.contain('Não foi possível converter o arquivo');
+        expect(q('np-erro-texto')!.textContent).to.contain('Não foi possível converter o arquivo "minuta.docx"');
         expect(existe('np-erros')).to.be.false;
         expect(botaoHabilitado('np-continuar')).to.be.true;
         await clicar('np-continuar');
         expect(tentativas).to.equal(2);
-        expect(r.detail.texto).to.deep.equal(TEXTO);
+        expect(r.detail.documentoImportado).to.deep.equal(TEXTO);
       }
     });
 
@@ -362,11 +367,23 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
       expect(arquivosRecebidos).to.have.length(0);
     });
 
-    it('sem o callback, a importação continua simulada e sem chamar URL', async () => {
-      await prepararImportacao(undefined);
-      await selecionarArquivo(new File(['x'], 'minuta.docx'));
+    it('arquivo .json não chega ao callback', async () => {
+      await prepararImportacao(registrando(() => ({ texto: TEXTO, erros: [] })));
+      const r = concluida();
+      await selecionarArquivo(new File([JSON.stringify({ value: 'do arquivo' })], 'proposicao.json'));
       await clicar('np-continuar');
-      expect(q('np-erros')!.textContent).to.contain('simulado');
+      expect(arquivosRecebidos).to.have.length(0);
+      expect(r.detail.documentoImportado).to.deep.equal({ value: 'do arquivo' });
+    });
+
+    it('com o callback e a URL de importação, a URL não é chamada', async () => {
+      await iniciar({ ...callbacks(), urlImportacaoArquivo: '/importacao', onImportarArquivo: registrando(() => ({ texto: TEXTO, erros: [] })) });
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'importar');
+      await selecionarArquivo(new File(['x'], 'minuta.pdf'));
+      await clicar('np-continuar');
+      expect(arquivosRecebidos.map(a => a.name)).to.deep.equal(['minuta.pdf']);
       expect(urlsChamadas).to.deep.equal([]);
     });
   });

@@ -41,10 +41,10 @@ import {
 } from './tiposNovaProposicao';
 import {
   ConfigNovaProposicao,
+  CONTENT_TYPE_IMPORTACAO,
   montaUrlComissoes,
   montaUrlProposicao,
   normalizaConsultaProposicao,
-  ResultadoImportacaoArquivo,
   ResultadoVerificacaoProposicao,
   validarConfigNovaProposicao,
 } from './urlsNovaProposicao';
@@ -70,10 +70,26 @@ export interface DadosIniciaisEdicao {
 const ALTURA_LISTA_SIGLA = 189;
 const ALTURA_LISTA_COMISSAO = 192;
 
-const EXTENSOES_ARQUIVO = ['docx', 'txt', 'xml', 'json', 'lexml'];
-const ERRO_PARSER_SIMULADO = 'Erro simulado de conversão: o tratamento real do arquivo importado ainda não está disponível.';
+const EXTENSOES_ARQUIVO = ['pdf', 'docx', 'txt', 'xml', 'json'];
 const ERRO_CONVERSOR_SEM_TEXTO = 'O conversor não devolveu o texto do documento.';
-const MENSAGEM_FALHA_IMPORTACAO = 'Não foi possível converter o arquivo. Tente novamente.';
+const TITULO_ARQUIVO_RECUSADO = 'O arquivo não pôde ser importado';
+const MENSAGEM_RECUSA_SEM_CORPO = 'O serviço de conversão recusou o arquivo.';
+const ORIENTACAO_ARQUIVO_RECUSADO = 'Selecione outro arquivo ou escolha outra forma de iniciar o texto.';
+const MENSAGEM_JSON_INVALIDO = 'O arquivo JSON não pôde ser lido: o conteúdo não é um JSON válido.';
+
+const mensagemFalhaImportacao = (nome: string): string =>
+  `Não foi possível converter o arquivo "${nome}": o serviço de conversão apresentou uma falha. Tente novamente em alguns instantes.`;
+
+const extensaoDe = (nome: string): string => nome.split('.').pop()?.toLowerCase() ?? '';
+
+interface AvisoImportacao {
+  titulo?: string;
+  linhas: string[];
+}
+
+type ConteudoInicial = Pick<ResultadoNovaProposicao, 'texto' | 'documentoImportado'>;
+
+type DesfechoImportacao = { documento: unknown } | { erros: string[] } | { aviso: AvisoImportacao } | 'falha';
 
 type EstadoVerificacao = 'nenhuma' | 'verificando' | 'ok' | 'inexistente' | 'erro';
 
@@ -130,6 +146,7 @@ export class NovaProposicaoComponent extends LitElement {
   @state() private verificacaoOutra = verificacaoVazia();
   @state() private textoIndisponivel = false;
   @state() private erroComunicacao = '';
+  @state() private avisoImportacao?: AvisoImportacao;
   @state() private processando = false;
   @state() private errosConversao: string[] = [];
 
@@ -214,6 +231,7 @@ export class NovaProposicaoComponent extends LitElement {
     this.verificacaoOutra = verificacaoVazia();
     this.textoIndisponivel = false;
     this.erroComunicacao = '';
+    this.avisoImportacao = undefined;
     this.processando = false;
     this.errosConversao = [];
   }
@@ -578,19 +596,61 @@ export class NovaProposicaoComponent extends LitElement {
     const arquivo = (evento.target as HTMLInputElement).files?.[0];
     this.arquivo = arquivo;
     this.erroArquivo = '';
+    this.erroComunicacao = '';
+    this.avisoImportacao = undefined;
     if (!arquivo) return;
-    const extensao = arquivo.name.split('.').pop()?.toLowerCase() ?? '';
-    if (!EXTENSOES_ARQUIVO.includes(extensao)) {
-      this.erroArquivo = 'Formato não aceito. Selecione um arquivo DOCX, TXT ou LexML (XML ou JSON).';
+    if (!EXTENSOES_ARQUIVO.includes(extensaoDe(arquivo.name))) {
+      this.erroArquivo = 'Formato não aceito. Selecione um arquivo PDF, DOCX, TXT ou LexML (XML ou JSON).';
     } else if (arquivo.size > LIMITE_ARQUIVO_BYTES) {
       this.erroArquivo = 'O arquivo excede o limite de 5 MB.';
     }
   }
 
-  // Sem o callback do host, o tratamento do arquivo é simulado: sempre um erro de parser, sem chamar URL.
-  private async converterArquivoImportado(arquivo: File): Promise<ResultadoImportacaoArquivo> {
-    if (this._config!.onImportarArquivo) return this._config!.onImportarArquivo(arquivo);
-    return { erros: [ERRO_PARSER_SIMULADO] };
+  // O .json já é o documento articulado: não passa pela URL nem pelo callback.
+  private async importarArquivo(arquivo: File): Promise<DesfechoImportacao> {
+    const extensao = extensaoDe(arquivo.name);
+    if (extensao === 'json') {
+      try {
+        return { documento: JSON.parse((await arquivo.text()).replace(/^\uFEFF/, '')) };
+      } catch {
+        return { aviso: { linhas: [MENSAGEM_JSON_INVALIDO] } };
+      }
+    }
+    if (this._config!.onImportarArquivo) return this.importarPeloCallback(arquivo);
+    return this.importarPelaUrl(arquivo, CONTENT_TYPE_IMPORTACAO[extensao]);
+  }
+
+  private async importarPeloCallback(arquivo: File): Promise<DesfechoImportacao> {
+    let resultado;
+    try {
+      resultado = await this._config!.onImportarArquivo!(arquivo);
+    } catch {
+      return 'falha';
+    }
+    if (!resultado) return 'falha';
+    const erros = Array.isArray(resultado.erros) ? [...resultado.erros] : [];
+    if (!erros.length && (resultado.texto === undefined || resultado.texto === null)) erros.push(ERRO_CONVERSOR_SEM_TEXTO);
+    return erros.length ? { erros } : { documento: resultado.texto };
+  }
+
+  // O corpo do 400 é mensagem para o usuário; o das demais falhas pode ser técnico e não é exibido.
+  private async importarPelaUrl(arquivo: File, contentType: string): Promise<DesfechoImportacao> {
+    let resposta: Response;
+    try {
+      resposta = await fetch(this._config!.urlImportacaoArquivo!, { method: 'POST', body: arquivo, headers: { 'Content-Type': contentType } });
+    } catch {
+      return 'falha';
+    }
+    if (resposta.status === 400) {
+      const corpo = (await resposta.text().catch(() => '')).trim();
+      return { aviso: { titulo: TITULO_ARQUIVO_RECUSADO, linhas: [corpo || MENSAGEM_RECUSA_SEM_CORPO, ORIENTACAO_ARQUIVO_RECUSADO] } };
+    }
+    if (resposta.status !== 200) return 'falha';
+    try {
+      return { documento: await resposta.json() };
+    } catch {
+      return 'falha';
+    }
   }
 
   private async buscarTexto(sigla: string, numero: string, ano: string): Promise<unknown | 'indisponivel' | 'erro'> {
@@ -611,31 +671,26 @@ export class NovaProposicaoComponent extends LitElement {
   private async continuarTela2(): Promise<void> {
     if (!this.tela2Valida) return;
     this.erroComunicacao = '';
+    this.avisoImportacao = undefined;
 
     if (this.opcaoTexto === 'vazio') return this.concluir();
 
     if (this.opcaoTexto === 'importar') {
       this.processando = true;
-      let resultado: ResultadoImportacaoArquivo | undefined;
-      try {
-        resultado = await this.converterArquivoImportado(this.arquivo!);
-      } catch {
-        resultado = undefined;
-      }
+      const desfecho = await this.importarArquivo(this.arquivo!);
       this.processando = false;
-      if (!resultado) {
-        // Falha de comunicação é transitória: permanece na Tela 2 para nova tentativa.
-        this.erroComunicacao = MENSAGEM_FALHA_IMPORTACAO;
-        return;
-      }
-      const erros = Array.isArray(resultado.erros) ? [...resultado.erros] : [];
-      if (!erros.length && (resultado.texto === undefined || resultado.texto === null)) erros.push(ERRO_CONVERSOR_SEM_TEXTO);
-      if (erros.length) {
-        this.errosConversao = erros;
+      // Falha e recusa deixam o usuário na Tela 2, para trocar o arquivo ou tentar de novo.
+      if (desfecho === 'falha') {
+        this.erroComunicacao = mensagemFalhaImportacao(this.arquivo!.name);
+      } else if ('aviso' in desfecho) {
+        this.avisoImportacao = desfecho.aviso;
+      } else if ('erros' in desfecho) {
+        this.errosConversao = desfecho.erros;
         this.tela = 3;
-        return;
+      } else {
+        this.concluir({ documentoImportado: desfecho.documento });
       }
-      return this.concluir(resultado.texto);
+      return;
     }
 
     const [sigla, numero, ano] =
@@ -653,15 +708,15 @@ export class NovaProposicaoComponent extends LitElement {
     } else if (texto === 'erro') {
       this.erroComunicacao = 'Não foi possível obter o texto da proposição. Tente novamente.';
     } else {
-      this.concluir(texto);
+      this.concluir({ texto });
     }
   }
 
-  private concluir(texto?: unknown): void {
-    this.dispatchEvent(new CustomEvent(EVENTO_CONCLUIDA, { detail: this.montarResultado(texto), bubbles: true, composed: true }));
+  private concluir(conteudo: ConteudoInicial = {}): void {
+    this.dispatchEvent(new CustomEvent(EVENTO_CONCLUIDA, { detail: this.montarResultado(conteudo), bubbles: true, composed: true }));
   }
 
-  private montarResultado(texto?: unknown): ResultadoNovaProposicao {
+  private montarResultado({ texto, documentoImportado }: ConteudoInicial = {}): ResultadoNovaProposicao {
     const { urn, urnDocumentoReferenciado } = montaUrnNovaProposicao(this.dados, this.numeroOriginal);
     const colegiadoDestino: ColegiadoDestino = this.tipoColegiado === 'Comissão' ? { tipoColegiado: 'Comissão', siglaComissao: this.siglaComissao } : { tipoColegiado: 'Plenário' };
     const detail: ResultadoNovaProposicao = {
@@ -671,6 +726,7 @@ export class NovaProposicaoComponent extends LitElement {
       preambulo: getPreambuloNovaProposicao(urn),
       colegiadoDestino,
       ...(texto !== undefined && { texto }),
+      ...(documentoImportado !== undefined && { documentoImportado }),
       anexoParecer: this.anexoParecer,
     };
     return detail;
@@ -751,6 +807,21 @@ export class NovaProposicaoComponent extends LitElement {
 
   private aviso(id: string, variante: 'danger' | 'warning' | 'neutral', texto: string): TemplateResult {
     return html`<sl-alert id=${id} variant=${variante} open>${texto}</sl-alert>`;
+  }
+
+  // Problemas no arquivo importado ficam logo abaixo da pergunta, antes das opções.
+  private renderAlertasImportacao(): TemplateResult | typeof nothing {
+    if (this.opcaoTexto !== 'importar' || (!this.erroComunicacao && !this.avisoImportacao)) return nothing;
+    return html`<div class="np-alertas-importacao">
+      ${this.erroComunicacao ? this.aviso('np-erro-texto', 'danger', this.erroComunicacao) : nothing}
+      ${this.avisoImportacao ? this.renderAvisoImportacao(this.avisoImportacao) : nothing}
+    </div>`;
+  }
+
+  private renderAvisoImportacao({ titulo, linhas }: AvisoImportacao): TemplateResult {
+    return html`<sl-alert id="np-aviso-importacao" variant="warning" open>
+      ${titulo ? html`<strong>${titulo}</strong><br />` : nothing}${linhas.map((linha, i) => html`${i ? html`<br />` : nothing}${linha}`)}
+    </sl-alert>`;
   }
 
   private rotuloVerificacao(v: Verificacao): TemplateResult | typeof nothing {
@@ -874,6 +945,7 @@ export class NovaProposicaoComponent extends LitElement {
         if (this.opcaoTexto === valor) return;
         this.opcaoTexto = valor;
         this.erroComunicacao = '';
+        this.avisoImportacao = undefined;
       })}
     </div>`;
   }
@@ -882,11 +954,12 @@ export class NovaProposicaoComponent extends LitElement {
     return html`
       ${this.cabecalho}
       <p>Como você quer iniciar?</p>
+      ${this.renderAlertasImportacao()}
       <sl-radio-group>
-        ${this.opcao('vazio', 'Texto vazio')} ${this.opcao('importar', 'Importar documento (DOCX, TXT ou LexML)')}
+        ${this.opcao('vazio', 'Texto vazio')} ${this.opcao('importar', 'Importar documento (PDF, DOCX, TXT ou LexML)')}
         ${this.opcaoTexto === 'importar'
           ? html`<div class="np-subopcao">
-              <label>Arquivo <input type="file" id="np-arquivo" accept=".docx,.txt,.xml,.json,.lexml" @change=${(e: Event): void => this.onArquivo(e)} /></label>
+              <label>Arquivo <input type="file" id="np-arquivo" accept=".pdf,.docx,.txt,.xml,.json" @change=${(e: Event): void => this.onArquivo(e)} /></label>
               ${this.erroArquivo ? this.aviso('np-erro-arquivo', 'danger', this.erroArquivo) : nothing}
             </div>`
           : nothing}
@@ -916,7 +989,7 @@ export class NovaProposicaoComponent extends LitElement {
           </div>`
         : nothing}
       ${this.textoIndisponivelNaOpcao ? this.aviso('np-texto-indisponivel', 'warning', 'Texto estruturado não disponível para edição') : nothing}
-      ${this.erroComunicacao ? this.aviso('np-erro-texto', 'danger', this.erroComunicacao) : nothing}
+      ${this.erroComunicacao && this.opcaoTexto !== 'importar' ? this.aviso('np-erro-texto', 'danger', this.erroComunicacao) : nothing}
 
       <div class="np-botoes">
         <sl-button id="np-continuar" variant="primary" ?disabled=${!this.tela2Valida} @click=${(): void => void this.continuarTela2()}>Continuar</sl-button>
@@ -1028,6 +1101,9 @@ export class NovaProposicaoComponent extends LitElement {
           border: 1px solid var(--sl-color-gray-300, #ccc);
           border-radius: 4px;
           padding: 2px 6px;
+        }
+        lexml-nova-proposicao .np-alertas-importacao {
+          margin: 12px 0;
         }
         lexml-nova-proposicao .np-opcao {
           margin: 4px 0;
