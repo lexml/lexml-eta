@@ -306,26 +306,6 @@ describe('Nova proposição — componente no modal da demo', () => {
     });
   });
 
-  it('importação de arquivo simulada leva à Tela 3 e Continuar cria o documento vazio', () => {
-    abrirModal();
-    escolherItemLista('#np-sigla-proposicao', 'PL');
-    cy.get('#np-continuar').click();
-    marcarRadioSl('opcaoTexto', 'importar');
-    deveEstarDesabilitado('#np-continuar');
-    cy.get('#np-arquivo').selectFile({ contents: Cypress.Buffer.from('texto'), fileName: 'minuta.txt' }, { force: true });
-    cy.get('#np-continuar').click();
-
-    cy.get('#np-erros-titulo').should('contain.text', 'minuta.txt');
-    cy.get('#np-erros').should('contain.text', 'simulado');
-    cy.get('#np-voltar').click();
-    cy.get('#np-arquivo').should('exist');
-    cy.get('#np-continuar').click();
-    cy.get('#np-continuar').click();
-
-    cy.get(`${MODAL}[open]`).should('not.exist');
-    cy.getContainerArtigoByNumero(1).should('exist');
-  });
-
   it('arquivo acima de 5 MB é recusado', () => {
     abrirModal();
     escolherItemLista('#np-sigla-proposicao', 'PL');

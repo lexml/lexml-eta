@@ -20,6 +20,7 @@ const URLS_DA_DEMO = {
   urlVerificacaoProposicao: '/demo-api/proposicoes/{sigla}/{numero}/{ano}',
   urlTextoEstruturado: '/demo-api/proposicoes/{sigla}/{numero}/{ano}/texto',
   urlComissoes: '/demo-api/comissoes/{casa}',
+  urlImportacaoArquivo: '/demo-api/importacao',
 };
 
 const abrirModal = (): void => {

@@ -216,6 +216,7 @@ export class DemoView extends LitElement {
       urlVerificacaoProposicao: '/demo-api/proposicoes/{sigla}/{numero}/{ano}',
       urlTextoEstruturado: '/demo-api/proposicoes/{sigla}/{numero}/{ano}/texto',
       urlComissoes: '/demo-api/comissoes/{casa}',
+      urlImportacaoArquivo: '/demo-api/importacao',
     };
   }
 
@@ -332,8 +333,9 @@ export class DemoView extends LitElement {
   }
 
   private onNovaProposicaoConcluida(e: CustomEvent<ResultadoNovaProposicao>): void {
-    const { urn, urnDocumentoReferenciado, epigrafe, preambulo, colegiadoDestino, texto, anexoParecer } = e.detail;
+    const { urn, urnDocumentoReferenciado, epigrafe, preambulo, colegiadoDestino, texto, documentoImportado, anexoParecer } = e.detail;
     // Os textos simulados da demo são do Senado: na CD, só a URN do modelo é trocada (o editor recusa documento da outra casa).
+    // O importado não precisa disso: a casa da URN do arquivo não é checada.
     this.modalNovaProposicao = false;
     this.getElement('#fileUpload').value = null;
     this.projetoNorma = {};
@@ -345,6 +347,7 @@ export class DemoView extends LitElement {
         preambulo,
         colegiadoApreciador: { ...colegiadoDestino, siglaCasaLegislativa: this.casa },
         documentoModelo: this.casa === 'CD' && texto ? derivarParaCamara(texto) : texto,
+        documentoImportado,
         anexoParecer,
       })
       .catch(erro => window.alert((erro as Error).message || 'Não foi possível criar a proposição.'));
