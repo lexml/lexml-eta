@@ -112,7 +112,8 @@ Todo método valida a entrada **antes de alterar o editor**: entrada inválida e
 | `autoria` | `Autoria?` | Padrão: `lexmlEtaConfig.autoriaPadrao`, se houver. |
 | `opcoesImpressao` | `OpcoesImpressao?` | Padrão: `lexmlEtaConfig.opcoesImpressaoPadrao`, se houver. |
 | `outrosMetadados` | `Record<string, string>?` | Pares gravados no documento. |
-| `documentoModelo` | `DocumentoArticulado?` | Documento de modelo: dele só a articulação e a ementa são aproveitadas. URN, epígrafe, preâmbulo e demais dados vêm dos parâmetros ou do padrão; anexos, revisões, situação na norma vigente, fecho, autoria, impressão, destino e outros metadados do modelo são descartados. |
+| `documentoModelo` | `DocumentoArticulado?` | Documento de modelo: dele só a articulação e a ementa são aproveitadas. URN, epígrafe, preâmbulo e demais dados vêm dos parâmetros ou do padrão; anexos, revisões, situação na norma vigente, fecho, autoria, impressão, destino e outros metadados do modelo são descartados. Não pode vir junto com `documentoImportado`. |
+| `documentoImportado` | `DocumentoArticulado?` | Documento importado, em geral o `documentoImportado` do componente de nova proposição (seção 11). Dele se aproveita o conteúdo como em `abrirDocumentoArticulado`: ementa, articulação, justificação (com notas e revisões de texto), revisões da hierarquia, situação na norma vigente, autoria, data do fecho, impressão e outros metadados. URN, URN referenciada, epígrafe, preâmbulo, destino e anexo de parecer vêm dos parâmetros, e o local do fecho é derivado do destino. A URN do arquivo não é checada contra a casa do editor; se a casa dela diferir da casa da `urn`, a autoria do arquivo é descartada. `autoria`, `opcoesImpressao` e `outrosMetadados` só valem para o grupo que o arquivo não traz. Os anexos são sempre descartados, e, quando havia algum, a mensagem "Não foi possível recuperar os anexos do documento importado…" aparece numa notificação amarela no canto superior, que some depois de 8 s, e fica como alerta na aba Avisos (sem virar pendência). Não pode vir junto com `documentoModelo`. |
 | `anexoParecer` | `boolean?` | Modo de anexo de parecer (propriedade do documento; veja a seção 9). Padrão: `false`. |
 
 A casa responsável pela apreciação deriva da autoridade da URN (`senado.federal` → `SF`, `camara.deputados` → `CD`, `congresso.nacional` → `CN`) e não é um parâmetro.
@@ -464,6 +465,7 @@ nova.config = {
   urlVerificacaoProposicao: '/api/proposicoes/{sigla}/{numero}/{ano}',
   urlTextoEstruturado: '/api/proposicoes/{sigla}/{numero}/{ano}/texto',
   urlComissoes: '/api/comissoes/{casa}',
+  urlImportacaoArquivo: '/api/importacao',
 } satisfies ConfigNovaProposicao;
 
 nova.addEventListener('nova-proposicao-concluida', (e: Event) => {
@@ -475,14 +477,15 @@ nova.addEventListener('nova-proposicao-concluida', (e: Event) => {
     preambulo: r.preambulo,
     colegiadoApreciador: { ...r.colegiadoDestino, siglaCasaLegislativa: casa },
     documentoModelo: r.texto,
+    documentoImportado: r.documentoImportado,
     anexoParecer: r.anexoParecer,
   });
 });
 nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
 ```
 
-- **Configuração.** Cada origem de dados (verificação, texto estruturado e comissões) exige a **URL ou o callback** correspondente: sem os dois, a atribuição de `config` lança erro que nomeia a URL ausente (e cita o callback alternativo) e nenhuma tela é exibida. `onImportarArquivo` não é exigido. Só a casa tem padrão. O componente inicializa o vocabulário da casa ao ser criado e a cada nova configuração; manter a mesma casa no `<lexml-eta>` é responsabilidade do host.
-- **Placeholders.** `{sigla}` (maiúsculas), `{numero}` (sem zeros à esquerda) e `{ano}` nas duas URLs de proposição; `{casa}` (`SF`, `CD` ou `CN`) em `urlComissoes`.
+- **Configuração.** Cada origem de dados (verificação, texto estruturado, comissões e importação de arquivo) exige a **URL ou o callback** correspondente: sem os dois, a atribuição de `config` lança erro que nomeia a URL ausente (e cita o callback alternativo) e nenhuma tela é exibida. Só a casa tem padrão. O componente inicializa o vocabulário da casa ao ser criado e a cada nova configuração; manter a mesma casa no `<lexml-eta>` é responsabilidade do host.
+- **Placeholders.** `{sigla}` (maiúsculas), `{numero}` (sem zeros à esquerda) e `{ano}` nas duas URLs de proposição; `{casa}` (`SF`, `CD` ou `CN`) em `urlComissoes`. `urlImportacaoArquivo` não tem placeholders.
 - **Callbacks opcionais.** Quando existe, o callback é usado no lugar da origem correspondente (a URL, mesmo informada, não é chamada); quando não existe, vale o comportamento por URL. Telas e resultado não mudam. Devolvem dados de domínio (não `Response`), de forma síncrona ou assíncrona; promise rejeitada ou exceção equivale a erro de rede:
 
   ```ts
@@ -500,11 +503,11 @@ nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
 
   - `onVerificarProposicao` e `onObterTexto` recebem `{ sigla, numero, ano }` já normalizados (sigla em maiúsculas, número sem zeros à esquerda). Na verificação, `undefined` indica documento inexistente; no texto, `undefined` indica indisponível.
   - `onObterComissoes` recebe a casa (`SF`, `CD` ou `CN`) e devolve a lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados. Vale também no modo de edição.
-  - `onImportarArquivo` recebe o arquivo já validado (DOCX, TXT ou LexML de até 5 MB; nunca é chamado para arquivo recusado) e devolve `{ texto?, erros }`. Com `erros`, o componente vai para a Tela 3; sem erros, conclui com `texto` (sem `texto`, a Tela 3 mostra que o conversor não devolveu o texto); se rejeitar, permanece na Tela 2 com erro de comunicação e nova tentativa. Não há campo de avisos de conversão.
+  - `onImportarArquivo` recebe o arquivo já validado (PDF, DOCX, TXT ou XML de até 5 MB; nunca é chamado para arquivo recusado nem para `.json`) e devolve `{ texto?, erros }`. Com `erros`, o componente vai para a Tela 3; sem erros, conclui com `texto` em `documentoImportado` (sem `texto`, a Tela 3 mostra que o conversor não devolveu o texto); se rejeitar, tem o efeito da falha do serviço de conversão (alerta de erro na Tela 2, com nova tentativa). Não há campo de avisos de conversão.
 - **Verificação** (`200` `{ ementa, textoEstruturadoDisponivel, complementar? }`, `404` inexistente; `complementar`, opcional e `false` por padrão, indica PLS/PLC de lei complementar e define o tipo da URN do documento referenciado), **texto estruturado** (`200` JSONIX, `404` indisponível) e **comissões** (lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados): contrato completo na seção 9 do documento de requisitos.
-- **Evento `nova-proposicao-concluida`** — `detail`: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoDestino` (`{ tipoColegiado, siglaComissao? }`), `texto?` (JSONIX) e `anexoParecer`. **`nova-proposicao-cancelada`** não tem `detail`. Após concluir, o host decide quando fechar ou chamar `reiniciar()`.
+- **Evento `nova-proposicao-concluida`** — `detail`: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoDestino` (`{ tipoColegiado, siglaComissao? }`), `texto?` (JSONIX do documento referenciado ou de outra proposição, para `documentoModelo`), `documentoImportado?` (JSONIX do arquivo importado, para `documentoImportado` de `novaProposicao`; nunca junto com `texto`) e `anexoParecer`. **`nova-proposicao-cancelada`** não tem `detail`. Após concluir, o host decide quando fechar ou chamar `reiniciar()`.
 - **`reiniciar()`** volta o componente ao estado original (modo de criação, sem dados iniciais, Tela 1 com os padrões), mantendo a configuração. Chame-o a cada abertura do modal, para não herdar o estado da abertura anterior.
-- **Modo de edição de dados básicos.** Depois de `config`, chame `iniciarModoEdicao(dadosIniciais)` (reinicia o componente e ativa o modo; `iniciar()` reinicia em modo de criação) com os dados iniciais (`{ urn, urnDocumentoReferenciado?, colegiadoApreciador?, anexoParecer? }`, em geral o `detail` de `alteracao-dados-basicos-solicitada`). O componente mostra só a Tela 1 ("Alterar dados básicos"), considera verificado o documento referenciado inicial, mostra o número real do documento como texto fixo e, ao **Continuar**, pede confirmação (Sim/Não) se a casa muda (perda de autoria) ou se o documento passa a anexo de parecer (perda de justificação). Emite **`dados-basicos-alterados`** (`detail` de `nova-proposicao-concluida` sem `texto`), que o host repassa a `alterarDadosBasicos` (seção 4.7):
+- **Modo de edição de dados básicos.** Depois de `config`, chame `iniciarModoEdicao(dadosIniciais)` (reinicia o componente e ativa o modo; `iniciar()` reinicia em modo de criação) com os dados iniciais (`{ urn, urnDocumentoReferenciado?, colegiadoApreciador?, anexoParecer? }`, em geral o `detail` de `alteracao-dados-basicos-solicitada`). O componente mostra só a Tela 1 ("Alterar dados básicos"), considera verificado o documento referenciado inicial, mostra o número real do documento como texto fixo e, ao **Continuar**, pede confirmação (Sim/Não) se a casa muda (perda de autoria) ou se o documento passa a anexo de parecer (perda de justificação). Emite **`dados-basicos-alterados`** (`detail` de `nova-proposicao-concluida` sem `texto` e sem `documentoImportado`), que o host repassa a `alterarDadosBasicos` (seção 4.7):
 
   ```ts
   nova.addEventListener('dados-basicos-alterados', async (e: Event) => {
@@ -522,7 +525,12 @@ nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
   });
   ```
 - **Seleção de sigla e de comissão.** Usam o componente genérico `<lexml-eta-autocomplete-lista>` (`items: { value, label, inativo? }[]`, `value`, `placeholder`, `label`, `alturaMaxima` em px, `disabled`; evento `autocomplete-change` com `detail.value`, vazio quando a seleção é desfeita). A lista é flutuante, tem rolagem só vertical e omite o texto excedente; texto digitado que não é um item é apagado ao perder o foco (ou selecionado, se igual a exatamente um item).
-- **Importação de arquivo.** O componente valida extensão e tamanho (5 MB) e entrega o arquivo a `onImportarArquivo`. Sem esse callback, o tratamento real de DOCX/TXT/LexML não existe: o componente simula um erro de parser (Tela 3), sem chamar URL.
+- **Importação de arquivo.** O componente aceita `.pdf`, `.docx`, `.txt`, `.xml` e `.json` de até 5 MB. O `.json` é lido pelo próprio componente como JSONIX, sem URL nem callback (JSON inválido: alerta de aviso na Tela 2). Os demais vão a `onImportarArquivo`, se informado, ou por `POST` a `urlImportacaoArquivo`, com o conteúdo do arquivo no corpo (não multipart) e o `Content-Type` pela extensão: `application/pdf`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `text/plain` ou `application/xml`. Respostas da URL:
+  - `200`: o corpo é o documento articulado em JSONIX, devolvido em `documentoImportado`;
+  - `400`: o corpo, em texto puro, é exibido num alerta de aviso na Tela 2 ("O arquivo não pôde ser importado", a mensagem e a orientação de escolher outro arquivo ou outra forma de iniciar);
+  - `500`, outro status, `200` sem JSON ou falha de rede: alerta de erro na Tela 2 com o nome do arquivo, sem exibir o corpo; **Continuar** permite nova tentativa.
+
+  Os alertas saem ao trocar o arquivo ou a opção de texto inicial.
 - **Epígrafe e preâmbulo.** A epígrafe vem de `montaEpigrafe` (seção 7.1). No `SF`, o sufixo é `- PLEN` com destino Plenário e `- <sigla da comissão>` com destino Comissão; na `CD`, não há sufixo. Tipo sem texto padrão recebe `O CONGRESSO NACIONAL decreta:` com log de erro (regra do componente; a abertura de documentos não muda).
 
 ## 12. Referências
