@@ -219,7 +219,8 @@ export const validarDocumentoArticulado = (entrada: unknown): DocumentoArticulad
 };
 
 /** Valida e prepara uma cópia independente antes de qualquer alteração no editor. */
-export const lerDocumentoArticulado = (entrada: unknown): DocumentoArticulado => {
+// Sem verificarCasa, a URN do arquivo não é checada: na importação, a URN que vale é a da nova proposição.
+export const lerDocumentoArticulado = (entrada: unknown, { verificarCasa = true } = {}): DocumentoArticulado => {
   let doc: unknown = entrada;
   if (typeof entrada === 'string') {
     try {
@@ -229,7 +230,7 @@ export const lerDocumentoArticulado = (entrada: unknown): DocumentoArticulado =>
     }
   }
   const validado = validarDocumentoArticulado(doc);
-  verificarUrnDaCasaDoEditor(validado.value.metadado.identificacao.urn);
+  if (verificarCasa) verificarUrnDaCasaDoEditor(validado.value.metadado.identificacao.urn);
   const copia = JSON.parse(JSON.stringify(validado)) as DocumentoArticulado;
   // Exercita o leitor antes de permitir que a interface substitua seu estado.
   try {

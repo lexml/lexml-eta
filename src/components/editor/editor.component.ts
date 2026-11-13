@@ -223,6 +223,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         .sl-toast-stack sl-alert::part(base) {
           background-color: var(--sl-color-danger-100);
         }
+        .sl-toast-stack sl-alert[variant='warning']::part(base) {
+          background-color: var(--sl-color-warning-100);
+        }
         .checkBoxRevisao {
           padding: 3px 5px;
           margin: 5px 5px 5px 4px;

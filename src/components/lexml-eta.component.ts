@@ -53,10 +53,14 @@ import { DocumentoArticulado, getEstruturaNorma, lerDocumentoArticulado } from '
 import { PENDENCIA_DOCUMENTO_NAO_SUPORTADO } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { montaDocumentoNovaProposicao } from '../model/lexml/documento/modelo/montaDocumentoNovaProposicao';
 import { aplicarDadosBasicos, DadosBasicos } from '../model/lexml/documento/dadosBasicos';
+import { ALERTA_ANEXOS_NAO_RECUPERADOS } from '../model/alerta/alerta';
+import { alertarInfo } from '../redux/elemento/util/alertaUtil';
 import { descricaoDocumento } from './nova-proposicao/descricaoDocumento';
 import './dados-basicos/dados-basicos.component';
 
 const ALERTA_TIPO_NAO_SUPORTADO = 'alerta-global-tipo-nao-suportado';
+const MENSAGEM_ANEXOS_NAO_RECUPERADOS =
+  'Não foi possível recuperar os anexos do documento importado. A proposição foi criada sem eles; se necessário, inclua-os novamente na aba Anexos.';
 
 type TipoCasaLegislativa = 'SF' | 'CD' | 'CN';
 
@@ -72,6 +76,8 @@ export interface DadosNovaProposicao {
   outrosMetadados?: Record<string, string>;
   // Documento articulado de modelo: só a articulação e a ementa são aproveitadas.
   documentoModelo?: unknown;
+  // Documento importado: o conteúdo é aproveitado como ao abrir; identidade e destino vêm destes dados. Exclusivo com documentoModelo.
+  documentoImportado?: unknown;
   anexoParecer?: boolean;
 }
 
@@ -245,6 +251,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   /** Cria uma nova proposição; entrada inválida emite o erro fatal e deixa o documento em edição como estava. */
   async novaProposicao(dados: DadosNovaProposicao): Promise<void> {
+    if (dados?.documentoImportado !== undefined) return this.novaProposicaoImportada(dados);
     let documento: any;
     try {
       this.validarDadosNovaProposicao(dados);
@@ -272,6 +279,47 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.urnDocumentoReferenciado = dados.urnDocumentoReferenciado?.trim() || undefined;
   }
 
+  // Abre o documento importado com a identidade e o destino informados; os anexos ficam com o host e são descartados.
+  private async novaProposicaoImportada(dados: DadosNovaProposicao): Promise<void> {
+    let documento: DocumentoArticulado;
+    let doArquivo: ReturnType<typeof lerMetadadoLexEdit>;
+    try {
+      this.validarDadosNovaProposicao(dados);
+      if (dados.documentoModelo !== undefined) throw new Error('Informe documentoModelo ou documentoImportado em novaProposicao, não os dois.');
+      verificarUrnDaCasaDoEditor(dados.urn);
+      verificarUrnParaNovaProposicao(dados.urn);
+      const lido = lerDocumentoArticulado(dados.documentoImportado, { verificarCasa: false });
+      doArquivo = lerMetadadoLexEdit(lido);
+      documento = aplicarDadosBasicos(
+        lido,
+        {
+          urn: dados.urn,
+          urnDocumentoReferenciado: dados.urnDocumentoReferenciado,
+          epigrafe: dados.epigrafe,
+          preambulo: dados.preambulo,
+          colegiadoApreciador: dados.colegiadoApreciador,
+          outrosMetadados: doArquivo.outrosMetadados ?? dados.outrosMetadados,
+          anexoParecer: dados.anexoParecer ?? false,
+        },
+        { urnAtual: lido.value.metadado.identificacao.urn, anexoParecerAtual: doArquivo.anexoParecer ?? false }
+      );
+      delete documento.value.metadado.metadadoProprietario?.[0]?.any?.[0]?.value?.anexos;
+    } catch (err) {
+      this.emitirEventoFatalError(err);
+      throw err;
+    }
+
+    await this.abrirDocumentoLido(documento, true);
+    // Os parâmetros do host só valem para o grupo que o arquivo não trouxe.
+    if (!doArquivo.autoria && dados.autoria) this._lexmlAutoria.autoria = dados.autoria;
+    if (!doArquivo.opcoesImpressao && dados.opcoesImpressao) this._lexmlOpcoesImpressao.opcoesImpressao = dados.opcoesImpressao;
+    if (doArquivo.anexos?.length) {
+      // Notificação passageira no momento da importação; o item da aba Avisos fica para consulta depois.
+      alertarInfo(MENSAGEM_ANEXOS_NAO_RECUPERADOS, { variante: 'warning', duracao: 8000, icone: 'exclamation-triangle' });
+      rootStore.dispatch(adicionarAlerta({ id: ALERTA_ANEXOS_NAO_RECUPERADOS, tipo: TipoMensagem.WARNING, mensagem: MENSAGEM_ANEXOS_NAO_RECUPERADOS, podeFechar: true }));
+    }
+  }
+
   private validarDadosNovaProposicao(dados: DadosNovaProposicao): void {
     if (!dados || typeof dados !== 'object') throw new Error('Dados da nova proposição não informados.');
     this.validarCamposBasicos(dados, 'novaProposicao');
@@ -297,13 +345,14 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     await this.abrirDocumentoLido(documento);
   }
 
-  // Corpo comum de abrir e de alterar dados básicos: o documento já foi lido e validado.
-  private async abrirDocumentoLido(documento: DocumentoArticulado): Promise<void> {
+  // Corpo comum de abrir, alterar dados básicos e importar: o documento já foi lido e validado.
+  // Na importação, os padrões da sessão valem para o que o arquivo não traz.
+  private async abrirDocumentoLido(documento: DocumentoArticulado, aplicarPadroes = false): Promise<void> {
     const dados = lerMetadadoLexEdit(documento);
     const params = new ParametrosEdicao();
     params.projetoNorma = documento as any;
     params.anexoParecer = dados.anexoParecer ?? false;
-    await this.inicializarEdicao(params, true);
+    await this.inicializarEdicao(params, true, aplicarPadroes);
     // Sem o atraso de setRevisoes (1 s): o documento aberto já sai com as marcas e em modo de revisão.
     if (dados.revisoesLidas?.length) await this._lexmlEta!.aplicarRevisoesDoArquivo(dados.revisoesLidas, lerSituacaoNaNormaVigente(documento));
     // Depois de inicializarEdicao: resetaProposicao sobrescreve o formulário com os valores padrão.

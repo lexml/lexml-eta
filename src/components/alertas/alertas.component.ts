@@ -4,7 +4,7 @@ import '@shoelace-style/shoelace/dist/components/alert/alert.js';
 import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 import { connect } from 'pwa-helpers';
 import { rootStore } from '../../redux/store';
-import { Alerta } from '../../model/alerta/alerta';
+import { Alerta, ALERTA_ANEXOS_NAO_RECUPERADOS } from '../../model/alerta/alerta';
 import { limparAlertas } from '../../model/alerta/acao/limparAlertas';
 import { removerAlerta } from '../../model/alerta/acao/removerAlerta';
 import { LexmlEtaComponent } from '../lexml-eta.component';
@@ -44,6 +44,17 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
     .alert__close-button {
       font-size: 1.25rem;
       float: right;
+    }
+    /* Só o alerta de anexos: o botão flutuante aumentava a altura e desalinhava o texto. */
+    sl-alert.alerta--botao-centralizado {
+      position: relative;
+    }
+    sl-alert.alerta--botao-centralizado .alert__close-button {
+      float: none;
+      position: absolute;
+      top: 50%;
+      right: var(--sl-spacing-small);
+      transform: translateY(-50%);
     }
   `;
 
@@ -104,7 +115,7 @@ export class AlertasComponent extends connect(rootStore)(LitElement) {
         alerta =>
           html` ${alerta.podeFechar
             ? html`
-                <sl-alert variant="${mapTipoMensagem[alerta.tipo].variant}" open>
+                <sl-alert variant="${mapTipoMensagem[alerta.tipo].variant}" class=${alerta.id === ALERTA_ANEXOS_NAO_RECUPERADOS ? 'alerta--botao-centralizado' : ''} open>
                   <sl-icon-button name="x" class="alert__close-button" id="${alerta.id}" label="fechar"></sl-icon-button>
                   ${this.getAlertIcon(alerta.tipo)} ${alerta.mensagem}
                 </sl-alert>
