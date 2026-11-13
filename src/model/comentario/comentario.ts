@@ -10,6 +10,8 @@ export interface Comentario {
 
 export interface SequenciaComentario {
   id: string;
+  // Presente só nas sequências da articulação: o uuid2 não muda ao renumerar, mover ou desfazer.
+  uuid2Dispositivo?: string;
   comentarios: Comentario[];
 }
 

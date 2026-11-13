@@ -3,7 +3,9 @@ import { Comentario, SequenciaComentario } from '../../../src/model/comentario/c
 import {
   criarComentario,
   criarSequenciaComentario,
+  criarSequenciaComentarioDispositivo,
   formatarDataComentario,
+  isSequenciaDaArticulacao,
   isComentarioDoUsuario,
   ordenarSequencias,
   podeEditarComentario,
@@ -31,6 +33,16 @@ describe('comentarioUtil', () => {
       expect(a.comentarios[0].usuario).to.deep.include({ nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' });
       expect(a.comentarios[0].data).to.match(/^2026-11-04T09:05:07[+-]\d{2}:\d{2}$/);
       expect(Date.parse(a.comentarios[0].data)).to.equal(data.getTime());
+    });
+
+    it('cria a sequência de dispositivo com o uuid2 do dispositivo como âncora', () => {
+      const s = criarSequenciaComentarioDispositivo(FULANO, 'no inciso', 'uuid2-inciso');
+
+      expect(s.uuid2Dispositivo).to.equal('uuid2-inciso');
+      expect(s.id).to.match(/^[0-9a-f-]{36}$/);
+      expect(s.comentarios[0]).to.deep.include({ texto: 'no inciso' });
+      expect(isSequenciaDaArticulacao(s)).to.equal(true);
+      expect(isSequenciaDaArticulacao(criarSequenciaComentario(FULANO, 'na justificação'))).to.equal(false);
     });
 
     it('copia o usuário, para que mudanças no usuário atual não alterem o autor', () => {
@@ -94,6 +106,22 @@ describe('comentarioUtil', () => {
       const b = sequencia('b', comentario(FULANO, '2026-11-01T10:00:00-03:00'));
       expect(ordenarSequencias([a, b], 'mais-recentes').map(s => s.id)).to.deep.equal(['a', 'b']);
       expect(ordenarSequencias([b, a], 'mais-recentes').map(s => s.id)).to.deep.equal(['b', 'a']);
+    });
+
+    it('ordem no texto põe a articulação antes da justificação, cada local pela sua posição', () => {
+      const justificacao = sequencia('just', comentario(FULANO, '2026-11-01T10:00:00-03:00'));
+      const art5 = { ...sequencia('art5', comentario(FULANO, '2026-11-02T10:00:00-03:00')), uuid2Dispositivo: 'u5' };
+      const art2 = { ...sequencia('art2', comentario(FULANO, '2026-11-03T10:00:00-03:00')), uuid2Dispositivo: 'u2' };
+      const posicoes: Record<string, number> = { just: 0, art5: 40, art2: 7 };
+
+      expect(ordenarSequencias([justificacao, art5, art2], 'ordem-no-texto', id => posicoes[id]).map(s => s.id)).to.deep.equal(['art2', 'art5', 'just']);
+    });
+
+    it('mais recentes ordena os dois locais juntos', () => {
+      const justificacao = sequencia('just', comentario(FULANO, '2026-11-03T10:00:00-03:00'));
+      const dispositivo = { ...sequencia('disp', comentario(FULANO, '2026-11-01T10:00:00-03:00')), uuid2Dispositivo: 'u' };
+
+      expect(ordenarSequencias([dispositivo, justificacao], 'mais-recentes').map(s => s.id)).to.deep.equal(['just', 'disp']);
     });
 
     it('não altera a lista recebida', () => {

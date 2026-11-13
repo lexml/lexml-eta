@@ -16,6 +16,13 @@ export const criarSequenciaComentario = (usuario: Usuario, texto: string, data =
   comentarios: [criarComentario(usuario, texto, data)],
 });
 
+export const criarSequenciaComentarioDispositivo = (usuario: Usuario, texto: string, uuid2Dispositivo: string, data = new Date()): SequenciaComentario => ({
+  ...criarSequenciaComentario(usuario, texto, data),
+  uuid2Dispositivo,
+});
+
+export const isSequenciaDaArticulacao = (sequencia: SequenciaComentario): boolean => !!sequencia.uuid2Dispositivo;
+
 const temId = (usuario: Usuario): boolean => usuario.id !== undefined && usuario.id !== null && usuario.id !== '';
 
 // Com id no autor, compara os ids; sem id, compara os nomes.
@@ -39,7 +46,8 @@ const instanteDoUltimoComentario = (sequencia: SequenciaComentario): number => {
   return instantes.length ? Math.max(...instantes) : -Infinity;
 };
 
-// Sem posição conhecida, a sequência vai para o fim; empates mantêm a ordem recebida (ordem de criação).
+// Em "Ordem no texto", a articulação vem antes da justificação; sem posição conhecida, a sequência vai para o fim do seu local.
+// Empates mantêm a ordem recebida (ordem de criação).
 export const ordenarSequencias = (
   sequencias: SequenciaComentario[],
   ordenacao: OrdenacaoComentarios,
@@ -48,18 +56,16 @@ export const ordenarSequencias = (
   const indexadas = sequencias.map((sequencia, indice) => ({ sequencia, indice }));
   const chave =
     ordenacao === 'mais-recentes'
-      ? (s: SequenciaComentario): number => -instanteDoUltimoComentario(s)
-      : (s: SequenciaComentario): number => {
+      ? (s: SequenciaComentario): number[] => [-instanteDoUltimoComentario(s)]
+      : (s: SequenciaComentario): number[] => {
           const posicao = getPosicao(s.id);
-          return posicao === undefined || posicao < 0 ? Infinity : posicao;
+          return [isSequenciaDaArticulacao(s) ? 0 : 1, posicao === undefined || posicao < 0 ? Infinity : posicao];
         };
-  return indexadas
-    .sort((a, b) => {
-      const ka = chave(a.sequencia);
-      const kb = chave(b.sequencia);
-      return ka === kb ? a.indice - b.indice : ka < kb ? -1 : 1;
-    })
-    .map(i => i.sequencia);
+  const comparar = (ka: number[], kb: number[]): number => {
+    const i = ka.findIndex((v, j) => v !== kb[j]);
+    return i < 0 ? 0 : ka[i] < kb[i] ? -1 : 1;
+  };
+  return indexadas.sort((a, b) => comparar(chave(a.sequencia), chave(b.sequencia)) || a.indice - b.indice).map(i => i.sequencia);
 };
 
 // dd/mm/aaaa hh:mm no horário local; data inválida volta como recebida.
