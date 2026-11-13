@@ -68,14 +68,17 @@ describe('ETA — comentários na justificação', () => {
       expect(aba().textContent).to.include('Não há comentários registrados.');
     });
 
-    it('não existe no modo anexo de parecer', async () => {
+    it('existe também no modo anexo de parecer, aberta por padrão', async () => {
       const documento = novoDocumentoArticulado();
       documento.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit({ anexoParecer: true })];
       await component.abrirDocumentoArticulado(documento);
       await component.updateComplete;
 
-      expect(!!component.querySelector('#tabs-direita > sl-tab[panel="comentarios"]')).to.equal(false);
-      expect(!!aba()).to.equal(false);
+      expect(!!component.querySelector('#tabs-direita > sl-tab[panel="comentarios"]')).to.equal(true);
+      expect(!!component.querySelector('#tabs-direita > sl-tab[panel="notas"]')).to.equal(false);
+      expect(!!aba()).to.equal(true);
+      expect(abaAtiva('tabs-direita')).to.equal('comentarios');
+      expect(aba().textContent).to.include('Não há comentários registrados.');
     });
   });
 

@@ -90,6 +90,25 @@ describe('lexml-eta-comentarios', () => {
       expect(getComputedStyle(texto).whiteSpace).to.equal('pre-wrap');
     });
 
+    it('sequência da articulação: local "No texto" e a identificação no bloco do trecho', async () => {
+      const doDispositivo: SequenciaComentario = { id: 'd', uuid2Dispositivo: 'u-inc', comentarios: SEQ_A.comentarios };
+      trechos.d = 'inciso I do art. 3º';
+      await montar([doDispositivo, SEQ_B]);
+
+      const origem = card('d').querySelector('.comentario-sequencia__origem')!;
+      expect(origem.textContent).to.equal('No texto');
+      expect(origem.classList.contains('comentario-sequencia__origem--texto')).to.equal(true);
+      expect(card('d').querySelector('.comentario-sequencia__trecho-texto')!.textContent).to.equal('inciso I do art. 3º');
+      expect(card('b').querySelector('.comentario-sequencia__origem')!.textContent).to.equal('Na justificação');
+      expect(getComputedStyle(origem).backgroundColor).to.equal(getComputedStyle(card('b').querySelector('.comentario-sequencia__origem')!).backgroundColor);
+      delete trechos.d;
+    });
+
+    it('dispositivo não localizado tem um texto de aviso', async () => {
+      await montar([{ id: 'x', uuid2Dispositivo: 'sumiu', comentarios: SEQ_A.comentarios }]);
+      expect(card('x').querySelector('.comentario-sequencia__trecho-texto')!.textContent).to.equal('Dispositivo comentado');
+    });
+
     it('trecho não localizado tem um texto de aviso', async () => {
       await montar([{ id: 'x', comentarios: SEQ_A.comentarios }]);
       expect(card('x').querySelector('.comentario-sequencia__trecho-texto')!.textContent).to.equal('Trecho comentado não localizado.');

@@ -92,6 +92,7 @@ export const comentariosCss = html`
       line-height: 1;
       padding: 0 8px;
     }
+    .comentario-sequencia__origem--texto,
     .comentario-sequencia__origem--justificativa {
       border: 1px solid #e5e7eb;
       background: #f3f4f6;

@@ -7,7 +7,14 @@ import '@shoelace-style/shoelace/dist/components/icon/icon.js';
 import type { SlDialog } from '@shoelace-style/shoelace';
 import { iconeComentario } from '../../../assets/icons/icons';
 import { Comentario, OrdenacaoComentarios, SequenciaComentario } from '../../model/comentario/comentario';
-import { formatarDataComentario, ordenarSequencias, podeEditarComentario, podeExcluirComentario, TAMANHO_MAXIMO_COMENTARIO } from '../../model/comentario/comentarioUtil';
+import {
+  formatarDataComentario,
+  isSequenciaDaArticulacao,
+  ordenarSequencias,
+  podeEditarComentario,
+  podeExcluirComentario,
+  TAMANHO_MAXIMO_COMENTARIO,
+} from '../../model/comentario/comentarioUtil';
 import { Usuario } from '../../model/revisao/usuario';
 import { comentariosCss } from './comentarios.css';
 
@@ -133,7 +140,9 @@ export class ComentariosComponent extends LitElement {
         @keydown=${(ev: KeyboardEvent): void => this.navegarPorTeclado(ev, seq.id)}
       >
         <div class="comentario-sequencia__topo">
-          <span class="comentario-sequencia__origem comentario-sequencia__origem--justificativa">Na justificação</span>
+          ${isSequenciaDaArticulacao(seq)
+            ? html`<span class="comentario-sequencia__origem comentario-sequencia__origem--texto">No texto</span>`
+            : html`<span class="comentario-sequencia__origem comentario-sequencia__origem--justificativa">Na justificação</span>`}
           <span class="comentario-sequencia__acoes">
             <button
               type="button"
@@ -156,7 +165,7 @@ export class ComentariosComponent extends LitElement {
         </div>
         <blockquote class="comentario-sequencia__trecho">
           <span class="comentario-sequencia__trecho-conteudo">
-            <span class="comentario-sequencia__trecho-texto">${trecho || 'Trecho comentado não localizado.'}</span>
+            <span class="comentario-sequencia__trecho-texto">${trecho || (isSequenciaDaArticulacao(seq) ? 'Dispositivo comentado' : 'Trecho comentado não localizado.')}</span>
           </span>
         </blockquote>
         <div class="comentario-sequencia__comentarios">${seq.comentarios.map((comentario, indice) => this.renderComentario(seq, comentario, indice))}</div>

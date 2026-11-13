@@ -46,7 +46,9 @@ import { AnexosComponent } from './anexos/anexos.component';
 import type { ComentariosComponent } from './comentarios/comentarios.component';
 import './comentarios/comentarios.component';
 import { SequenciaComentario } from '../model/comentario/comentario';
-import { criarComentario, criarSequenciaComentario } from '../model/comentario/comentarioUtil';
+import { criarComentario, criarSequenciaComentario, criarSequenciaComentarioDispositivo, isSequenciaDaArticulacao } from '../model/comentario/comentarioUtil';
+import { Elemento } from '../model/elemento';
+import { getOrdemDosDispositivos, identificarPorUuid2, isDispositivoComentadoVivo } from '../model/comentario/dispositivoComentado';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { isHtmlSemTexto } from '../util/string-util';
 import { formatDateTime, formatDateTimeToIso } from '../util/date-util';
@@ -85,6 +87,15 @@ class ParametrosEdicao {
 const MENSAGEM_JUSTIFICACAO_NAO_INFORMADA = 'Não foi informado um texto de justificação.';
 
 const ALERTA_COMENTARIOS = 'alerta-global-comentarios';
+const EVENTOS_ESTRUTURAIS = [
+  StateType.ElementoIncluido,
+  StateType.ElementoRemovido,
+  StateType.ElementoRenumerado,
+  StateType.ElementoModificado,
+  StateType.SituacaoElementoModificada,
+  StateType.RevisaoAceita,
+  StateType.RevisaoRejeitada,
+];
 const MENSAGEM_ALERTA_COMENTARIOS = 'Este documento contém comentários e não deve ser protocolado até que sejam removidos.';
 
 @customElement('lexml-eta')
@@ -475,7 +486,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this.updateView();
       await this.updateComplete;
       this.sincronizarESelecionarAba(this._tabsEsquerda, 'lexml-eta-proposicao');
-      this.sincronizarESelecionarAba(this._tabsDireita, this.anexoParecer ? 'atalhos' : 'notas');
+      this.sincronizarESelecionarAba(this._tabsDireita, this.anexoParecer ? 'comentarios' : 'notas');
     } catch (err) {
       console.error(err);
       this.emitirEventoFatalError(err);
@@ -531,6 +542,41 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     state?.elementoReducer?.ui?.events?.some((ev: StateEvent) => ev.stateType === StateType.AtualizaUsuario) && this.requestUpdate();
     if (revisaoAtivada || revisaoDesativada) {
       this.emitiEventoOnRevisao(rootStore.getState().elementoReducer.emRevisao);
+    }
+    const eventos: StateEvent[] = state?.elementoReducer?.ui?.events ?? [];
+    eventos.some(ev => ev.stateType === StateType.ElementoRemovido || ev.stateType === StateType.RevisaoAceita) && this.reconciliarSequenciasDaArticulacao(eventos);
+    // A identificação é calculada ao desenhar a aba: renumerar, mover ou transformar não muda a lista de sequências.
+    this.sequenciasComentario.some(isSequenciaDaArticulacao) && eventos.some(ev => EVENTOS_ESTRUTURAIS.includes(ev.stateType)) && this._lexmlComentarios?.requestUpdate();
+  }
+
+  // Confere o lote inteiro: transformar remove e inclui o mesmo uuid no mesmo lote, com outro uuid2.
+  private reconciliarSequenciasDaArticulacao(eventos: StateEvent[]): void {
+    if (!this.sequenciasComentario.some(isSequenciaDaArticulacao)) {
+      return;
+    }
+    const { articulacao, revisoes } = rootStore.getState().elementoReducer;
+    const elementosDo = (tipo: StateType): Elemento[] => eventos.filter(ev => ev.stateType === tipo).flatMap(ev => ev.elementos ?? []);
+    const uuidDoRemovido = new Map(elementosDo(StateType.ElementoRemovido).map(e => [e.uuid2, e.uuid]));
+    const uuid2DoIncluido = new Map(elementosDo(StateType.ElementoIncluido).map(e => [e.uuid, e.uuid2]));
+    const vivo = (uuid2?: string): boolean => !!uuid2 && isDispositivoComentadoVivo(articulacao, revisoes, uuid2);
+
+    let mudou = false;
+    const sequencias = this.sequenciasComentario
+      .map(seq => {
+        if (!isSequenciaDaArticulacao(seq) || vivo(seq.uuid2Dispositivo)) {
+          return seq;
+        }
+        mudou = true;
+        const novoUuid2 = uuid2DoIncluido.get(uuidDoRemovido.get(seq.uuid2Dispositivo));
+        return vivo(novoUuid2) ? { ...seq, uuid2Dispositivo: novoUuid2 } : undefined;
+      })
+      .filter((seq): seq is SequenciaComentario => !!seq);
+    if (!mudou) {
+      return;
+    }
+    this.sequenciasComentario = sequencias;
+    if (this.idSequenciaComentarioAtual && !sequencias.some(seq => seq.id === this.idSequenciaComentarioAtual)) {
+      this.idSequenciaComentarioAtual = undefined;
     }
   }
 
@@ -657,7 +703,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   protected updated(changed: Map<string, unknown>): void {
     if (changed.has('documentoInicializado')) this.updateLayoutSplitPanel(true);
-    if (changed.has('sequenciasComentario')) this.atualizarAlertaComentarios();
+    if (changed.has('sequenciasComentario')) {
+      this.atualizarAlertaComentarios();
+      this._lexmlEta?.atualizarDispositivosComentados(this.sequenciasComentario.filter(isSequenciaDaArticulacao).map(seq => seq.uuid2Dispositivo!));
+    }
   }
 
   private atualizarAlertaComentarios(): void {
@@ -1067,6 +1116,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
                 id="lexmlEta"
                 .lexmlEtaConfig=${this.lexmlEtaConfig}
                 @onchange=${this.onChange}
+                @abrir-modal-comentario-dispositivo=${this.abrirModalAdicionarComentarioDispositivo}
+                @comentario-dispositivo-selecionado=${this.onComentarioDispositivoSelecionado}
+                @abrir-modal-lista-comentarios=${this.abrirModalListaComentarios}
               ></lexml-eta-proposicao>
             </sl-tab-panel>
             <sl-tab-panel name="justificativa" class="overflow-hidden ${this.anexoParecer ? 'painel-anexo-parecer' : ''}">
@@ -1145,22 +1197,22 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
                   </sl-tab>
                 `
               : ''}
+            <sl-tab-panel name="comentarios" class="overflow-hidden">
+              <lexml-eta-comentarios
+                .sequencias=${this.sequenciasComentario}
+                .usuario=${rootStore.getState().elementoReducer.usuario}
+                .idSequenciaAtual=${this.idSequenciaComentarioAtual}
+                .getTrecho=${this.getTrechoComentario}
+                .getPosicao=${this.getPosicaoComentario}
+                @comentario-selecionar-sequencia=${this.selecionarSequenciaComentario}
+                @comentario-responder=${this.responderComentario}
+                @comentario-editar=${this.editarComentario}
+                @comentario-excluir=${this.excluirComentario}
+                @comentario-excluir-sequencia=${this.excluirSequenciaComentario}
+              ></lexml-eta-comentarios>
+            </sl-tab-panel>
             ${!this.anexoParecer
               ? html`
-                  <sl-tab-panel name="comentarios" class="overflow-hidden">
-                    <lexml-eta-comentarios
-                      .sequencias=${this.sequenciasComentario}
-                      .usuario=${rootStore.getState().elementoReducer.usuario}
-                      .idSequenciaAtual=${this.idSequenciaComentarioAtual}
-                      .getTrecho=${this.getTrechoComentario}
-                      .getPosicao=${this.getPosicaoComentario}
-                      @comentario-selecionar-sequencia=${this.selecionarSequenciaComentario}
-                      @comentario-responder=${this.responderComentario}
-                      @comentario-editar=${this.editarComentario}
-                      @comentario-excluir=${this.excluirComentario}
-                      @comentario-excluir-sequencia=${this.excluirSequenciaComentario}
-                    ></lexml-eta-comentarios>
-                  </sl-tab-panel>
                   <sl-tab-panel name="notas" class="overflow-hidden">
                     <div class="notas-rodape">
                       <h4>Notas de rodapé</h4>
@@ -1182,15 +1234,70 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   tabIsVisible(tab: string): boolean {
-    if ((tab === 'notas' || tab === 'comentarios') && this.anexoParecer) {
+    if (tab === 'notas' && this.anexoParecer) {
       return false;
     }
     return tab === 'comentarios' || tab === 'notas' || tab === 'atalhos';
   }
 
-  private getTrechoComentario = (idSequencia: string): string => this._lexmlJustificativa?.getTextoComentario(idSequencia) ?? '';
+  private getSequencia(idSequencia: string): SequenciaComentario | undefined {
+    return this.sequenciasComentario.find(seq => seq.id === idSequencia);
+  }
 
-  private getPosicaoComentario = (idSequencia: string): number | undefined => this._lexmlJustificativa?.getIndiceComentario(idSequencia);
+  // Na articulação, o "trecho" é a identificação do dispositivo, calculada a cada exibição.
+  private getTrechoComentario = (idSequencia: string): string => {
+    const uuid2 = this.getSequencia(idSequencia)?.uuid2Dispositivo;
+    if (uuid2) {
+      const { articulacao, revisoes } = rootStore.getState().elementoReducer;
+      return identificarPorUuid2(articulacao, revisoes, uuid2);
+    }
+    return this._lexmlJustificativa?.getTextoComentario(idSequencia) ?? '';
+  };
+
+  private getPosicaoComentario = (idSequencia: string): number | undefined => {
+    const uuid2 = this.getSequencia(idSequencia)?.uuid2Dispositivo;
+    return uuid2 ? this.getPosicaoDispositivo(uuid2) : this._lexmlJustificativa?.getIndiceComentario(idSequencia);
+  };
+
+  // O excluído em revisão não está na articulação: usa a posição da próxima linha que está.
+  private getPosicaoDispositivo(uuid2: string): number | undefined {
+    const ordem = getOrdemDosDispositivos(rootStore.getState().elementoReducer.articulacao);
+    if (ordem.has(uuid2)) {
+      return ordem.get(uuid2);
+    }
+    const linhas = this._lexmlEta?.getUuid2sDasLinhas() ?? [];
+    const seguinte = linhas.slice(linhas.indexOf(uuid2) + 1).find(u => ordem.has(u));
+    return linhas.includes(uuid2) ? (seguinte ? ordem.get(seguinte)! - 0.5 : ordem.size) : undefined;
+  }
+
+  private abrirModalAdicionarComentarioDispositivo = async (ev: CustomEvent): Promise<void> => {
+    const uuid2: string | undefined = ev.detail?.uuid2Dispositivo;
+    if (!uuid2 || this.sequenciasComentario.some(seq => seq.uuid2Dispositivo === uuid2)) {
+      return;
+    }
+    const { articulacao, revisoes } = rootStore.getState().elementoReducer;
+    const texto = await this._lexmlComentarios?.abrirModalAdicionar(identificarPorUuid2(articulacao, revisoes, uuid2));
+    if (!texto || this.sequenciasComentario.some(seq => seq.uuid2Dispositivo === uuid2)) {
+      return;
+    }
+    const sequencia = criarSequenciaComentarioDispositivo(rootStore.getState().elementoReducer.usuario ?? new Usuario(), texto, uuid2);
+    this.sequenciasComentario = [...this.sequenciasComentario, sequencia];
+    this.idSequenciaComentarioAtual = sequencia.id;
+    this.exibirSequenciaAtualNaLista();
+  };
+
+  private onComentarioDispositivoSelecionado = (ev: CustomEvent): void => {
+    const { uuid2Dispositivo, abrirAbaComentarios } = ev.detail ?? {};
+    const sequencia = uuid2Dispositivo ? this.sequenciasComentario.find(seq => seq.uuid2Dispositivo === uuid2Dispositivo) : undefined;
+    if (sequencia) {
+      this.idSequenciaComentarioAtual = sequencia.id;
+      abrirAbaComentarios && this.exibirSequenciaAtualNaLista();
+      return;
+    }
+    // Dispositivo sem comentário só desfaz a seleção de uma sequência da articulação.
+    const atual = this.idSequenciaComentarioAtual ? this.getSequencia(this.idSequenciaComentarioAtual) : undefined;
+    atual && isSequenciaDaArticulacao(atual) && (this.idSequenciaComentarioAtual = undefined);
+  };
 
   private abrirModalAdicionarComentario = async (ev: CustomEvent): Promise<void> => {
     const { range, texto: trecho } = ev.detail ?? {};
@@ -1258,11 +1365,17 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       return;
     }
     this.idSequenciaComentarioAtual = idSequencia;
+    const uuid2 = this.getSequencia(idSequencia)?.uuid2Dispositivo;
     // A troca de aba feita aqui não pode desfazer a seleção.
     this.preservarSequenciaNaTrocaAba = true;
-    this._tabsEsquerda?.show('justificativa');
+    this._tabsEsquerda?.show(uuid2 ? 'lexml-eta-proposicao' : 'justificativa');
     setTimeout(() => (this.preservarSequenciaNaTrocaAba = false), 0);
-    this._lexmlJustificativa.posicionarCursorComentario(idSequencia);
+    if (uuid2) {
+      this._lexmlEta?.posicionarCursorNoDispositivo(uuid2);
+      this.idSequenciaComentarioAtual = idSequencia;
+    } else {
+      this._lexmlJustificativa.posicionarCursorComentario(idSequencia);
+    }
     this._lexmlComentarios?.fecharModalLista();
   };
 
@@ -1289,9 +1402,12 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   private excluirSequenciaComentario = (ev: CustomEvent): void => {
     const idSequencia = ev.detail?.idSequencia;
+    const daArticulacao = !!this.getSequencia(idSequencia)?.uuid2Dispositivo;
     this.removerSequenciasComentario([idSequencia]);
-    this._lexmlJustificativa.registrarComentarioRemovido(idSequencia);
-    this._lexmlJustificativa.removerComentario(idSequencia);
+    if (!daArticulacao) {
+      this._lexmlJustificativa.registrarComentarioRemovido(idSequencia);
+      this._lexmlJustificativa.removerComentario(idSequencia);
+    }
   };
 
   private removerSequenciasComentario(ids: string[]): void {
@@ -1304,7 +1420,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   // A cada mudança no conjunto de trechos comentados: sequência sem trecho sai da aba; trecho sem sequência perde a marcação.
   private sincronizarSequenciasComentario = (ev: CustomEvent): void => {
     const ids: string[] = ev.detail?.ids ?? this._lexmlJustificativa.getIdsComentarios();
-    const semTrecho = this.sequenciasComentario.filter(seq => !ids.includes(seq.id)).map(seq => seq.id);
+    // As sequências da articulação não têm trecho na justificação.
+    const semTrecho = this.sequenciasComentario.filter(seq => !isSequenciaDaArticulacao(seq) && !ids.includes(seq.id)).map(seq => seq.id);
     semTrecho.forEach(id => this._lexmlJustificativa.registrarComentarioRemovido(id));
     semTrecho.length && this.removerSequenciasComentario(semTrecho);
 

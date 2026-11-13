@@ -54,6 +54,18 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     }
   }
 
+  atualizarDispositivosComentados(uuid2s: string[]): void {
+    this.editorComponent && (this.editorComponent.uuid2DispositivosComentados = uuid2s);
+  }
+
+  posicionarCursorNoDispositivo(uuid2: string): boolean {
+    return !!this.editorComponent?.posicionarCursorNoDispositivo(uuid2);
+  }
+
+  getUuid2sDasLinhas(): string[] {
+    return this.editorComponent?.getUuid2sDasLinhas() ?? [];
+  }
+
   /** Reaplica as revisões da hierarquia lidas do arquivo; valem sobre as revisões do host. */
   async aplicarRevisoesDoArquivo(lidas: RevisaoArticulacaoLida[], situacao?: SituacaoNaNormaVigente): Promise<void> {
     clearTimeout(this._timerLoadRevisoes);
