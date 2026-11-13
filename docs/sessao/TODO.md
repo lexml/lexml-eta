@@ -1,10 +1,21 @@
 # TODO
 
-Atualizado em 11/11/2026. Branch `feat/972-comentarios`.
+Atualizado em 13/11/2026. Branch `feat/972-comentarios`.
 
 ## Em andamento
 
-- **#972, comentários da justificação no padrão do lexml-emenda:** change `2026-11-11-c01-alinhar-comentarios-justificacao-lexml-emenda` aplicada (ícones, CSS e espaçamentos da aba e dos modais, textos da confirmação, seleção e rolagem, telas pequenas e painel lateral oculto até 768px). Grupos 1–5 validados pelo usuário; falta arquivar e commitar. Depois dela, a parte da articulação (`2026-11-08-c01` e `c02`).
+- Nenhuma. A #972 (comentários na articulação) foi **pausada por prioridade** em 13/11/2026; ver "Pausadas".
+
+## Pausadas
+
+- **#972, comentários na articulação (atividade #269244):** change `2026-11-08-c01-comentarios-articulacao` com os grupos 1 a 5 aplicados e validados (14/16 tasks).
+  - Falta o grupo 6:
+    - item 24 do `CLAUDE.md` (âncora por `uuid2`, conferência depois do lote, passagem da sequência na transformação, segunda passada do ícone, redesenho da aba);
+    - `npm test` completo, lint dos alterados e `openspec validate --strict`;
+    - arquivar com sync (MODIFIED de "Sequência atual ao trocar de aba" e "Comentários em telas pequenas"; ajustar o Purpose da spec `comentarios`).
+  - Depois disso, a c02 (`2026-11-08-c02-salvar-abrir-comentarios-articulacao`), que precisa do CLI `jsonix-lexml` 2.4.0 ou posterior e de um Java 11 ou posterior.
+  - Relatório por grupo para o João Matos validar: `openspec/changes/2026-11-08-c01-comentarios-articulacao/relatorio.md`.
+- **Concluída na #972:** change `2026-11-11-c01-alinhar-comentarios-justificacao-lexml-emenda`, arquivada e commitada (`0c8a0327`, `6ccedd3b`).
 
 ## Próximas
 
