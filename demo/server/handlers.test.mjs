@@ -59,6 +59,35 @@ test('PLS: complementar só é informado quando verdadeiro', () => {
   assert.equal('complementar' in corpo(tratarRequisicaoDemo('/demo-api/proposicoes/PLS/8/2015')), false);
 });
 
+test('importação: XML devolve 200 com um documento articulado da demo', () => {
+  for (const tipo of ['application/xml', 'text/xml; charset=utf-8']) {
+    const r = tratarRequisicaoDemo('/demo-api/importacao', 'POST', tipo);
+    assert.equal(r.status, 200, tipo);
+    assert.equal(r.tipo, 'application/json');
+    assert.ok(corpo(r).value.metadado.identificacao.urn.startsWith('urn:lex:br:'));
+  }
+});
+
+test('importação: PDF devolve 500 com falha interna em texto puro', () => {
+  const r = tratarRequisicaoDemo('/demo-api/importacao', 'POST', 'application/pdf');
+  assert.equal(r.status, 500);
+  assert.match(r.tipo, /^text\/plain/);
+  assert.equal(r.corpo, 'Falha interna.');
+});
+
+test('importação: DOCX e TXT devolvem 400 de conversão não implementada', () => {
+  for (const tipo of ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']) {
+    const r = tratarRequisicaoDemo('/demo-api/importacao', 'POST', tipo);
+    assert.equal(r.status, 400, tipo);
+    assert.equal(r.corpo, 'Conversão de DOCX ou TXT não implementada.');
+  }
+});
+
+test('importação: outro tipo devolve 400 e GET não é tratado como importação', () => {
+  assert.equal(tratarRequisicaoDemo('/demo-api/importacao', 'POST', 'image/png').corpo, 'Tipo de arquivo não suportado.');
+  assert.equal(tratarRequisicaoDemo('/demo-api/importacao').status, 404);
+});
+
 test('rota desconhecida da demo devolve 404', () => {
   assert.equal(tratarRequisicaoDemo('/demo-api/outra').status, 404);
 });
