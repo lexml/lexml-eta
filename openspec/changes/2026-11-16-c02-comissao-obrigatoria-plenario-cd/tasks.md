@@ -2,8 +2,8 @@
 
 ## 1. Regra e resultado da Tela 1
 
-- [ ] 1.1 Em `nova-proposicao.component.ts`, criar o getter `comissaoObrigatoria` e usá-lo em `destinoValido`, `onTipoColegiado` (manter a comissão ao ir para Plenário), exibição do seletor e `montarResultado` (`siglaComissao` também no Plenário). Verificar com testes de componente: CD substitutivo/subemenda com Plenário exige comissão e a devolve no `detail`; troca de destino mantém a comissão; Proposição na CD e SF seguem sem comissão no Plenário.
-- [ ] 1.2 Tratar a falha na lista de comissões na CD em substitutivo (erro visível e **Continuar** desabilitado). Verificar com teste de componente do cenário de falha.
+- [x] 1.1 Em `nova-proposicao.component.ts`, criar o getter `comissaoObrigatoria` e usá-lo em `destinoValido`, `onTipoColegiado` (manter a comissão ao ir para Plenário), exibição do seletor e `montarResultado` (`siglaComissao` também no Plenário). Verificar com testes de componente: CD substitutivo/subemenda com Plenário exige comissão e a devolve no `detail`; troca de destino mantém a comissão; Proposição na CD e SF seguem sem comissão no Plenário.
+- [x] 1.2 Tratar a falha na lista de comissões na CD em substitutivo (erro visível e **Continuar** desabilitado). Verificar com teste de componente do cenário de falha.
 
 ## 2. Modo de edição e aba de dados básicos
 

@@ -384,6 +384,79 @@ describe('lexml-nova-proposicao', () => {
     });
   });
 
+  describe('Destino Plenário na CD: comissão obrigatória em substitutivo e subemenda', () => {
+    const preencher = async (especie: 'substitutivo' | 'subemenda'): Promise<void> => {
+      await marcar('especie', especie);
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await digitar('np-numero-proposicao', '12');
+      await digitar('np-ano-proposicao', '2026');
+      await clicar('np-proposicao-verificar');
+    };
+    const concluirSemTexto = async (): Promise<any> => {
+      const r: { detail?: any } = {};
+      el.addEventListener(EVENTO_CONCLUIDA, (e: Event) => (r.detail = (e as CustomEvent).detail));
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'vazio');
+      await clicar('np-continuar');
+      return r.detail;
+    };
+
+    (['substitutivo', 'subemenda'] as const).forEach(especie => {
+      it(`${especie}: Plenário exibe a comissão, exige a escolha e a devolve no resultado`, async () => {
+        await iniciar(CONFIG_CD);
+        await preencher(especie);
+        await marcar('destino', 'Plenário');
+        expect(existe('np-comissao')).to.be.true;
+        expect(botaoHabilitado('np-continuar')).to.be.false;
+        await escolherComissao('CFT');
+        expect(botaoHabilitado('np-continuar')).to.be.true;
+        expect((await concluirSemTexto()).colegiadoDestino).to.deep.equal({ tipoColegiado: 'Plenário', siglaComissao: 'CFT' });
+      });
+    });
+
+    it('trocar o destino entre Plenário e Comissão mantém a comissão escolhida', async () => {
+      await iniciar(CONFIG_CD);
+      await preencher('substitutivo');
+      await escolherComissao('CFT');
+      await marcar('destino', 'Plenário');
+      expect(q<any>('np-comissao').value).to.equal('CFT');
+      await marcar('destino', 'Comissão');
+      expect(q<any>('np-comissao').value).to.equal('CFT');
+      expect(botaoHabilitado('np-continuar')).to.be.true;
+    });
+
+    it('Comissão continua devolvendo tipo e sigla', async () => {
+      await iniciar(CONFIG_CD);
+      await preencher('substitutivo');
+      await escolherComissao('CFT');
+      expect((await concluirSemTexto()).colegiadoDestino).to.deep.equal({ tipoColegiado: 'Comissão', siglaComissao: 'CFT' });
+    });
+
+    it('proposição na CD não pede comissão no Plenário e não a devolve', async () => {
+      await iniciar(CONFIG_CD);
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      expect(existe('np-comissao')).to.be.false;
+      expect(botaoHabilitado('np-continuar')).to.be.true;
+      expect((await concluirSemTexto()).colegiadoDestino).to.deep.equal({ tipoColegiado: 'Plenário' });
+    });
+
+    it('SF: substitutivo com Plenário não pede comissão', async () => {
+      await iniciar(CONFIG);
+      await marcar('especie', 'substitutivo');
+      await marcar('destino', 'Plenário');
+      expect(existe('np-comissao')).to.be.false;
+    });
+
+    it('falha na lista de comissões informa o erro e mantém Continuar desabilitado', async () => {
+      rotas['/c/CD'] = { status: 500 };
+      await iniciar(CONFIG_CD);
+      await preencher('substitutivo');
+      expect(existe('np-erro-comissoes')).to.be.true;
+      expect(q('np-erro-comissoes')?.textContent).to.contain('necessária para concluir');
+      expect(botaoHabilitado('np-continuar')).to.be.false;
+    });
+  });
+
   describe('Tela 2 na CD: texto de outra proposição', () => {
     beforeEach(() => iniciar(CONFIG_CD));
 

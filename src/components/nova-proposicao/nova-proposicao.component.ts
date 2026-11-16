@@ -306,7 +306,7 @@ export class NovaProposicaoComponent extends LitElement {
     this.verificacaoMpv = this.plv ? verificada : verificacaoVazia();
     const colegiado = iniciais.colegiadoApreciador;
     this.tipoColegiado = colegiado?.tipoColegiado === 'Comissão' ? 'Comissão' : 'Plenário';
-    this.siglaComissao = this.tipoColegiado === 'Comissão' ? colegiado?.siglaComissao ?? '' : '';
+    this.siglaComissao = this.comissaoVisivel ? colegiado?.siglaComissao ?? '' : '';
     this.anexoParecer = !!iniciais.anexoParecer;
 
     // Comissão fora da lista (ou lista indisponível): o destino fica inválido até o usuário escolher outro.
@@ -443,7 +443,17 @@ export class NovaProposicaoComponent extends LitElement {
   }
 
   private get destinoValido(): boolean {
-    return this.tipoColegiado === 'Plenário' || (!!this.siglaComissao && this.comissoesDisponiveis.some(c => c.sigla === this.siglaComissao));
+    const comissaoValida = !!this.siglaComissao && this.comissoesDisponiveis.some(c => c.sigla === this.siglaComissao);
+    return (this.tipoColegiado === 'Plenário' && !this.comissaoObrigatoria) || comissaoValida;
+  }
+
+  // Na CD, substitutivo e subemenda substitutiva sempre pertencem a uma comissão, mesmo com destino Plenário.
+  private get comissaoObrigatoria(): boolean {
+    return this.documentoProprioCd;
+  }
+
+  private get comissaoVisivel(): boolean {
+    return this.tipoColegiado === 'Comissão' || this.comissaoObrigatoria;
   }
 
   private numeroPreenchido = (valor: string): boolean => /^\d+$/.test(valor.trim());
@@ -492,7 +502,7 @@ export class NovaProposicaoComponent extends LitElement {
   private onTipoColegiado(tipo: TipoColegiadoDestino): void {
     if (tipo === this.tipoColegiado) return;
     this.tipoColegiado = tipo;
-    if (tipo === 'Plenário') this.limparComissao();
+    if (tipo === 'Plenário' && !this.comissaoObrigatoria) this.limparComissao();
     else this.carregarComissoes();
   }
 
@@ -897,7 +907,7 @@ export class NovaProposicaoComponent extends LitElement {
 
   private montarResultado({ texto, documentoImportado }: ConteudoInicial = {}): ResultadoNovaProposicao {
     const { urn, urnDocumentoReferenciado } = montaUrnNovaProposicao(this.dados, this.numeroOriginal);
-    const colegiadoDestino: ColegiadoDestino = this.tipoColegiado === 'Comissão' ? { tipoColegiado: 'Comissão', siglaComissao: this.siglaComissao } : { tipoColegiado: 'Plenário' };
+    const colegiadoDestino: ColegiadoDestino = this.comissaoVisivel ? { tipoColegiado: this.tipoColegiado, siglaComissao: this.siglaComissao } : { tipoColegiado: 'Plenário' };
     const detail: ResultadoNovaProposicao = {
       urn,
       ...(urnDocumentoReferenciado && { urnDocumentoReferenciado }),
@@ -1088,8 +1098,16 @@ export class NovaProposicaoComponent extends LitElement {
           ${this.radio('destino', 'Plenário', 'Plenário', this.tipoColegiado === 'Plenário', () => this.onTipoColegiado('Plenário'))}
           ${this.radio('destino', 'Comissão', 'Comissão', this.tipoColegiado === 'Comissão', () => this.onTipoColegiado('Comissão'), this.comissaoIndisponivel)}
         </sl-radio-group>
-        ${this.comissaoIndisponivel ? this.aviso('np-erro-comissoes', 'danger', 'Não foi possível obter a lista de comissões. Só o Plenário está disponível.') : nothing}
-        ${this.tipoColegiado === 'Comissão' ? this.renderComissao() : nothing}
+        ${this.comissaoIndisponivel
+          ? this.aviso(
+              'np-erro-comissoes',
+              'danger',
+              this.comissaoObrigatoria
+                ? 'Não foi possível obter a lista de comissões. Ela é necessária para concluir.'
+                : 'Não foi possível obter a lista de comissões. Só o Plenário está disponível.'
+            )
+          : nothing}
+        ${this.comissaoVisivel ? this.renderComissao() : nothing}
       </fieldset>
 
       <fieldset id="np-g6">

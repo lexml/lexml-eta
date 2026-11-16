@@ -77,6 +77,12 @@ describe('lexml-nova-proposicao — modo de edição de dados básicos', () => {
     el.querySelector<HTMLElement>(`sl-radio[name="destino"][value="${valor}"]`)!.click();
     await atualizar();
   };
+  const escolherComissao = async (sigla: string): Promise<void> => {
+    q<any>('np-comissao')!.querySelector('sl-input')!.dispatchEvent(new MouseEvent('click'));
+    await atualizar();
+    el.querySelector<HTMLElement>(`#np-comissao .ac-lista li[data-value="${sigla}"]`)!.click();
+    await atualizar();
+  };
   const modalAberto = (): boolean => !!q<any>('np-confirmacao')?.open;
   const mensagensDoModal = (): string[] => Array.from(el.querySelectorAll('#np-confirmacao .np-mensagem-perda')).map(m => (m.textContent ?? '').trim());
   const emitidos = (nome: string): any[] => eventos.filter(e => e.nome === nome).map(e => e.detail);
@@ -171,7 +177,10 @@ describe('lexml-nova-proposicao — modo de edição de dados básicos', () => {
     });
 
     it('subemenda substitutiva da Câmara: sem grupo de identificação e com o ano da URN', async () => {
-      await abrirEdicao({ urn: URN_SSP_CD, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário' }, anexoParecer: true }, CONFIG_CD);
+      await abrirEdicao(
+        { urn: URN_SSP_CD, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário', siglaComissao: 'CFT' }, anexoParecer: true },
+        CONFIG_CD
+      );
       expect(el.querySelector<any>('sl-radio[name="especie"][value="subemenda"]').checked).to.be.true;
       expect(existe('np-g2')).to.be.false;
       expect(q<any>('np-numero-proposicao')!.value).to.equal('10');
@@ -181,7 +190,10 @@ describe('lexml-nova-proposicao — modo de edição de dados básicos', () => {
     });
 
     it('substitutivo da Câmara: o número real e o ano da URN continuam na URN ao trocar o destino', async () => {
-      await abrirEdicao({ urn: URN_SBT_CD_7, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário' }, anexoParecer: true }, CONFIG_CD);
+      await abrirEdicao(
+        { urn: URN_SBT_CD_7, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário', siglaComissao: 'CFT' }, anexoParecer: true },
+        CONFIG_CD
+      );
       expect(existe('np-g2')).to.be.false;
       await clicar('np-continuar');
       expect(emitidos(EVENTO_DADOS_BASICOS_ALTERADOS)[0].urn).to.equal(URN_SBT_CD_7);
@@ -189,13 +201,17 @@ describe('lexml-nova-proposicao — modo de edição de dados básicos', () => {
 
     it('trocar a espécie na Câmara mantém o ano da URN inicial e volta o número a s/n', async () => {
       rotas['/v/PL/10/2025'] = { status: 200, corpo: { ementa: 'Ementa do PL 10', textoEstruturadoDisponivel: true } };
-      await abrirEdicao({ urn: URN_SBT_CD_7, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário' }, anexoParecer: true }, CONFIG_CD);
+      await abrirEdicao(
+        { urn: URN_SBT_CD_7, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário', siglaComissao: 'CFT' }, anexoParecer: true },
+        CONFIG_CD
+      );
       el.querySelector<HTMLElement>('sl-radio[name="especie"][value="subemenda"]')!.click();
       await atualizar();
       await escolherSigla('np-sigla-proposicao', 'PL');
       await digitar('np-numero-proposicao', '10');
       await clicar('np-proposicao-verificar');
       await marcarDestino('Plenário');
+      await escolherComissao('CFT');
       await clicar('np-continuar');
       expect(emitidos(EVENTO_DADOS_BASICOS_ALTERADOS)[0].urn).to.equal('urn:lex:br:camara.deputados:subemenda.substitutiva;ssp:2025;999999');
     });
