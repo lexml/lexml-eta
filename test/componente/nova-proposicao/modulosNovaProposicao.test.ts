@@ -11,7 +11,13 @@ import {
   resolverTipoComplementar,
 } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
 import { DadosIdentificacao } from '../../../src/components/nova-proposicao/tiposNovaProposicao';
-import { montaUrlComissoes, montaUrlProposicao, normalizaConsultaProposicao, validarConfigNovaProposicao } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
+import {
+  montaUrlComissoes,
+  montaUrlProposicao,
+  montaUrlTextoDocumento,
+  normalizaConsultaProposicao,
+  validarConfigNovaProposicao,
+} from '../../../src/components/nova-proposicao/urlsNovaProposicao';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoRelacaoSubstitutivo } from '../../../src/model/lexml/documento/vocabulario/tiposVocabulario';
 
@@ -269,6 +275,42 @@ describe('Módulos puros da nova proposição', () => {
 
     it('normaliza sigla, número e ano da consulta', () => {
       expect(normalizaConsultaProposicao(' pl ', '0012', ' 2026 ')).to.deep.equal({ sigla: 'PL', numero: '12', ano: '2026' });
+    });
+
+    it('id codificado na URL do texto do documento', () => {
+      expect(montaUrlTextoDocumento('/d/{id}/texto', 'a/b c')).to.equal('/d/a%2Fb%20c/texto');
+    });
+
+    describe('origens da Tela 2b', () => {
+      const CD: any = { ...URLS, casaLegislativaEditor: 'CD', urlDocumentosMateria: '/m', urlTextoDocumento: '/t' };
+
+      it('CD com as duas URLs é válida', () => {
+        expect(() => validarConfigNovaProposicao(CD)).to.not.throw();
+      });
+
+      ['urlDocumentosMateria', 'urlTextoDocumento'].forEach(nome => {
+        it(`CD sem ${nome} é recusada nomeando a origem`, () => {
+          const config: any = { ...CD };
+          delete config[nome];
+          expect(() => validarConfigNovaProposicao(config)).to.throw(nome);
+        });
+      });
+
+      [
+        ['urlDocumentosMateria', 'onListarDocumentos'],
+        ['urlTextoDocumento', 'onObterTextoDocumento'],
+      ].forEach(([url, callback]) => {
+        it(`CD: callback ${callback} dispensa ${url}`, () => {
+          const config: any = { ...CD, [callback]: () => undefined };
+          delete config[url];
+          expect(() => validarConfigNovaProposicao(config)).to.not.throw();
+        });
+      });
+
+      it('SF e casa não informada não exigem as origens', () => {
+        expect(() => validarConfigNovaProposicao({ ...URLS, casaLegislativaEditor: 'SF' })).to.not.throw();
+        expect(() => validarConfigNovaProposicao({ ...URLS })).to.not.throw();
+      });
     });
   });
 
