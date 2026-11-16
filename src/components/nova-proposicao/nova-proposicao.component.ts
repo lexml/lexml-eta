@@ -15,6 +15,7 @@ import { ColegiadoApreciador } from '../../model/proposicao/proposicao';
 import { inicializarVocabulario } from '../../model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoDocumento } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { montaEpigrafeNovaProposicao } from './epigrafeNovaProposicao';
+import { filtrarDocumentos, linhaDetalheDocumento, textoEstruturadoDisponivel, urlInteiroTeorSegura } from './documentosMateria';
 import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
 import { lerDadosIdentificacao } from './lerDadosIdentificacao';
 import { isPlv, montaUrnNovaProposicao, numeroOriginalVale } from './montaUrnNovaProposicao';
@@ -42,8 +43,10 @@ import {
 import {
   ConfigNovaProposicao,
   CONTENT_TYPE_IMPORTACAO,
+  DocumentoMateria,
   montaUrlComissoes,
   montaUrlProposicao,
+  montaUrlTextoDocumento,
   normalizaConsultaProposicao,
   ResultadoVerificacaoProposicao,
   validarConfigNovaProposicao,
@@ -109,6 +112,13 @@ interface Comissao {
 
 type OpcaoTexto = 'vazio' | 'importar' | 'referenciado' | 'outra';
 
+interface DocumentosCarregados {
+  estado: 'nenhum' | 'carregando' | 'ok' | 'inexistente' | 'erro';
+  lista: DocumentoMateria[];
+}
+
+const semDocumentos = (): DocumentosCarregados => ({ estado: 'nenhum', lista: [] });
+
 const verificacaoVazia = (): Verificacao => ({ estado: 'nenhuma', ementa: '', textoEstruturadoDisponivel: true, complementar: false });
 
 @customElement('lexml-nova-proposicao')
@@ -150,6 +160,18 @@ export class NovaProposicaoComponent extends LitElement {
   @state() private processando = false;
   @state() private errosConversao: string[] = [];
 
+  // Tela 2b (só na CD): matéria e documento de origem.
+  @state() private materiaDoDocumento: 'mesma' | 'outra' = 'mesma';
+  @state() private chaveMateria = '';
+  @state() private numeroMateria = '';
+  @state() private anoMateria = this.anoCorrente;
+  @state() private verificacaoMateria = verificacaoVazia();
+  @state() private documentosMateria: DocumentosCarregados = semDocumentos();
+  @state() private filtroDocumentos = '';
+  @state() private documentoSelecionado?: DocumentoMateria;
+  @state() private rotuloMateria = '';
+  private materiaCarregada = '';
+  private cargaDocumentos = 0;
   // Definidos só por iniciar/iniciarModoEdicao/reiniciar.
   @state() modo: ModoNovaProposicao = 'criacao';
   @state() dadosIniciais?: DadosIniciaisEdicao;
@@ -234,6 +256,21 @@ export class NovaProposicaoComponent extends LitElement {
     this.avisoImportacao = undefined;
     this.processando = false;
     this.errosConversao = [];
+    this.reiniciarTela2b();
+  }
+
+  private reiniciarTela2b(): void {
+    this.cargaDocumentos++;
+    this.materiaDoDocumento = 'mesma';
+    this.chaveMateria = '';
+    this.numeroMateria = '';
+    this.anoMateria = this.anoCorrente;
+    this.verificacaoMateria = verificacaoVazia();
+    this.documentosMateria = semDocumentos();
+    this.filtroDocumentos = '';
+    this.documentoSelecionado = undefined;
+    this.rotuloMateria = '';
+    this.materiaCarregada = '';
   }
 
   // ---------------------------------------------------------------- modo de edição
@@ -564,6 +601,139 @@ export class NovaProposicaoComponent extends LitElement {
     this.verificacaoOutra = await this.consultar(this.siglaOutra, this.numeroOutra, this.anoOutra);
   }
 
+  // ---------------------------------------------------------------- Tela 2b: documento de origem na CD
+
+  private get tipoMateria(): TipoDocumento | undefined {
+    return getSiglasProposicaoReferenciada().find(t => chaveTipo(t) === this.chaveMateria);
+  }
+
+  // Matéria cujos documentos são listados: a referenciada na Tela 1 ou outra, já verificada.
+  private get consultaMateria(): { sigla: string; numero: string; ano: string } | undefined {
+    if (this.materiaDoDocumento === 'mesma') {
+      const sigla = this.tipoProposicao?.sigla;
+      return sigla ? { sigla, numero: this.numeroProposicao, ano: this.anoProposicao } : undefined;
+    }
+    const sigla = this.tipoMateria?.sigla;
+    return sigla && this.verificacaoMateria.estado === 'ok' ? { sigla, numero: this.numeroMateria, ano: this.anoMateria } : undefined;
+  }
+
+  private entrarTela2b(): void {
+    this.erroComunicacao = '';
+    this.textoIndisponivel = false;
+    this.tela = '2b';
+    if (this.materiaDoDocumento === 'mesma') void this.carregarDocumentos();
+  }
+
+  private limparDocumentos(): void {
+    this.cargaDocumentos++;
+    this.documentosMateria = semDocumentos();
+    this.documentoSelecionado = undefined;
+    this.materiaCarregada = '';
+    this.rotuloMateria = '';
+    this.textoIndisponivel = false;
+    this.erroComunicacao = '';
+  }
+
+  private onMateriaDoDocumento(valor: 'mesma' | 'outra'): void {
+    if (valor === this.materiaDoDocumento) return;
+    this.materiaDoDocumento = valor;
+    this.limparDocumentos();
+    if (valor === 'mesma') void this.carregarDocumentos();
+    else if (this.verificacaoMateria.estado === 'ok') void this.carregarDocumentos();
+  }
+
+  private onIdentificacaoMateria(): void {
+    this.verificacaoMateria = verificacaoVazia();
+    this.limparDocumentos();
+  }
+
+  private async verificarMateria(): Promise<void> {
+    const sigla = this.tipoMateria?.sigla ?? '';
+    this.limparDocumentos();
+    this.verificacaoMateria = { ...verificacaoVazia(), estado: 'verificando' };
+    const resultado = await this.consultar(sigla, this.numeroMateria, this.anoMateria);
+    this.verificacaoMateria = resultado;
+    if (resultado.estado === 'ok') await this.carregarDocumentos();
+  }
+
+  private async carregarDocumentos(): Promise<void> {
+    const consulta = this.consultaMateria;
+    if (!consulta) return;
+    const normalizada = normalizaConsultaProposicao(consulta.sigla, consulta.numero, consulta.ano);
+    const chave = `${normalizada.sigla}|${normalizada.numero}|${normalizada.ano}`;
+    if (chave === this.materiaCarregada && this.documentosMateria.estado !== 'erro') return;
+
+    const carga = ++this.cargaDocumentos;
+    this.materiaCarregada = chave;
+    this.rotuloMateria = `${normalizada.sigla} ${normalizada.numero}/${normalizada.ano}`;
+    this.documentoSelecionado = undefined;
+    this.documentosMateria = { estado: 'carregando', lista: [] };
+    const resultado = await this.listarDocumentos(normalizada);
+    if (carga !== this.cargaDocumentos) return;
+    this.documentosMateria = resultado;
+  }
+
+  private async listarDocumentos(consulta: { sigla: string; numero: string; ano: string }): Promise<DocumentosCarregados> {
+    const erro: DocumentosCarregados = { estado: 'erro', lista: [] };
+    try {
+      let lista: unknown;
+      if (this._config!.onListarDocumentos) {
+        lista = await this._config!.onListarDocumentos(consulta);
+      } else {
+        const resposta = await fetch(montaUrlProposicao(this._config!.urlDocumentosMateria!, consulta.sigla, consulta.numero, consulta.ano));
+        if (resposta.status === 404) return { estado: 'inexistente', lista: [] };
+        if (resposta.status !== 200) return erro;
+        lista = await resposta.json();
+      }
+      if (lista === undefined || lista === null) return { estado: 'inexistente', lista: [] };
+      return Array.isArray(lista) ? { estado: 'ok', lista: lista as DocumentoMateria[] } : erro;
+    } catch {
+      return erro;
+    }
+  }
+
+  private async buscarTextoDocumento(id: string): Promise<unknown | 'indisponivel' | 'erro'> {
+    try {
+      if (this._config!.onObterTextoDocumento) {
+        const texto = await this._config!.onObterTextoDocumento({ id });
+        return texto === undefined || texto === null ? 'indisponivel' : texto;
+      }
+      const resposta = await fetch(montaUrlTextoDocumento(this._config!.urlTextoDocumento!, id));
+      if (resposta.status === 404) return 'indisponivel';
+      if (resposta.status !== 200) return 'erro';
+      return await resposta.json();
+    } catch {
+      return 'erro';
+    }
+  }
+
+  private get tela2bValida(): boolean {
+    return !this.processando && !!this.documentoSelecionado && textoEstruturadoDisponivel(this.documentoSelecionado);
+  }
+
+  private selecionarDocumento(doc: DocumentoMateria): void {
+    if (!textoEstruturadoDisponivel(doc)) return;
+    this.documentoSelecionado = doc;
+    this.textoIndisponivel = false;
+    this.erroComunicacao = '';
+  }
+
+  private async continuarTela2b(): Promise<void> {
+    if (!this.tela2bValida) return;
+    this.erroComunicacao = '';
+    this.textoIndisponivel = false;
+    this.processando = true;
+    const texto = await this.buscarTextoDocumento(this.documentoSelecionado!.id);
+    this.processando = false;
+    if (texto === 'indisponivel') {
+      this.textoIndisponivel = true;
+    } else if (texto === 'erro') {
+      this.erroComunicacao = 'Não foi possível obter o texto do documento. Tente novamente.';
+    } else {
+      this.concluir({ texto });
+    }
+  }
+
   // ---------------------------------------------------------------- navegação e conclusão
 
   private cancelar(): void {
@@ -683,10 +853,7 @@ export class NovaProposicaoComponent extends LitElement {
 
     if (this.opcaoTexto === 'vazio') return this.concluir();
 
-    if (this.opcaoTexto === 'outra' && this.outraPorLista) {
-      this.tela = '2b';
-      return;
-    }
+    if (this.opcaoTexto === 'outra' && this.outraPorLista) return this.entrarTela2b();
     if (this.opcaoTexto === 'importar') {
       this.processando = true;
       const desfecho = await this.importarArquivo(this.arquivo!);
@@ -1022,12 +1189,56 @@ export class NovaProposicaoComponent extends LitElement {
     return `${this.tipoProposicao?.descricao ?? ''} nº ${this.numeroProposicao.trim()} de ${this.anoProposicao.trim()}`;
   }
 
-  // Provisória: a lista de documentos entra no grupo 3.
   private renderTela2b(): TemplateResult {
+    const rotuloMesma = `${this.tipoProposicao?.sigla ?? ''} ${this.numeroProposicao.trim()}/${this.anoProposicao.trim()}`;
     return html`
       ${this.cabecalho}
-      <div id="np-tela-2b"></div>
+      <p id="np-tela-2b">Texto de outra proposição: escolha o documento que será o ponto de partida. O ícone ao lado de cada documento abre o inteiro teor em outra aba.</p>
+
+      <fieldset id="np-g-materia">
+        <legend>Em qual matéria está o documento?</legend>
+        <sl-radio-group>
+          ${this.radio('materia', 'mesma', `Nesta mesma matéria (${rotuloMesma})`, this.materiaDoDocumento === 'mesma', () => this.onMateriaDoDocumento('mesma'))}
+          ${this.radio('materia', 'outra', 'Em outra matéria', this.materiaDoDocumento === 'outra', () => this.onMateriaDoDocumento('outra'))}
+        </sl-radio-group>
+        ${this.materiaDoDocumento === 'outra'
+          ? html`<div class="np-subopcao">
+              ${this.linhaIdentificacao(
+                this.selectSiglas('np-sigla-materia', getSiglasProposicaoReferenciada(), this.chaveMateria, chave => {
+                  if (chave === this.chaveMateria) return;
+                  this.chaveMateria = chave;
+                  this.onIdentificacaoMateria();
+                }),
+                this.campoNumero('np-numero-materia', this.numeroMateria, v => {
+                  this.numeroMateria = v;
+                  this.onIdentificacaoMateria();
+                }),
+                this.campoAno('np-ano-materia', this.anoMateria, v => {
+                  this.anoMateria = v;
+                  this.onIdentificacaoMateria();
+                })
+              )}
+              <sl-button
+                id="np-materia-verificar"
+                ?disabled=${!this.tipoMateria || !this.podeVerificar(this.numeroMateria, this.anoMateria) || this.verificacaoMateria.estado === 'verificando'}
+                @click=${(): void => void this.verificarMateria()}
+                >Verificar</sl-button
+              >
+              ${this.rotuloVerificacao(this.verificacaoMateria)}
+            </div>`
+          : nothing}
+      </fieldset>
+
+      <fieldset id="np-g-documentos">
+        <legend>Documento de origem</legend>
+        ${this.renderDocumentos()}
+      </fieldset>
+
+      ${this.textoIndisponivel ? this.aviso('np-texto-indisponivel', 'warning', 'Texto estruturado não disponível para edição') : nothing}
+      ${this.erroComunicacao ? this.aviso('np-erro-texto', 'danger', this.erroComunicacao) : nothing}
+
       <div class="np-botoes">
+        <sl-button id="np-continuar" variant="primary" ?disabled=${!this.tela2bValida} @click=${(): void => void this.continuarTela2b()}>Continuar</sl-button>
         <sl-button
           id="np-voltar"
           @click=${(): void => {
@@ -1038,6 +1249,81 @@ export class NovaProposicaoComponent extends LitElement {
         <sl-button id="np-cancelar" @click=${(): void => this.cancelar()}>Cancelar</sl-button>
       </div>
     `;
+  }
+
+  private renderDocumentos(): TemplateResult | typeof nothing {
+    const { estado, lista } = this.documentosMateria;
+    if (estado === 'nenhum') return nothing;
+    if (estado === 'carregando') return this.aviso('np-docs-carregando', 'neutral', 'Carregando documentos…');
+    if (estado === 'inexistente') return this.aviso('np-materia-nao-encontrada', 'danger', 'Matéria não encontrada.');
+    if (estado === 'erro') {
+      return html`${this.aviso('np-docs-erro', 'danger', 'Não foi possível obter os documentos da matéria.')}
+        <sl-button id="np-docs-tentar-novamente" @click=${(): void => void this.carregarDocumentos()}>Tentar novamente</sl-button>`;
+    }
+    if (!lista.length) return this.aviso('np-docs-vazia', 'neutral', 'Não há documentos para esta matéria.');
+
+    const visiveis = filtrarDocumentos(lista, this.filtroDocumentos);
+    const sel = this.documentoSelecionado;
+    return html`
+      <sl-input
+        id="np-docs-filtro"
+        placeholder="Filtrar por título, órgão, relator, data…"
+        .value=${this.filtroDocumentos}
+        @sl-input=${(e: Event): void => {
+          this.filtroDocumentos = this.valorDe(e);
+        }}
+      ></sl-input>
+      <div id="np-docs-lista" class="np-docs" role="listbox">
+        ${visiveis.length
+          ? visiveis.map(doc => this.renderDocumento(doc, sel === doc))
+          : html`<div id="np-docs-sem-resultado" class="np-docs-vazio">Nenhum documento corresponde ao filtro.</div>`}
+      </div>
+      ${sel
+        ? html`<div id="np-fonte-selecionada" class="np-fonte">
+            <span>Fonte selecionada: <strong>${sel.titulo}</strong> · ${linhaDetalheDocumento(sel)} · matéria ${this.rotuloMateria}</span>
+            <sl-button
+              id="np-trocar"
+              size="small"
+              @click=${(): void => {
+                this.documentoSelecionado = undefined;
+                this.textoIndisponivel = false;
+              }}
+              >Trocar</sl-button
+            >
+          </div>`
+        : nothing}
+    `;
+  }
+
+  private renderDocumento(doc: DocumentoMateria, selecionado: boolean): TemplateResult {
+    const disponivel = textoEstruturadoDisponivel(doc);
+    const inteiroTeor = urlInteiroTeorSegura(doc.urlInteiroTeor);
+    return html`<div
+      class="np-doc ${selecionado ? 'np-doc--selecionado' : ''} ${disponivel ? '' : 'np-doc--desabilitado'}"
+      role="option"
+      data-id=${doc.id}
+      aria-selected=${selecionado ? 'true' : 'false'}
+      aria-disabled=${disponivel ? 'false' : 'true'}
+      @click=${(): void => this.selecionarDocumento(doc)}
+    >
+      <div class="np-doc-texto">
+        <div class="np-doc-titulo">${doc.titulo}</div>
+        <div class="np-doc-detalhe">${linhaDetalheDocumento(doc)}</div>
+        ${disponivel ? nothing : html`<div class="np-doc-aviso">Texto estruturado não disponível</div>`}
+      </div>
+      ${inteiroTeor
+        ? html`<a
+            class="np-doc-inteiro-teor"
+            href=${inteiroTeor}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Abrir o inteiro teor em outra aba"
+            aria-label="Abrir o inteiro teor de ${doc.titulo} em outra aba"
+            @click=${(e: Event): void => e.stopPropagation()}
+            >&#8599;</a
+          >`
+        : nothing}
+    </div>`;
   }
 
   private renderTela3(): TemplateResult {
@@ -1148,6 +1434,57 @@ export class NovaProposicaoComponent extends LitElement {
           display: flex;
           flex-direction: column;
           gap: 4px;
+        }
+        lexml-nova-proposicao .np-docs {
+          max-height: 300px;
+          overflow-y: auto;
+          border: 1px solid var(--sl-color-gray-300, #ccc);
+          border-radius: 4px;
+        }
+        lexml-nova-proposicao .np-doc {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 8px 12px;
+          cursor: pointer;
+          border-bottom: 1px solid var(--sl-color-gray-200, #e5e5e5);
+        }
+        lexml-nova-proposicao .np-doc:hover {
+          background: var(--sl-color-gray-100, #f5f5f5);
+        }
+        lexml-nova-proposicao .np-doc--selecionado {
+          background: var(--sl-color-primary-100, #e0f0fb);
+          border-left: 3px solid var(--sl-color-primary-600, #0369a1);
+        }
+        lexml-nova-proposicao .np-doc--desabilitado {
+          cursor: not-allowed;
+          color: var(--sl-color-gray-500, #888);
+        }
+        lexml-nova-proposicao .np-doc-titulo {
+          font-weight: 600;
+        }
+        lexml-nova-proposicao .np-doc-detalhe,
+        lexml-nova-proposicao .np-doc-aviso {
+          font-size: 0.85em;
+          color: var(--sl-color-gray-600, #666);
+        }
+        lexml-nova-proposicao .np-doc-inteiro-teor {
+          text-decoration: none;
+          padding: 0 6px;
+        }
+        lexml-nova-proposicao .np-docs-vazio {
+          padding: 12px;
+          color: var(--sl-color-gray-600, #666);
+        }
+        lexml-nova-proposicao .np-fonte {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 8px 12px;
+          background: var(--sl-color-gray-100, #f5f5f5);
+          border-radius: 4px;
         }
       </style>
       ${this.tela === 1 ? this.renderTela1() : this.tela === 2 ? this.renderTela2() : this.tela === '2b' ? this.renderTela2b() : this.renderTela3()}

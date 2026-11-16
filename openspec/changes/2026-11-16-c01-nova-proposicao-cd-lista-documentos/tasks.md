@@ -11,10 +11,10 @@
 
 ## 3. Tela 2b
 
-- [ ] 3.1 Seção "Em qual matéria está o documento?" (padrão "Nesta mesma matéria"; "Em outra matéria" com select de siglas da referenciada, número, ano e **Verificar**). Verificar com teste de componente para os cenários de matéria padrão, verificada e inexistente.
-- [ ] 3.2 Lista "Documento de origem": carregamento por `onListarDocumentos`, linha (título, identificação, "Papel: Dep. Nome", data DD/MM/AAAA), ícone de inteiro teor, item desabilitado sem texto estruturado, lista vazia, falha, seleção única, faixa "Fonte selecionada" com **Trocar**. Verificar com testes de componente.
-- [ ] 3.3 Filtro textual genérico no cliente (sem acento/caixa, inclui data). Verificar com teste unitário da função de filtro e de componente.
-- [ ] 3.4 **Continuar**, **Voltar** e **Cancelar**: obter texto por `onObterTextoDocumento({id})`, `concluir({ texto })`, tratamento de indisponível/falha, **Voltar** à Tela 2 com a escolha preservada. Verificar com testes de componente do `detail`.
+- [x] 3.1 Seção "Em qual matéria está o documento?" (padrão "Nesta mesma matéria"; "Em outra matéria" com select de siglas da referenciada, número, ano e **Verificar**). Verificar com teste de componente para os cenários de matéria padrão, verificada e inexistente.
+- [x] 3.2 Lista "Documento de origem": carregamento por `onListarDocumentos`, linha (título, identificação, "Papel: Dep. Nome", data DD/MM/AAAA), ícone de inteiro teor, item desabilitado sem texto estruturado, lista vazia, falha, seleção única, faixa "Fonte selecionada" com **Trocar**. Verificar com testes de componente.
+- [x] 3.3 Filtro textual genérico no cliente (sem acento/caixa, inclui data). Verificar com teste unitário da função de filtro e de componente.
+- [x] 3.4 **Continuar**, **Voltar** e **Cancelar**: obter texto por `onObterTextoDocumento({id})`, `concluir({ texto })`, tratamento de indisponível/falha, **Voltar** à Tela 2 com a escolha preservada. Verificar com testes de componente do `detail`.
 
 ## 4. Demo
 
