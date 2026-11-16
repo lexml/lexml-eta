@@ -31,5 +31,5 @@
 
 ## 6. Documentação e fechamento
 
-- [ ] 6.1 Registrar no `CLAUDE.md` (item 27) a âncora por `uuid2`, a reconciliação com a articulação e a passagem da sequência na transformação.
-- [ ] 6.2 Rodar `npm test` completo e o lint só nos arquivos alterados, sem regressão, e `openspec validate 2026-11-08-c01-comentarios-articulacao --strict` sem erros.
+- [x] 6.1 Registrar no `CLAUDE.md` (item 27) a âncora por `uuid2`, a reconciliação com a articulação e a passagem da sequência na transformação.
+- [x] 6.2 Rodar `npm test` completo e o lint só nos arquivos alterados, sem regressão, e `openspec validate 2026-11-08-c01-comentarios-articulacao --strict` sem erros.

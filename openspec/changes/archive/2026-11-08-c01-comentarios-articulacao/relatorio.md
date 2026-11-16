@@ -276,3 +276,48 @@ O botão e o ícone já aparecem, mas criar o comentário depende do grupo 4. At
 1. Comente um parágrafo e ative a revisão. Altere o texto do parágrafo. Os botões à direita da linha ficam nesta ordem: aceitar, rejeitar, informações, diferenças e, por último, o comentário.
 2. Faça o mesmo com a ementa. O ícone de comentário aparece por último.
 3. Comente o parágrafo único do art. 1º e inclua um artigo antes do art. 1º. Na aba, a identificação passa a "parágrafo único do art. 2º" na hora.
+
+## Grupo 6 — documentação e fechamento (16/11/2026)
+
+**Tasks:** 6.1 e 6.2 concluídas. Progresso da change: 16/16.
+
+### Antes do grupo
+
+- **Commit do handoff:** o commit criado só para trocar de branch (`fb06cf91`) foi revertido em `6b967701`.
+- **Merge da `develop`:** a `develop` (70 commits) foi trazida para a branch em `51747106`, sem alterar nada do que veio dela.
+  - Os conflitos foram de vizinhança, e o lado dela foi preservado. A `develop` removeu as abas "Comando" e "Dicas" (#1049); a aba e o botão "Comentários" continuam.
+  - No `CLAUDE.md`, o item dos comentários virou o **27**, porque a `develop` já usava 24 a 26. As invariantes dele foram renomeadas para (ax) a (bi), porque (at) a (aw) já estavam em uso.
+  - As referências nas changes c01 e c02 foram atualizadas em `a065c93e`.
+  - O teste `abasApoio.component.test.ts` (#1049) passou a esperar a aba e o botão "Comentários".
+  - `docs/sessao/` saiu do controle de versão, como na `develop`.
+
+### O que mudou
+
+- **`CLAUDE.md`, item 27:** novo trecho "Comentários na articulação", com as invariantes:
+  - (bj): âncora pelo `uuid2`, que muda ao transformar, e reconciliação do lote inteiro;
+  - (bk): busca do dispositivo pela função das remissões;
+  - (bl): filtros da justificação só para as sequências sem `uuid2Dispositivo`;
+  - (bm): segunda passada do ícone;
+  - (bn): redesenho da aba em lotes estruturais;
+  - mais os cuidados de teste (`cancelarTimerOnChangePendente()` e `posicionarCursorNoDispositivo`).
+
+### Testes
+
+- `npm test` completo depois do merge: **"Todos os lotes passaram."**, sem falhas. Depois disso, só mudaram `CLAUDE.md` e os documentos da change.
+- `eslint` nos 24 arquivos `.ts` alterados pela change: sem erros, com os mesmos 6 avisos antigos de `editor.component.ts`.
+- `prettier --check` nos mesmos arquivos: sem erros.
+- `openspec validate 2026-11-08-c01-comentarios-articulacao --strict`: válida.
+
+### Em tela
+
+Sem efeito visível neste grupo.
+
+## Ajuste depois da validação em tela (16/11/2026)
+
+- **Posição do ícone com revisão.** Na validação, o usuário confirmou que no lexml-emenda o ícone de comentário fica dentro do contêiner de revisão, logo depois do ícone de informações ("Ação: …"), e não depois do de diferenças.
+  - A regra está em `atualizarIndicadorComentarioLinha` do lexml-emenda: `containerRevisao ?? containerOpcoes`.
+  - A decisão do grupo 3 (o contêiner que viesse por último na linha) foi trocada por essa regra em `editor.component.ts`, e a função `getUltimoContainerDaLinha` saiu. A segunda passada (`setTimeout` 0) continua necessária.
+  - A spec (requisito "Indicador de comentário no dispositivo", cenário "Ícone com marca de revisão"), o design e a invariante (bm) do `CLAUDE.md` foram atualizados.
+- **Testes:**
+  - os três testes de ordem do editor passaram a esperar aceitar, rejeitar, informações e comentário dentro do contêiner de revisão;
+  - `comentariosArticulacao*.component.test.js`: **37 de 37 passaram.**

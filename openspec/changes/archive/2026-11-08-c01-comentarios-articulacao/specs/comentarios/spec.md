@@ -37,12 +37,13 @@ A barra de ferramentas do texto articulado SHALL ter o botão "Adicionar coment�
 
 ### Requirement: Indicador de comentário no dispositivo
 
-Um dispositivo com comentário SHALL exibir um ícone de comentário à direita da linha, depois dos demais ícones dessa posição (como o de diferenças). Clicar no ícone SHALL posicionar o cursor no dispositivo, exibir a aba "Comentários" (em telas pequenas, o modal da lista) e destacar a sequência do dispositivo. Excluir a sequência SHALL retirar o ícone.
+Um dispositivo com comentário SHALL exibir um ícone de comentário à direita da linha. Com marca de revisão, o ícone SHALL vir logo depois dos ícones da revisão (aceitar, rejeitar e o de informações "Ação: …"), como no lexml-emenda; sem marca de revisão, depois dos demais ícones dessa posição (como o de diferenças). Clicar no ícone SHALL posicionar o cursor no dispositivo, exibir a aba "Comentários" (em telas pequenas, o modal da lista) e destacar a sequência do dispositivo. Excluir a sequência SHALL retirar o ícone.
 
-#### Scenario: Ícone ao lado do ícone de diferenças
+#### Scenario: Ícone com marca de revisão
 
 - **WHEN** um dispositivo modificado em revisão também tem comentário
-- **THEN** a linha exibe o ícone de diferenças seguido do ícone de comentário
+- **THEN** o ícone de comentário vem logo depois do ícone de informações da revisão ("Ação: …")
+- **AND** o ícone de diferenças continua exibido
 
 #### Scenario: Clicar no ícone
 
