@@ -9,6 +9,7 @@ const CONFIG = {
   urlComissoes: '/c/{casa}',
   urlImportacaoArquivo: '/importacao',
 };
+const CONFIG_CD = { ...CONFIG, casaLegislativaEditor: 'CD', urlDocumentosMateria: '/m/{sigla}/{numero}/{ano}', urlTextoDocumento: '/d/{id}' };
 const COMISSOES = [
   { siglaCasaLegislativa: 'SF', sigla: 'CCJ', nome: 'Comissão de Constituição, Justiça e Cidadania' },
   { siglaCasaLegislativa: 'CD', sigla: 'CFT', nome: 'Comissão de Finanças e Tributação' },
@@ -326,7 +327,7 @@ describe('lexml-nova-proposicao', () => {
   });
 
   describe('Tela 1 na CD', () => {
-    beforeEach(() => iniciar({ ...CONFIG, casaLegislativaEditor: 'CD' }));
+    beforeEach(() => iniciar(CONFIG_CD));
 
     const preencherSubstitutivo = async (especie: 'substitutivo' | 'subemenda'): Promise<void> => {
       await marcar('especie', especie);
@@ -380,6 +381,47 @@ describe('lexml-nova-proposicao', () => {
       await marcar('opcaoTexto', 'vazio');
       await clicar('np-continuar');
       expect(r.detail.urn).to.contain('subemenda.substitutiva;ssp:');
+    });
+  });
+
+  describe('Tela 2 na CD: texto de outra proposição', () => {
+    beforeEach(() => iniciar(CONFIG_CD));
+
+    const irParaTela2 = async (especie?: 'substitutivo' | 'subemenda'): Promise<void> => {
+      if (especie) await marcar('especie', especie);
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      if (especie) {
+        await digitar('np-numero-proposicao', '12');
+        await digitar('np-ano-proposicao', '2026');
+        await clicar('np-proposicao-verificar');
+        await escolherComissao('CFT');
+      }
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'outra');
+    };
+
+    (['substitutivo', 'subemenda'] as const).forEach(especie => {
+      it(`${especie}: não exibe sigla, número, ano, verificação nem ementa, e Continuar está habilitado`, async () => {
+        await irParaTela2(especie);
+        ['np-sigla-outra', 'np-numero-outra', 'np-ano-outra', 'np-outra-verificar', 'np-outra-ementa'].forEach(id => expect(existe(id), id).to.be.false);
+        expect(botaoHabilitado('np-continuar')).to.be.true;
+      });
+
+      it(`${especie}: Continuar leva à Tela 2b e Voltar retorna à Tela 2`, async () => {
+        await irParaTela2(especie);
+        await clicar('np-continuar');
+        expect(existe('np-tela-2b')).to.be.true;
+        await clicar('np-voltar');
+        expect(existe('np-tela-2b')).to.be.false;
+        expect(existe('np-continuar')).to.be.true;
+      });
+    });
+
+    it('proposição na CD mantém sigla, número e ano da outra proposição', async () => {
+      await irParaTela2();
+      expect(existe('np-sigla-outra')).to.be.true;
+      expect(existe('np-numero-outra')).to.be.true;
+      expect(botaoHabilitado('np-continuar')).to.be.false;
     });
   });
 

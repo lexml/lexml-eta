@@ -119,7 +119,7 @@ export class NovaProposicaoComponent extends LitElement {
   private comissoesPorCasa = new Map<string, Comissao[] | 'indisponivel'>();
 
   @state() private erroConfiguracao = '';
-  @state() private tela: 1 | 2 | 3 = 1;
+  @state() private tela: 1 | 2 | '2b' | 3 = 1;
   @state() private especie: EspecieDocumento = 'proposicao';
   @state() private chaveProposicao = '';
   @state() private numeroProposicao = '';
@@ -359,6 +359,11 @@ export class NovaProposicaoComponent extends LitElement {
     return this.casa === 'CD' && this.especie !== 'proposicao';
   }
 
+  // Na CD, o texto de outra proposição de um substitutivo/subemenda sai de uma lista (Tela 2b), não de sigla/número/ano.
+  private get outraPorLista(): boolean {
+    return this.documentoProprioCd;
+  }
+
   // Na referenciada, a sigla não distingue lei ordinária de complementar: quem decide é a verificação.
   private get tipoProposicaoResolvido(): TipoDocumento | undefined {
     const tipo = this.tipoProposicao;
@@ -580,14 +585,17 @@ export class NovaProposicaoComponent extends LitElement {
 
   private get textoIndisponivelNaOpcao(): boolean {
     if (this.opcaoTexto === 'referenciado') return this.textoIndisponivel || !this.verificacaoReferenciada.textoEstruturadoDisponivel;
-    if (this.opcaoTexto === 'outra') return this.textoIndisponivel || (this.verificacaoOutra.estado === 'ok' && !this.verificacaoOutra.textoEstruturadoDisponivel);
+    if (this.opcaoTexto === 'outra') {
+      if (this.outraPorLista) return false;
+      return this.textoIndisponivel || (this.verificacaoOutra.estado === 'ok' && !this.verificacaoOutra.textoEstruturadoDisponivel);
+    }
     return false;
   }
 
   private get tela2Valida(): boolean {
     if (this.processando) return false;
     if (this.opcaoTexto === 'importar') return !!this.arquivo && !this.erroArquivo;
-    if (this.opcaoTexto === 'outra') return this.verificacaoOutra.estado === 'ok' && !this.textoIndisponivelNaOpcao;
+    if (this.opcaoTexto === 'outra') return this.outraPorLista || (this.verificacaoOutra.estado === 'ok' && !this.textoIndisponivelNaOpcao);
     if (this.opcaoTexto === 'referenciado') return !this.textoIndisponivelNaOpcao;
     return true;
   }
@@ -675,6 +683,10 @@ export class NovaProposicaoComponent extends LitElement {
 
     if (this.opcaoTexto === 'vazio') return this.concluir();
 
+    if (this.opcaoTexto === 'outra' && this.outraPorLista) {
+      this.tela = '2b';
+      return;
+    }
     if (this.opcaoTexto === 'importar') {
       this.processando = true;
       const desfecho = await this.importarArquivo(this.arquivo!);
@@ -965,7 +977,7 @@ export class NovaProposicaoComponent extends LitElement {
           : nothing}
         ${this.referenciaExigida ? this.opcao('referenciado', `Texto do(a) ${this.descricaoReferenciada}`) : nothing} ${this.opcao('outra', 'Texto de outra proposição')}
       </sl-radio-group>
-      ${this.opcaoTexto === 'outra'
+      ${this.opcaoTexto === 'outra' && !this.outraPorLista
         ? html`<div class="np-subopcao">
             ${this.linhaIdentificacao(
               this.selectSiglas('np-sigla-outra', getSiglasOutraProposicao(), this.chaveOutra, chave => {
@@ -1008,6 +1020,24 @@ export class NovaProposicaoComponent extends LitElement {
   private get descricaoReferenciada(): string {
     if (this.plv) return `Medida Provisória nº ${this.numeroMpv.trim()} de ${this.anoMpv.trim()}`;
     return `${this.tipoProposicao?.descricao ?? ''} nº ${this.numeroProposicao.trim()} de ${this.anoProposicao.trim()}`;
+  }
+
+  // Provisória: a lista de documentos entra no grupo 3.
+  private renderTela2b(): TemplateResult {
+    return html`
+      ${this.cabecalho}
+      <div id="np-tela-2b"></div>
+      <div class="np-botoes">
+        <sl-button
+          id="np-voltar"
+          @click=${(): void => {
+            this.tela = 2;
+          }}
+          >Voltar</sl-button
+        >
+        <sl-button id="np-cancelar" @click=${(): void => this.cancelar()}>Cancelar</sl-button>
+      </div>
+    `;
   }
 
   private renderTela3(): TemplateResult {
@@ -1120,7 +1150,7 @@ export class NovaProposicaoComponent extends LitElement {
           gap: 4px;
         }
       </style>
-      ${this.tela === 1 ? this.renderTela1() : this.tela === 2 ? this.renderTela2() : this.renderTela3()}
+      ${this.tela === 1 ? this.renderTela1() : this.tela === 2 ? this.renderTela2() : this.tela === '2b' ? this.renderTela2b() : this.renderTela3()}
     `;
   }
 }

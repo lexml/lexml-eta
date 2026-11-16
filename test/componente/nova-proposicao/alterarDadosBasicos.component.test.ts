@@ -32,7 +32,7 @@ const URN_MPV_99 = 'urn:lex:br:federal:medida.provisoria;mpv:2026;99';
 const URN_SSP_CD = 'urn:lex:br:camara.deputados:subemenda.substitutiva;ssp:2025;999999';
 const URN_SBT_CD_7 = 'urn:lex:br:camara.deputados:substitutivo;sbt:2025;7';
 const URN_PL_10_CD = 'urn:lex:br:camara.deputados:projeto.lei;pl:2025;10';
-const CONFIG_CD = { ...CONFIG, casaLegislativaEditor: 'CD' };
+const CONFIG_CD = { ...CONFIG, casaLegislativaEditor: 'CD', urlDocumentosMateria: '/m/{sigla}/{numero}/{ano}', urlTextoDocumento: '/d/{id}' };
 
 describe('lexml-nova-proposicao — modo de edição de dados básicos', () => {
   let el: NovaProposicaoComponent;

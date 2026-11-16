@@ -7,7 +7,7 @@
 
 ## 2. Tela 2 sem inputs na CD
 
-- [ ] 2.1 Na `CD`, em substitutivo/subemenda, a opção "Texto de outra proposição" não renderiza sigla/número/ano/verificar/ementa e **Continuar** leva à Tela 2b. Verificar com teste de componente (CD, SF e outra espécie da CD).
+- [x] 2.1 Na `CD`, em substitutivo/subemenda, a opção "Texto de outra proposição" não renderiza sigla/número/ano/verificar/ementa e **Continuar** leva à Tela 2b. Verificar com teste de componente (CD, SF e outra espécie da CD).
 
 ## 3. Tela 2b
 
