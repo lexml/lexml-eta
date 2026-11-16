@@ -24,4 +24,4 @@
 
 ## 5. E2E (Cypress)
 
-- [ ] 5.1 Usando o mock da demo (grupo 4), spec em `cypress/e2e/nova-proposicao/` (consultar `docs/guia-cypress.md`): CD, subemenda substitutiva, "Texto de outra proposição", Tela 2b, filtro, seleção, **Continuar** abre o editor com o texto do documento. Se o fluxo de CD na demo não for viável, registrar a decisão e cobrir com teste de componente.
+- [x] 5.1 Usando o mock da demo (grupo 4), spec em `cypress/e2e/nova-proposicao/` (consultar `docs/guia-cypress.md`): CD, subemenda substitutiva, "Texto de outra proposição", Tela 2b, filtro, seleção, **Continuar** abre o editor com o texto do documento. Se o fluxo de CD na demo não for viável, registrar a decisão e cobrir com teste de componente.
