@@ -125,19 +125,20 @@ describe('ETA — comentários no editor da articulação', () => {
       expect(container.lastElementChild.classList.contains('blot__opcoes_comentario')).to.equal(true);
     });
 
-    it('em dispositivo com texto alterado em revisão, vem depois do ícone de diferenças', async () => {
+    it('em dispositivo com texto alterado em revisão, fica logo depois do ícone de informações da revisão', async () => {
       const par = dispositivo('art1_par1u');
       rootStore.dispatch(ativarDesativarRevisaoAction.execute());
       rootStore.dispatch(atualizarTextoElementoAction.execute({ ...createElemento(par), conteudo: { texto: 'Texto alterado em revisão.' } }));
       await aguarda();
       await comentar(par.uuid2);
 
-      const botoes = Array.from(linha(par.uuid2).domNode.querySelectorAll('.blot__opcoes_diff, .blot__opcoes_comentario')).map((b: any) => b.className);
-      expect(botoes).to.deep.equal(['blot__opcoes_diff', 'blot__opcoes_comentario']);
+      const revisao = Array.from(linha(par.uuid2).domNode.querySelector('.container__revisao').children).map((b: any) => b.className.split(' ')[0]);
+      expect(revisao).to.deep.equal(['blot__revisao_aceitar', 'blot__revisao_recusar', 'blot__revisao', 'blot__opcoes_comentario']);
+      expect(!!linha(par.uuid2).domNode.querySelector('.container__opcoes .blot__opcoes_diff')).to.equal(true);
     });
 
     // Transformar recria o dispositivo com outro uuid2; o componente raiz passa a sequência para ele (task 4.3).
-    it('comentado antes da revisão, continua por último depois de aceitar, rejeitar, informações e diferenças', async () => {
+    it('comentado antes da revisão, passa para logo depois do ícone de informações da revisão', async () => {
       const par = dispositivo('art1_par1u');
       await comentar(par.uuid2);
       rootStore.dispatch(ativarDesativarRevisaoAction.execute());
@@ -145,10 +146,10 @@ describe('ETA — comentários no editor da articulação', () => {
       await aguarda();
 
       const botoes = Array.from(linha(par.uuid2).domNode.querySelectorAll('[class^="blot__"]')).map((b: any) => b.className.split(' ')[0]);
-      expect(botoes).to.deep.equal(['blot__revisao_aceitar', 'blot__revisao_recusar', 'blot__revisao', 'blot__opcoes_diff', 'blot__opcoes_comentario']);
+      expect(botoes).to.deep.equal(['blot__revisao_aceitar', 'blot__revisao_recusar', 'blot__revisao', 'blot__opcoes_comentario', 'blot__opcoes_diff']);
     });
 
-    it('a ementa comentada mostra o ícone por último ao ser alterada em revisão', async () => {
+    it('a ementa comentada mostra o ícone logo depois do de informações ao ser alterada em revisão', async () => {
       const ementa = rootStore.getState().elementoReducer.articulacao!.projetoNorma!.ementa!;
       await comentar(ementa.uuid2!);
       rootStore.dispatch(ativarDesativarRevisaoAction.execute());
@@ -156,7 +157,7 @@ describe('ETA — comentários no editor da articulação', () => {
       await aguarda();
 
       const botoes = Array.from(linha(ementa.uuid2!).domNode.querySelectorAll('[class^="blot__"]')).map((b: any) => b.className.split(' ')[0]);
-      expect(botoes.slice(-2)).to.deep.equal(['blot__opcoes_diff', 'blot__opcoes_comentario']);
+      expect(botoes.indexOf('blot__opcoes_comentario')).to.equal(botoes.indexOf('blot__revisao') + 1);
     });
 
     it('a linha recriada ao transformar recebe o ícone pelo uuid2 atual', async () => {

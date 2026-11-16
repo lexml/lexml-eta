@@ -932,8 +932,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return;
     }
 
-    // Fica por último na linha: no contêiner (de revisão ou de opções) que vier depois.
-    const containerFinal = this.getUltimoContainerDaLinha(linha);
+    // Como no lexml-emenda: com revisão, logo depois do ícone de informações ("Ação: …"); sem revisão, depois do de diferenças.
+    const containerFinal = linha.containerRevisao ?? linha.containerOpcoes;
     if (botao && botao.parent === containerFinal && !botao.next) {
       botao.atualizarElemento(linha.elemento);
       return;
@@ -946,15 +946,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       return;
     }
     linha.children.head.insertBefore(EtaQuillUtil.criarContainerOpcoes(linha.elemento, false, true), linha.containerDireito.prev);
-  }
-
-  private getUltimoContainerDaLinha(linha: EtaContainerTable): any {
-    const revisao = linha.containerRevisao;
-    const opcoes = linha.containerOpcoes;
-    if (!revisao || !opcoes) {
-      return revisao ?? opcoes;
-    }
-    return revisao.domNode.compareDocumentPosition(opcoes.domNode) & Node.DOCUMENT_POSITION_FOLLOWING ? opcoes : revisao;
   }
 
   /** uuid2 das linhas exibidas, na ordem do texto (inclui os excluídos em revisão). */
@@ -1114,7 +1105,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.indicadorTextoModificado(events);
     if (this.uuid2DispositivosComentados.length) {
       this.atualizarIndicadoresComentario();
-      // O ícone de diferenças pode ser criado depois deste ponto; a segunda passada mantém o comentário por último.
+      // Os contêineres de revisão e de diferenças podem ser criados depois deste ponto; a segunda passada reposiciona o comentário.
       clearTimeout(this.timerIndicadoresComentario);
       this.timerIndicadoresComentario = setTimeout(() => this.atualizarIndicadoresComentario(), 0);
     }
