@@ -12,7 +12,7 @@ O visual e o comportamento dos comentários da justificação foram alinhados ao
 - a rolagem até a sequência;
 - o comportamento em telas pequenas: modal da lista e botão até 992px, painel lateral oculto até 768px.
 
-Os detalhes estão no `design.md` da change arquivada e no item 24 do `CLAUDE.md`.
+Os detalhes estão no `design.md` da change arquivada e no item 27 do `CLAUDE.md`.
 
 Esta etapa compara a parte da articulação do lexml-emenda com o que a c01 especifica. Não houve mudança de código.
 

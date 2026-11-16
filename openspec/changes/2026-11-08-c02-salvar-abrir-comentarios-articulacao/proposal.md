@@ -27,5 +27,5 @@ Nenhuma.
 - `src/model/lexml/documento/conversor/revisaoArticulacao.ts`: o `id` gravado de cada dispositivo excluído, devolvido pela própria montagem das revisões.
 - `src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix.ts`: `lerComentarios` aceita ref de dispositivo.
 - `src/components/lexml-eta.component.ts` e `lexml-eta-proposicao.component.ts`: envio das sequências (também no anexo de parecer) e ligação ao abrir, depois da reconstrução das revisões.
-- `docs/extensao-formato-lexml/08-comentarios.md`, `CLAUDE.md` (item 24).
+- `docs/extensao-formato-lexml/08-comentarios.md`, `CLAUDE.md` (item 27).
 - Sem mudança no `lexedit.xsd`.

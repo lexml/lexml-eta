@@ -1,11 +1,11 @@
 ## Context
 
-Veja proposal.md (Why). O que a justificação deixou pronto (`openspec/specs/comentarios/spec.md`, item 24 do `CLAUDE.md`):
+Veja proposal.md (Why). O que a justificação deixou pronto (`openspec/specs/comentarios/spec.md`, item 27 do `CLAUDE.md`):
 
 - O modelo `SequenciaComentario { id, comentarios }` e `Comentario { usuario, data ISO com fuso, texto }` (`src/model/comentario/`), com as regras de autoria, edição, exclusão e ordenação em `comentarioUtil.ts`.
 - As sequências ficam em `LexmlEtaComponent.sequenciasComentario`, **fora do Redux**. O alerta e a pendência seguem `sequenciasComentario.length` (`updated`).
-- A aba `lexml-eta-comentarios` só exibe e devolve as ações por eventos. Os modais são renderizados num contêiner no `body` (invariante aw). O componente recebe `getTrecho` e `getPosicao` do componente raiz.
-- Na justificação, a âncora é a marcação `comentario` do Quill. O editor emite `comentarios-alterados` e o componente raiz reconcilia nos dois sentidos (invariante at), guardando os ids removidos para que desfazer não recrie o destaque (invariante au).
+- A aba `lexml-eta-comentarios` só exibe e devolve as ações por eventos. Os modais são renderizados num contêiner no `body` (invariante ba). O componente recebe `getTrecho` e `getPosicao` do componente raiz.
+- Na justificação, a âncora é a marcação `comentario` do Quill. O editor emite `comentarios-alterados` e o componente raiz reconcilia nos dois sentidos (invariante ax), guardando os ids removidos para que desfazer não recrie o destaque (invariante ay).
 
 Na articulação, a âncora é o dispositivo, que vive no Redux. O dispositivo tem `uuid2` (gerado em `dispositivoLexmlFactory`), estável ao renumerar e ao mover, e volta igual ao desfazer. **Transformar não o preserva:** o reducer recria o dispositivo com o mesmo `uuid` e um `uuid2` novo (`dispositivoLexmlFactory.ts`, `dispositivo.uuid2 = generateUUID()`), o que foi verificado nos testes do grupo 3. O `lexmlId` muda com a renumeração. A linha do editor já tem `EtaContainerOpcoes`/`EtaContainerRevisao` com o ícone de diferenças (`EtaBlotOpcoesDiff`), e o lexml-emenda já fez o equivalente para comentários (`EtaBlotOpcoesComentario`).
 
@@ -74,7 +74,7 @@ Excluir em revisão também tira o dispositivo da articulação. Só a revisão 
 
 Para esse dispositivo, a identificação e a posição vêm do elemento guardado na revisão (`lexmlId` → `lexmlIdParaTextoCanonico`), não da articulação. A posição para "Ordem no texto" é a ordem das linhas do editor, que inclui os excluídos em revisão.
 
-Desfazer a exclusão devolve o dispositivo com o mesmo `uuid2`, mas a sequência já saiu da lista e nada a recria: na articulação, ao contrário da justificação (invariante au), não existe marcação no texto que o desfazer traga de volta. Por isso o conjunto de `uuid2` descartados, previsto no início, não foi criado: seria código sem efeito. O comportamento é coberto pelo teste "excluir o dispositivo remove a sequência; desfazer não a recria".
+Desfazer a exclusão devolve o dispositivo com o mesmo `uuid2`, mas a sequência já saiu da lista e nada a recria: na articulação, ao contrário da justificação (invariante ay), não existe marcação no texto que o desfazer traga de volta. Por isso o conjunto de `uuid2` descartados, previsto no início, não foi criado: seria código sem efeito. O comportamento é coberto pelo teste "excluir o dispositivo remove a sequência; desfazer não a recria".
 
 Alternativa considerada: reconciliar só pelos `uuid` dos elementos do evento `ElementoRemovido`. Rejeitada porque o evento nem sempre lista todos os descendentes e porque `RevisaoAceita` também remove. Conferir contra a articulação é a fonte de verdade.
 

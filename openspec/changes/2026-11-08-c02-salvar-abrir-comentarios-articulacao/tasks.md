@@ -25,5 +25,5 @@
 ## 6. Documentação e fechamento
 
 - [ ] 6.1 Atualizar `docs/extensao-formato-lexml/08-comentarios.md` (implementado também para a articulação, ref de excluído em revisão, regras de leitura), a tabela de `00-especificacao-esquema-lexedit.md` e a fixture `scripts/fixtures-lexedit/08-comentarios.xml` com uma sequência de dispositivo. Verificar com `npm run verify:xsd-lexedit`.
-- [ ] 6.2 Registrar no `CLAUDE.md` (item 24) a origem de cada ref (articulação, mapa dos excluídos, varredura da justificação) e a ligação depois das revisões ao abrir.
+- [ ] 6.2 Registrar no `CLAUDE.md` (item 27) a origem de cada ref (articulação, mapa dos excluídos, varredura da justificação) e a ligação depois das revisões ao abrir.
 - [ ] 6.3 Rodar `npm test` completo e o lint só nos arquivos alterados, sem regressão, e `openspec validate 2026-11-08-c02-salvar-abrir-comentarios-articulacao --strict` sem erros.

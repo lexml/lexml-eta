@@ -2,7 +2,7 @@
 
 Veja proposal.md (Why). Depende da c01 (`2026-11-08-c01-comentarios-articulacao`): a sequência da articulação tem `uuid2Dispositivo`, e o dispositivo excluído em revisão **não está na articulação**. Só o elemento guardado na revisão de exclusão pendente o mantém, com o mesmo `uuid2`.
 
-O que a c03 deixou (item 24 do `CLAUDE.md`):
+O que a c03 deixou (item 27 do `CLAUDE.md`):
 
 - `DadosLexEdit.comentarios` (só escrita) leva as sequências ao montador. `montaMetadadoLexEdit` grava só as que têm trecho, pelos `trechosComentados` da varredura da justificação, com o ref no fragmento `_1`. Os autores vão por `montaUsuarios`, e a pendência é `PENDENCIA_COMENTARIOS`, na ordem fixada.
 - `lerComentarios` descarta a sequência cujo ref não tem prefixo `_tc` (`idSequenciaDoRef`). O componente raiz filtra as lidas pelos ids presentes no editor da justificação.
@@ -31,7 +31,7 @@ O `id` gravado de um dispositivo vivo é o `dispositivo.id` no momento de salvar
 - **justificação**: como hoje, pelos `trechosComentados`;
 - **articulação**: pelo `uuid2Dispositivo`, procurando primeiro na articulação que está sendo serializada (`findDispositivoByUuid2`). Para artigo, usa o `id` do caput. Se não achar, procura no mapa `idsGravadosDosExcluidos: Map<uuid2, id>`.
 
-Esse mapa é devolvido pela própria `montaRevisoesArticulacao`, no mesmo laço que calcula `_<base>-exc<n>` e reescreve os ids da subárvore. Ele cobre o excluído e seus descendentes, pela correspondência entre o elemento da subárvore e o id reescrito. O mapa chega ao montador por `DadosLexEdit` (só escrita), como as revisões. É a mesma regra da invariante ap/ay: o id sai de quem o calcula.
+Esse mapa é devolvido pela própria `montaRevisoesArticulacao`, no mesmo laço que calcula `_<base>-exc<n>` e reescreve os ids da subárvore. Ele cobre o excluído e seus descendentes, pela correspondência entre o elemento da subárvore e o id reescrito. O mapa chega ao montador por `DadosLexEdit` (só escrita), como as revisões. É a mesma regra da invariante ap/bc: o id sai de quem o calcula.
 
 Alternativa considerada: calcular de novo o id do excluído no montador de comentários. Rejeitada porque duas varreduras podem divergir (lição da c03).
 
