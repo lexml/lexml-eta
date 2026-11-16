@@ -29,13 +29,13 @@ O `id` gravado de um dispositivo vivo é o `dispositivo.id` no momento de salvar
 `montaMetadadoLexEdit` passa a montar as sequências de dois tipos:
 
 - **justificação**: como hoje, pelos `trechosComentados`;
-- **articulação**: pelo `uuid2Dispositivo`, procurando primeiro na articulação que está sendo serializada (`findDispositivoByUuid2`). Para artigo, usa o `id` do caput. Se não achar, procura no mapa `idsGravadosDosExcluidos: Map<uuid2, id>`.
+- **articulação**: pelo `uuid2Dispositivo`, procurando primeiro no documento que está sendo serializado com `buscarDispositivoComentado` (`model/comentario/dispositivoComentado.ts`, da c01), que cobre a ementa, o preâmbulo e os parágrafos de artigo com bloco de alteração. A `findDispositivoByUuid2` não serve: não acha a ementa nem o preâmbulo, nem esses parágrafos (invariante (bk) do item 27 do `CLAUDE.md`). Para artigo, usa o `id` do caput. Se não achar, procura no mapa `idsGravadosDosExcluidos: Map<uuid2, id>`.
 
 Esse mapa é devolvido pela própria `montaRevisoesArticulacao`, no mesmo laço que calcula `_<base>-exc<n>` e reescreve os ids da subárvore. Ele cobre o excluído e seus descendentes, pela correspondência entre o elemento da subárvore e o id reescrito. O mapa chega ao montador por `DadosLexEdit` (só escrita), como as revisões. É a mesma regra da invariante ap/bc: o id sai de quem o calcula.
 
 Alternativa considerada: calcular de novo o id do excluído no montador de comentários. Rejeitada porque duas varreduras podem divergir (lição da c03).
 
-Uma sequência da articulação que não se resolve (dispositivo que não existe mais) não é gravada, como a da justificação sem trecho. Na ordem de `Comentarios`, vêm primeiro as da articulação, na ordem do texto, seguidas das da justificação, na ordem do primeiro fragmento.
+Uma sequência da articulação que não se resolve (dispositivo que não existe mais) não é gravada, como a da justificação sem trecho. Na ordem de `Comentarios`, vêm primeiro as da articulação, na ordem do texto, seguidas das da justificação, na ordem do primeiro fragmento. **A ordem vem do componente raiz:** `getDocumentoArticulado` entrega as sequências já ordenadas com `ordenarSequencias(…, 'ordem-no-texto', getPosicaoComentario)`, a mesma ordem da aba, que já põe o excluído em revisão antes da próxima linha viva. O montador grava na ordem recebida e não recalcula a posição, pela mesma regra de "uma origem só" (invariantes ap e bc).
 
 ### Envio também no anexo de parecer
 
@@ -51,13 +51,17 @@ Uma sequência da articulação que não se resolve (dispositivo que não existe
 `abrirDocumentoArticulado` liga as da articulação **depois** de aplicar as revisões do arquivo, porque só então o excluído em revisão existe na sessão. Para cada ref, resolve nesta ordem:
 
 1. dispositivo da articulação com esse `id`. Se o ref for `<artigo>_cpt`, usa o artigo (sem `buscaDispositivoById`, que trata `_cpt` como sinônimo do artigo por outro motivo; mesma cautela de `resolveCaputSeNecessario`);
-2. elemento de uma revisão de exclusão pendente com esse `lexmlId`.
+2. revisão de exclusão reconstruída que representa esse id gravado. **Decisão de 16/11/2026, tomada na implementação:** o reconstruído **não guarda** o id gravado. O `lexmlId` volta a ser o id base (`art1_par1u`, e não `_art1_par1u-exc1`), e o `uuid2` é novo. Por isso, `reconstroiRevisoes` passou a informar, num mapa opcional (`revisaoPorIdNoArquivo`), o id gravado de cada excluído e de cada descendente, e o id da revisão reconstruída. É o mesmo `idNoArquivo` que já devolvia a situação "Existente/Novo" ("uma origem só"). `aplicarRevisoesDoArquivo` devolve esse mapa, e a ligação pega o `uuid2` da revisão no estado. O ref do caput de um artigo excluído vale o artigo, porque o caput não tem revisão própria. Foram descartados: casar pela dedução do id base e pela ordem, que erraria com duas exclusões no mesmo lugar; e não religar, o que contrariaria a spec.
+
+O passo 1 usa a busca por `id` da ementa, do preâmbulo e da articulação, com a mesma cobertura da `buscarDispositivoComentado`. As sequências da articulação são **somadas** às da justificação: hoje `abrirDocumentoArticulado` substitui a lista pelas da justificação, filtradas por `getIdsComentarios()`, e esse filtro continua valendo só para elas. O ícone no editor não precisa de código novo, porque a c01 já o atualiza quando a lista muda.
 
 Com o `uuid2` encontrado, a sequência ganha `uuid2Dispositivo`. Sem ele, é descartada, e um segundo ref para o mesmo `uuid2` também. Em seguida, o alerta é reavaliado (invariante an).
 
 ### Prova com o conversor antes do resto
 
 A primeira tarefa monta à mão um documento com refs de dispositivo vivo e de excluído em revisão e faz a ida e volta pelo CLI real (`JSONIX_LEXML_CLI`, 2.4.0), conferindo a existência do arquivo de saída e validando pelo `lexedit.xsd`, como na task 1.1 da c03.
+
+**Resultado (16/11/2026):** com o CLI 2.4.0 real e o `lexedit.xsd`, um documento com `Comentarios` de refs `art2_cpt` (caput), `art1_cpt_inc1` (inciso), `_art1-exc1_par1` (parágrafo de um artigo excluído em revisão) e `ementa` passou pelo `toxml` com os quatro refs no XML, foi válido pelo XSD e voltou pelo `tojson` com os `Comentarios` idênticos. Nada é descartado, e o `id` gravado na revisão de exclusão é aceito como ref.
 
 ## Risks / Trade-offs
 

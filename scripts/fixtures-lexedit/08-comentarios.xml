@@ -4,9 +4,20 @@
      relevante), refletindo que um documento real sempre traria o usuário referenciado.
      O trecho comentado ocupa dois fragmentos na justificação (um por parágrafo), e o ref aponta para o primeiro:
        <p>Texto com <span id='_tc1777387565991_1'>trecho</span></p>
-       <p><span id='_tc1777387565991_2'>comentado</span>.</p> -->
+       <p><span id='_tc1777387565991_2'>comentado</span>.</p>
+     As sequências da articulação vêm antes: uma no caput do art. 2º e outra no parágrafo de um artigo excluído em revisão. -->
 <lexedit:Metadado xmlns='http://www.lexml.gov.br/1.0' xmlns:lexedit='http://www.lexml.gov.br/lexedit/1.0'>
   <lexedit:Comentarios>
+    <lexedit:SequenciaComentario refIdElementoComentado='art2_cpt'>
+      <lexedit:Comentario refIdUsuario='sf:fulano' data='2026-05-13T09:00:00-03:00'>
+        <p>Rever a redação do caput.</p>
+      </lexedit:Comentario>
+    </lexedit:SequenciaComentario>
+    <lexedit:SequenciaComentario refIdElementoComentado='_art3-exc1_par1'>
+      <lexedit:Comentario refIdUsuario='sf:fulano' data='2026-05-13T09:05:00-03:00'>
+        <p>Confirmar a exclusão deste parágrafo.</p>
+      </lexedit:Comentario>
+    </lexedit:SequenciaComentario>
     <lexedit:SequenciaComentario refIdElementoComentado='_tc1777387565991_1'>
       <lexedit:Comentario refIdUsuario='sf:fulano' data='2026-05-11T15:51:00-03:00'>
         <p>Confirmar a fonte deste dado.</p>

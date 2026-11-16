@@ -72,7 +72,7 @@ Datas e horas devem ser serializadas em ISO 8601, utilizando os tipos xsd:date o
 | Anexos | [05-anexos.md](05-anexos.md) | Não implementado |
 | Justificação e conteúdo rico | [06-justificacao-e-conteudo-rico.md](06-justificacao-e-conteudo-rico.md) | Implementado (#991); largura de tabela e coluna não volta ao editor |
 | Notas de rodapé | [07-notas-de-rodape.md](07-notas-de-rodape.md) | Implementado (#993); parágrafos da nota unidos num só |
-| Comentários | [08-comentarios.md](08-comentarios.md) | Implementado (#972) só na justificação, com `span` `_tc<id>_<n>` por fragmento; comentário sobre dispositivo da articulação não é gravado |
+| Comentários | [08-comentarios.md](08-comentarios.md) | Implementado (#972) na justificação, com `span` `_tc<id>_<n>` por fragmento, e na articulação, pelo id do dispositivo (o do caput no artigo; o gravado na revisão de exclusão no excluído) |
 | Revisão de texto | [09-revisao-de-texto.md](09-revisao-de-texto.md) | Implementado (#994) na justificação, com id `_rt<id-revisao>_<n>` e um `RevisaoTextual` por elemento |
 | Remissões internas | [10-remissoes-internas.md](10-remissoes-internas.md) | Implementado |
 | Revisão da hierarquia | [11-revisao-da-hierarquia.md](11-revisao-da-hierarquia.md) | Implementado |
