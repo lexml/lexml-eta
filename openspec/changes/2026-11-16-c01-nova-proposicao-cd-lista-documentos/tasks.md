@@ -18,9 +18,9 @@
 
 ## 4. Demo
 
-- [ ] 4.1 Em `demo/server/handlers.mjs`, adicionar `GET /demo-api/materias/{sigla}/{numero}/{ano}/documentos` (lista no contrato `DocumentoMateria`; `404` para matéria sem mock) e `GET /demo-api/documentos/{id}/texto` (JSONIX reaproveitado dos textos já servidos; `404` para documento sem texto). Verificar com casos novos em `demo/server/handlers.test.mjs`.
-- [ ] 4.2 Massa de dados do mock, fora do componente: PL 4/2025 com texto original, "Substitutivo do relator" (CSAUDE), "Complementação de voto", "Parecer do relator 1 – CCJC", PL 117/2025 e PL 480/2025 (apensados) e um documento com `textoEstruturadoDisponivel: false`; uma matéria com lista vazia; qualquer outra matéria dá `404`. Verificar nos testes do fake (rota devolve cada caso).
-- [ ] 4.3 Em `demo/components/demoview.ts`, passar `urlDocumentosMateria` e `urlTextoDocumento` na config. Verificar abrindo a demo em `CD` e percorrendo a Tela 2b manualmente.
+- [x] 4.1 Em `demo/server/handlers.mjs`, adicionar `GET /demo-api/materias/{sigla}/{numero}/{ano}/documentos` (lista no contrato `DocumentoMateria`; `404` para matéria sem mock) e `GET /demo-api/documentos/{id}/texto` (JSONIX reaproveitado dos textos já servidos; `404` para documento sem texto). Verificar com casos novos em `demo/server/handlers.test.mjs`.
+- [x] 4.2 Massa de dados do mock, fora do componente: PL 4/2025 com texto original, "Substitutivo do relator" (CSAUDE), "Complementação de voto", "Parecer do relator 1 – CCJC", PL 117/2025 e PL 480/2025 (apensados) e um documento com `textoEstruturadoDisponivel: false`; uma matéria com lista vazia; qualquer outra matéria dá `404`. Verificar nos testes do fake (rota devolve cada caso).
+- [x] 4.3 Em `demo/components/demoview.ts`, passar `urlDocumentosMateria` e `urlTextoDocumento` na config. Verificar abrindo a demo em `CD` e percorrendo a Tela 2b manualmente.
 
 ## 5. E2E (Cypress)
 

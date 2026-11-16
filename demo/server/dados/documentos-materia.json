@@ -1,0 +1,96 @@
+[
+  {
+    "sigla": "PL",
+    "numero": "4",
+    "ano": "2025",
+    "documentos": [
+      {
+        "id": "pl-4-2025-original",
+        "titulo": "Texto original do PL 4/2025",
+        "sigla": "PL",
+        "numero": "4",
+        "ano": 2025,
+        "urlInteiroTeor": "https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=4",
+        "nomeAutor": "Fulano",
+        "papelAutor": "Autor",
+        "indSexoAutor": "M",
+        "dataApresentacao": "2025-02-03",
+        "arquivo": "pl_4687_2023.json"
+      },
+      {
+        "id": "prl-1-csaude-substitutivo",
+        "titulo": "Substitutivo do relator",
+        "sigla": "PRL",
+        "numero": "1",
+        "ano": 2025,
+        "siglaComissao": "CSAUDE",
+        "urlInteiroTeor": "https://www.camara.leg.br/proposicoesWeb/prop_mostrarintegra?codteor=1",
+        "nomeAutor": "Fulana",
+        "papelAutor": "Relatora",
+        "indSexoAutor": "F",
+        "dataApresentacao": "2025-09-05",
+        "arquivo": "plp_197_2023.json"
+      },
+      {
+        "id": "prl-1-csaude-complementacao",
+        "titulo": "Complementação de voto",
+        "sigla": "PRL",
+        "numero": "1",
+        "ano": 2025,
+        "siglaComissao": "CSAUDE",
+        "urlInteiroTeor": "https://www.camara.leg.br/proposicoesWeb/prop_mostrarintegra?codteor=2",
+        "nomeAutor": "Fulana",
+        "papelAutor": "Relatora",
+        "indSexoAutor": "F",
+        "dataApresentacao": "2025-09-12",
+        "arquivo": "plp_68_2024.json"
+      },
+      {
+        "id": "prl-1-ccjc-parecer",
+        "titulo": "Parecer do relator 1 – CCJC",
+        "sigla": "PRL",
+        "numero": "1",
+        "ano": 2025,
+        "siglaComissao": "CCJC",
+        "urlInteiroTeor": "https://www.camara.leg.br/proposicoesWeb/prop_mostrarintegra?codteor=3",
+        "nomeAutor": "Beltrano",
+        "papelAutor": "Relator",
+        "indSexoAutor": "M",
+        "dataApresentacao": "2025-08-12",
+        "arquivo": "plp_137_2019.json"
+      },
+      {
+        "id": "pl-117-2025-apensado",
+        "titulo": "PL 117/2025 (apensado)",
+        "sigla": "PL",
+        "numero": "117",
+        "ano": 2025,
+        "urlInteiroTeor": "https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=117",
+        "nomeAutor": "Fulano",
+        "papelAutor": "Autor",
+        "indSexoAutor": "M",
+        "dataApresentacao": "2025-03-10",
+        "arquivo": "pl_5008_2023.json"
+      },
+      {
+        "id": "pl-480-2025-apensado",
+        "titulo": "PL 480/2025 (apensado)",
+        "sigla": "PL",
+        "numero": "480",
+        "ano": 2025,
+        "urlInteiroTeor": "https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=480",
+        "nomeAutor": "Fulana",
+        "papelAutor": "Autora",
+        "indSexoAutor": "F",
+        "dataApresentacao": "2025-04-22",
+        "arquivo": null
+      }
+    ]
+  },
+  {
+    "sigla": "PL",
+    "numero": "4687",
+    "ano": "2023",
+    "documentos": []
+  }
+]

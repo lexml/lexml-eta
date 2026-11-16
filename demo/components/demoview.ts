@@ -217,6 +217,8 @@ export class DemoView extends LitElement {
       urlTextoEstruturado: '/demo-api/proposicoes/{sigla}/{numero}/{ano}/texto',
       urlComissoes: '/demo-api/comissoes/{casa}',
       urlImportacaoArquivo: '/demo-api/importacao',
+      urlDocumentosMateria: '/demo-api/materias/{sigla}/{numero}/{ano}/documentos',
+      urlTextoDocumento: '/demo-api/documentos/{id}/texto',
     };
   }
 

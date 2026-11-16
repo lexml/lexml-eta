@@ -92,6 +92,35 @@ test('rota desconhecida da demo devolve 404', () => {
   assert.equal(tratarRequisicaoDemo('/demo-api/outra').status, 404);
 });
 
+test('documentos da matéria: PL 4/2025 devolve a lista no contrato, sem expor o arquivo interno', () => {
+  const r = tratarRequisicaoDemo('/demo-api/materias/PL/4/2025/documentos');
+  assert.equal(r.status, 200);
+  const lista = corpo(r);
+  assert.equal(lista.length, 6);
+  for (const d of lista) {
+    assert.ok(d.id && d.titulo && d.sigla && d.numero && d.urlInteiroTeor && d.nomeAutor && d.papelAutor && d.indSexoAutor);
+    assert.match(d.dataApresentacao, /^\d{4}-\d{2}-\d{2}$/);
+    assert.equal('arquivo' in d, false);
+  }
+  assert.equal(lista.filter(d => d.textoEstruturadoDisponivel === false).length, 1);
+});
+
+test('documentos da matéria: sigla em minúsculas e zeros à esquerda; lista vazia; matéria sem mock devolve 404', () => {
+  assert.equal(tratarRequisicaoDemo('/demo-api/materias/pl/0004/2025/documentos').status, 200);
+  const vazia = tratarRequisicaoDemo('/demo-api/materias/PL/4687/2023/documentos');
+  assert.equal(vazia.status, 200);
+  assert.deepEqual(corpo(vazia), []);
+  assert.equal(tratarRequisicaoDemo('/demo-api/materias/PL/1/1999/documentos').status, 404);
+});
+
+test('texto do documento: devolve o JSONIX; documento sem texto ou inexistente devolve 404', () => {
+  const r = tratarRequisicaoDemo('/demo-api/documentos/prl-1-csaude-substitutivo/texto');
+  assert.equal(r.status, 200);
+  assert.ok(corpo(r).value.metadado.identificacao.urn.startsWith('urn:lex:br:'));
+  assert.equal(tratarRequisicaoDemo('/demo-api/documentos/pl-480-2025-apensado/texto').status, 404);
+  assert.equal(tratarRequisicaoDemo('/demo-api/documentos/nao-existe/texto').status, 404);
+});
+
 test('identificação por URN: tipo define a sigla, número sem zeros', () => {
   assert.deepEqual(identificarPorUrn('urn:lex:br:senado.federal:projeto.lei;pl:2023;05008'), { sigla: 'PL', numero: '5008', ano: '2023' });
   assert.deepEqual(identificarPorUrn('urn:lex:br:federal:medida.provisoria:2021-12-29;1089'), { sigla: 'MPV', numero: '1089', ano: '2021' });

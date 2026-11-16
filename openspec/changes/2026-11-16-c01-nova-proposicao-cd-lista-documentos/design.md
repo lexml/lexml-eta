@@ -31,3 +31,4 @@ Hoje o componente `lexml-nova-proposicao` (`nova-proposicao.component.ts`) ident
 - [Lista grande de documentos] → rolagem com altura fixa e filtro; sem paginação (o host limita).
 - [Duplicidade com "Texto do(a) PL…", que leva ao mesmo texto do primeiro item da lista] → aceita; o host controla se devolve o original.
 - [Abreviação "Dep." fixa] → coerente com a tela só na `CD`; se surgir autor senador, `indSexoAutor` e um novo campo de tratamento serão necessários.
+- [Bug anterior, fora do escopo: `hasRotuloPendente` (`numeracaoUtil.ts`, commit `a24bb736`) lança `TypeError` em documento com agrupador sem tipo próprio, como o "SUBTÍTULO" de `demo/doc/pl_4_2025.json`] → não tratado aqui; o mock da Tela 2b evita esse arquivo, mas a opção "Texto do(a) PL…" do demo (que usa o PL 4/2025) continua falhando até o bug ser corrigido.
