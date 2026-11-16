@@ -869,11 +869,5 @@ export const editorStyles = html`
         margin-left: 0px;
       }
     }
-
-    @media (max-width: 398px) {
-      .btn-dicas {
-        display: none !important;
-      }
-    }
   </style>
 `;

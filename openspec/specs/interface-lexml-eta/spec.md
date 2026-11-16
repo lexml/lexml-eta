@@ -7,7 +7,7 @@ Definir o contrato do componente `lexml-eta` com o aplicativo que o hospeda: os 
 ## Requirements
 
 ### Requirement: Métodos de ciclo de vida do documento
-O componente SHALL expor `novaProposicao(dados)`, `abrirDocumentoArticulado(entrada)` e `fecharDocumento()` como únicas formas de iniciar, trocar ou encerrar a edição de um documento. O componente SHALL NOT expor `inicializarEdicao` como método público.
+O componente SHALL expor `novaProposicao(dados)`, `abrirDocumentoArticulado(entrada)` e `fecharDocumento()` como únicas formas de iniciar, trocar ou encerrar a edição de um documento, e `alterarDadosBasicos(dados)` como única forma de alterar os dados básicos do documento em edição. O componente SHALL NOT expor `inicializarEdicao` como método público.
 
 #### Scenario: Nova proposição
 - **WHEN** o host chama `novaProposicao` com dados válidos
@@ -16,6 +16,10 @@ O componente SHALL expor `novaProposicao(dados)`, `abrirDocumentoArticulado(entr
 #### Scenario: Abrir proposição existente
 - **WHEN** o host chama `abrirDocumentoArticulado` com um documento válido
 - **THEN** o editor passa a editar o documento aberto
+
+#### Scenario: Alterar dados básicos
+- **WHEN** o host chama `alterarDadosBasicos` com dados válidos e um documento em edição
+- **THEN** o editor continua editando o mesmo documento, com os dados básicos novos
 
 #### Scenario: Método antigo não exposto
 - **WHEN** o host tenta chamar `inicializarEdicao`
@@ -48,7 +52,7 @@ Todo método que inicia ou encerra um documento SHALL descartar o estado do docu
 - **THEN** o usuário, a paginação e os padrões da configuração continuam valendo
 
 ### Requirement: Dados da nova proposição
-`novaProposicao` SHALL exigir URN, epígrafe e preâmbulo. SHALL aceitar, opcionalmente, URN do documento referenciado, colegiado de destino, autoria, opções de impressão, outros metadados, documento articulado de modelo e indicativo de modo de anexo de parecer. O colegiado de destino SHALL ser informado apenas por esta chamada (ou pelo arquivo aberto), pois o `lexml-eta` não tem formulário de destino. Dado obrigatório ausente SHALL rejeitar a chamada com erro descritivo, sem alterar o documento em edição.
+`novaProposicao` SHALL exigir URN, epígrafe e preâmbulo. SHALL aceitar, opcionalmente, URN do documento referenciado, colegiado de destino, autoria, opções de impressão, outros metadados, documento articulado de modelo, documento importado e indicativo de modo de anexo de parecer. Documento de modelo e documento importado MUST NOT ser informados juntos. O colegiado de destino SHALL ser informado apenas por esta chamada (ou pelo arquivo aberto), pois o `lexml-eta` não tem formulário de destino. Dado obrigatório ausente ou combinação inválida SHALL rejeitar a chamada com erro descritivo, sem alterar o documento em edição.
 
 #### Scenario: Obrigatório ausente
 - **WHEN** o host chama `novaProposicao` sem epígrafe
@@ -61,6 +65,10 @@ Todo método que inicia ou encerra um documento SHALL descartar o estado do docu
 #### Scenario: Colegiado informado
 - **WHEN** o host chama `novaProposicao` com colegiado de destino Comissão e sigla `CCJ`
 - **THEN** o documento é criado com esse colegiado, que é gravado ao salvar
+
+#### Scenario: Modelo e importado juntos
+- **WHEN** o host chama `novaProposicao` com documento de modelo e documento importado
+- **THEN** a chamada é rejeitada com erro descritivo, e o documento em edição permanece como estava
 
 ### Requirement: Documento de modelo
 Quando `novaProposicao` recebe um documento articulado de modelo, o sistema SHALL aproveitar dele somente a articulação e a ementa. URN, URN referenciada, epígrafe, preâmbulo e os demais dados SHALL vir dos parâmetros ou do padrão, mesmo os opcionais não informados. O que o modelo traz de anexos, revisões, situação na norma vigente, fecho, autoria, opções de impressão, destino e outros metadados SHALL ser descartado.
@@ -128,3 +136,98 @@ Uma chamada rejeitada de qualquer método de inicialização SHALL deixar intact
 #### Scenario: Rejeição não altera o editor
 - **WHEN** o host chama `abrirDocumentoArticulado` com um documento inválido durante uma edição
 - **THEN** a chamada falha com erro descritivo e o documento em edição continua como estava
+
+### Requirement: Abas de apoio e botões de telas estreitas
+O painel da direita do componente SHALL oferecer somente as abas "Notas" (fora do modo anexo de parecer) e "Atalhos". Em telas estreitas, a barra do editor SHALL oferecer somente o botão "Atalhos". O componente SHALL NOT oferecer aba, botão ou conteúdo de "Comando" ou de "Dicas", nem a propriedade `exibirAjuda`.
+
+#### Scenario: Abas do painel da direita
+- **WHEN** um documento é aberto fora do modo anexo de parecer
+- **THEN** o painel da direita tem exatamente as abas "Notas" e "Atalhos"
+
+#### Scenario: Abas no modo anexo de parecer
+- **WHEN** um documento é aberto no modo anexo de parecer
+- **THEN** o painel da direita tem somente a aba "Atalhos"
+
+#### Scenario: Barra em telas estreitas
+- **WHEN** o editor é exibido com largura entre 641 e 768 px
+- **THEN** a barra do editor oferece o botão "Atalhos", e não há botão "Dicas"
+
+#### Scenario: Tela muito estreita
+- **WHEN** o editor é exibido com largura de até 640 px
+- **THEN** a barra do editor não oferece botões de apoio (o "Atalhos" já era ocultado nessa faixa)
+
+#### Scenario: Sem conteúdo de dicas
+- **WHEN** o componente é renderizado
+- **THEN** não há aba nem painel "Comando" ou "Dicas", e os elementos `lexml-eta-ajuda` e `lexml-eta-ajuda-modal` não existem
+
+### Requirement: Dados da alteração de dados básicos
+`alterarDadosBasicos` SHALL exigir URN, epígrafe e preâmbulo, e SHALL aceitar, opcionalmente, URN do documento referenciado, colegiado apreciador, outros metadados e indicativo de anexo de parecer. Os dados informados SHALL substituir todos os dados básicos do documento; opcional ausente SHALL assumir o mesmo valor que assume em `novaProposicao`. A URN SHALL seguir as regras de "Tipos permitidos para criação".
+
+#### Scenario: Obrigatório ausente
+- **WHEN** o host chama `alterarDadosBasicos` sem preâmbulo
+- **THEN** a chamada é rejeitada com erro que nomeia o dado ausente, e o documento em edição permanece como estava
+
+#### Scenario: URN não permitida
+- **WHEN** o host chama `alterarDadosBasicos` com URN de norma
+- **THEN** a chamada é rejeitada e o documento em edição permanece como estava
+
+#### Scenario: Documento referenciado removido
+- **WHEN** um substitutivo tem os dados básicos alterados para uma proposição, sem URN do documento referenciado
+- **THEN** o documento deixa de ter documento referenciado
+
+### Requirement: Alteração de dados básicos recusada
+`alterarDadosBasicos` SHALL rejeitar a chamada com erro descritivo, emitir o erro fatal ao host e deixar o documento em edição intacto quando não houver documento em edição, quando o editor estiver em modo de revisão ou quando o documento em edição for de tipo não suportado para criação.
+
+#### Scenario: Modo de revisão
+- **WHEN** o host chama `alterarDadosBasicos` com o editor em modo de revisão
+- **THEN** a chamada é rejeitada com erro informando que os dados básicos não podem ser alterados em modo de revisão, e o documento permanece como estava
+
+#### Scenario: Sem documento
+- **WHEN** o host chama `alterarDadosBasicos` com o componente em estado neutro
+- **THEN** a chamada é rejeitada e o componente continua em estado neutro
+
+### Requirement: Documento importado
+Quando `novaProposicao` recebe um documento importado, o sistema SHALL aproveitar dele o conteúdo como na abertura de documento (`abrirDocumentoArticulado`): ementa, articulação, justificação (com notas de rodapé e revisões de texto), revisões da hierarquia, situação na norma vigente, autoria, data do fecho, opções de impressão e outros metadados. URN, URN do documento referenciado, epígrafe, preâmbulo, colegiado de destino e anexo de parecer SHALL vir dos parâmetros ou do padrão, nunca do documento; o local do fecho SHALL ser derivado do colegiado de destino, como ao alterar os dados básicos. A URN do documento importado MUST NOT ser validada contra a casa do editor; a URN validada é a dos parâmetros. Quando a casa da URN do documento importado difere da casa da URN informada, a autoria do documento SHALL ser descartada, como ao alterar os dados básicos. Autoria, opções de impressão e outros metadados informados nos parâmetros SHALL valer apenas quando o documento importado não traz o grupo correspondente; os padrões da sessão SHALL valer para autoria e opções de impressão quando nem o documento nem os parâmetros as trazem. Em modo de anexo de parecer, a justificação do documento não é carregada, como na abertura. A data da última modificação do documento importado MUST NOT ser aproveitada. Documento importado que não seja um documento articulado válido SHALL rejeitar a chamada como entrada inválida.
+
+#### Scenario: Conteúdo aproveitado
+- **WHEN** o documento importado traz articulação, ementa, justificação, revisões e autoria
+- **THEN** o documento criado contém essa articulação, essa ementa, essa justificação, essas revisões e essa autoria
+
+#### Scenario: Identidade dos parâmetros
+- **WHEN** o documento importado traz URN, epígrafe, preâmbulo e colegiado diferentes dos informados
+- **THEN** o documento criado usa os informados
+
+#### Scenario: URN do documento de outra casa
+- **WHEN** o editor do Senado recebe um documento importado cuja URN é da Câmara, com URN de parâmetro do Senado
+- **THEN** a proposição é criada, sem a recusa de documento da outra casa
+
+#### Scenario: Autoria de documento de outra casa
+- **WHEN** o documento importado é da Câmara, traz autoria, e a URN informada é do Senado
+- **THEN** o documento criado não tem a autoria do documento importado
+
+#### Scenario: Autoria do parâmetro sem autoria no documento
+- **WHEN** o documento importado não traz autoria e o host informa uma autoria nos parâmetros
+- **THEN** o documento criado tem a autoria dos parâmetros
+
+#### Scenario: Documento importado inválido
+- **WHEN** o documento importado não é um documento articulado válido
+- **THEN** a chamada é rejeitada com o erro fatal de entrada inválida, e o documento em edição permanece como estava
+
+### Requirement: Anexos do documento importado
+Os anexos do documento importado SHALL ser descartados: o documento criado MUST NOT conter anexos vindos dele. Quando o documento importado traz ao menos um anexo, o editor SHALL exibir a mensagem "Não foi possível recuperar os anexos do documento importado. A proposição foi criada sem eles; se necessário, inclua-os novamente na aba Anexos." de duas formas: numa notificação passageira de aviso (amarela), no canto superior da tela, que some sozinha depois de 8 segundos, e como alerta de aviso, com botão de fechar, na aba Avisos, que permanece para consulta. O alerta MUST NOT ser gravado como pendência ao salvar.
+
+#### Scenario: Documento com anexos
+- **WHEN** o documento importado traz dois anexos
+- **THEN** o documento criado não tem anexos, a notificação amarela de anexos não recuperados aparece no canto superior e a aba Avisos exibe o mesmo alerta
+
+#### Scenario: Notificação passageira
+- **WHEN** a notificação de anexos não recuperados é exibida
+- **THEN** ela some sozinha depois de 8 segundos, e o alerta continua na aba Avisos
+
+#### Scenario: Documento sem anexos
+- **WHEN** o documento importado não traz anexos
+- **THEN** nem a notificação nem o alerta de anexos são exibidos
+
+#### Scenario: Alerta não vira pendência
+- **WHEN** o usuário salva a proposição criada com o alerta de anexos exibido
+- **THEN** o arquivo salvo não contém pendência sobre anexos

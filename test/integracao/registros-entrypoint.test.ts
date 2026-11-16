@@ -2,8 +2,6 @@ import { expect } from '@open-wc/testing';
 import '../../src';
 
 const registeredCustomElements = [
-  'lexml-eta-ajuda',
-  'lexml-eta-ajuda-modal',
   'lexml-eta-alertas',
   'lexml-eta-alterar-largura-imagem-modal',
   'lexml-eta-alterar-largura-tabela-coluna-modal',

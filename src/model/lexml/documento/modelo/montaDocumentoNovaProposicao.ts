@@ -1,3 +1,4 @@
+import { montaConteudoEpigrafeDeXml } from '../conversor/epigrafe';
 import { DOCUMENTO_PADRAO } from './documentoPadrao';
 
 const TYPE_GEN_INLINE = 'br_gov_lexml__1.GenInline';
@@ -18,7 +19,7 @@ export const montaDocumentoNovaProposicao = (urn: string, epigrafe: string, prea
   const ementa = estrutura.parteInicial?.ementa;
   estrutura.parteInicial = {
     TYPE_NAME: 'br_gov_lexml__1.ParteInicial',
-    epigrafe: { TYPE_NAME: TYPE_GEN_INLINE, id: 'epigrafe', content: [epigrafe] },
+    epigrafe: { TYPE_NAME: TYPE_GEN_INLINE, id: 'epigrafe', content: montaConteudoEpigrafeDeXml(epigrafe) },
     ...(ementa && { ementa }),
     preambulo: {
       TYPE_NAME: 'br_gov_lexml__1.TextoType',

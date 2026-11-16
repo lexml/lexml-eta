@@ -16,8 +16,8 @@ const fileNormasMock = path.resolve(process.cwd(), 'normas.json');
 
 async function mockApiMiddleware(context, next) {
   try {
-    // Backend simulado da demo (comissões, verificação e texto de proposições): ver demo/server/handlers.mjs.
-    const respostaDemo = tratarRequisicaoDemo(context.url);
+    // Backend simulado da demo (comissões, verificação, texto e importação): ver demo/server/handlers.mjs.
+    const respostaDemo = tratarRequisicaoDemo(context.url, context.method, context.get('Content-Type'));
     if (respostaDemo) {
       context.status = respostaDemo.status;
       context.set('Content-Type', respostaDemo.tipo);

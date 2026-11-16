@@ -7,6 +7,7 @@ import { REMOVER_REMISSAO_INVALIDA } from '../../../src/model/lexml/acao/remover
 import { openArticulacaoAction } from '../../../src/model/lexml/acao/openArticulacaoAction';
 import { criaStateComNArtigos } from '../../helpers/dispositivo-helper';
 import { lexmlLinkerClient } from '../../../src/util/lexml-linker/lexmlLinkerClient';
+import { LexmlEtaConfig } from '../../../src/model/lexmlEtaConfig';
 
 // Object.create(EditorComponent.prototype) em vez de document.createElement/fixture: o construtor seta this.tabIndex = -1, o que viola a regra de Custom Elements de não mutar atributos na construção.
 
@@ -98,6 +99,74 @@ describe('EditorComponent — detecção híbrida de remissão (blur do disposit
       editor.detectarRemissoesAoSairDaLinha(criarLinhaFake(), false);
 
       expect(tipos()).to.not.include(ATUALIZAR_TEXTO_ELEMENTO);
+    });
+  });
+
+  describe('identificarRemissaoExterna — desliga a detecção externa automática', () => {
+    let chamadasLinker: number;
+
+    beforeEach(() => {
+      chamadasLinker = 0;
+      lexmlLinkerClient.detectarRemissoesExternas = async (): Promise<null> => {
+        chamadasLinker++;
+        return null;
+      };
+    });
+
+    // Sem construtor, atribuir pelo setter do Lit quebraria em requestUpdate.
+    function definirConfig(config: any): void {
+      Object.defineProperty(editor, 'lexmlEtaConfig', { value: config });
+    }
+
+    function pressionarEnterNoFimDaLinha(): void {
+      const linha = criarLinhaFake();
+      linha.blotConteudo.tamanho = linha.blotConteudo.html.length;
+      linha.blotConteudo.htmlAnt = '';
+      editor._quill.linhaAtual = linha;
+      editor._quill.inicioConteudoAtual = 0;
+      editor.adicionarElemento({ index: linha.blotConteudo.tamanho, length: 0 });
+    }
+
+    it('com false, não chama o linker ao sair da linha e mantém a remissão interna', () => {
+      definirConfig({ identificarRemissaoExterna: false });
+
+      editor.detectarRemissoesAoSairDaLinha(criarLinhaFake(), false);
+
+      expect(chamadasLinker).to.equal(0);
+      expect(tipos()).to.include(ADICIONAR_REMISSAO_INTERNA);
+    });
+
+    it('com false, não chama o linker no Enter e mantém a remissão interna', () => {
+      definirConfig({ identificarRemissaoExterna: false });
+
+      pressionarEnterNoFimDaLinha();
+
+      expect(chamadasLinker).to.equal(0);
+      expect(tipos()).to.include(ADICIONAR_REMISSAO_INTERNA);
+    });
+
+    it('sem o campo, chama o linker ao sair da linha', () => {
+      definirConfig({});
+
+      editor.detectarRemissoesAoSairDaLinha(criarLinhaFake(), false);
+
+      expect(chamadasLinker).to.equal(1);
+    });
+
+    it('sem o campo, chama o linker no Enter', () => {
+      definirConfig({});
+
+      pressionarEnterNoFimDaLinha();
+
+      expect(chamadasLinker).to.equal(1);
+    });
+
+    it('com a configuração padrão, chama o linker ao sair da linha', () => {
+      definirConfig(new LexmlEtaConfig());
+
+      editor.detectarRemissoesAoSairDaLinha(criarLinhaFake(), false);
+
+      expect(chamadasLinker).to.equal(1);
     });
   });
 

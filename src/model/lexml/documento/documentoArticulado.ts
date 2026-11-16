@@ -162,6 +162,9 @@ export interface DocumentoArticulado {
   };
 }
 
+/** Estrutura do documento Jsonix: `norma` ou, em documentos antigos, `projeto`. */
+export const getEstruturaNorma = (documento: any): any => documento?.value?.projetoNorma?.norma ?? documento?.value?.projetoNorma?.projeto;
+
 export const validarIdentificacaoDocumento = (urn: unknown): void => {
   // A validação XSD usa anyURI; a posição do ano e do número precisa ser verificada aqui.
   if (typeof urn !== 'string' || !/^urn:lex:br:[^:\s]+:[^:\s]+:\d{4}(?:-\d{2}-\d{2})?;\d+(?:@[^!\s]+)?$/.test(urn)) {
@@ -230,7 +233,8 @@ export const validarDocumentoArticulado = (entrada: unknown): DocumentoArticulad
 };
 
 /** Valida e prepara uma cópia independente antes de qualquer alteração no editor. */
-export const lerDocumentoArticulado = (entrada: unknown): DocumentoArticulado => {
+// Sem verificarCasa, a URN do arquivo não é checada: na importação, a URN que vale é a da nova proposição.
+export const lerDocumentoArticulado = (entrada: unknown, { verificarCasa = true } = {}): DocumentoArticulado => {
   let doc: unknown = entrada;
   if (typeof entrada === 'string') {
     try {
@@ -240,7 +244,7 @@ export const lerDocumentoArticulado = (entrada: unknown): DocumentoArticulado =>
     }
   }
   const validado = validarDocumentoArticulado(doc);
-  verificarUrnDaCasaDoEditor(validado.value.metadado.identificacao.urn);
+  if (verificarCasa) verificarUrnDaCasaDoEditor(validado.value.metadado.identificacao.urn);
   const copia = JSON.parse(JSON.stringify(validado)) as DocumentoArticulado;
   // Exercita o leitor antes de permitir que a interface substitua seu estado.
   try {
@@ -269,7 +273,7 @@ export const criarDocumentoArticulado = (
 };
 
 /** O modelo usa HTML; o texto do Jsonix precisa conter os caracteres literais. */
-const decodificarTextoJsonix = (valor: any): void => {
+export const decodificarTextoJsonix = (valor: any): void => {
   if (!valor || typeof valor !== 'object') return;
   for (const [chave, conteudo] of Object.entries(valor)) {
     if (chave === 'content' && Array.isArray(conteudo)) {

@@ -66,7 +66,6 @@ import { Keyboard } from '../../util/eta-quill/eta-keyboard';
 import { EtaQuill } from '../../util/eta-quill/eta-quill';
 import { EtaQuillUtil } from '../../util/eta-quill/eta-quill-util';
 import { Subscription } from '../../util/observable';
-import { AjudaModalComponent } from '../ajuda/ajuda.modal.component';
 import { AtalhosModalComponent } from '../ajuda/atalhos.modal.component';
 import { atualizarNotaAlteracaoAction } from '../../model/lexml/acao/atualizarNotaAlteracaoAction';
 import { assistenteAlteracaoDialog } from './assistenteAlteracaoDialog';
@@ -120,9 +119,6 @@ const ehParteInicial = (elemento: Elemento): boolean => elemento.tipo === 'Ement
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
   @property({ type: Object }) lexmlEtaConfig: LexmlEtaConfig = new LexmlEtaConfig();
-
-  @query('lexml-eta-ajuda-modal')
-  private ajudaModal!: AjudaModalComponent;
 
   @query('lexml-eta-atalhos-modal')
   private atalhosModal!: AtalhosModalComponent;
@@ -234,6 +230,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         }
         .sl-toast-stack sl-alert::part(base) {
           background-color: var(--sl-color-danger-100);
+        }
+        .sl-toast-stack sl-alert[variant='warning']::part(base) {
+          background-color: var(--sl-color-warning-100);
         }
         .checkBoxRevisao {
           padding: 3px 5px;
@@ -376,10 +375,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
               <sl-icon name="chat-left-text"></sl-icon>
               <span>Comentários</span>
             </button>
-            <button class="mobile-button btn-dicas" title="Dicas" @click=${this.showAjudaModal}>
-              <sl-icon name="lightbulb"></sl-icon>
-              <span>Dicas</span>
-            </button>
             <button class="mobile-button" title="Atalhos" @click=${this.showAtalhosModal}>
               <sl-icon name="keyboard"></sl-icon>
               <span>Atalhos</span>
@@ -389,7 +384,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         <div id="lx-eta-editor"></div>
       </div>
       <div id="lx-eta-buffer"><p></p></div>
-      <lexml-eta-ajuda-modal></lexml-eta-ajuda-modal>
       <lexml-eta-atalhos-modal></lexml-eta-atalhos-modal>
       <lexml-eta-sufixos-modal></lexml-eta-sufixos-modal>
       <proposicao-dividida-modal></proposicao-dividida-modal>
@@ -406,10 +400,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         Aceitar Revisões
       </sl-icon-button>
     `;
-  }
-
-  private showAjudaModal(): void {
-    this.ajudaModal.show();
   }
 
   private showAtalhosModal(): void {
@@ -1771,6 +1761,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   // Descarta o resultado se o texto mudou desde a chamada — evita aplicar offsets obsoletos.
   private async coordenarDeteccaoExterna(sourceUuid: number, texto: string): Promise<void> {
+    if (this.lexmlEtaConfig?.identificarRemissaoExterna === false) return;
+
     const matches = await lexmlLinkerClient.detectarRemissoesExternas(texto);
     if (!matches || matches.length === 0) return;
 

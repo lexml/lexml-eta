@@ -1,16 +1,17 @@
 import { expect } from '@open-wc/testing';
 import { getPreambuloNovaProposicao, PREAMBULO_FALLBACK } from '../../../src/components/nova-proposicao/preambuloNovaProposicao';
-import { montaEpigrafePadrao } from '../../../src/components/nova-proposicao/epigrafePadrao';
+import { getSufixoEpigrafe } from '../../../src/components/nova-proposicao/epigrafeNovaProposicao';
 import { getIdentificacaoDocumento, getNovoOuNova } from '../../../src/components/nova-proposicao/identificacaoDocumento';
 import { montaUrnNovaProposicao } from '../../../src/components/nova-proposicao/montaUrnNovaProposicao';
 import {
   getSiglasNovaProposicao,
   getSiglasOutraProposicao,
   getSiglasProposicaoReferenciada,
-  getSiglasSubstitutivo,
+  getTipoSubstitutivoCd,
+  resolverTipoComplementar,
 } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
 import { DadosIdentificacao } from '../../../src/components/nova-proposicao/tiposNovaProposicao';
-import { montaUrlComissoes, montaUrlProposicao, validarConfigNovaProposicao } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
+import { montaUrlComissoes, montaUrlProposicao, normalizaConsultaProposicao, validarConfigNovaProposicao } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoRelacaoSubstitutivo } from '../../../src/model/lexml/documento/vocabulario/tiposVocabulario';
 
@@ -42,17 +43,13 @@ describe('Módulos puros da nova proposição', () => {
       expect(siglas.some(s => s.endsWith(':MPV'))).to.be.false;
     });
 
-    it('SF: ativos antes dos inativos, cada grupo em ordem alfabética', () => {
+    it('SF: só tipos ativos, em ordem alfabética, sem PLS nem PLC', () => {
       inicializarVocabulario('SF');
       const lista = getSiglasNovaProposicao('SF');
-      const primeiroInativo = lista.findIndex(t => !t.ativo);
-      expect(primeiroInativo).to.be.greaterThan(0);
-      expect(lista.slice(primeiroInativo).every(t => !t.ativo)).to.be.true;
-      const ativas = lista.slice(0, primeiroInativo).map(t => t.sigla!);
-      expect(ativas).to.deep.equal([...ativas].sort((a, b) => a.localeCompare(b)));
-      const inativas = lista.slice(primeiroInativo).map(t => t.sigla!);
-      expect(inativas).to.deep.equal([...inativas].sort((a, b) => a.localeCompare(b)));
-      expect(inativas).to.include.members(['PLS', 'PLC']);
+      expect(lista.every(t => t.ativo)).to.be.true;
+      const siglas = lista.map(t => t.sigla!);
+      expect(siglas).to.deep.equal([...siglas].sort((a, b) => a.localeCompare(b)));
+      expect(siglas).to.not.include.members(['PLS', 'PLC', 'PDS']);
     });
 
     it('CD: sem substitutivo, subemenda, tipos do Senado nem MPV', () => {
@@ -60,7 +57,7 @@ describe('Módulos puros da nova proposição', () => {
       const lista = getSiglasNovaProposicao('CD');
       const siglas = lista.map(t => t.sigla);
       expect(siglas).to.include.members(['PL', 'PLP', 'PEC', 'PRC', 'PLV']);
-      expect(siglas).to.not.include.members(['SBT', 'PEP', 'MPV']);
+      expect(siglas).to.not.include.members(['SBT', 'SSP', 'MPV']);
       expect(lista.some(t => t.urnAutoridade === 'senado.federal')).to.be.false;
     });
 
@@ -72,6 +69,16 @@ describe('Módulos puros da nova proposição', () => {
       expect(lista.map(t => t.sigla)).to.not.include('PLV');
     });
 
+    it('proposição referenciada e outra proposição: uma entrada por sigla (PLS e PLC não repetem)', () => {
+      inicializarVocabulario('SF');
+      [getSiglasProposicaoReferenciada(), getSiglasOutraProposicao()].forEach(lista => {
+        const siglas = lista.map(t => t.sigla);
+        expect(siglas.filter(x => x === 'PLS')).to.have.length(1);
+        expect(siglas.filter(x => x === 'PLC')).to.have.length(1);
+        expect(new Set(siglas).size).to.equal(siglas.length);
+      });
+    });
+
     it('outra proposição: todas as siglas da casa, ativas antes das inativas, inclusive MPV', () => {
       inicializarVocabulario('SF');
       const sf = getSiglasOutraProposicao();
@@ -80,13 +87,19 @@ describe('Módulos puros da nova proposição', () => {
       const primeiroInativo = sf.findIndex(t => !t.ativo);
       expect(sf.slice(primeiroInativo).every(t => !t.ativo)).to.be.true;
       inicializarVocabulario('CD');
-      expect(getSiglasOutraProposicao().map(t => t.sigla)).to.include.members(['PL', 'SBT', 'PEP', 'MPV']);
+      expect(getSiglasOutraProposicao().map(t => t.sigla)).to.include.members(['PL', 'SBT', 'SSP', 'MPV']);
     });
 
-    it('g2 da CD: substitutivo e subemenda substitutiva', () => {
+    it('CD: tipo do substitutivo e da subemenda substitutiva derivado da espécie', () => {
       inicializarVocabulario('CD');
-      expect(getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBSTITUTIVO).map(t => t.sigla)).to.deep.equal(['SBT']);
-      expect(getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA).map(t => t.sigla)).to.deep.equal(['PEP']);
+      expect(getTipoSubstitutivoCd('substitutivo').sigla).to.equal('SBT');
+      expect(getTipoSubstitutivoCd('subemenda').sigla).to.equal('SSP');
+    });
+
+    it('CD: sigla ausente do vocabulário falha nomeando a sigla', () => {
+      inicializarVocabulario('SF');
+      expect(() => getTipoSubstitutivoCd('substitutivo')).to.throw('SBT');
+      expect(() => getTipoSubstitutivoCd('subemenda')).to.throw('SSP');
     });
   });
 
@@ -103,9 +116,23 @@ describe('Módulos puros da nova proposição', () => {
       expect(r.urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei;pl:2026;12');
     });
 
-    it('substitutivo da CD: tipo e ano de g2, 999999, sem versão', () => {
+    it('substitutivo do SF de PLS: complementar escolhe o tipo da URN; PL ignora o atributo', () => {
+      inicializarVocabulario('SF');
+      const pls = tipo('SF', 'PLS', true);
+      const montar = (t: any, complementar: boolean): any =>
+        montaUrnNovaProposicao(dados('SF', { especie: 'substitutivo', tipoProposicao: resolverTipoComplementar(t, complementar), numeroProposicao: '7' }));
+      expect(montar(pls, true).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei.complementar;pls:2026;7');
+      expect(montar(pls, true).urn).to.equal('urn:lex:br:senado.federal:projeto.lei.complementar;pls:2026;7@apresentacao.substitutivo');
+      expect(montar(pls, false).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei;pls:2026;7');
+      const plc = tipo('SF', 'PLC', true);
+      expect(montar(plc, true).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei.complementar;plc:2026;7');
+      const pl = tipo('SF', 'PL', true);
+      expect(montar(pl, true).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei;pl:2026;7');
+    });
+
+    it('substitutivo da CD: tipo SBT derivado, ano informado, 999999, sem versão', () => {
       inicializarVocabulario('CD');
-      const sbt = getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBSTITUTIVO)[0];
+      const sbt = getTipoSubstitutivoCd('substitutivo');
       const r = montaUrnNovaProposicao(
         dados('CD', { especie: 'substitutivo', tipoProposicao: tipo('CD', 'PL', true), numeroProposicao: '12', tipoSubstitutivo: sbt, anoSubstitutivo: '2026' })
       );
@@ -115,9 +142,9 @@ describe('Módulos puros da nova proposição', () => {
 
     it('subemenda substitutiva da CD referencia a proposição original', () => {
       inicializarVocabulario('CD');
-      const pep = getSiglasSubstitutivo(TipoRelacaoSubstitutivo.E_SUBEMENDA_SUBSTITUTIVA)[0];
-      const r = montaUrnNovaProposicao(dados('CD', { especie: 'subemenda', tipoProposicao: tipo('CD', 'PL', true), numeroProposicao: '12', tipoSubstitutivo: pep }));
-      expect(r.urn).to.equal('urn:lex:br:camara.deputados:subemenda.substitutiva;pep:2026;999999');
+      const ssp = getTipoSubstitutivoCd('subemenda');
+      const r = montaUrnNovaProposicao(dados('CD', { especie: 'subemenda', tipoProposicao: tipo('CD', 'PL', true), numeroProposicao: '12', tipoSubstitutivo: ssp }));
+      expect(r.urn).to.equal('urn:lex:br:camara.deputados:subemenda.substitutiva;ssp:2026;999999');
       expect(r.urnDocumentoReferenciado).to.equal('urn:lex:br:camara.deputados:projeto.lei;pl:2026;12');
     });
 
@@ -171,9 +198,19 @@ describe('Módulos puros da nova proposição', () => {
     });
   });
 
-  it('epígrafe do caso padrão', () => {
-    inicializarVocabulario('SF');
-    expect(montaEpigrafePadrao('urn:lex:br:senado.federal:projeto.lei.complementar;plp:2026;999999')).to.equal('PROJETO DE LEI COMPLEMENTAR Nº   , DE 2026');
+  describe('sufixo da epígrafe', () => {
+    it('SF com destino Plenário', () => {
+      expect(getSufixoEpigrafe('SF', { tipoColegiado: 'Plenário' })).to.equal('- PLEN');
+    });
+
+    it('SF com destino Comissão', () => {
+      expect(getSufixoEpigrafe('SF', { tipoColegiado: 'Comissão', siglaComissao: 'CCJ' })).to.equal('- CCJ');
+    });
+
+    it('CD não tem sufixo, com qualquer destino', () => {
+      expect(getSufixoEpigrafe('CD', { tipoColegiado: 'Plenário' })).to.equal(undefined);
+      expect(getSufixoEpigrafe('CD', { tipoColegiado: 'Comissão', siglaComissao: 'CCJ' })).to.equal(undefined);
+    });
   });
 
   describe('URLs', () => {
@@ -185,12 +222,53 @@ describe('Módulos puros da nova proposição', () => {
       expect(montaUrlComissoes('/comissoes/{casa}', 'CN')).to.equal('/comissoes/CN');
     });
 
-    ['urlVerificacaoProposicao', 'urlTextoEstruturado', 'urlComissoes'].forEach(nome => {
+    const URLS: any = { urlVerificacaoProposicao: '/a', urlTextoEstruturado: '/b', urlComissoes: '/c', urlImportacaoArquivo: '/d' };
+
+    ['urlVerificacaoProposicao', 'urlTextoEstruturado', 'urlComissoes', 'urlImportacaoArquivo'].forEach(nome => {
       it(`configuração sem ${nome} falha nomeando a URL`, () => {
-        const config: any = { urlVerificacaoProposicao: '/a', urlTextoEstruturado: '/b', urlComissoes: '/c' };
+        const config: any = { ...URLS };
         delete config[nome];
         expect(() => validarConfigNovaProposicao(config)).to.throw(nome);
       });
+    });
+
+    [
+      ['urlVerificacaoProposicao', 'onVerificarProposicao'],
+      ['urlTextoEstruturado', 'onObterTexto'],
+      ['urlComissoes', 'onObterComissoes'],
+      ['urlImportacaoArquivo', 'onImportarArquivo'],
+    ].forEach(([url, callback]) => {
+      it(`callback ${callback} dispensa ${url}`, () => {
+        const config: any = { ...URLS, [callback]: () => undefined };
+        delete config[url];
+        expect(() => validarConfigNovaProposicao(config)).to.not.throw();
+      });
+
+      it(`sem ${url} e sem ${callback} a mensagem nomeia a URL e o callback`, () => {
+        const config: any = { ...URLS };
+        delete config[url];
+        expect(() => validarConfigNovaProposicao(config)).to.throw(url);
+        expect(() => validarConfigNovaProposicao(config)).to.throw(callback);
+      });
+    });
+
+    it('só com callbacks (sem nenhuma URL) a configuração é válida', () => {
+      const config: any = { onVerificarProposicao: () => undefined, onObterTexto: () => undefined, onObterComissoes: () => [], onImportarArquivo: () => ({ erros: [] }) };
+      expect(() => validarConfigNovaProposicao(config)).to.not.throw();
+    });
+
+    it('sem a URL e sem o callback de importação a configuração é recusada', () => {
+      const config: any = { onVerificarProposicao: () => undefined, onObterTexto: () => undefined, onObterComissoes: () => [] };
+      expect(() => validarConfigNovaProposicao(config)).to.throw('urlImportacaoArquivo');
+    });
+
+    it('URL em branco não vale como informada', () => {
+      const config: any = { ...URLS, urlVerificacaoProposicao: '   ' };
+      expect(() => validarConfigNovaProposicao(config)).to.throw('urlVerificacaoProposicao');
+    });
+
+    it('normaliza sigla, número e ano da consulta', () => {
+      expect(normalizaConsultaProposicao(' pl ', '0012', ' 2026 ')).to.deep.equal({ sigla: 'PL', numero: '12', ano: '2026' });
     });
   });
 

@@ -75,9 +75,20 @@ const buildElementoPai = (dispositivo: Dispositivo): Referencia | undefined => {
   };
 };
 
+const textoEpigrafeParaExibicao = (texto: string): string => {
+  const [primeira, ...demais] = texto.split(/<br\s*\/?>/i);
+  const linhas = [primeira ? `<b>${primeira}</b>` : primeira, ...demais];
+  return linhas.join('<br class="eta-quebra-linha">');
+};
+
 // O Quill não aceita bloco dentro da linha; o texto do dispositivo mantém os <p> para salvar.
-const textoParaExibicao = (dispositivo: Dispositivo): string | undefined =>
-  isPreambulo(dispositivo) && dispositivo.texto ? dispositivo.texto.replace(/<\/p>\s*<p>/gi, ' ').replace(/^\s*<p>|<\/p>\s*$/gi, '') : dispositivo.texto;
+// Na epígrafe, o <br/> vira o blot de quebra (o Break do Quill se remove) e a primeira linha fica em negrito; o texto mantém o original.
+const textoParaExibicao = (dispositivo: Dispositivo): string | undefined => {
+  if (!dispositivo.texto) return dispositivo.texto;
+  if (isPreambulo(dispositivo)) return dispositivo.texto.replace(/<\/p>\s*<p>/gi, ' ').replace(/^\s*<p>|<\/p>\s*$/gi, '');
+  if (isArticulacao(dispositivo) && !dispositivo.pai) return textoEpigrafeParaExibicao(dispositivo.texto);
+  return dispositivo.texto;
+};
 
 export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarElementoAnterior = false): Elemento => {
   const pai = dispositivo.pai!;
@@ -121,7 +132,8 @@ export const createElemento = (dispositivo: Dispositivo, acoes = true, procurarE
       posicao: pai ? pai.indexOf(dispositivo) : undefined,
       numero: dispositivo.numero,
     },
-    editavel: !isArticulacao(dispositivo),
+    // Epígrafe (linha da articulação) e preâmbulo não recebem o cursor.
+    editavel: !isArticulacao(dispositivo) && !isPreambulo(dispositivo),
     sendoEditado: false,
     uuid: dispositivo.uuid,
     uuid2: dispositivo.uuid2,

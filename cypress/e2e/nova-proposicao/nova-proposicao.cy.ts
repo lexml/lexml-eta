@@ -44,6 +44,34 @@ describe('Nova proposição — componente no modal da demo', () => {
 
   const metadadoLexEdit = (arquivo: any): any => arquivo.value.metadado.metadadoProprietario[0].any[0].value;
 
+  // Epígrafe salva, com o elemento br como '<br/>' (#1053).
+  const epigrafeSalva = (arquivo: any): string =>
+    arquivo.value.projetoNorma.norma.parteInicial.epigrafe.content.map((e: any) => (typeof e === 'string' ? e : e.name.localPart === 'br' ? '<br/>' : '')).join('');
+
+  // A epígrafe exibida em duas linhas: o trecho de cima e o de baixo da quebra.
+  const epigrafeExibidaDeve = (primeira: string, segunda: string): void => {
+    cy.get('lexml-eta br.eta-quebra-linha').should('have.length', 1);
+    cy.get('lexml-eta br.eta-quebra-linha').then($br => {
+      const br = $br[0];
+      expect(br.previousSibling?.textContent).to.equal(primeira);
+      expect(br.nextSibling?.textContent).to.equal(segunda);
+      const topo = (no: Node): number => {
+        const range = br.ownerDocument.createRange();
+        range.selectNodeContents(no);
+        return range.getBoundingClientRect().top;
+      };
+      expect(topo(br.nextSibling!), 'segunda linha abaixo da primeira').to.be.greaterThan(topo(br.previousSibling!));
+      // Só a primeira linha em negrito (#1060).
+      expect(pesoDaFonte(br.previousSibling!), 'primeira linha em negrito').to.be.at.least(700);
+      expect(pesoDaFonte(br.nextSibling!), 'segunda linha sem negrito').to.be.below(700);
+    });
+  };
+
+  const pesoDaFonte = (no: Node): number => {
+    const elemento = no.nodeType === Node.TEXT_NODE ? no.parentElement! : (no as Element);
+    return parseInt(elemento.ownerDocument.defaultView!.getComputedStyle(elemento).fontWeight);
+  };
+
   beforeEach(() => {
     arquivosSalvos.length = 0;
     cy.visit('/');
@@ -72,6 +100,16 @@ describe('Nova proposição — componente no modal da demo', () => {
       expect(metadadoLexEdit(arquivo).colegiadoApreciador).to.include({ tipoColegiado: 'Plenário' });
       expect(metadadoLexEdit(arquivo).anexoParecer).to.equal(false);
     });
+    // Epígrafe de uma linha toda em negrito (#1060).
+    cy.get('lexml-eta .container__elemento--articulacao .texto__dispositivo')
+      .filter((_, el) => /^PROJETO DE LEI Nº/.test(el.textContent ?? ''))
+      .should('have.length', 1)
+      .find('b')
+      .should($b => {
+        expect($b).to.have.length(1);
+        expect($b.text()).to.match(/^PROJETO DE LEI Nº {8}, DE \d{4}$/);
+        expect(pesoDaFonte($b[0])).to.be.at.least(700);
+      });
   });
 
   it('lista de siglas é flutuante, tem no máximo 189 px e rola na vertical', () => {
@@ -86,6 +124,56 @@ describe('Nova proposição — componente no modal da demo', () => {
         expect($lista[0].scrollHeight, 'há mais itens que o visível').to.be.greaterThan($lista[0].clientHeight);
         expect($lista[0].clientHeight, 'altura visível').to.be.at.most(189);
       });
+  });
+
+  it('nova proposição só oferece siglas ativas e não exibe alerta de sigla inativa', () => {
+    abrirModal();
+    abrirLista('#np-sigla-proposicao');
+    cy.get('#np-sigla-proposicao .ac-lista li')
+      .then($itens => [...$itens].map(li => li.textContent!.trim()))
+      .should(siglas => {
+        expect(siglas).to.include.members(['PL', 'PLP']);
+        expect(siglas).to.not.include.members(['PLS', 'PLC']);
+      });
+    cy.get('#np-sigla-inativa').should('not.exist');
+  });
+
+  it('substitutivo: PLS aparece uma vez e o atributo complementar define a URN do documento referenciado', () => {
+    abrirModal();
+    marcarRadioSl('especie', 'substitutivo');
+    abrirLista('#np-sigla-proposicao');
+    cy.get('#np-sigla-proposicao .ac-lista li')
+      .then($itens => [...$itens].map(li => li.textContent!.trim()))
+      .should(siglas => expect(siglas.filter(s => s === 'PLS')).to.have.length(1));
+    escolherItemLista('#np-sigla-proposicao', 'PLS');
+    verificarProposicao('7', '2015');
+    ementaDeve('#np-proposicao-ementa', false);
+    escolherComissao('CCJ');
+    cy.get('#np-continuar').click();
+    marcarRadioSl('opcaoTexto', 'vazio');
+    cy.get('#np-continuar').click();
+
+    cy.get(`${MODAL}[open]`).should('not.exist');
+    lerSalvo().then(arquivo => {
+      expect(metadadoLexEdit(arquivo).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei.complementar;pls:2015;7');
+    });
+  });
+
+  it('substitutivo de PLS sem o atributo complementar usa projeto.lei', () => {
+    abrirModal();
+    marcarRadioSl('especie', 'substitutivo');
+    escolherItemLista('#np-sigla-proposicao', 'PLS');
+    verificarProposicao('8', '2015');
+    ementaDeve('#np-proposicao-ementa', false);
+    escolherComissao('CCJ');
+    cy.get('#np-continuar').click();
+    marcarRadioSl('opcaoTexto', 'vazio');
+    cy.get('#np-continuar').click();
+
+    cy.get(`${MODAL}[open]`).should('not.exist');
+    lerSalvo().then(arquivo => {
+      expect(metadadoLexEdit(arquivo).urnDocumentoReferenciado).to.equal('urn:lex:br:senado.federal:projeto.lei;pls:2015;8');
+    });
   });
 
   it('sigla digitada que não é um item é apagada ao perder o foco', () => {
@@ -157,11 +245,13 @@ describe('Nova proposição — componente no modal da demo', () => {
 
     cy.get(`${MODAL}[open]`).should('not.exist');
     cy.getContainerArtigoByNumero(1).should('exist');
+    epigrafeExibidaDeve('EMENDA Nº        - CCJ (SUBSTITUTIVO)', '(ao Projeto de Lei nº 5.008, de 2023)');
     lerSalvo().then(arquivo => {
       const lexedit = metadadoLexEdit(arquivo);
       expect(lexedit.anexoParecer).to.equal(true);
       expect(lexedit.urnDocumentoReferenciado).to.contain('projeto.lei;pl:2023;');
       expect(lexedit.colegiadoApreciador).to.include({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
+      expect(epigrafeSalva(arquivo)).to.equal('EMENDA Nº        - CCJ (SUBSTITUTIVO)<br/>(ao Projeto de Lei nº 5.008, de 2023)');
     });
   });
 
@@ -207,30 +297,13 @@ describe('Nova proposição — componente no modal da demo', () => {
 
     cy.get(`${MODAL}[open]`).should('not.exist');
     cy.getContainerArtigoByNumero(1).should('exist');
+    const ano = new Date().getFullYear();
+    epigrafeExibidaDeve(`PROJETO DE LEI DE CONVERSÃO Nº        , DE ${ano}`, '(Medida Provisória nº 1.089, de 2021)');
     lerSalvo().then(arquivo => {
       expect(arquivo.value.metadado.identificacao.urn).to.contain('congresso.nacional:projeto.lei.conversao;plv:');
+      expect(epigrafeSalva(arquivo)).to.equal(`PROJETO DE LEI DE CONVERSÃO Nº        , DE ${ano}<br/>(Medida Provisória nº 1.089, de 2021)`);
       expect(metadadoLexEdit(arquivo).urnDocumentoReferenciado).to.equal('urn:lex:br:federal:medida.provisoria;mpv:2021;1089');
     });
-  });
-
-  it('importação de arquivo simulada leva à Tela 3 e Continuar cria o documento vazio', () => {
-    abrirModal();
-    escolherItemLista('#np-sigla-proposicao', 'PL');
-    cy.get('#np-continuar').click();
-    marcarRadioSl('opcaoTexto', 'importar');
-    deveEstarDesabilitado('#np-continuar');
-    cy.get('#np-arquivo').selectFile({ contents: Cypress.Buffer.from('texto'), fileName: 'minuta.txt' }, { force: true });
-    cy.get('#np-continuar').click();
-
-    cy.get('#np-erros-titulo').should('contain.text', 'minuta.txt');
-    cy.get('#np-erros').should('contain.text', 'simulado');
-    cy.get('#np-voltar').click();
-    cy.get('#np-arquivo').should('exist');
-    cy.get('#np-continuar').click();
-    cy.get('#np-continuar').click();
-
-    cy.get(`${MODAL}[open]`).should('not.exist');
-    cy.getContainerArtigoByNumero(1).should('exist');
   });
 
   it('arquivo acima de 5 MB é recusado', () => {
@@ -252,12 +325,11 @@ describe('Nova proposição — componente no modal da demo', () => {
     cy.get('.aguardando-inicializacao').should('exist');
   });
 
-  it('na Câmara, substitutivo usa a sigla do substitutivo e as comissões da CD', () => {
+  it('na Câmara, substitutivo deriva o tipo SBT, sem grupo de identificação próprio, e usa as comissões da CD', () => {
     cy.get('#casaEditor').select('CD');
     abrirModal();
     marcarRadioSl('especie', 'substitutivo');
-    cy.get('#np-g2').should('exist');
-    escolherItemLista('#np-sigla-substitutivo', 'SBT');
+    cy.get('#np-g2').should('not.exist');
     escolherItemLista('#np-sigla-proposicao', 'PL');
     verificarProposicao('5008', '2023');
     escolherComissao('CCJC');
@@ -270,6 +342,95 @@ describe('Nova proposição — componente no modal da demo', () => {
       expect(arquivo.value.metadado.identificacao.urn).to.match(/^urn:lex:br:camara\.deputados:substitutivo;sbt:\d{4};999999$/);
       expect(metadadoLexEdit(arquivo).anexoParecer).to.equal(true);
       expect(metadadoLexEdit(arquivo).colegiadoApreciador).to.include({ tipoColegiado: 'Comissão', siglaComissao: 'CCJC' });
+    });
+  });
+
+  it('na Câmara, subemenda substitutiva deriva o tipo SSP, sem grupo de identificação próprio', () => {
+    cy.get('#casaEditor').select('CD');
+    abrirModal();
+    marcarRadioSl('especie', 'subemenda');
+    cy.get('#np-g2').should('not.exist');
+    escolherItemLista('#np-sigla-proposicao', 'PL');
+    verificarProposicao('5008', '2023');
+    escolherComissao('CCJC');
+    cy.get('#np-continuar').click();
+    cy.get('#np-continuar').click();
+
+    cy.get(`${MODAL}[open]`).should('not.exist');
+    cy.getContainerArtigoByNumero(1).should('exist');
+    lerSalvo().then(arquivo => {
+      expect(arquivo.value.metadado.identificacao.urn).to.match(/^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/);
+    });
+  });
+
+  it('reabrir o modal depois de avançar à Tela 2 e cancelar mostra a Tela 1 nos padrões', () => {
+    abrirModal();
+    escolherItemLista('#np-sigla-proposicao', 'PL');
+    cy.get('#np-continuar').click();
+    cy.get('#np-cabecalho').should('exist');
+    cy.get('#np-cancelar').click();
+    cy.get(`${MODAL}[open]`).should('not.exist');
+
+    abrirModal();
+    cy.get('#np-cabecalho').should('not.exist');
+    cy.get('#np-titulo').should('have.text', 'Nova proposição');
+    cy.get('#np-sigla-proposicao sl-input').should('have.prop', 'value', '');
+    cy.get('sl-radio[name="especie"][value="proposicao"]').should('have.prop', 'checked', true);
+    deveEstarDesabilitado('#np-continuar');
+  });
+
+  describe('modo de edição de dados básicos', () => {
+    const DADOS_BASICOS = 'lexml-eta-dados-basicos';
+
+    const criarPl = (): void => {
+      abrirModal();
+      escolherItemLista('#np-sigla-proposicao', 'PL');
+      cy.get('#np-continuar').click();
+      cy.get('#np-continuar').click();
+      cy.get(`${MODAL}[open]`).should('not.exist');
+      cy.getContainerArtigoByNumero(1).should('exist');
+    };
+
+    const abrirAlteracao = (): void => {
+      cy.get('sl-tab[panel="autoria"]').click();
+      cy.get(DADOS_BASICOS).shadow().find('#botao-alterar-dados-basicos').click();
+      cy.get(`${MODAL}[open]`).should('exist');
+      cy.get('#np-titulo').should('have.text', 'Alterar dados básicos');
+    };
+
+    it('abre preenchido com os dados atuais e Continuar aplica a alteração sem passar pela Tela 2', () => {
+      criarPl();
+      abrirAlteracao();
+      cy.get('#np-sigla-proposicao sl-input').should('have.prop', 'value').and('match', /^PL\b/);
+      cy.get('sl-radio[name="destino"][value="Plenário"]').should('have.prop', 'checked', true);
+      cy.get('#np-anexo-parecer').should('have.prop', 'checked', false);
+      deveEstarHabilitado('#np-continuar');
+
+      marcarRadioSl('destino', 'Comissão');
+      escolherComissao('CCJ');
+      cy.get('#np-continuar').click();
+
+      cy.get('#np-cabecalho').should('not.exist');
+      cy.get(`${MODAL}[open]`).should('not.exist');
+      cy.get(DADOS_BASICOS).shadow().find('#dados-basicos-colegiado').should('contain.text', 'Comissão (CCJ)');
+    });
+
+    it('passar a anexo de parecer pede confirmação: Não mantém o modal e Sim aplica', () => {
+      criarPl();
+      abrirAlteracao();
+      cy.get('#np-anexo-parecer').shadow().find('input').click({ force: true });
+      cy.get('#np-anexo-parecer').should('have.prop', 'checked', true);
+      cy.get('#np-continuar').click();
+
+      cy.get('#np-confirmacao[open]').should('contain.text', 'Ao apresentar o documento em parecer, a justificação informada será perdida. Deseja continuar?');
+      cy.get('#np-confirmar-nao').click();
+      cy.get('#np-confirmacao[open]').should('not.exist');
+      cy.get(`${MODAL}[open]`).should('exist');
+
+      cy.get('#np-continuar').click();
+      cy.get('#np-confirmar-sim').click();
+      cy.get(`${MODAL}[open]`).should('not.exist');
+      cy.get(DADOS_BASICOS).shadow().find('#dados-basicos-parecer').should('contain.text', 'Sim');
     });
   });
 

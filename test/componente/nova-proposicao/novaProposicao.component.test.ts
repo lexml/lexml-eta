@@ -2,7 +2,13 @@ import { expect, fixture, html } from '@open-wc/testing';
 import { EVENTO_CANCELADA, EVENTO_CONCLUIDA, NovaProposicaoComponent } from '../../../src/components/nova-proposicao/nova-proposicao.component';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
-const CONFIG = { casaLegislativaEditor: 'SF', urlVerificacaoProposicao: '/v/{sigla}/{numero}/{ano}', urlTextoEstruturado: '/t/{sigla}/{numero}/{ano}', urlComissoes: '/c/{casa}' };
+const CONFIG = {
+  casaLegislativaEditor: 'SF',
+  urlVerificacaoProposicao: '/v/{sigla}/{numero}/{ano}',
+  urlTextoEstruturado: '/t/{sigla}/{numero}/{ano}',
+  urlComissoes: '/c/{casa}',
+  urlImportacaoArquivo: '/importacao',
+};
 const COMISSOES = [
   { siglaCasaLegislativa: 'SF', sigla: 'CCJ', nome: 'Comissão de Constituição, Justiça e Cidadania' },
   { siglaCasaLegislativa: 'CD', sigla: 'CFT', nome: 'Comissão de Finanças e Tributação' },
@@ -10,13 +16,15 @@ const COMISSOES = [
 ];
 const TEXTO = { value: { texto: 'jsonix' } };
 
-type Resposta = { status: number; corpo?: unknown } | 'rede';
+type Resposta = { status: number; corpo?: unknown; texto?: string } | 'rede';
+type Envio = { metodo?: string; contentType?: string; corpo?: unknown };
 
 describe('lexml-nova-proposicao', () => {
   let el: NovaProposicaoComponent;
   let fetchOriginal: typeof window.fetch;
   let chamadas: string[];
   let rotas: Record<string, Resposta>;
+  let envios: Envio[];
 
   const pausa = (): Promise<void> => new Promise(r => setTimeout(r, 0));
   const atualizar = async (): Promise<void> => {
@@ -75,22 +83,28 @@ describe('lexml-nova-proposicao', () => {
 
   beforeEach(() => {
     chamadas = [];
+    envios = [];
     rotas = {
       '/c/SF': { status: 200, corpo: COMISSOES },
       '/c/CD': { status: 200, corpo: COMISSOES },
       '/c/CN': { status: 200, corpo: COMISSOES },
       '/v/PL/12/2026': { status: 200, corpo: { ementa: 'Ementa do PL 12', textoEstruturadoDisponivel: true } },
       '/v/PL/13/2026': { status: 200, corpo: { ementa: 'Sem texto', textoEstruturadoDisponivel: false } },
+      '/v/PLS/7/2026': { status: 200, corpo: { ementa: 'Ementa do PLS 7', textoEstruturadoDisponivel: true, complementar: true } },
+      '/v/PLS/8/2026': { status: 200, corpo: { ementa: 'Ementa do PLS 8', textoEstruturadoDisponivel: true } },
       '/v/MPV/99/2026': { status: 200, corpo: { ementa: 'Ementa da MPV 99', textoEstruturadoDisponivel: true } },
       '/t/PL/12/2026': { status: 200, corpo: TEXTO },
+      '/t/PLS/7/2026': { status: 200, corpo: TEXTO },
+      '/t/PLS/8/2026': { status: 200, corpo: TEXTO },
       '/t/MPV/99/2026': { status: 200, corpo: TEXTO },
     };
     fetchOriginal = window.fetch;
-    window.fetch = (async (url: string): Promise<Response> => {
+    window.fetch = (async (url: string, init?: RequestInit): Promise<Response> => {
       chamadas.push(url);
+      if (init?.method) envios.push({ metodo: init.method, contentType: (init.headers as Record<string, string>)?.['Content-Type'], corpo: init.body });
       const r = rotas[url] ?? { status: 404 };
       if (r === 'rede') throw new TypeError('rede');
-      return new Response(r.corpo === undefined ? null : JSON.stringify(r.corpo), { status: r.status });
+      return new Response(r.texto ?? (r.corpo === undefined ? null : JSON.stringify(r.corpo)), { status: r.status });
     }) as typeof window.fetch;
   });
 
@@ -100,7 +114,7 @@ describe('lexml-nova-proposicao', () => {
   });
 
   describe('configuração', () => {
-    ['urlVerificacaoProposicao', 'urlTextoEstruturado', 'urlComissoes'].forEach(nome => {
+    ['urlVerificacaoProposicao', 'urlTextoEstruturado', 'urlComissoes', 'urlImportacaoArquivo'].forEach(nome => {
       it(`sem ${nome}: falha nomeando a URL e não exibe nenhuma tela`, async () => {
         el = await fixture<NovaProposicaoComponent>(html`<lexml-nova-proposicao></lexml-nova-proposicao>`);
         const config: any = { ...CONFIG };
@@ -144,17 +158,13 @@ describe('lexml-nova-proposicao', () => {
       expect(q<any>('np-anexo-parecer')!.checked).to.be.false;
     });
 
-    it('lista de siglas: ativos antes de inativos e sem a MPV', async () => {
+    it('lista de siglas: só ativas e sem a MPV', async () => {
       const textos = await textosItens('np-sigla-proposicao');
-      expect(textos).to.include.members(['PL', 'PLP', 'PLV', 'PLS']);
-      expect(textos).to.not.include('MPV');
-      expect(textos.indexOf('PLS')).to.be.greaterThan(textos.indexOf('PLV'));
+      expect(textos).to.include.members(['PL', 'PLP', 'PLV']);
+      expect(textos).to.not.include.members(['MPV', 'PLS', 'PLC']);
     });
 
-    it('sigla inativa exibe alerta sem bloquear; sigla ativa não exibe', async () => {
-      await escolherSigla('np-sigla-proposicao', 'PLS');
-      expect(existe('np-sigla-inativa')).to.be.true;
-      expect(botaoHabilitado('np-continuar')).to.be.true;
+    it('sem alerta de sigla inativa', async () => {
       await escolherSigla('np-sigla-proposicao', 'PL');
       expect(existe('np-sigla-inativa')).to.be.false;
     });
@@ -318,15 +328,58 @@ describe('lexml-nova-proposicao', () => {
   describe('Tela 1 na CD', () => {
     beforeEach(() => iniciar({ ...CONFIG, casaLegislativaEditor: 'CD' }));
 
-    it('oferece subemenda e o grupo g2 com número s/n; siglas só do substitutivo', async () => {
+    const preencherSubstitutivo = async (especie: 'substitutivo' | 'subemenda'): Promise<void> => {
+      await marcar('especie', especie);
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await digitar('np-numero-proposicao', '12');
+      await digitar('np-ano-proposicao', '2026');
+      await clicar('np-proposicao-verificar');
+      await escolherComissao('CFT');
+    };
+
+    it('oferece subemenda e não exibe o grupo de identificação do substitutivo', async () => {
+      expect(!!el.querySelector('sl-radio[name="especie"][value="subemenda"]')).to.be.true;
       await marcar('especie', 'substitutivo');
-      expect(existe('np-g2')).to.be.true;
-      expect(q<any>('np-numero-substitutivo')!.textContent).to.equal('s/n');
-      const textos = await textosItens('np-sigla-substitutivo');
-      expect(textos).to.include('SBT');
-      expect(textos).to.not.include('PEP');
+      expect(existe('np-g2')).to.be.false;
       await marcar('especie', 'subemenda');
-      expect(await textosItens('np-sigla-substitutivo')).to.include('PEP');
+      expect(existe('np-g2')).to.be.false;
+    });
+
+    it('Continuar não exige sigla nem ano do substitutivo', async () => {
+      await preencherSubstitutivo('substitutivo');
+      expect(botaoHabilitado('np-continuar')).to.be.true;
+    });
+
+    [
+      { especie: 'substitutivo' as const, urn: /^urn:lex:br:camara\.deputados:substitutivo;sbt:\d{4};999999$/ },
+      { especie: 'subemenda' as const, urn: /^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/ },
+    ].forEach(({ especie, urn }) => {
+      it(`${especie}: a URN usa o tipo derivado e o ano corrente`, async () => {
+        const r: { detail?: any } = {};
+        el.addEventListener(EVENTO_CONCLUIDA, (e: Event) => (r.detail = (e as CustomEvent).detail));
+        await preencherSubstitutivo(especie);
+        await clicar('np-continuar');
+        await marcar('opcaoTexto', 'vazio');
+        await clicar('np-continuar');
+        expect(r.detail.urn).to.match(urn);
+        expect(r.detail.urn).to.contain(`:${new Date().getFullYear()};`);
+        expect(r.detail.urnDocumentoReferenciado).to.equal('urn:lex:br:camara.deputados:projeto.lei;pl:2026;12');
+      });
+    });
+
+    it('trocar a espécie troca o tipo do documento sem escolha de sigla', async () => {
+      const r: { detail?: any } = {};
+      el.addEventListener(EVENTO_CONCLUIDA, (e: Event) => (r.detail = (e as CustomEvent).detail));
+      await preencherSubstitutivo('substitutivo');
+      await marcar('especie', 'subemenda');
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await digitar('np-numero-proposicao', '12');
+      await clicar('np-proposicao-verificar');
+      await escolherComissao('CFT');
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'vazio');
+      await clicar('np-continuar');
+      expect(r.detail.urn).to.contain('subemenda.substitutiva;ssp:');
     });
   });
 
@@ -364,7 +417,7 @@ describe('lexml-nova-proposicao', () => {
       await irParaTela2Proposicao();
       await clicar('np-continuar');
       expect(r.detail.urn).to.equal(`urn:lex:br:senado.federal:projeto.lei;pl:${new Date().getFullYear()};999999`);
-      expect(r.detail.epigrafe).to.contain('PROJETO DE LEI Nº');
+      expect(r.detail.epigrafe).to.equal(`PROJETO DE LEI Nº        , DE ${new Date().getFullYear()}`);
       expect(r.detail.preambulo).to.equal('O CONGRESSO NACIONAL decreta:');
       expect(r.detail.colegiadoDestino).to.deep.equal({ tipoColegiado: 'Plenário' });
       expect(r.detail.anexoParecer).to.be.false;
@@ -385,6 +438,50 @@ describe('lexml-nova-proposicao', () => {
       expect(r.detail.urn).to.contain('@apresentacao.substitutivo');
       expect(r.detail.colegiadoDestino).to.deep.equal({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
       expect(r.detail.anexoParecer).to.be.true;
+      expect(r.detail.epigrafe).to.equal(`EMENDA Nº        - CCJ (SUBSTITUTIVO)<br/>(ao Projeto de Lei nº 12, de ${new Date().getFullYear()})`);
+    });
+
+    it('substitutivo no SF com destino Plenário usa o sufixo - PLEN', async () => {
+      const r = concluida();
+      await marcar('especie', 'substitutivo');
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await digitar('np-numero-proposicao', '12');
+      await clicar('np-proposicao-verificar');
+      await marcar('destino', 'Plenário');
+      await clicar('np-continuar');
+      await clicar('np-continuar');
+      expect(r.detail.colegiadoDestino).to.deep.equal({ tipoColegiado: 'Plenário' });
+      expect(r.detail.epigrafe).to.equal(`EMENDA Nº        - PLEN (SUBSTITUTIVO)<br/>(ao Projeto de Lei nº 12, de ${new Date().getFullYear()})`);
+    });
+
+    it('substitutivo de PLS: lista com a sigla uma vez e URN conforme o atributo complementar', async () => {
+      const r = concluida();
+      await marcar('especie', 'substitutivo');
+      const siglas = await textosItens('np-sigla-proposicao');
+      expect(siglas.filter(x => x === 'PLS')).to.have.length(1);
+      await escolherSigla('np-sigla-proposicao', 'PLS');
+      await digitar('np-numero-proposicao', '7');
+      await clicar('np-proposicao-verificar');
+      await escolherComissao('CCJ');
+      await clicar('np-continuar');
+      await clicar('np-continuar');
+      const ano = new Date().getFullYear();
+      expect(r.detail.urnDocumentoReferenciado).to.equal(`urn:lex:br:senado.federal:projeto.lei.complementar;pls:${ano};7`);
+    });
+
+    it('substitutivo de PLS sem o atributo complementar usa projeto.lei; alterar o número descarta o valor', async () => {
+      await marcar('especie', 'substitutivo');
+      await escolherSigla('np-sigla-proposicao', 'PLS');
+      await digitar('np-numero-proposicao', '7');
+      await clicar('np-proposicao-verificar');
+      await digitar('np-numero-proposicao', '8');
+      expect(botaoHabilitado('np-continuar')).to.be.false;
+      await clicar('np-proposicao-verificar');
+      await escolherComissao('CCJ');
+      const r = concluida();
+      await clicar('np-continuar');
+      await clicar('np-continuar');
+      expect(r.detail.urnDocumentoReferenciado).to.contain('projeto.lei;pls:');
     });
 
     it('texto não encontrado (404): alerta e Continuar desabilitado; trocar de opção reabilita', async () => {
@@ -424,6 +521,8 @@ describe('lexml-nova-proposicao', () => {
       const siglas = await textosItens('np-sigla-outra');
       expect(siglas).to.include.members(['PL', 'PLP', 'PLV', 'PLS', 'MPV']);
       expect(siglas.indexOf('PLS')).to.be.greaterThan(siglas.indexOf('MPV'));
+      expect(siglas.filter(x => x === 'PLS')).to.have.length(1);
+      expect(siglas.filter(x => x === 'PLC')).to.have.length(1);
       expect(siglas).to.deep.equal(await textosItens('np-sigla-outra'));
     });
 
@@ -457,9 +556,10 @@ describe('lexml-nova-proposicao', () => {
       await clicar('np-continuar');
       expect(chamadas).to.include('/t/MPV/99/2026');
       expect(r.detail.urnDocumentoReferenciado).to.contain('federal:medida.provisoria;mpv:');
+      expect(r.detail.epigrafe).to.equal(`PROJETO DE LEI DE CONVERSÃO Nº        , DE 2026<br/>(Medida Provisória nº 99, de 2026)`);
     });
 
-    describe('importação simulada', () => {
+    describe('importação', () => {
       const selecionarArquivo = async (arquivo: File): Promise<void> => {
         const input = q<any>('np-arquivo')!;
         const dt = new DataTransfer();
@@ -469,16 +569,143 @@ describe('lexml-nova-proposicao', () => {
         await atualizar();
       };
 
-      it('arquivo válido leva à Tela 3 com erro simulado, sem chamar URL de texto', async () => {
+      const prepararImportacao = async (): Promise<void> => {
         await irParaTela2Proposicao();
         await marcar('opcaoTexto', 'importar');
+      };
+      const textoAviso = (): string => (q('np-aviso-importacao')?.innerText ?? '').replace(/\s+/g, ' ').trim();
+
+      it('rótulo e seletor oferecem PDF, DOCX, TXT, XML e JSON', async () => {
+        await prepararImportacao();
+        expect(opcao('importar')!.textContent).to.contain('Importar documento (PDF, DOCX, TXT ou LexML)');
+        expect(q<HTMLInputElement>('np-arquivo')!.accept).to.equal('.pdf,.docx,.txt,.xml,.json');
+      });
+
+      it('aceita as cinco extensões e recusa .lexml', async () => {
+        await prepararImportacao();
+        for (const nome of ['a.pdf', 'a.docx', 'a.txt', 'a.xml', 'a.json']) {
+          await selecionarArquivo(new File(['x'], nome));
+          expect(existe('np-erro-arquivo'), nome).to.be.false;
+          expect(botaoHabilitado('np-continuar'), nome).to.be.true;
+        }
+        await selecionarArquivo(new File(['x'], 'a.lexml'));
+        expect(existe('np-erro-arquivo')).to.be.true;
         expect(botaoHabilitado('np-continuar')).to.be.false;
-        await selecionarArquivo(new File(['x'], 'texto.docx'));
+      });
+
+      [
+        ['minuta.pdf', 'application/pdf'],
+        ['minuta.docx', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'],
+        ['minuta.txt', 'text/plain'],
+        ['minuta.xml', 'application/xml'],
+      ].forEach(([nome, tipo]) => {
+        it(`${nome}: POST na URL de importação com o arquivo no corpo e Content-Type ${tipo}`, async () => {
+          rotas['/importacao'] = { status: 200, corpo: TEXTO };
+          await prepararImportacao();
+          const arquivo = new File(['conteudo'], nome);
+          await selecionarArquivo(arquivo);
+          await clicar('np-continuar');
+          expect(envios).to.have.length(1);
+          expect(envios[0].metodo).to.equal('POST');
+          expect(envios[0].contentType).to.equal(tipo);
+          expect(envios[0].corpo).to.equal(arquivo);
+        });
+      });
+
+      it('200: conclui com o documento em documentoImportado, sem texto', async () => {
+        rotas['/importacao'] = { status: 200, corpo: TEXTO };
+        const r = concluida();
+        await prepararImportacao();
+        await selecionarArquivo(new File(['x'], 'minuta.xml'));
+        await clicar('np-continuar');
+        expect(r.detail.documentoImportado).to.deep.equal(TEXTO);
+        expect('texto' in r.detail).to.be.false;
+      });
+
+      it('400: alerta de aviso com o título, a mensagem do serviço e a orientação, sem concluir', async () => {
+        rotas['/importacao'] = { status: 400, texto: 'Conversão de DOCX ou TXT não implementada.' };
+        const r = concluida();
+        await prepararImportacao();
+        await selecionarArquivo(new File(['x'], 'minuta.docx'));
+        await clicar('np-continuar');
+        expect(textoAviso()).to.equal(
+          'O arquivo não pôde ser importado Conversão de DOCX ou TXT não implementada. Selecione outro arquivo ou escolha outra forma de iniciar o texto.'
+        );
+        expect(q('np-aviso-importacao')!.getAttribute('variant')).to.equal('warning');
+        expect(existe('np-arquivo')).to.be.true;
+        expect(r.detail).to.be.undefined;
+      });
+
+      it('400 sem corpo: mensagem padrão de recusa', async () => {
+        rotas['/importacao'] = { status: 400, texto: '  ' };
+        await prepararImportacao();
+        await selecionarArquivo(new File(['x'], 'minuta.txt'));
+        await clicar('np-continuar');
+        expect(textoAviso()).to.contain('O serviço de conversão recusou o arquivo.');
+      });
+
+      it('500: alerta de erro com o nome do arquivo, sem o corpo, e nova tentativa possível', async () => {
+        rotas['/importacao'] = { status: 500, texto: 'Falha interna.' };
+        await prepararImportacao();
+        await selecionarArquivo(new File(['x'], 'minuta.pdf'));
+        await clicar('np-continuar');
+        const alerta = q('np-erro-texto')!;
+        expect(alerta.textContent).to.equal('Não foi possível converter o arquivo "minuta.pdf": o serviço de conversão apresentou uma falha. Tente novamente em alguns instantes.');
+        expect(alerta.getAttribute('variant')).to.equal('danger');
+        expect(existe('np-arquivo')).to.be.true;
+        expect(botaoHabilitado('np-continuar')).to.be.true;
+        rotas['/importacao'] = { status: 200, corpo: TEXTO };
+        const r = concluida();
+        await clicar('np-continuar');
+        expect(r.detail.documentoImportado).to.deep.equal(TEXTO);
+      });
+
+      it('falha de rede ou 200 sem JSON têm o efeito do 500', async () => {
+        for (const resposta of ['rede', { status: 200, texto: 'não é json' }] as Resposta[]) {
+          rotas['/importacao'] = resposta;
+          await prepararImportacao();
+          await selecionarArquivo(new File(['x'], 'minuta.xml'));
+          await clicar('np-continuar');
+          expect(q('np-erro-texto')!.textContent).to.contain('Não foi possível converter o arquivo "minuta.xml"');
+          await clicar('np-voltar');
+        }
+      });
+
+      it('os alertas saem ao trocar o arquivo ou a opção de texto inicial', async () => {
+        rotas['/importacao'] = { status: 400, texto: 'Recusado.' };
+        await prepararImportacao();
+        await selecionarArquivo(new File(['x'], 'minuta.docx'));
+        await clicar('np-continuar');
+        expect(existe('np-aviso-importacao')).to.be.true;
+        await selecionarArquivo(new File(['x'], 'outra.docx'));
+        expect(existe('np-aviso-importacao')).to.be.false;
+        rotas['/importacao'] = { status: 500 };
+        await clicar('np-continuar');
+        expect(existe('np-erro-texto')).to.be.true;
+        await marcar('opcaoTexto', 'vazio');
+        await marcar('opcaoTexto', 'importar');
+        expect(existe('np-erro-texto')).to.be.false;
+      });
+
+      it('.json: lido direto, sem requisição, e concluído em documentoImportado', async () => {
+        const r = concluida();
+        await prepararImportacao();
+        await selecionarArquivo(new File(['\uFEFF' + JSON.stringify(TEXTO)], 'proposicao.json'));
         const antes = chamadas.length;
         await clicar('np-continuar');
-        expect(q('np-erros-titulo')!.textContent).to.contain('texto.docx');
-        expect(q('np-erros')!.textContent).to.contain('simulado');
         expect(chamadas.length).to.equal(antes);
+        expect(r.detail.documentoImportado).to.deep.equal(TEXTO);
+      });
+
+      it('.json inválido: alerta de aviso, sem requisição e sem concluir', async () => {
+        const r = concluida();
+        await prepararImportacao();
+        await selecionarArquivo(new File(['{ não é json'], 'proposicao.json'));
+        const antes = chamadas.length;
+        await clicar('np-continuar');
+        expect(chamadas.length).to.equal(antes);
+        expect(textoAviso()).to.equal('O arquivo JSON não pôde ser lido: o conteúdo não é um JSON válido.');
+        expect(r.detail).to.be.undefined;
       });
 
       it('arquivo maior que 5 MB ou de outro formato é recusado', async () => {
@@ -490,19 +717,22 @@ describe('lexml-nova-proposicao', () => {
         await selecionarArquivo(new File(['x'], 'imagem.png'));
         expect(existe('np-erro-arquivo')).to.be.true;
         expect(botaoHabilitado('np-continuar')).to.be.false;
+        expect(envios).to.have.length(0);
       });
 
-      it('Tela 3: Continuar conclui com documento vazio; Voltar retorna à Tela 2', async () => {
+      it('Tela 3 (erros do callback): Continuar conclui com documento vazio; Voltar retorna à Tela 2', async () => {
+        await iniciar({ ...CONFIG, onImportarArquivo: () => ({ erros: ['Linha 3 inválida'] }) });
         const r = concluida();
-        await irParaTela2Proposicao();
-        await marcar('opcaoTexto', 'importar');
+        await prepararImportacao();
         await selecionarArquivo(new File(['x'], 'texto.txt'));
         await clicar('np-continuar');
+        expect(q('np-erros-titulo')!.textContent).to.contain('texto.txt');
         await clicar('np-voltar');
         expect(existe('np-arquivo')).to.be.true;
         await clicar('np-continuar');
         await clicar('np-continuar');
         expect('texto' in r.detail).to.be.false;
+        expect('documentoImportado' in r.detail).to.be.false;
       });
     });
   });

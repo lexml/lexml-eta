@@ -229,7 +229,7 @@ export class EtaQuill extends PrivateQuill {
   }
 
   marcarLinhaAtual(linhaCursor: EtaContainerTable): void {
-    if (linhaCursor && linhaCursor.tipo !== 'Articulacao') {
+    if (linhaCursor && linhaCursor.editavel) {
       this.atualizarLinhaCorrente(linhaCursor);
       this.elementoSelecionado.notify(linhaCursor.uuid);
     }
@@ -263,6 +263,15 @@ export class EtaQuill extends PrivateQuill {
     }, 0);
   }
 
+  private devolverCursorDeLinhaNaoEditavel(oldRange?: QuillRange): void {
+    const linhaAnterior = oldRange ? this.getLine(oldRange.index)[0]?.linha : undefined;
+    if (oldRange && linhaAnterior?.editavel) {
+      this.setSelection(oldRange.index, 0, PrivateQuill.sources.SILENT);
+    } else if (this._linhaAtual?.blotConteudo) {
+      this.setSelection(this.getIndex(this._linhaAtual.blotConteudo), 0, PrivateQuill.sources.SILENT);
+    }
+  }
+
   private desmarcarLinhas(): void {
     document.querySelectorAll('.container__elemento--ativo').forEach(elemento => {
       const linha = this.getLinhaPorId(parseInt(elemento.id.substr(7), 0));
@@ -280,6 +289,12 @@ export class EtaQuill extends PrivateQuill {
     if (range) {
       const blotCursor: EtaBlot = this.getLine(range.index)[0];
       const linhaCursor: EtaContainerTable = blotCursor.linha;
+
+      // Linha não editável (epígrafe, preâmbulo) não recebe o cursor; testado antes do redirecionamento do rótulo/menu, que levaria a ela.
+      if (range.length === 0 && linhaCursor && !linhaCursor.editavel) {
+        this.devolverCursorDeLinhaNaoEditavel(oldRange);
+        return false;
+      }
 
       if (
         blotCursor.tagName === EtaBlotRotulo.tagName ||

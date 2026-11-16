@@ -1,6 +1,7 @@
 import { expect, fixture } from '@open-wc/testing';
 import '../../../src';
 import type { LexmlEtaComponent } from '../../../src';
+import { congelarRelogio, DATA_ULTIMA_MODIFICACAO_CONGELADA, metadadoProprietarioLexEdit, novoDocumentoArticulado, restaurarRelogio } from '../../doc/documentoArticulado';
 
 const URN_PL = 'urn:lex:br:senado.federal:projeto.lei;pl:2026;1';
 const novaProposicaoDados = (anexoParecer: boolean): any => ({ urn: URN_PL, epigrafe: 'PROJETO DE LEI', preambulo: '', anexoParecer });
@@ -43,7 +44,7 @@ describe('Campo "Data" do documento', () => {
 
       await component.novaProposicao(novaProposicaoDados(anexoParecer));
 
-      expect(component.getProposicao().dataUltimaModificacao).to.equal(undefined);
+      expect(component.getProposicao().data).to.equal('');
     });
   });
 
@@ -54,8 +55,49 @@ describe('Campo "Data" do documento', () => {
     campoData(component).data = '2026-04-24';
     const proposicao = component.getProposicao();
 
-    expect(proposicao.dataUltimaModificacao).to.equal('2026-04-24');
+    expect(proposicao.data).to.equal('2026-04-24');
     expect(proposicao.local).to.equal('Sala das Sessões');
     expect(!!proposicao.autoria).to.equal(true);
+  });
+
+  describe('datas da proposição obtida', () => {
+    afterEach(restaurarRelogio);
+
+    it('sem documento iniciado, traz data vazia e o instante da obtenção', async () => {
+      const component = await novoComponente();
+      congelarRelogio();
+
+      const proposicao = component.getProposicao();
+
+      expect(proposicao.data).to.equal('');
+      expect(proposicao.dataUltimaModificacao).to.equal(DATA_ULTIMA_MODIFICACAO_CONGELADA);
+    });
+
+    it('com data informada, traz o instante da obtenção em dataUltimaModificacao e a data em data', async () => {
+      const component = await novoComponente();
+      await component.novaProposicao(novaProposicaoDados(false));
+      campoData(component).data = '2026-04-24';
+      congelarRelogio();
+
+      const proposicao = component.getProposicao();
+
+      expect(proposicao.data).to.equal('2026-04-24');
+      expect(proposicao.dataUltimaModificacao).to.equal(DATA_ULTIMA_MODIFICACAO_CONGELADA);
+    });
+
+    it('com documento aberto, traz a data do fecho e o instante da obtenção, e não a data lida do arquivo', async () => {
+      const component = await novoComponente();
+      const entrada = novoDocumentoArticulado();
+      entrada.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit({ data: '2026-04-24', dataUltimaModificacao: '2026-05-12T10:15:00-03:00' })];
+      await component.abrirDocumentoArticulado(entrada);
+      congelarRelogio();
+
+      const proposicao = component.getProposicao();
+
+      expect(proposicao.data).to.equal('2026-04-24');
+      expect(proposicao.dataUltimaModificacao).to.equal(DATA_ULTIMA_MODIFICACAO_CONGELADA);
+      // Remover o componente antes de o sl-tab-group renderizar lança no ResizeObserver do Shoelace.
+      await (component.querySelector('sl-tab-group') as any).updateComplete;
+    });
   });
 });

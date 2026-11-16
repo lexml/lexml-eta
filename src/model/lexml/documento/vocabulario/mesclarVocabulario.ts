@@ -1,4 +1,13 @@
-import { ComAutoridade, TipoDocumento, TipoDocumentoItem, TipoRelacaoSubstitutivo, Vocabulario, VocabularioAutoridade, VocabularioComum } from './tiposVocabulario';
+import {
+  ComAutoridade,
+  ModeloEpigrafeItem,
+  TipoDocumento,
+  TipoDocumentoItem,
+  TipoRelacaoSubstitutivo,
+  Vocabulario,
+  VocabularioAutoridade,
+  VocabularioComum,
+} from './tiposVocabulario';
 
 const carimbar = <T>(itens: T[] | undefined, urnAutoridade: string): ComAutoridade<T>[] => (itens ?? []).map(i => ({ ...i, urnAutoridade }));
 
@@ -35,17 +44,41 @@ const validar = (tipos: TipoDocumento[], siglaAtivaUnica: boolean): void => {
   });
 };
 
+const validarModelosEpigrafe = (tipos: TipoDocumento[], modelos: ComAutoridade<ModeloEpigrafeItem>[]): void => {
+  const chaves = new Set<string>();
+  modelos.forEach(m => {
+    const chave = `${m.urnAutoridade}:${m.codigo}`;
+    if (chaves.has(chave)) {
+      throw new Error(`Vocabulário inválido: modelo de epígrafe duplicado '${chave}'.`);
+    }
+    chaves.add(chave);
+  });
+
+  tipos.forEach(t =>
+    [t.modeloEpigrafe, t.modeloEpigrafeSubstitutivo]
+      .filter((codigo): codigo is string => codigo !== undefined)
+      .forEach(codigo => {
+        if (!chaves.has(`${t.urnAutoridade}:${codigo}`)) {
+          throw new Error(`Vocabulário inválido: tipo '${descreve(t)}' aponta para o modelo de epígrafe inexistente '${codigo}'.`);
+        }
+      })
+  );
+};
+
 // A ordem de `autoridades` define a ordem das listas no vocabulário mesclado.
 // Sem `siglaAtivaUnica` (visão completa), siglas ativas podem se repetir entre as casas.
 export const mesclar = (comum: VocabularioComum, autoridades: VocabularioAutoridade[], { siglaAtivaUnica = true } = {}): Vocabulario => {
   const tiposDocumento = autoridades.flatMap(a => carimbar(a.tiposDocumento, a.autoridade.urn)).map(completarTipo);
   validar(tiposDocumento, siglaAtivaUnica);
+  const modelosEpigrafe = autoridades.flatMap(a => carimbar(a.modelosEpigrafe, a.autoridade.urn));
+  validarModelosEpigrafe(tiposDocumento, modelosEpigrafe);
 
   return {
     autoridades: autoridades.map(a => a.autoridade),
     tiposDocumento,
     tiposDocumentoAtivos: tiposDocumento.filter(t => t.sigla && t.ativo),
     preambulosPadrao: autoridades.flatMap(a => carimbar(a.preambulosPadrao, a.autoridade.urn)),
+    modelosEpigrafe,
     atalhosUrn: comum.atalhosUrn,
     eventos: comum.eventos,
   };

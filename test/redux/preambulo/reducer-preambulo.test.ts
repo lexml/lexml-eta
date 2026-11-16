@@ -43,6 +43,19 @@ describe('Preâmbulo no estado do editor', () => {
       expect(tipos(getElementos(state.articulacao)).slice(0, 4)).to.deep.equal(['Articulacao', 'Ementa', 'Preambulo', 'Artigo']);
     });
 
+    it('a epígrafe e o preâmbulo não são editáveis; a ementa e o artigo são', () => {
+      const editaveis = getElementos(state.articulacao)
+        .slice(0, 4)
+        .map(e => [e.tipo, e.editavel]);
+
+      expect(editaveis).to.deep.equal([
+        ['Articulacao', false],
+        ['Ementa', true],
+        ['Preambulo', false],
+        ['Artigo', true],
+      ]);
+    });
+
     it('o elemento do preâmbulo é bloqueado, sem ações e sem mensagens de validação', () => {
       const preambulo = createElementoValidado(projetoNorma.preambulo);
       expect(preambulo.bloqueado).to.be.true;

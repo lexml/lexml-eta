@@ -88,7 +88,6 @@ Em Lit, a configuração pode ser passada por binding de propriedade: `<lexml-et
 |---|---|---|---|
 | `lexmlEtaConfig` | `LexmlEtaConfig` | `new LexmlEtaConfig()` | URLs de serviços e limites. Veja a seção 5. |
 | `parlamentares` | `Parlamentar[]` | `[]` | Lista usada na autoria. É **preenchida pelo próprio componente** ao iniciar um documento, a partir de `urlConsultaParlamentares`. |
-| `exibirAjuda` | `boolean` | `true` | Exibe o conteúdo de ajuda. |
 | `outrosMetadados` | `Record<string, string>` | `{}` | Pares chave/valor do host gravados no documento (`lexedit:OutrosMetadados`), também no modo `anexoParecer`. Os valores são sempre texto: para dados estruturados, grave um JSON serializado. `abrirDocumentoArticulado` substitui o valor pelos pares do arquivo (vazio se o arquivo não tiver o grupo), então o host deve lê-lo depois de abrir. |
 | `dataUltimaModificacaoDocumento` | `string \| undefined` | `undefined` | **Somente leitura.** Data e hora do último salvamento do documento aberto, como gravada em `lexedit:Metadado@dataUltimaModificacao` (`xsd:dateTime` com fuso, ex.: `2026-05-12T10:15:00-03:00`). Fica `undefined` quando o arquivo não tem o atributo ou ele é inválido, numa nova proposição e depois de `fecharDocumento()`. `getDocumentoArticulado()` não a altera: o documento devolvido traz o instante do novo salvamento. Não confundir com `Proposicao.dataUltimaModificacao` (seção 4.2), que é o campo "Data" do fecho. |
 | `totalAlertas` | `number` | `0` | Quantidade de alertas (somente leitura na prática; atualizada pelo componente). |
@@ -97,7 +96,7 @@ Em Lit, a configuração pode ser passada por binding de propriedade: `<lexml-et
 
 ### 4.1 Ciclo de vida do documento: `novaProposicao`, `abrirDocumentoArticulado` e `fecharDocumento`
 
-São as **únicas** formas de iniciar, trocar ou encerrar a edição. Defina `lexmlEtaConfig` antes. Enquanto nenhum documento estiver iniciado, e depois de `fecharDocumento()`, o componente fica em **estado neutro**: todas as abas desabilitadas e a mensagem "aguardando inicialização".
+São as **únicas** formas de iniciar, trocar ou encerrar a edição (`alterarDadosBasicos`, seção 4.7, altera os dados básicos do documento em edição). Defina `lexmlEtaConfig` antes. Enquanto nenhum documento estiver iniciado, e depois de `fecharDocumento()`, o componente fica em **estado neutro**: todas as abas desabilitadas e a mensagem "aguardando inicialização".
 
 Todo método valida a entrada **antes de alterar o editor**: entrada inválida emite o evento `fatalError`, lança o erro e deixa o documento em edição como estava. Ao iniciar um documento, o estado do anterior (revisões, remissões, anexos, outros metadados, justificação, notas, o store Redux) é descartado por inteiro; a configuração da sessão é preservada. O componente **não** rastreia alterações pendentes: confirmar a perda de dados é responsabilidade do host.
 
@@ -106,14 +105,15 @@ Todo método valida a entrada **antes de alterar o editor**: entrada inválida e
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `urn` | `string` | **Obrigatório.** URN da nova proposição. Só proposições suportadas: tipo com sigla do vocabulário da casa do editor, de autoridade `senado.federal`, `camara.deputados` ou `congresso.nacional`. Normas, medidas provisórias (autoridade `federal`) e autoridade da outra casa são rejeitadas. Tipos inativos (PLS, PLC) são aceitos: o alerta fica a cargo do host. |
-| `epigrafe` | `string` | **Obrigatório.** Texto da epígrafe. |
+| `epigrafe` | `string` | **Obrigatório.** Texto da epígrafe, como XML de conteúdo da `Epigrafe`: entidades (`&amp;`) viram texto e `<br/>` é a quebra de linha. Em geral, vem de `montaEpigrafe` (seção 7.1). |
 | `preambulo` | `string` | **Obrigatório** (pode ser vazio; então vale o texto padrão do tipo, se houver). |
 | `urnDocumentoReferenciado` | `string?` | URN do documento referenciado (substitutivo, PLV); gravada em `lexedit:Metadado@urnDocumentoReferenciado`. |
 | `colegiadoApreciador` | `ColegiadoApreciador?` | Destino, em geral o `colegiadoDestino` do componente de nova proposição (seção 11). Sem ele, o documento criado fica sem colegiado e o `lexedit:ColegiadoApreciador` não é gravado; ao **abrir** um arquivo sem o elemento vale o padrão (Plenário). Não é editável no `lexml-eta` e o modo anexo de parecer não interfere. |
 | `autoria` | `Autoria?` | Padrão: `lexmlEtaConfig.autoriaPadrao`, se houver. |
 | `opcoesImpressao` | `OpcoesImpressao?` | Padrão: `lexmlEtaConfig.opcoesImpressaoPadrao`, se houver. |
 | `outrosMetadados` | `Record<string, string>?` | Pares gravados no documento. |
-| `documentoModelo` | `DocumentoArticulado?` | Documento de modelo: dele só a articulação e a ementa são aproveitadas. URN, epígrafe, preâmbulo e demais dados vêm dos parâmetros ou do padrão; anexos, revisões, situação na norma vigente, fecho, autoria, impressão, destino e outros metadados do modelo são descartados. |
+| `documentoModelo` | `DocumentoArticulado?` | Documento de modelo: dele só a articulação e a ementa são aproveitadas. URN, epígrafe, preâmbulo e demais dados vêm dos parâmetros ou do padrão; anexos, revisões, situação na norma vigente, fecho, autoria, impressão, destino e outros metadados do modelo são descartados. Não pode vir junto com `documentoImportado`. |
+| `documentoImportado` | `DocumentoArticulado?` | Documento importado, em geral o `documentoImportado` do componente de nova proposição (seção 11). Dele se aproveita o conteúdo como em `abrirDocumentoArticulado`: ementa, articulação, justificação (com notas e revisões de texto), revisões da hierarquia, situação na norma vigente, autoria, data do fecho, impressão e outros metadados. URN, URN referenciada, epígrafe, preâmbulo, destino e anexo de parecer vêm dos parâmetros, e o local do fecho é derivado do destino. A URN do arquivo não é checada contra a casa do editor; se a casa dela diferir da casa da `urn`, a autoria do arquivo é descartada. `autoria`, `opcoesImpressao` e `outrosMetadados` só valem para o grupo que o arquivo não traz. Os anexos são sempre descartados, e, quando havia algum, a mensagem "Não foi possível recuperar os anexos do documento importado…" aparece numa notificação amarela no canto superior, que some depois de 8 s, e fica como alerta na aba Avisos (sem virar pendência). Não pode vir junto com `documentoModelo`. |
 | `anexoParecer` | `boolean?` | Modo de anexo de parecer (propriedade do documento; veja a seção 9). Padrão: `false`. |
 
 A casa responsável pela apreciação deriva da autoridade da URN (`senado.federal` → `SF`, `camara.deputados` → `CD`, `congresso.nacional` → `CN`) e não é um parâmetro.
@@ -135,11 +135,14 @@ Descarta o documento atual e volta ao estado neutro.
 
 Devolve o estado completo da edição, para o host persistir como quiser (por exemplo, no seu backend). Chama internamente `getProjetoAtualizado()`, o que também aplica as edições pendentes (como a detecção de remissões da linha corrente). Sem documento inicializado, devolve uma `Proposicao` vazia.
 
-Campos preenchidos: `projetoNorma`, `justificativa`, `notasRodape`, `autoria`, `opcoesImpressao`, `ementa`, `epigrafe`, `revisoes`, `justificativaAntesRevisao`, `pendenciasPreenchimento`, `colegiadoApreciador`, `anexos`, `substitutivo`, `local`, `urn`, `sigla`, `numero`, `ano` e `dataUltimaModificacao`.
+Campos preenchidos: `projetoNorma`, `justificativa`, `notasRodape`, `autoria`, `opcoesImpressao`, `ementa`, `epigrafe`, `revisoes`, `justificativaAntesRevisao`, `pendenciasPreenchimento`, `colegiadoApreciador`, `anexos`, `substitutivo`, `local`, `urn`, `sigla`, `numero`, `ano`, `data` e `dataUltimaModificacao`.
 
-`pendenciasPreenchimento` lista o que impede considerar o texto pronto: justificação vazia (sempre obrigatória, exceto em `anexoParecer`) e as mensagens de nível crítico da validação. No modo `anexoParecer`, os campos `justificativa`, `justificativaAntesRevisao` e `notasRodape` são removidos do objeto; `local`, `autoria` e `dataUltimaModificacao` continuam sendo entregues.
+`pendenciasPreenchimento` lista o que impede considerar o texto pronto: justificação vazia (sempre obrigatória, exceto em `anexoParecer`) e as mensagens de nível crítico da validação. No modo `anexoParecer`, os campos `justificativa`, `justificativaAntesRevisao` e `notasRodape` são removidos do objeto; `local`, `autoria`, `data` e `dataUltimaModificacao` continuam sendo entregues.
 
-`dataUltimaModificacao` traz a data escolhida no campo "Data" (`AAAA-MM-DD`) e fica `undefined` quando o usuário mantém "Não informar", que é o padrão de um documento novo. Apesar do nome, não é a data do último salvamento: essa está na propriedade `dataUltimaModificacaoDocumento` (seção 3).
+A proposição traz duas datas (#1034, **BREAKING**):
+
+- `data` é a data escolhida no campo "Data", usada na impressão do fecho (`AAAA-MM-DD`). Fica vazia (`''`) quando o usuário mantém "Não informar", que é o padrão de um documento novo.
+- `dataUltimaModificacao` é o instante em que a proposição foi obtida, no mesmo formato gravado em `lexedit:Metadado@dataUltimaModificacao` (`xsd:dateTime` com fuso, ex.: `2026-11-04T10:15:30-03:00`). Cada chamada traz o seu próprio instante. A data do último salvamento do documento aberto está na propriedade `dataUltimaModificacaoDocumento` (seção 3).
 
 ### 4.3 `getDocumentoArticulado(): DocumentoArticulado`
 
@@ -172,9 +175,46 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `getJustificativa(): string` | Texto (HTML) atual da justificação. |
 | `getEpigrafe(projetoNorma): Epigrafe` | Epígrafe extraída de um `projetoNorma`. |
 | `getEmentaFromProjetoNorma(projetoNorma): string` | Ementa extraída de um `projetoNorma`. |
+| `getDescricaoDocumento(): string` | Descrição do documento em edição, a mesma exibida no grupo "Dados básicos" da aba "Dados da proposição" (ex.: `Projeto de Lei (PL)`, `Projeto de Lei (PL) nº 123, de 2026`, `Substitutivo ao Projeto de Lei (PL) nº 10, de 2025`, `Projeto de Lei de Conversão (MPV nº 1200, de 2026)`). Derivada da URN do documento e da URN do documento referenciado; não lança erro e devolve `''` sem documento em edição ou quando o tipo não é reconhecido. |
 | `getParlamentares(): Promise<Parlamentar[]>` / `getComissoes(sigla): Promise<Comissao[]>` | Consultas aos serviços configurados. Em geral não precisam ser chamadas diretamente. |
 | `limparAlertas(): void` | Zera os alertas globais. |
 | `focusOnTab(nome: string): void` | Seleciona uma aba (por exemplo, `'lexml-eta-proposicao'`, `'justificativa'`, `'autoria'`). |
+
+### 4.7 `alterarDadosBasicos(dados: DadosBasicos): Promise<void>`
+
+Altera os dados básicos do documento em edição (tipo/URN, documento referenciado, colegiado, forma de apresentação, epígrafe, preâmbulo e outros metadados) **recarregando o documento**: ele é serializado, os dados são aplicados e o resultado é aberto como em `abrirDocumentoArticulado`. Texto, remissões, anexos, opções de impressão, data do fecho e `dataUltimaModificacaoDocumento` são mantidos; o histórico de desfazer/refazer é perdido, assim como o cursor e a rolagem. O fluxo previsto é o botão "Alterar dados básicos" (seção 6) → o host abre o `<lexml-nova-proposicao>` em modo de edição (seção 11) → o host chama este método com o resultado de `dados-basicos-alterados`.
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `urn` | `string` | **Obrigatório.** Mesmas regras de `novaProposicao` (proposição suportada da casa do editor). |
+| `epigrafe` | `string` | **Obrigatório.** |
+| `preambulo` | `string` | **Obrigatório** (pode ser vazio). |
+| `urnDocumentoReferenciado` | `string?` | Ausente remove a referência do documento. |
+| `colegiadoApreciador` | `ColegiadoApreciador?` | Ausente assume o padrão (Plenário). Não é gravado no anexo de parecer. |
+| `outrosMetadados` | `Record<string, string>?` | Substitui os pares atuais. |
+| `anexoParecer` | `boolean?` | Padrão `false`. |
+
+Os dados informados **substituem todos** os dados básicos. Regras de aplicação:
+
+- a autoria é descartada quando a casa responsável (derivada da URN) muda;
+- a justificação, com as notas de rodapé, é descartada quando o documento passa a ser anexo de parecer; ao deixar de ser, a justificação fica vazia;
+- o local do fecho é recalculado a partir do colegiado.
+
+Como nos demais métodos, a entrada é validada **antes** de alterar o editor: a chamada é rejeitada (evento `fatalError` e `Error`, documento intacto) sem documento em edição, em modo de revisão, em documento de tipo não suportado, com dado obrigatório ausente ou com URN não permitida.
+
+```ts
+elLexmlEta.addEventListener('alteracao-dados-basicos-solicitada', (e: Event) => {
+  abrirModalEdicao((e as CustomEvent<DadosBasicos>).detail); // <lexml-nova-proposicao> em modo de edição
+});
+
+await elLexmlEta.alterarDadosBasicos({
+  urn: 'urn:lex:br:senado.federal:projeto.lei.complementar;plp:2026;999999',
+  epigrafe: 'PROJETO DE LEI COMPLEMENTAR Nº   , DE 2026',
+  preambulo: 'O CONGRESSO NACIONAL decreta:',
+  colegiadoApreciador: { siglaCasaLegislativa: 'SF', tipoColegiado: 'Comissão', siglaComissao: 'CCJ' },
+  anexoParecer: false,
+});
+```
 
 ## 5. Configuração — `LexmlEtaConfig`
 
@@ -192,6 +232,7 @@ class Usuario { nome = 'Anônimo'; id?: any; sigla?: string; constructor(nome?, 
 | `tiposAnexos` | `{ codigo: string; nome: string }[]?` | — | Tipos que o campo de tipo do anexo aceita; "Não informado" (`nao.informado`) é sempre acrescentado. O campo está oculto por enquanto. Veja a seção 5.1. |
 | `onUploadAnexo`, `onDeleteAnexo`, `onObterAnexoBlob`, `onVisualizarAnexo` | funções? | — | Callbacks com os quais o host armazena e entrega os arquivos anexados. Veja a seção 5.1. |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
+| `identificarRemissaoExterna` | `boolean` | `true` | Detecção automática de remissões externas. Com `false`, o editor não roda a detecção nem inicia o worker do lexml-linker (seção 9). |
 
 O vocabulário da casa é (re)montado quando `lexmlEtaConfig` é atribuída com outra casa, portanto atribua a configuração **antes** de `novaProposicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). A casa restringe as siglas de proposição nova e as listas de tipos; URNs de normas citadas ou alteradas resolvem em qualquer autoridade (inclusive da outra casa), mas o documento em edição precisa ser da casa do editor (seção 4.1).
 
@@ -243,7 +284,8 @@ Todos são `CustomEvent` com `bubbles: true` e `composed: true`, emitidos no pr�
 | Evento | `detail` | Quando |
 |---|---|---|
 | `onrevisao` | `{ emRevisao: boolean }` | O usuário ativa ou desativa o modo de marcas de revisão. |
-| `fatalError` | `{ err: any }` | `novaProposicao` ou `abrirDocumentoArticulado` rejeitou a entrada ou falhou. |
+| `fatalError` | `{ err: any }` | `novaProposicao`, `abrirDocumentoArticulado` ou `alterarDadosBasicos` rejeitou a entrada ou falhou. |
+| `alteracao-dados-basicos-solicitada` | `DadosBasicos` (dados atuais: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoApreciador?`, `outrosMetadados`, `anexoParecer`) | O usuário clicou em "Alterar dados básicos", no início da aba "Dados da proposição". O componente não altera o documento: cabe ao host coletar os dados novos e chamar `alterarDadosBasicos`. O botão fica desabilitado em modo de revisão e em tipo não suportado. |
 | `onchange` | `{ origemEvento: 'anexo' }` | O usuário importa, exclui, reordena ou altera o nome de um anexo. Alterar a lista ao abrir um arquivo não emite o evento. Outros formulários emitem `onchange` com outra `origemEvento`. |
 
 ## 7. Utilitários de arquivo
@@ -270,11 +312,39 @@ const doc = await abrirArquivoDocumentoArticulado();
 if (doc) await editor.abrirDocumentoArticulado(doc);
 ```
 
+### 7.1 Epígrafe da nova proposição: `montaEpigrafe(urn, urnDocumentoReferenciado?, sufixo?): string`
+
+Monta a epígrafe a partir dos modelos de epígrafe do vocabulário (issue #1053). O componente de nova proposição (seção 11) já a usa. O host chama `montaEpigrafe` diretamente quando monta a nova proposição por conta própria, antes de `novaProposicao`.
+
+- **Modelo.** Vem do tipo da URN: o de substitutivo, se a URN for de substitutivo e o tipo o tiver; senão, o modelo do tipo; senão, o padrão `{descricaoMaiusculas} Nº {numero}, DE {ano}`. Os tipos são resolvidos em todas as autoridades, sem depender de `casaLegislativaEditor`.
+- **Placeholders:**
+  - da URN: `{sigla}`, `{numero}`, `{ano}`, `{descricao}` e `{descricaoMaiusculas}`;
+  - do documento referenciado: os mesmos com o prefixo `dr.`, mais `{dr.preposicao}` e `{dr.preposicaoMaiusculas}` (`ao`/`à`, `AO`/`À`, pelo gênero do tipo);
+  - `{sufixo}`: texto livre, por exemplo `- CCJ`.
+
+  Dado inexistente vira string vazia.
+- **Formatação.**
+  - Os números têm ponto como separador de milhar.
+  - O número provisório `999999` vira 7 espaços, para preenchimento manual.
+  - O ano provisório `9999` vira vazio.
+  - Todo valor substituído, inclusive o sufixo, é codificado como texto XML (`&` → `&amp;`).
+- **Resultado.** É XML de conteúdo da `Epigrafe` e pode conter `<br/>`, como nos modelos do substitutivo do Senado e do PLV:
+
+```ts
+import { montaEpigrafe } from '@lexml/lexml-eta';
+
+montaEpigrafe('urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;999999', 'urn:lex:br:federal:medida.provisoria;mpv:2026;1234');
+// 'PROJETO DE LEI DE CONVERSÃO Nº        , DE 2026<br/>(Medida Provisória nº 1.234, de 2026)'
+```
+
+Os modelos estão em `docs/vocabulario.md` (seção 3.6).
+
 ## 8. Modelos principais
 
 ```ts
 class Proposicao {
-  dataUltimaModificacao: string;      // data do campo "Data" (AAAA-MM-DD); vazio = "Não informar"; o padrão da classe é o momento da criação, mas um documento novo nasce sem data
+  dataUltimaModificacao: string;      // instante da obtenção (xsd:dateTime com fuso, ex.: 2026-11-04T10:15:30-03:00)
+  data: string;                       // data do campo "Data", para a impressão do fecho (AAAA-MM-DD); '' = "Não informar"
   urn; sigla; numero; ano; ementa: string;
   epigrafe: { texto: string; complemento: string };
   projetoNorma?: ProjetoNorma;
@@ -372,6 +442,8 @@ config.configuracaoPaginacao = { rangeArtigos: [{ numInicial: 1, numFinal: 100 }
 
 Remissões internas e externas são detectadas quando o usuário **sai** do dispositivo ou do editor. Chamar `getProposicao()` ou `getDocumentoArticulado()` aplica a detecção pendente antes de serializar, então o Salvar sempre devolve os links atualizados.
 
+Com `identificarRemissaoExterna: false`, só a detecção automática de remissões externas é desligada. Continuam funcionando a detecção automática de remissões internas, a criação e a edição manual de remissões externas pelo diálogo, a colagem de link e as remissões externas já existentes no documento, que são exibidas e gravadas normalmente.
+
 ## 10. Armadilhas conhecidas
 
 - Chamar `getDocumentoArticulado()` sem documento iniciado (ou depois de `fecharDocumento()`) lança erro.
@@ -382,7 +454,7 @@ Remissões internas e externas são detectadas quando o usuário **sai** do disp
 
 ## 11. Componente `<lexml-nova-proposicao>`
 
-Coleta a identificação do novo documento (espécie, sigla, proposição referenciada, destino e forma de apresentação) e o texto inicial, e **devolve o resultado por evento**: ele não cria o documento. Quem cria é o host, chamando `novaProposicao()` do `<lexml-eta>`. Especificação: `openspec/specs/nova-proposicao/spec.md` e `docs/requisitos/componente-nova-proposicao.md`.
+Coleta a identificação do novo documento (espécie, sigla, proposição referenciada, destino e forma de apresentação) e o texto inicial, e **devolve o resultado por evento**: ele não cria o documento. Quem cria é o host, chamando `novaProposicao()` do `<lexml-eta>`. Especificação: `openspec/specs/nova-proposicao/spec.md`.
 
 ```ts
 import type { ConfigNovaProposicao, ResultadoNovaProposicao } from '@lexml/lexml-eta';
@@ -393,6 +465,7 @@ nova.config = {
   urlVerificacaoProposicao: '/api/proposicoes/{sigla}/{numero}/{ano}',
   urlTextoEstruturado: '/api/proposicoes/{sigla}/{numero}/{ano}/texto',
   urlComissoes: '/api/comissoes/{casa}',
+  urlImportacaoArquivo: '/api/importacao',
 } satisfies ConfigNovaProposicao;
 
 nova.addEventListener('nova-proposicao-concluida', (e: Event) => {
@@ -404,19 +477,61 @@ nova.addEventListener('nova-proposicao-concluida', (e: Event) => {
     preambulo: r.preambulo,
     colegiadoApreciador: { ...r.colegiadoDestino, siglaCasaLegislativa: casa },
     documentoModelo: r.texto,
+    documentoImportado: r.documentoImportado,
     anexoParecer: r.anexoParecer,
   });
 });
 nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
 ```
 
-- **Configuração.** As três URLs são **obrigatórias**: sem qualquer uma, a atribuição de `config` lança erro que nomeia a URL ausente e nenhuma tela é exibida. Só a casa tem padrão. O componente inicializa o vocabulário da casa ao ser criado e a cada nova configuração; manter a mesma casa no `<lexml-eta>` é responsabilidade do host.
-- **Placeholders.** `{sigla}` (maiúsculas), `{numero}` (sem zeros à esquerda) e `{ano}` nas duas URLs de proposição; `{casa}` (`SF`, `CD` ou `CN`) em `urlComissoes`.
-- **Verificação** (`200` `{ ementa, textoEstruturadoDisponivel }`, `404` inexistente), **texto estruturado** (`200` JSONIX, `404` indisponível) e **comissões** (lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados): contrato completo na seção 9 do documento de requisitos.
-- **Evento `nova-proposicao-concluida`** — `detail`: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoDestino` (`{ tipoColegiado, siglaComissao? }`), `texto?` (JSONIX) e `anexoParecer`. **`nova-proposicao-cancelada`** não tem `detail`. Após concluir, o host decide quando fechar ou chamar `reiniciar()`.
+- **Configuração.** Cada origem de dados (verificação, texto estruturado, comissões e importação de arquivo) exige a **URL ou o callback** correspondente: sem os dois, a atribuição de `config` lança erro que nomeia a URL ausente (e cita o callback alternativo) e nenhuma tela é exibida. Só a casa tem padrão. O componente inicializa o vocabulário da casa ao ser criado e a cada nova configuração; manter a mesma casa no `<lexml-eta>` é responsabilidade do host.
+- **Placeholders.** `{sigla}` (maiúsculas), `{numero}` (sem zeros à esquerda) e `{ano}` nas duas URLs de proposição; `{casa}` (`SF`, `CD` ou `CN`) em `urlComissoes`. `urlImportacaoArquivo` não tem placeholders.
+- **Callbacks opcionais.** Quando existe, o callback é usado no lugar da origem correspondente (a URL, mesmo informada, não é chamada); quando não existe, vale o comportamento por URL. Telas e resultado não mudam. Devolvem dados de domínio (não `Response`), de forma síncrona ou assíncrona; promise rejeitada ou exceção equivale a erro de rede:
+
+  ```ts
+  nova.config = {
+    casaLegislativaEditor: 'SF',
+    onVerificarProposicao: async ({ sigla, numero, ano }) => {
+      const r = await api.get(`/proposicoes/${sigla}/${numero}/${ano}`).catch(e => (e.response?.status === 404 ? undefined : Promise.reject(e)));
+      return r && { ementa: r.data.ementa, textoEstruturadoDisponivel: r.data.textoEstruturadoDisponivel };
+    },
+    onObterTexto: async ({ sigla, numero, ano }) => (await api.get(`/proposicoes/${sigla}/${numero}/${ano}/texto`)).data, // undefined = indisponível
+    onObterComissoes: async casa => (await api.get(`/comissoes/${casa}`)).data,
+    onImportarArquivo: async arquivo => converter(arquivo), // { texto?, erros }
+  } satisfies ConfigNovaProposicao;
+  ```
+
+  - `onVerificarProposicao` e `onObterTexto` recebem `{ sigla, numero, ano }` já normalizados (sigla em maiúsculas, número sem zeros à esquerda). Na verificação, `undefined` indica documento inexistente; no texto, `undefined` indica indisponível.
+  - `onObterComissoes` recebe a casa (`SF`, `CD` ou `CN`) e devolve a lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados. Vale também no modo de edição.
+  - `onImportarArquivo` recebe o arquivo já validado (PDF, DOCX, TXT ou XML de até 5 MB; nunca é chamado para arquivo recusado nem para `.json`) e devolve `{ texto?, erros }`. Com `erros`, o componente vai para a Tela 3; sem erros, conclui com `texto` em `documentoImportado` (sem `texto`, a Tela 3 mostra que o conversor não devolveu o texto); se rejeitar, tem o efeito da falha do serviço de conversão (alerta de erro na Tela 2, com nova tentativa). Não há campo de avisos de conversão.
+- **Verificação** (`200` `{ ementa, textoEstruturadoDisponivel, complementar? }`, `404` inexistente; `complementar`, opcional e `false` por padrão, indica PLS/PLC de lei complementar e define o tipo da URN do documento referenciado), **texto estruturado** (`200` JSONIX, `404` indisponível) e **comissões** (lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados): contrato completo na seção 9 do documento de requisitos.
+- **Evento `nova-proposicao-concluida`** — `detail`: `urn`, `urnDocumentoReferenciado?`, `epigrafe`, `preambulo`, `colegiadoDestino` (`{ tipoColegiado, siglaComissao? }`), `texto?` (JSONIX do documento referenciado ou de outra proposição, para `documentoModelo`), `documentoImportado?` (JSONIX do arquivo importado, para `documentoImportado` de `novaProposicao`; nunca junto com `texto`) e `anexoParecer`. **`nova-proposicao-cancelada`** não tem `detail`. Após concluir, o host decide quando fechar ou chamar `reiniciar()`.
+- **`reiniciar()`** volta o componente ao estado original (modo de criação, sem dados iniciais, Tela 1 com os padrões), mantendo a configuração. Chame-o a cada abertura do modal, para não herdar o estado da abertura anterior.
+- **Modo de edição de dados básicos.** Depois de `config`, chame `iniciarModoEdicao(dadosIniciais)` (reinicia o componente e ativa o modo; `iniciar()` reinicia em modo de criação) com os dados iniciais (`{ urn, urnDocumentoReferenciado?, colegiadoApreciador?, anexoParecer? }`, em geral o `detail` de `alteracao-dados-basicos-solicitada`). O componente mostra só a Tela 1 ("Alterar dados básicos"), considera verificado o documento referenciado inicial, mostra o número real do documento como texto fixo e, ao **Continuar**, pede confirmação (Sim/Não) se a casa muda (perda de autoria) ou se o documento passa a anexo de parecer (perda de justificação). Emite **`dados-basicos-alterados`** (`detail` de `nova-proposicao-concluida` sem `texto` e sem `documentoImportado`), que o host repassa a `alterarDadosBasicos` (seção 4.7):
+
+  ```ts
+  nova.addEventListener('dados-basicos-alterados', async (e: Event) => {
+    const r = (e as CustomEvent<ResultadoAlteracaoDadosBasicos>).detail;
+    await elLexmlEta.alterarDadosBasicos({
+      urn: r.urn,
+      urnDocumentoReferenciado: r.urnDocumentoReferenciado,
+      epigrafe: r.epigrafe,
+      preambulo: r.preambulo,
+      colegiadoApreciador: { ...r.colegiadoDestino, siglaCasaLegislativa: casa },
+      outrosMetadados: outrosMetadadosDoHost, // não passam pelo componente de edição
+      anexoParecer: r.anexoParecer,
+    });
+    fecharModal();
+  });
+  ```
 - **Seleção de sigla e de comissão.** Usam o componente genérico `<lexml-eta-autocomplete-lista>` (`items: { value, label, inativo? }[]`, `value`, `placeholder`, `label`, `alturaMaxima` em px, `disabled`; evento `autocomplete-change` com `detail.value`, vazio quando a seleção é desfeita). A lista é flutuante, tem rolagem só vertical e omite o texto excedente; texto digitado que não é um item é apagado ao perder o foco (ou selecionado, se igual a exatamente um item).
-- **Importação de arquivo.** O tratamento real de DOCX/TXT/LexML ainda não existe: o componente valida extensão e tamanho (5 MB) e simula um erro de parser (Tela 3), sem chamar URL.
-- **Epígrafe e preâmbulo.** Enquanto o serviço de epígrafe (#1053) não existe, a epígrafe é a do caso padrão (`<TIPO> Nº   , DE <ANO>`, sem sufixo). Tipo sem texto padrão recebe `O CONGRESSO NACIONAL decreta:` com log de erro (regra do componente; a abertura de documentos não muda).
+- **Importação de arquivo.** O componente aceita `.pdf`, `.docx`, `.txt`, `.xml` e `.json` de até 5 MB. O `.json` é lido pelo próprio componente como JSONIX, sem URL nem callback (JSON inválido: alerta de aviso na Tela 2). Os demais vão a `onImportarArquivo`, se informado, ou por `POST` a `urlImportacaoArquivo`, com o conteúdo do arquivo no corpo (não multipart) e o `Content-Type` pela extensão: `application/pdf`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `text/plain` ou `application/xml`. Respostas da URL:
+  - `200`: o corpo é o documento articulado em JSONIX, devolvido em `documentoImportado`;
+  - `400`: o corpo, em texto puro, é exibido num alerta de aviso na Tela 2 ("O arquivo não pôde ser importado", a mensagem e a orientação de escolher outro arquivo ou outra forma de iniciar);
+  - `500`, outro status, `200` sem JSON ou falha de rede: alerta de erro na Tela 2 com o nome do arquivo, sem exibir o corpo; **Continuar** permite nova tentativa.
+
+  Os alertas saem ao trocar o arquivo ou a opção de texto inicial.
+- **Epígrafe e preâmbulo.** A epígrafe vem de `montaEpigrafe` (seção 7.1). No `SF`, o sufixo é `- PLEN` com destino Plenário e `- <sigla da comissão>` com destino Comissão; na `CD`, não há sufixo. Tipo sem texto padrão recebe `O CONGRESSO NACIONAL decreta:` com log de erro (regra do componente; a abertura de documentos não muda).
 
 ## 12. Referências
 

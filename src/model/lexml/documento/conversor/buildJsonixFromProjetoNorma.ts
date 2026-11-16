@@ -26,6 +26,7 @@ import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEG
 import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
 import { formatarLocalDataFecho, isTipoDocumentoNaoSuportado } from '../urnUtil';
 import { JustificacaoMontada, montaJustificacao, RevisaoTextualMontada, TrechoComentadoMontado } from './justificacao';
+import { montaConteudoEpigrafe } from './epigrafe';
 import { coletarSituacaoNaNormaVigente, mesclarSituacaoNaNormaVigente, SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 
 export const NAMESPACE_LEXEDIT = 'http://www.lexml.gov.br/lexedit/1.0';
@@ -90,7 +91,7 @@ const montaOpcoesImpressao = (opcoes: OpcoesImpressao): MetadadoLexEdit['opcoesI
 });
 
 // Valor fora das enumerações do XSD assume o padrão da classe; a comissão só consta quando informada.
-const montaColegiadoApreciador = (colegiado?: ColegiadoApreciador): MetadadoLexEdit['colegiadoApreciador'] => {
+export const montaColegiadoApreciador = (colegiado?: ColegiadoApreciador): MetadadoLexEdit['colegiadoApreciador'] => {
   if (!colegiado) return undefined;
   const padrao = new ColegiadoApreciador();
   const siglaComissao = colegiado.siglaComissao?.trim();
@@ -185,7 +186,7 @@ const montaUsuarios = (
 };
 
 // Sem pares não há grupo; chave vazia ou valor não textual é descartado (o objeto vem do host).
-const montaOutrosMetadados = (outros?: Record<string, string>): MetadadoLexEdit['outrosMetadados'] => {
+export const montaOutrosMetadados = (outros?: Record<string, string>): MetadadoLexEdit['outrosMetadados'] => {
   const pares = Object.entries(outros ?? {}).filter(([chave, valor]) => chave.trim() && typeof valor === 'string');
   if (!pares.length) return undefined;
   return {
@@ -276,7 +277,7 @@ const montaMetadadoLexEdit = (
 };
 
 // Mesmo formato que o conversor jsonix-lexml 2.0.0 devolve no tojson, para a ida e volta comparar por igualdade.
-const montaMetadadoProprietario = (lexedit: MetadadoLexEdit): MetadadoProprietarioLexEdit => ({
+export const montaMetadadoProprietario = (lexedit: MetadadoLexEdit): MetadadoProprietarioLexEdit => ({
   TYPE_NAME: 'br_gov_lexml__1.MetadadoProprietario',
   fonte: NAMESPACE_LEXEDIT,
   any: [
@@ -364,13 +365,16 @@ const montaParteFinal = (dados?: DadosLexEdit): any => {
   };
 };
 
-const montaParteInicial = (projetoNorma: any): any => {
+// A epígrafe chega como string (documento aberto) ou como `Conteudo` (montada à mão).
+const textoDoConteudo = (conteudo: any): string => (typeof conteudo === 'string' ? conteudo : conteudo?.texto ?? '');
+
+export const montaParteInicial = (projetoNorma: any): any => {
   return {
     TYPE_NAME: 'br_gov_lexml__1.ParteInicial',
     epigrafe: {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       id: 'epigrafe',
-      content: projetoNorma.epigrafe ? buildStructuredContent(projetoNorma.epigrafe, 'texto') : [],
+      content: montaConteudoEpigrafe(textoDoConteudo(projetoNorma.epigrafe), trecho => buildStructuredContent(trecho as any, 'texto')),
     },
     ementa: {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',

@@ -13,6 +13,7 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Lei',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      modeloEpigrafeSubstitutivo: 'substitutivo',
     },
     {
       urnTipoDocumento: 'projeto.lei',
@@ -21,6 +22,7 @@ export const senado: VocabularioAutoridade = {
       genero: 'M',
       ativo: false,
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      modeloEpigrafeSubstitutivo: 'substitutivo',
     },
     {
       urnTipoDocumento: 'projeto.lei',
@@ -29,6 +31,7 @@ export const senado: VocabularioAutoridade = {
       genero: 'M',
       ativo: false,
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      modeloEpigrafeSubstitutivo: 'substitutivo',
     },
     {
       urnTipoDocumento: 'projeto.lei.complementar',
@@ -36,6 +39,7 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Lei Complementar',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      modeloEpigrafeSubstitutivo: 'substitutivo',
     },
     {
       urnTipoDocumento: 'projeto.lei.complementar',
@@ -44,6 +48,7 @@ export const senado: VocabularioAutoridade = {
       genero: 'M',
       ativo: false,
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      modeloEpigrafeSubstitutivo: 'substitutivo',
     },
     {
       urnTipoDocumento: 'projeto.lei.complementar',
@@ -52,6 +57,7 @@ export const senado: VocabularioAutoridade = {
       genero: 'M',
       ativo: false,
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      modeloEpigrafeSubstitutivo: 'substitutivo',
     },
     {
       urnTipoDocumento: 'projeto.resolucao',
@@ -59,6 +65,7 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Resolução do Senado',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      modeloEpigrafeSubstitutivo: 'substitutivo',
     },
     {
       urnTipoDocumento: 'projeto.decreto.legislativo',
@@ -67,6 +74,7 @@ export const senado: VocabularioAutoridade = {
       genero: 'M',
       ativo: false,
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      modeloEpigrafeSubstitutivo: 'substitutivo',
     },
     {
       urnTipoDocumento: 'projeto.decreto.legislativo',
@@ -74,6 +82,13 @@ export const senado: VocabularioAutoridade = {
       descricao: 'Projeto de Decreto Legislativo',
       genero: 'M',
       tipoRelacaoSubstitutivo: TipoRelacaoSubstitutivo.ACEITA_SUBSTITUTIVO,
+      modeloEpigrafeSubstitutivo: 'substitutivo',
+    },
+  ],
+  modelosEpigrafe: [
+    {
+      codigo: 'substitutivo',
+      modelo: 'EMENDA Nº        {sufixo} (SUBSTITUTIVO)<br/>({dr.preposicao} {dr.descricao} nº {dr.numero}, de {dr.ano})',
     },
   ],
   preambulosPadrao: [

@@ -119,7 +119,7 @@ export const formatarLocalDataFecho = (local: string, data?: string): string => 
   return `${local}, ${diaTexto} de ${MESES[+mes - 1]} de ${ano}.`;
 };
 
-// O campo "Data" pode trazer o timestamp ISO de new Proposicao().dataUltimaModificacao; vale a data local dele.
+// Tolera timestamp ISO no campo "Data" (vale a data local dele), embora o editor só grave AAAA-MM-DD.
 export const normalizarDataFecho = (valor?: string): string | undefined => {
   if (!valor) return undefined;
   if (/^\d{4}-\d{2}-\d{2}$/.test(valor)) return valor;

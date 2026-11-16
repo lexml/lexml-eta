@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { buildFakeUrn, getAutoridade, getSigla, getTipo, getTipoDocumentoUrn } from '../../../src/model/lexml/documento/urnUtil';
+import { buildFakeUrn, getAutoridade, getSigla, getTipo, getTipoDocumentoUrn, validaUrn } from '../../../src/model/lexml/documento/urnUtil';
 import { getTipoPorSigla, getTiposDocumentoAtivos, getTiposDocumentoInativos } from '../../../src/model/lexml/documento/vocabulario/consultasVocabulario';
 import { getVocabularioDaCasa, inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
@@ -75,6 +75,17 @@ describe('vocabulário estático e consultas', () => {
       expect(getSigla('urn:lex:br:federal:medida.provisoria;mpv:2020;930')).to.equal('MPV');
       expect(getTipo('urn:lex:br:federal:lei:2020-01-01;1')?.urnAutoridade).to.equal('federal');
       expect(getSigla('urn:lex:br:federal:lei:2020-01-01;1')).to.equal('');
+    });
+
+    it('resolve PLS e PLC inativos, ordinários e complementares (documentos antigos continuam abríveis)', () => {
+      ['pls', 'plc'].forEach(sigla => {
+        ['projeto.lei', 'projeto.lei.complementar'].forEach(tipo => {
+          const urn = `urn:lex:br:senado.federal:${tipo};${sigla}:2015;12`;
+          expect(getTipo(urn)?.ativo, urn).to.equal(false);
+          expect(getSigla(urn), urn).to.equal(sigla.toUpperCase());
+          expect(validaUrn(urn), urn).to.equal(true);
+        });
+      });
     });
 
     it('não usa fallback para outra autoridade', () => {

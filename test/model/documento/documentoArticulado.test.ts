@@ -85,6 +85,12 @@ describe('Documento articulado — especificações 00 e 01', () => {
     expect(() => lerDocumentoArticulado(entrada)).to.throw(/Documento de outra casa legislativa não é suportado/);
   });
 
+  it('sem verificarCasa, aceita documento de outra casa legislativa', () => {
+    const entrada = novoDocumentoArticulado();
+    entrada.value.metadado.identificacao.urn = 'urn:lex:br:camara.deputados:projeto.lei;pl:2026;1';
+    expect(lerDocumentoArticulado(entrada, { verificarCasa: false }).value.metadado.identificacao.urn).to.equal('urn:lex:br:camara.deputados:projeto.lei;pl:2026;1');
+  });
+
   it('não compartilha objetos com o arquivo recebido', () => {
     const entrada = novoDocumentoArticulado();
     const copia = lerDocumentoArticulado(entrada);
