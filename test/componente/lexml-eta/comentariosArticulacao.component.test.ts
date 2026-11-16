@@ -13,7 +13,7 @@ import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierar
 import { Usuario } from '../../../src/model/revisao/usuario';
 import { rootStore } from '../../../src/redux/store';
 import { StateType } from '../../../src/redux/state';
-import { novoDocumentoArticulado } from '../../doc/documentoArticulado';
+import { metadadoProprietarioLexEdit, novoDocumentoArticulado } from '../../doc/documentoArticulado';
 
 const FULANO = new Usuario('Fulano de Tal', 'sf:fulano', 'FT');
 const TEXTO = 'Primeiro trecho e segundo trecho do texto.';
@@ -314,6 +314,134 @@ describe('ETA — comentários na articulação', () => {
       expect(sequencias().map(s => s.id)).to.deep.equal([id]);
       expect(identificacao(id)).to.equal('parágrafo único do art. 1º');
       expect(icone(sequencias()[0].uuid2Dispositivo)).to.equal(true);
+    });
+  });
+
+  describe('Salvar (c02, task 2.3)', () => {
+    const refsSalvos = (): string[] =>
+      component.getDocumentoArticulado().value.metadado.metadadoProprietario![0].any[0].value.comentarios!.sequenciaComentario.map((s: any) => s.refIdElementoComentado);
+
+    it('grava as sequências da articulação antes das da justificação, na ordem da aba', async () => {
+      const daJustificacao = await comentarJustificacao(0, 8, 'Na justificação');
+      await comentarDispositivo('art1_par1u');
+      await comentarDispositivo('art1');
+
+      expect(refsSalvos()).to.deep.equal(['art1_cpt', 'art1_par1u', `_tc${daJustificacao}_1`]);
+    });
+
+    it('no anexo de parecer, grava as sequências da articulação', async () => {
+      const documento = novoDocumentoArticulado();
+      documento.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit({ anexoParecer: true })];
+      await component.abrirDocumentoArticulado(documento);
+      await editor.aguardarCarregamentoDasLinhas();
+      await component.updateComplete;
+      await comentarDispositivo('art1');
+
+      expect(refsSalvos()).to.deep.equal(['art1_cpt']);
+    });
+  });
+
+  describe('Abrir (c02, task 3.2)', () => {
+    const lexeditDe = (documento: any): any => documento.value.metadado.metadadoProprietario[0].any[0].value;
+    const reabrir = async (documento: any): Promise<void> => {
+      await component.abrirDocumentoArticulado(documento);
+      await editor.aguardarCarregamentoDasLinhas();
+      await aguardar(50);
+      await component.updateComplete;
+      await editor.updateComplete;
+    };
+    // Cópia do arquivo salvo com os refs trocados, para os casos que a tela não produz.
+    const comRefs = (documento: any, ...refs: string[]): any => {
+      const copia = JSON.parse(JSON.stringify(documento));
+      const modelo = lexeditDe(copia).comentarios.sequenciaComentario[0];
+      lexeditDe(copia).comentarios.sequenciaComentario = refs.map((ref, i) => ({
+        ...JSON.parse(JSON.stringify(modelo)),
+        refIdElementoComentado: ref,
+        comentario: [{ ...modelo.comentario[0], p: [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: [`c${i}`] }] }],
+      }));
+      return copia;
+    };
+    const textos = (): string[] => sequencias().map(s => s.comentarios[0].texto);
+
+    it('reabrir liga as sequências aos dispositivos, com ícone, identificação e alerta', async () => {
+      await comentarDispositivo('art1_par1u', 'No parágrafo');
+      await comentarDispositivo('art1', 'No artigo');
+      await reabrir(component.getDocumentoArticulado());
+
+      expect(sequencias().map(s => s.uuid2Dispositivo)).to.deep.equal([dispositivo('art1').uuid2, dispositivo('art1_par1u').uuid2]);
+      expect(textos()).to.deep.equal(['No artigo', 'No parágrafo']);
+      expect(icone(dispositivo('art1').uuid2)).to.equal(true);
+      expect(icone(dispositivo('art1_par1u').uuid2)).to.equal(true);
+      expect(cards().map(c => c.querySelector('.comentario-sequencia__trecho-texto')!.textContent)).to.deep.equal(['art. 1º', 'parágrafo único do art. 1º']);
+      expect(rootStore.getState().elementoReducer.ui?.alertas?.some((a: any) => a.id === 'alerta-global-comentarios')).to.equal(true);
+    });
+
+    it('o ref do artigo (sem _cpt) e o da ementa também são ligados', async () => {
+      await comentarDispositivo('art1');
+      const salvo = component.getDocumentoArticulado();
+      await reabrir(comRefs(salvo, 'art1', 'ementa'));
+
+      expect(sequencias().map(s => s.uuid2Dispositivo)).to.deep.equal([dispositivo('art1').uuid2, articulacao().projetoNorma.ementa.uuid2]);
+    });
+
+    it('ref sem dispositivo é descartado, e de dois no mesmo dispositivo vale o primeiro', async () => {
+      await comentarDispositivo('art1');
+      await reabrir(comRefs(component.getDocumentoArticulado(), 'art99_cpt', 'art1_cpt', 'art1'));
+
+      expect(textos()).to.deep.equal(['c1']);
+    });
+
+    it('depois de abrir, a identificação acompanha a renumeração', async () => {
+      await comentarDispositivo('art1_par1u');
+      await reabrir(component.getDocumentoArticulado());
+      rootStore.dispatch(adicionarArtigoAntes.execute(createElemento(dispositivo('art1')), ''));
+      await aguardar(20);
+      await aba().updateComplete;
+
+      expect(cards()[0].querySelector('.comentario-sequencia__trecho-texto')!.textContent).to.equal('parágrafo único do art. 2º');
+    });
+
+    it('dispositivo excluído em revisão volta com o ícone; rejeitar mantém e aceitar remove', async () => {
+      await comentarDispositivo('art1_par1u');
+      const uuid2 = dispositivo('art1_par1u').uuid2;
+      rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      rootStore.dispatch(removerElementoAction.execute(createElemento(dispositivo('art1_par1u')), undefined));
+      await aguardar(20);
+      const salvo = component.getDocumentoArticulado();
+      expect(lexeditDe(salvo).comentarios.sequenciaComentario[0].refIdElementoComentado).to.equal('_art1_par1u-exc1');
+
+      await reabrir(salvo);
+      // Reaberto, o dispositivo é outro objeto, com outro uuid2: o da revisão de exclusão reconstruída.
+      const reaberto = revisaoDeExclusao().elementoAntesRevisao.uuid2;
+      expect(reaberto).to.not.equal(uuid2);
+      expect(sequencias().map(s => s.uuid2Dispositivo)).to.deep.equal([reaberto]);
+      expect(icone(reaberto)).to.equal(true);
+
+      rootStore.dispatch({ type: REJEITAR_REVISAO, revisao: revisaoDeExclusao() });
+      await aguardar(50);
+      await component.updateComplete;
+      expect(sequencias()).to.have.length(1);
+      expect(!!dispositivo('art1_par1u')).to.equal(true);
+
+      rootStore.dispatch(removerElementoAction.execute(createElemento(dispositivo('art1_par1u')), undefined));
+      await aguardar(20);
+      rootStore.dispatch({ type: ACEITAR_REVISAO, revisao: revisaoDeExclusao() });
+      await aguardar(20);
+      await component.updateComplete;
+      expect(sequencias()).to.have.length(0);
+    });
+
+    it('salvar, reabrir e salvar de novo grava os mesmos Comentarios e Usuarios', async () => {
+      await comentarJustificacao(0, 8, 'Na justificação');
+      await comentarDispositivo('art1_par1u', 'No parágrafo');
+      const primeiro = component.getDocumentoArticulado();
+      await reabrir(primeiro);
+      const segundo = component.getDocumentoArticulado();
+
+      expect(JSON.stringify(lexeditDe(segundo).comentarios).replace(/_tc[0-9a-f-]+_/g, '_tc*_')).to.equal(
+        JSON.stringify(lexeditDe(primeiro).comentarios).replace(/_tc[0-9a-f-]+_/g, '_tc*_')
+      );
+      expect(lexeditDe(segundo).usuarios).to.deep.equal(lexeditDe(primeiro).usuarios);
     });
   });
 

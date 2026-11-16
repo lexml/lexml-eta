@@ -1,6 +1,8 @@
 import { Articulacao, Dispositivo } from '../dispositivo/dispositivo';
 import { Elemento } from '../elemento';
-import { percorreHierarquiaDispositivos } from '../lexml/hierarquia/hierarquiaUtil';
+import { buscaNaHierarquiaDispositivos, percorreHierarquiaDispositivos } from '../lexml/hierarquia/hierarquiaUtil';
+import { buildId } from '../lexml/util/idUtil';
+import { isCaput } from '../dispositivo/tipo';
 import { Revisao, RevisaoElemento } from '../revisao/revisao';
 import { buscarDispositivoPorUuid2 } from '../remissao/sincronizarRemissoes';
 import { StateType } from '../../redux/state';
@@ -22,6 +24,36 @@ export const buscarElementoExcluidoEmRevisao = (revisoes: Revisao[] | undefined,
     .filter((r): r is RevisaoElemento => (r as RevisaoElemento).stateType === StateType.ElementoRemovido)
     .map(r => r.elementoAntesRevisao ?? r.elementoAposRevisao)
     .find(e => e?.uuid2 === uuid2);
+
+const SUFIXO_CAPUT = '_cpt';
+
+/**
+ * uuid2 do dispositivo comentado a partir do ref gravado (o `id` do dispositivo; o do caput, no artigo).
+ * Procura na parte inicial e na articulação; o excluído em revisão vem de `revisaoPorIdNoArquivo`
+ * (id gravado → id da revisão reconstruída), porque o reconstruído não guarda o id gravado.
+ */
+export const resolverUuid2DoRefComentario = (
+  articulacao: Articulacao | undefined,
+  revisoes: Revisao[] | undefined,
+  refId: string,
+  revisaoPorIdNoArquivo: Map<string, string> = new Map()
+): string | undefined => {
+  if (!articulacao || !refId) {
+    return undefined;
+  }
+  if (refId === 'ementa' || refId === 'preambulo') {
+    return (refId === 'ementa' ? articulacao.projetoNorma?.ementa : articulacao.projetoNorma?.preambulo)?.uuid2;
+  }
+  // buildId, e não buscaDispositivoById: esta trata "<artigo>_cpt" como o artigo por outro motivo (fluxo de emendas).
+  const vivo: Dispositivo | undefined = buscaNaHierarquiaDispositivos(articulacao as unknown as Dispositivo, d => (buildId(d) === refId ? d : undefined));
+  if (vivo) {
+    return (isCaput(vivo) ? vivo.pai : vivo)?.uuid2;
+  }
+  // O caput do artigo excluído não tem revisão própria: o ref do caput vale o artigo.
+  const idRevisao = revisaoPorIdNoArquivo.get(refId) ?? (refId.endsWith(SUFIXO_CAPUT) ? revisaoPorIdNoArquivo.get(refId.slice(0, -SUFIXO_CAPUT.length)) : undefined);
+  const revisao = (revisoes ?? []).find(r => r.id === idRevisao) as RevisaoElemento | undefined;
+  return revisao?.elementoAntesRevisao?.uuid2;
+};
 
 export const isDispositivoComentadoVivo = (articulacao: Articulacao | undefined, revisoes: Revisao[] | undefined, uuid2: string): boolean =>
   !!buscarDispositivoComentado(articulacao, uuid2) || !!buscarElementoExcluidoEmRevisao(revisoes, uuid2);

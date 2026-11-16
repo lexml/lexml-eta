@@ -22,6 +22,7 @@ import { SUFIXO_REVISAO } from '../../../remissao/remissao';
 import { DadosLexEdit, MetadadoLexEdit, MetadadoProprietarioLexEdit, RevisoesLexEdit } from '../documentoArticulado';
 import { getIdUsuario, Usuario } from '../../../revisao/usuario';
 import type { SequenciaComentario } from '../../../comentario/comentario';
+import { buscarDispositivoComentado } from '../../../comentario/dispositivoComentado';
 import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO, tratamentoParlamentar } from '../../../proposicao/proposicao';
 import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
 import { formatarLocalDataFecho, isTipoDocumentoNaoSuportado } from '../urnUtil';
@@ -64,7 +65,8 @@ export const buildJsonixFromProjetoNorma = (projetoNorma: ProjetoNorma, urn: str
       idsRemissoesInvalidas,
       mesclarSituacaoNaNormaVigente(coletarSituacaoNaNormaVigente(projetoNorma.articulacao), dados?.revisoes?.situacaoDosExcluidos),
       justificacao.revisoes,
-      justificacao.trechosComentados
+      justificacao.trechosComentados,
+      projetoNorma.articulacao
     )
   );
   resultado.value.projetoNorma = montaProjetoNorma(projetoNorma, remissoes, remissoesExternas, dados, justificacao);
@@ -151,6 +153,28 @@ const sequenciasGravadas = (sequencias: SequenciaComentario[] | undefined, trech
     return sequencia?.comentarios.length ? [{ sequencia, refId: trecho.id }] : [];
   });
 
+// O ref é o id gravado do dispositivo: o do caput no artigo; o do excluído em revisão vem do mapa montado com a revisão.
+const refDoDispositivo = (uuid2: string, articulacao: Articulacao | undefined, idsGravadosDosExcluidos: Record<string, string> = {}): string | undefined => {
+  const dispositivo = buscarDispositivoComentado(articulacao, uuid2);
+  if (dispositivo) {
+    if (dispositivo.tipo === 'Ementa') return 'ementa';
+    if (dispositivo.tipo === 'Preambulo') return 'preambulo';
+    return buildId(isArtigo(dispositivo) ? (dispositivo as Artigo).caput! : dispositivo);
+  }
+  return idsGravadosDosExcluidos[uuid2];
+};
+
+// Na ordem recebida do editor (a da aba); a que não se resolve não é gravada.
+const sequenciasDaArticulacaoGravadas = (
+  sequencias: SequenciaComentario[] | undefined,
+  articulacao: Articulacao | undefined,
+  idsGravadosDosExcluidos?: Record<string, string>
+): Array<{ sequencia: SequenciaComentario; refId: string }> =>
+  (sequencias ?? []).flatMap(sequencia => {
+    const refId = sequencia.uuid2Dispositivo && sequencia.comentarios.length ? refDoDispositivo(sequencia.uuid2Dispositivo, articulacao, idsGravadosDosExcluidos) : undefined;
+    return refId ? [{ sequencia, refId }] : [];
+  });
+
 // criarDocumentoArticulado decodifica todo `content`, então o texto puro do comentário precisa sair escapado.
 const escaparTexto = (texto: string): string => texto.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
@@ -219,7 +243,8 @@ const montaMetadadoLexEdit = (
   idsRemissoesInvalidas: string[],
   situacao: SituacaoNaNormaVigente,
   revisoesTextuais: RevisaoTextualMontada[],
-  trechosComentados: TrechoComentadoMontado[]
+  trechosComentados: TrechoComentadoMontado[],
+  articulacao?: Articulacao
 ): MetadadoLexEdit | undefined => {
   const lexedit: MetadadoLexEdit = { TYPE_NAME: 'br_gov_lexml_lexedit__1.Metadado' };
   // As do editor vêm antes da de remissões, como na especificação 13.
@@ -243,7 +268,10 @@ const montaMetadadoLexEdit = (
     lexedit.remissoesInternasInvalidas = { TYPE_NAME: 'br_gov_lexml_lexedit__1.RemissoesInternasInvalidas', refIdsRemissoesInternas: idsRemissoesInvalidas.join(' ') };
     pendencias.push('Corrigir remissões internas inválidas.');
   }
-  const comentarios = sequenciasGravadas(dados?.comentarios, trechosComentados);
+  const comentarios = [
+    ...sequenciasDaArticulacaoGravadas(dados?.comentarios, articulacao, dados?.revisoes?.idsGravadosDosExcluidos),
+    ...sequenciasGravadas(dados?.comentarios, trechosComentados),
+  ];
   if (comentarios.length) {
     lexedit.comentarios = montaComentarios(comentarios);
     pendencias.push(PENDENCIA_COMENTARIOS);

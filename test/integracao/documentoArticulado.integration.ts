@@ -33,6 +33,7 @@ import { buildJsonixArticulacaoFromProjetoNorma } from '../../src/model/lexml/do
 import { montaRevisoesArticulacao } from '../../src/model/lexml/documento/conversor/revisaoArticulacao';
 import { reconstroiRevisoes } from '../../src/model/lexml/documento/conversor/reconstroiRevisoes';
 import { aplicarRevisoesAction } from '../../src/model/lexml/acao/aplicarRevisoes';
+import { resolverUuid2DoRefComentario } from '../../src/model/comentario/dispositivoComentado';
 import { ABRIR_ARTICULACAO } from '../../src/model/lexml/acao/openArticulacaoAction';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../src/model/lexml/acao/ativarDesativarRevisaoAction';
 import { ATUALIZAR_USUARIO } from '../../src/model/lexml/acao/atualizarUsuarioAction';
@@ -615,6 +616,56 @@ describe('Documento articulado — revisões da hierarquia pelo CLI real e XSD',
 
     expect(retorno.valido).to.equal(false);
     expect(retorno.erro).to.include('revisao');
+  });
+
+  it('os comentários da articulação (vivo, artigo, ementa e excluído em revisão) vão e voltam pelo CLI, validam no XSD e voltam ligados aos dispositivos', async () => {
+    const FULANO = new Usuario('Fulano de Tal', 'sf:fulano', 'FT');
+    let sessao = elementoReducer(undefined, {
+      type: ABRIR_ARTICULACAO,
+      articulacao: buildProjetoNormaFromJsonix(MPV_905_2019).articulacao!,
+      classificacao: ClassificacaoDocumento.PROJETO,
+    });
+    sessao = elementoReducer(sessao, { type: ATUALIZAR_USUARIO, usuario: FULANO });
+    const uuid2 = (id: string): string => buscaDispositivoById(sessao.articulacao!, id)!.uuid2!;
+    const comentario = (id: string, u2: string, texto: string): SequenciaComentario => ({
+      id,
+      uuid2Dispositivo: u2,
+      comentarios: [{ usuario: FULANO, data: '2026-11-16T10:00:00-03:00', texto }],
+    });
+    const sequencias = [
+      comentario('s-ementa', sessao.articulacao!.projetoNorma!.ementa!.uuid2!, 'Na ementa'),
+      comentario('s-art1', uuid2('art1'), 'No artigo'),
+      comentario('s-inc', uuid2('art6_cpt_inc1'), 'No inciso'),
+      comentario('s-excluido', uuid2('art2'), 'No artigo excluído'),
+    ];
+    sessao = elementoReducer(sessao, { type: ATIVAR_DESATIVAR_REVISAO });
+    sessao = elementoReducer(sessao, { type: REMOVER_ELEMENTO, atual: elemento(sessao, 'art2') });
+    const revisoes = montaRevisoesArticulacao(sessao)!;
+    const salvo = criarDocumentoArticulado(sessao.articulacao!.projetoNorma!, URN, {}, {}, { revisoes, comentarios: sequencias });
+
+    const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    // Excluir o art. 2º em revisão o tira da articulação: o art. 6º passa a ser o art. 5º, e o ref acompanha o id atual.
+    ['ementa', 'art1_cpt', 'art5_cpt_inc1', '_art2-exc1_cpt'].forEach(ref => expect(retorno.xml).to.include(`<lexedit:SequenciaComentario refIdElementoComentado="${ref}">`));
+    expect(retorno.xml).to.include('<lexedit:Pendencia>Remover comentários.</lexedit:Pendencia>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+
+    // Reaberto do retorno do CLI: revisões reconstruídas e cada sequência ligada a um dispositivo.
+    const aberto = abreArticulacao(lerDocumentoArticulado(retorno.jsonix));
+    const lidos = lerMetadadoLexEdit(retorno.jsonix);
+    const mapa = new Map<string, string>();
+    const reaberto = elementoReducer(aberto, aplicarRevisoesAction.execute(reconstroiRevisoes(aberto.articulacao!, lidos.revisoesLidas!, undefined, mapa)));
+    const ligados = lidos.comentariosArticulacaoLidos!.map(l => resolverUuid2DoRefComentario(reaberto.articulacao!, reaberto.revisoes, l.refId, mapa));
+
+    expect(lidos.comentariosArticulacaoLidos!.map(l => l.sequencia.comentarios[0].texto)).to.deep.equal(['Na ementa', 'No artigo', 'No inciso', 'No artigo excluído']);
+    expect(ligados.slice(0, 3)).to.deep.equal([
+      reaberto.articulacao!.projetoNorma!.ementa!.uuid2,
+      buscaDispositivoById(reaberto.articulacao!, 'art1')!.uuid2,
+      buscaDispositivoById(reaberto.articulacao!, 'art5_cpt_inc1')!.uuid2,
+    ]);
+    const excluido = principais(reaberto).find(r => r.stateType === 'ElementoRemovido')!;
+    expect(ligados[3]).to.equal(excluido.elementoAntesRevisao!.uuid2);
   });
 
   describe('alteracaoRotulo (MPV 1234/2024)', () => {

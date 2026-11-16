@@ -1,5 +1,10 @@
 import { expect } from '@open-wc/testing';
-import { buildProjetoNormaFromJsonix, lerComentarios, lerMetadadoLexEdit } from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
+import {
+  buildProjetoNormaFromJsonix,
+  lerComentarios,
+  lerComentariosArticulacao,
+  lerMetadadoLexEdit,
+} from '../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { lerJustificacao } from '../../../src/model/lexml/documento/conversor/justificacao';
 import { criarDocumentoArticulado, DadosLexEdit, lerDocumentoArticulado } from '../../../src/model/lexml/documento/documentoArticulado';
 import { SequenciaComentario } from '../../../src/model/comentario/comentario';
@@ -139,5 +144,44 @@ describe('Abrir comentários da justificação — texto (task 3.2)', () => {
     const lido = ler(documento);
 
     expect(salvar(lido).value.projetoNorma.justificacao).to.deep.equal(documento.value.projetoNorma.justificacao);
+  });
+});
+
+describe('Abrir comentários da articulação — metadados (c02, task 3.1)', () => {
+  it('lê as sequências de dispositivo na ordem gravada, com id novo, autor e texto', () => {
+    const lidas = lerComentariosArticulacao(
+      lexeditCom(
+        sequenciaJson('art2_cpt', comentario('sf:fulano', DATA, 'caput')),
+        sequenciaJson(`_tc${ID}_1`, comentario('sf:fulano', DATA, 'justificação')),
+        sequenciaJson('art2', comentario('sf:fulano', DATA, 'artigo')),
+        sequenciaJson('_art1-exc1_par1', comentario('sf:fulano', DATA, 'excluído')),
+        sequenciaJson('ementa', comentario('sf:fulano', DATA, 'Linha 1', 'Linha 2'))
+      )
+    );
+
+    expect(lidas.map(l => l.refId)).to.deep.equal(['art2_cpt', 'art2', '_art1-exc1_par1', 'ementa']);
+    expect(lidas[0].sequencia.id).to.match(/^[0-9a-f-]{36}$/);
+    expect(lidas[0].sequencia.id).to.not.equal(lidas[1].sequencia.id);
+    expect(lidas[0].sequencia.comentarios[0].usuario).to.deep.include({ nome: 'Fulano de Tal', id: 'sf:fulano' });
+    expect(lidas[3].sequencia.comentarios[0].texto).to.equal('Linha 1\nLinha 2');
+    expect(lidas[0].sequencia.uuid2Dispositivo).to.be.undefined;
+  });
+
+  it('descarta a sequência sem comentário ou sem ref, e data inválida vira a da abertura', () => {
+    const lidas = lerComentariosArticulacao(
+      lexeditCom(sequenciaJson('art1_cpt'), sequenciaJson(undefined, comentario('sf:fulano', DATA, 'x')), sequenciaJson('art3_cpt', comentario('sf:fulano', 'ontem', 'y')))
+    );
+
+    expect(lidas.map(l => l.refId)).to.deep.equal(['art3_cpt']);
+    expect(lidas[0].sequencia.comentarios[0].data).to.match(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[+-]\d{2}:\d{2}$/);
+  });
+
+  it('lerMetadadoLexEdit devolve comentariosArticulacaoLidos só quando há sequência de dispositivo', () => {
+    const documento = novoDocumentoArticulado();
+    documento.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit(lexeditCom(sequenciaJson(`_tc${ID}_1`, comentario('sf:fulano', DATA, 'x'))))];
+    expect(lerMetadadoLexEdit(documento)).to.not.have.property('comentariosArticulacaoLidos');
+
+    documento.value.metadado.metadadoProprietario = [metadadoProprietarioLexEdit(lexeditCom(sequenciaJson('art1_cpt', comentario('sf:fulano', DATA, 'x'))))];
+    expect(lerMetadadoLexEdit(documento).comentariosArticulacaoLidos!.map(l => l.refId)).to.deep.equal(['art1_cpt']);
   });
 });

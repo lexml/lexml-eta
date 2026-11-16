@@ -179,13 +179,24 @@ describe('ETA — comentários da justificação no arquivo', () => {
       expect(alertasComentarios()).to.have.length(0);
     });
 
-    it('sequência sobre dispositivo da articulação é descartada sem impedir a abertura', async () => {
+    // Desde a c02, a sequência sobre dispositivo é ligada a ele; só a de dispositivo inexistente é descartada.
+    it('sequência sobre dispositivo inexistente é descartada sem impedir a abertura', async () => {
+      const { doc } = await salvarComComentario();
+      const sequenciasGravadas = lexeditSalvo(doc).comentarios.sequenciaComentario;
+      sequenciasGravadas.push({ ...clonar(sequenciasGravadas[0]), refIdElementoComentado: 'art99' });
+      await reabrir(doc);
+
+      expect(sequencias()).to.have.length(1);
+    });
+
+    it('sequência sobre dispositivo existente é ligada a ele', async () => {
       const { doc } = await salvarComComentario();
       const sequenciasGravadas = lexeditSalvo(doc).comentarios.sequenciaComentario;
       sequenciasGravadas.push({ ...clonar(sequenciasGravadas[0]), refIdElementoComentado: 'art1' });
       await reabrir(doc);
 
-      expect(sequencias()).to.have.length(1);
+      expect(sequencias()).to.have.length(2);
+      expect(sequencias().filter((s: any) => s.uuid2Dispositivo)).to.have.length(1);
     });
 
     it('abrir um documento sem comentários limpa as sequências do anterior', async () => {

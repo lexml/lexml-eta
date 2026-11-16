@@ -68,11 +68,19 @@ export interface RevisaoArticulacaoLexEdit {
 }
 
 /** Grupos `RevisoesArticulacao` e `Usuarios` já no formato do conversor (especificações 11 e 12). */
+/** Sequência de comentários sobre um dispositivo, lida do arquivo e ainda não ligada ao `uuid2`. */
+export interface ComentarioArticulacaoLido {
+  refId: string;
+  sequencia: SequenciaComentario;
+}
+
 export interface RevisoesLexEdit {
   revisoesArticulacao: { TYPE_NAME: string; revisaoArticulacao: RevisaoArticulacaoLexEdit[] };
   usuarios: { TYPE_NAME: string; usuario: Array<{ TYPE_NAME: string; idUsuario: string; nome: string; sigla?: string }> };
   // Situação dos dispositivos de bloco de alteração contidos nos excluídos, com os ids gravados na revisão (`_<id>-exc<n>...`).
   situacaoDosExcluidos?: SituacaoNaNormaVigente;
+  // uuid2 → id gravado na revisão, do excluído e de cada descendente; o ref de um comentário sai daqui (design da c02).
+  idsGravadosDosExcluidos?: Record<string, string>;
 }
 
 /** Formato provisório gravado antes do conversor 2.0.0 (chave `lexedit`); só lido, nunca gravado. */
@@ -103,12 +111,14 @@ export interface DadosLexEdit {
   outrosMetadados?: Record<string, string>;
   anexos?: Anexo[];
   revisoes?: RevisoesLexEdit;
-  // Só na escrita: as sequências do editor; só as que têm trecho na justificação são gravadas.
+  // Só na escrita: as sequências do editor, na ordem da aba; as da articulação pelo dispositivo, as da justificação pelo trecho.
   comentarios?: SequenciaComentario[];
   // Só na leitura: as revisões ainda dependem da articulação aberta para virar `RevisaoElemento`.
   revisoesLidas?: RevisaoArticulacaoLida[];
   // Só na leitura: as sequências do arquivo por id da sequência; falta conferir quais têm trecho na justificação.
   comentariosLidos?: Record<string, SequenciaComentario>;
+  // Só na leitura: as sequências sobre dispositivos, na ordem gravada; são ligadas ao dispositivo depois das revisões.
+  comentariosArticulacaoLidos?: ComentarioArticulacaoLido[];
   // Só na leitura: autor e data de cada `ins`/`del` da justificação, por `refIdRevisao`.
   revisoesTextuais?: Record<string, RevisaoTextualLida>;
 }

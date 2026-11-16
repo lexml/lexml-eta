@@ -48,15 +48,15 @@ import { AnexosComponent } from './anexos/anexos.component';
 import type { ComentariosComponent } from './comentarios/comentarios.component';
 import './comentarios/comentarios.component';
 import { SequenciaComentario } from '../model/comentario/comentario';
-import { criarComentario, criarSequenciaComentario, criarSequenciaComentarioDispositivo, isSequenciaDaArticulacao } from '../model/comentario/comentarioUtil';
+import { criarComentario, criarSequenciaComentario, criarSequenciaComentarioDispositivo, isSequenciaDaArticulacao, ordenarSequencias } from '../model/comentario/comentarioUtil';
 import { Elemento } from '../model/elemento';
-import { getOrdemDosDispositivos, identificarPorUuid2, isDispositivoComentadoVivo } from '../model/comentario/dispositivoComentado';
+import { getOrdemDosDispositivos, identificarPorUuid2, isDispositivoComentadoVivo, resolverUuid2DoRefComentario } from '../model/comentario/dispositivoComentado';
 import { errorInicializarEdicaoAction } from '../model/lexml/acao/errorInicializarEdicaoAction';
 import { isHtmlSemTexto } from '../util/string-util';
 import { formatDateTime, formatDateTimeToIso } from '../util/date-util';
 import { TipoMensagem } from '../model/lexml/util/mensagem';
 import { Anexo, Autoria, ColegiadoApreciador, Epigrafe, OpcoesImpressao, Parlamentar, Proposicao } from '../model/proposicao/proposicao';
-import { DocumentoArticulado, getEstruturaNorma, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
+import { ComentarioArticulacaoLido, DocumentoArticulado, getEstruturaNorma, lerDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
 import { PENDENCIA_COMENTARIOS, PENDENCIA_DOCUMENTO_NAO_SUPORTADO } from '../model/lexml/documento/conversor/buildJsonixFromProjetoNorma';
 import { montaDocumentoNovaProposicao } from '../model/lexml/documento/modelo/montaDocumentoNovaProposicao';
 import { aplicarDadosBasicos, DadosBasicos } from '../model/lexml/documento/dadosBasicos';
@@ -270,7 +270,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       // Em tipo não suportado, colegiado e autoria saem vazios.
       ...(this.tipoNaoSuportado ? {} : { autoria: this._lexmlAutoria.getAutoriaAtualizada() }),
       ...(this.tipoNaoSuportado || !this.colegiadoApreciador ? {} : { colegiadoApreciador: this.colegiadoApreciador }),
-      ...(this.anexoParecer ? {} : { justificacao: this._lexmlJustificativa.texto, comentarios: this.sequenciasComentario }),
+      // Na ordem da aba; no anexo de parecer só há as da articulação.
+      comentarios: ordenarSequencias(this.sequenciasComentario, 'ordem-no-texto', this.getPosicaoComentario),
+      ...(this.anexoParecer ? {} : { justificacao: this._lexmlJustificativa.texto }),
       opcoesImpressao: this._lexmlOpcoesImpressao.opcoesImpressao,
       outrosMetadados: this.outrosMetadados,
       anexos: this._lexmlAnexos?.anexos,
@@ -383,7 +385,9 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     params.anexoParecer = dados.anexoParecer ?? false;
     await this.inicializarEdicao(params, true, aplicarPadroes);
     // Sem o atraso de setRevisoes (1 s): o documento aberto já sai com as marcas e em modo de revisão.
-    if (dados.revisoesLidas?.length) await this._lexmlEta!.aplicarRevisoesDoArquivo(dados.revisoesLidas, lerSituacaoNaNormaVigente(documento));
+    const revisaoPorIdNoArquivo = dados.revisoesLidas?.length
+      ? await this._lexmlEta!.aplicarRevisoesDoArquivo(dados.revisoesLidas, lerSituacaoNaNormaVigente(documento))
+      : undefined;
     // Depois de inicializarEdicao: resetaProposicao sobrescreve o formulário com os valores padrão.
     if (dados.opcoesImpressao) this._lexmlOpcoesImpressao.opcoesImpressao = dados.opcoesImpressao;
     // Em tipo não suportado, colegiado e autoria do arquivo são ignorados.
@@ -396,21 +400,36 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this.colegiadoApreciador = { siglaCasaLegislativa: this.casaLegislativa, tipoColegiado, siglaComissao };
     }
     this.localDoArquivo = dados.local;
+    let daJustificacao: SequenciaComentario[] = [];
     if (!this.anexoParecer) {
       this._lexmlJustificativa.setContent(lerJustificacao(documento, dados.revisoesTextuais, dados.comentariosLidos));
       // setContent não emite comentarios-alterados: só ficam as sequências cujo trecho existe no editor.
       const idsNoTexto = new Set(this._lexmlJustificativa.getIdsComentarios());
-      this.sequenciasComentario = Object.values(dados.comentariosLidos ?? {}).filter(sequencia => idsNoTexto.has(sequencia.id));
+      daJustificacao = Object.values(dados.comentariosLidos ?? {}).filter(sequencia => idsNoTexto.has(sequencia.id));
       // setContent é silencioso: o alerta avaliado em inicializarEdicao e a aba "Notas" refletiriam o texto anterior.
       this.buildAlertaJustificativa();
       this._lexmlJustificativa.alertaGlobalRevisao();
       this._lexmlJustificativa.updateNotasRodape();
       this.notasRodape = this._lexmlJustificativa.notasRodape;
     }
+    // Depois das revisões do arquivo: só então o dispositivo excluído em revisão existe na sessão.
+    this.sequenciasComentario = [...this.ligarComentariosDaArticulacao(dados.comentariosArticulacaoLidos, revisaoPorIdNoArquivo), ...daJustificacao];
     this.outrosMetadados = dados.outrosMetadados ?? {};
     this.urnDocumentoReferenciado = dados.urnDocumentoReferenciado;
     this._dataUltimaModificacaoDocumento = dados.dataUltimaModificacao;
     this.aplicarAnexos(dados.anexos);
+  }
+
+  // Sem dispositivo, a sequência é descartada; duas no mesmo dispositivo, vale a primeira.
+  private ligarComentariosDaArticulacao(lidas: ComentarioArticulacaoLido[] = [], revisaoPorIdNoArquivo?: Map<string, string>): SequenciaComentario[] {
+    const { articulacao, revisoes } = rootStore.getState().elementoReducer;
+    const ligados = new Set<string>();
+    return lidas.flatMap(({ refId, sequencia }) => {
+      const uuid2 = resolverUuid2DoRefComentario(articulacao, revisoes, refId, revisaoPorIdNoArquivo);
+      if (!uuid2 || ligados.has(uuid2)) return [];
+      ligados.add(uuid2);
+      return [{ ...sequencia, uuid2Dispositivo: uuid2 }];
+    });
   }
 
   /** Altera os dados básicos do documento em edição recarregando-o; recusa deixa o documento intacto e emite o erro fatal. */

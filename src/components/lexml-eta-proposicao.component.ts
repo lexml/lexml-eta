@@ -67,15 +67,18 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
   }
 
   /** Reaplica as revisões da hierarquia lidas do arquivo; valem sobre as revisões do host. */
-  async aplicarRevisoesDoArquivo(lidas: RevisaoArticulacaoLida[], situacao?: SituacaoNaNormaVigente): Promise<void> {
+  /** Devolve o id gravado de cada dispositivo excluído e o id da revisão que o representa, para ligar os comentários. */
+  async aplicarRevisoesDoArquivo(lidas: RevisaoArticulacaoLida[], situacao?: SituacaoNaNormaVigente): Promise<Map<string, string>> {
     clearTimeout(this._timerLoadRevisoes);
     // O evento de revisão precisa encontrar as linhas; esperar o carregamento (e não um timer) não atrasa o resize agendado pela abertura.
     await this.editorComponent.aguardarCarregamentoDasLinhas();
-    const revisoes = reconstroiRevisoes(rootStore.getState().elementoReducer.articulacao!, lidas, situacao);
+    const revisaoPorIdNoArquivo = new Map<string, string>();
+    const revisoes = reconstroiRevisoes(rootStore.getState().elementoReducer.articulacao!, lidas, situacao, revisaoPorIdNoArquivo);
     if (revisoes.length) {
       this.revisoes = revisoes;
       rootStore.dispatch(aplicarRevisoesAction.execute(revisoes));
     }
+    return revisaoPorIdNoArquivo;
   }
 
   getProjetoAtualizado(): any {
