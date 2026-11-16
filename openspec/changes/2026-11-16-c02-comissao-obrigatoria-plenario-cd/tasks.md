@@ -7,9 +7,9 @@
 
 ## 2. Modo de edição e aba de dados básicos
 
-- [ ] 2.1 Em `aplicarDadosIniciais`, ler `siglaComissao` também no Plenário quando `comissaoObrigatoria`. Verificar com testes de componente: colegiado Plenário com comissão vem preenchido; sem comissão vem vazio com **Continuar** desabilitado.
-- [ ] 2.2 Em `dados-basicos.component.ts`, exibir "Plenário (SIGLA)" quando houver sigla. Verificar com teste de componente de dados básicos (Plenário com e sem comissão; Comissão inalterado).
-- [ ] 2.3 Documentar a mudança em `docs/api-componente-lexml-eta.md` (destino Plenário com `siglaComissao` na CD). Verificar relendo o texto contra a spec.
+- [x] 2.1 Em `aplicarDadosIniciais`, ler `siglaComissao` também no Plenário quando `comissaoObrigatoria`. Verificar com testes de componente: colegiado Plenário com comissão vem preenchido; sem comissão vem vazio com **Continuar** desabilitado.
+- [x] 2.2 Em `dados-basicos.component.ts`, exibir "Plenário (SIGLA)" quando houver sigla. Verificar com teste de componente de dados básicos (Plenário com e sem comissão; Comissão inalterado).
+- [x] 2.3 Documentar a mudança em `docs/api-componente-lexml-eta.md` (destino Plenário com `siglaComissao` na CD). Verificar relendo o texto contra a spec.
 
 ## 3. E2E (Cypress)
 

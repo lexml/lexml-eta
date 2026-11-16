@@ -189,6 +189,33 @@ describe('lexml-nova-proposicao — modo de edição de dados básicos', () => {
       expect(emitidos(EVENTO_DADOS_BASICOS_ALTERADOS)[0].urn).to.equal(URN_SSP_CD);
     });
 
+    it('Câmara: comissão do Plenário lida dos dados iniciais, em substitutivo e subemenda', async () => {
+      for (const urn of [URN_SBT_CD_7, URN_SSP_CD]) {
+        await abrirEdicao({ urn, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário', siglaComissao: 'CFT' }, anexoParecer: true }, CONFIG_CD);
+        expect(el.querySelector<any>('sl-radio[name="destino"][value="Plenário"]').checked, urn).to.be.true;
+        expect(q<any>('np-comissao')!.value, urn).to.equal('CFT');
+        expect(continuarHabilitado(), urn).to.be.true;
+        await clicar('np-continuar');
+        expect(emitidos(EVENTO_DADOS_BASICOS_ALTERADOS)[0].colegiadoDestino, urn).to.deep.equal({ tipoColegiado: 'Plenário', siglaComissao: 'CFT' });
+      }
+    });
+
+    it('Câmara: documento antigo com Plenário sem comissão abre com Continuar desabilitado até escolher a comissão', async () => {
+      await abrirEdicao({ urn: URN_SBT_CD_7, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário' }, anexoParecer: true }, CONFIG_CD);
+      expect(el.querySelector<any>('sl-radio[name="destino"][value="Plenário"]').checked).to.be.true;
+      expect(existe('np-comissao')).to.be.true;
+      expect(q<any>('np-comissao')!.value).to.equal('');
+      expect(continuarHabilitado()).to.be.false;
+      await escolherComissao('CFT');
+      expect(continuarHabilitado()).to.be.true;
+    });
+
+    it('Câmara: proposição com Plenário abre sem pedir comissão', async () => {
+      await abrirEdicao({ urn: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário' } }, CONFIG_CD);
+      expect(existe('np-comissao')).to.be.false;
+      expect(continuarHabilitado()).to.be.true;
+    });
+
     it('substitutivo da Câmara: o número real e o ano da URN continuam na URN ao trocar o destino', async () => {
       await abrirEdicao(
         { urn: URN_SBT_CD_7, urnDocumentoReferenciado: URN_PL_10_CD, colegiadoApreciador: { tipoColegiado: 'Plenário', siglaComissao: 'CFT' }, anexoParecer: true },
