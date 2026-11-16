@@ -197,7 +197,7 @@ O botão **Verificar** (grupos da proposição referenciada e da medida provisó
 - **THEN** a URN continua com o tipo de PL
 
 ### Requirement: Destino do documento
-A Tela 1 SHALL exibir sempre o colegiado de destino, com as opções Plenário e Comissão (sem "Plenário via comissão"). O padrão SHALL ser Comissão em Substitutivo e Subemenda substitutiva e Plenário nos demais casos. Em Comissão, a comissão SHALL ser informada, escolhida de uma lista obtida da URL de comissões da configuração, cujo placeholder de casa é preenchido pela autoridade da URN do novo documento: `SF` para `senado.federal`, `CD` para `camara.deputados` e `CN` para `congresso.nacional`. A resposta da URL SHALL ter o mesmo formato da usada pelo componente de destino atual: lista JSON de objetos com `siglaCasaLegislativa`, `sigla` e `nome`, da qual só são usados os itens cuja `siglaCasaLegislativa` é igual à casa pedida. O resultado SHALL informar o tipo do colegiado e, em Comissão, a sigla da comissão. No `SF`, o destino alimenta o sufixo opcional do serviço de epígrafe.
+A Tela 1 SHALL exibir sempre o colegiado de destino, com as opções Plenário e Comissão (sem "Plenário via comissão"). O padrão SHALL ser Comissão em Substitutivo e Subemenda substitutiva e Plenário nos demais casos. Em Comissão, a comissão SHALL ser informada, escolhida de uma lista obtida da URL de comissões da configuração, cujo placeholder de casa é preenchido pela autoridade da URN do novo documento: `SF` para `senado.federal`, `CD` para `camara.deputados` e `CN` para `congresso.nacional`. A resposta da URL SHALL ter o mesmo formato da usada pelo componente de destino atual: lista JSON de objetos com `siglaCasaLegislativa`, `sigla` e `nome`, da qual só são usados os itens cuja `siglaCasaLegislativa` é igual à casa pedida. O resultado SHALL informar o tipo do colegiado e, em Comissão, a sigla da comissão. Na `CD`, em Substitutivo e Subemenda substitutiva, uma comissão SHALL ser informada também com o destino Plenário (uma só), e o resultado SHALL informar a sigla da comissão nos dois destinos. No `SF`, o destino alimenta o sufixo opcional do serviço de epígrafe.
 
 #### Scenario: Padrão em substitutivo
 - **WHEN** a espécie é Substitutivo ou Subemenda substitutiva
@@ -212,7 +212,7 @@ A Tela 1 SHALL exibir sempre o colegiado de destino, com as opções Plenário e
 - **THEN** **Continuar** está desabilitado
 
 #### Scenario: Destino Plenário
-- **WHEN** o destino é Plenário
+- **WHEN** o destino é Plenário, exceto em Substitutivo e Subemenda substitutiva da `CD`
 - **THEN** o resultado não contém sigla de comissão
 
 #### Scenario: Comissão do Congresso
@@ -222,6 +222,26 @@ A Tela 1 SHALL exibir sempre o colegiado de destino, com as opções Plenário e
 #### Scenario: Falha na obtenção das comissões
 - **WHEN** a obtenção da lista de comissões falha por erro de rede ou resposta de erro
 - **THEN** o usuário é informado do erro, a opção Comissão fica indisponível, só Plenário é oferecido e o padrão em substitutivo passa a ser Plenário
+
+#### Scenario: Plenário na CD em substitutivo exige comissão
+- **WHEN** a casa do editor é `CD`, a espécie é Substitutivo ou Subemenda substitutiva e o destino é Plenário
+- **THEN** o seletor de comissão é exibido e **Continuar** está desabilitado enquanto nenhuma comissão for escolhida
+
+#### Scenario: Plenário na CD em substitutivo com comissão
+- **WHEN** nesse caso o usuário escolhe a comissão CCJC e conclui
+- **THEN** o resultado tem `colegiadoDestino` com `tipoColegiado` Plenário e `siglaComissao` CCJC
+
+#### Scenario: Troca de destino mantém a comissão
+- **WHEN** nesse caso o usuário escolheu a comissão CCJC e troca o destino entre Plenário e Comissão
+- **THEN** a comissão CCJC continua escolhida
+
+#### Scenario: Proposição na CD não exige comissão no Plenário
+- **WHEN** a casa do editor é `CD`, a espécie é Proposição e o destino é Plenário
+- **THEN** nenhuma comissão é pedida e o resultado não contém sigla de comissão
+
+#### Scenario: Falha nas comissões na CD em substitutivo
+- **WHEN** a casa é `CD`, a espécie é Substitutivo ou Subemenda substitutiva e a lista de comissões falha
+- **THEN** o usuário é informado do erro e **Continuar** permanece desabilitado
 
 ### Requirement: Forma de apresentação
 A Tela 1 SHALL exibir a caixa de seleção "Este documento será apresentado em parecer", marcada por padrão em Substitutivo e Subemenda substitutiva e desmarcada em Proposição, e o resultado SHALL informá-la em `anexoParecer`.
@@ -394,7 +414,7 @@ O componente SHALL oferecer um modo de edição de dados básicos, ativado pelo 
 - **THEN** o componente emite o evento de cancelamento, sem resultado
 
 ### Requirement: Tela 1 preenchida a partir dos dados iniciais
-No modo de edição, a Tela 1 SHALL ser preenchida a partir dos dados iniciais: espécie, siglas, número e ano lidos da URN e da URN do documento referenciado; destino lido do colegiado; forma de apresentação lida de `anexoParecer`. O PLV SHALL ser reconhecido pela sigla do tipo da própria URN, e a medida provisória lida da URN do documento referenciado. Na `CD`, o ano do substitutivo ou da subemenda substitutiva SHALL ser o da URN inicial, mantido mesmo quando o usuário troca a espécie entre Substitutivo e Subemenda substitutiva; quando a URN inicial não é de substitutivo nem de subemenda substitutiva, o ano SHALL ser o corrente.
+No modo de edição, a Tela 1 SHALL ser preenchida a partir dos dados iniciais: espécie, siglas, número e ano lidos da URN e da URN do documento referenciado; destino lido do colegiado; forma de apresentação lida de `anexoParecer`. O PLV SHALL ser reconhecido pela sigla do tipo da própria URN, e a medida provisória lida da URN do documento referenciado. Na `CD`, o ano do substitutivo ou da subemenda substitutiva SHALL ser o da URN inicial, mantido mesmo quando o usuário troca a espécie entre Substitutivo e Subemenda substitutiva; quando a URN inicial não é de substitutivo nem de subemenda substitutiva, o ano SHALL ser o corrente. Na `CD`, em substitutivo e subemenda substitutiva, a comissão do colegiado SHALL ser lida também quando o destino é Plenário.
 
 #### Scenario: Substitutivo do Senado
 - **WHEN** a URN inicial é de substitutivo do Senado ao PL nº 10, de 2025
@@ -415,6 +435,14 @@ No modo de edição, a Tela 1 SHALL ser preenchida a partir dos dados iniciais: 
 #### Scenario: Ano preservado ao alterar o destino
 - **WHEN** a URN inicial é de substitutivo da Câmara de 2025 e o usuário só troca o destino
 - **THEN** a URN do resultado mantém o ano 2025
+
+#### Scenario: Comissão lida no Plenário da CD
+- **WHEN** a URN inicial é de substitutivo da Câmara e o colegiado inicial é Plenário com a comissão CCJC
+- **THEN** o destino é Plenário e a comissão CCJC vem escolhida
+
+#### Scenario: Documento antigo da CD sem comissão no Plenário
+- **WHEN** a URN inicial é de substitutivo da Câmara e o colegiado inicial é Plenário sem comissão
+- **THEN** a Tela 1 abre com o destino Plenário, sem comissão, e **Continuar** fica desabilitado até uma comissão ser escolhida
 
 ### Requirement: Número do documento preservado
 No modo de edição, quando a URN inicial tem número diferente de `999999`, o componente SHALL exibir esse número como texto fixo no lugar de `s/n`, quando o documento tem campo de número na Tela 1, e SHALL mantê-lo na URN do resultado enquanto a espécie e a sigla do documento não mudarem. Na `CD`, em substitutivo e subemenda substitutiva, o número SHALL ser mantido na URN sem ser exibido, já que o grupo de identificação do documento não é exibido. Mudando espécie ou sigla, o número SHALL voltar a `s/n` (`999999`).
