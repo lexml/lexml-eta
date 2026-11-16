@@ -13,4 +13,4 @@
 
 ## 3. E2E (Cypress)
 
-- [ ] 3.1 Spec em `cypress/e2e/nova-proposicao/` (consultar `docs/guia-cypress.md`): CD, subemenda substitutiva e substitutivo, destino Plenário exige comissão, **Continuar** desabilitado sem ela, arquivo salvo com `lexedit:ColegiadoApreciador` Plenário + `siglaComissao`. Ajustar os specs existentes da CD que escolhem Plenário. Se algum caso não for viável, registrar a decisão e cobrir com teste de componente.
+- [x] 3.1 Spec em `cypress/e2e/nova-proposicao/` (consultar `docs/guia-cypress.md`): CD, subemenda substitutiva e substitutivo, destino Plenário exige comissão, **Continuar** desabilitado sem ela, arquivo salvo com `lexedit:ColegiadoApreciador` Plenário + `siglaComissao`. Ajustar os specs existentes da CD que escolhem Plenário. Se algum caso não for viável, registrar a decisão e cobrir com teste de componente.
