@@ -15,4 +15,4 @@
 
 ## 4. E2E (Cypress)
 
-- [ ] 4.1 Estender `cypress/e2e/nova-proposicao/documento-origem-camara.cy.ts` (consultar `docs/guia-cypress.md`) usando o mock: ementa exibida abaixo do título, filtro pela ementa, ícone ausente no documento sem `urlDocumento` e tooltip do host. Se algum caso não for viável (por exemplo, o limite de 2 linhas, que depende de layout), registrar a decisão e cobrir com teste de componente.
+- [x] 4.1 Estender `cypress/e2e/nova-proposicao/documento-origem-camara.cy.ts` (consultar `docs/guia-cypress.md`) usando o mock: ementa exibida abaixo do título, filtro pela ementa, ícone ausente no documento sem `urlDocumento` e tooltip do host. Se algum caso não for viável (por exemplo, o limite de 2 linhas, que depende de layout), registrar a decisão e cobrir com teste de componente.

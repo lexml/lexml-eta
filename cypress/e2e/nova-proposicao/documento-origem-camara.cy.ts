@@ -111,4 +111,46 @@ describe('Nova proposição na CD — documento de origem (Tela 2b)', () => {
     cy.get('#np-materia-verificar').click();
     cy.get('#np-materia-nao-encontrada').should('exist');
   });
+
+  it('a ementa aparece abaixo do título, em até 2 linhas, com o texto completo no tooltip', () => {
+    irParaTela2b();
+    cy.get(`${linha('prl-1-csaude-substitutivo')} .np-doc-ementa`)
+      .should('contain.text', 'consolida as alterações propostas ao Código Civil')
+      .and($el => {
+        const ementa = $el[0];
+        const estilo = ementa.ownerDocument.defaultView!.getComputedStyle(ementa);
+        expect(estilo.webkitLineClamp, 'limite de linhas').to.equal('2');
+        expect(ementa.getAttribute('title'), 'texto completo no tooltip').to.contain('direitos reais');
+        // Até 2 linhas: a altura não passa de duas vezes o corpo da fonte com folga para o espaçamento.
+        expect(ementa.clientHeight, 'altura de até 2 linhas').to.be.at.most(parseFloat(estilo.fontSize) * 2 * 1.8);
+      });
+    cy.get(linha('prl-1-csaude-substitutivo')).within(() => {
+      cy.get('.np-doc-titulo').next().should('have.class', 'np-doc-ementa');
+    });
+  });
+
+  it('o filtro alcança a ementa', () => {
+    irParaTela2b();
+    cy.get('#np-docs-filtro').shadow().find('input').type('garantias reais sobre bens móveis');
+    cy.get(`${LISTA} .np-doc`).should('have.length', 1);
+    cy.get(linha('pl-480-2025-apensado')).should('exist');
+  });
+
+  it('documento sem ementa não tem o bloco, e sem urlDocumento não tem o ícone', () => {
+    irParaTela2b();
+    cy.get(linha('pl-117-2025-apensado')).should('exist').find('.np-doc-ementa').should('not.exist');
+    cy.get(linha('pl-117-2025-apensado')).find('a.np-doc-link').should('exist');
+    cy.get(linha('pl-480-2025-apensado')).find('a.np-doc-link').should('not.exist');
+  });
+
+  it('o ícone usa o tooltip do host quando informado e o texto padrão quando não', () => {
+    irParaTela2b();
+    cy.get(`${linha('prl-1-ccjc-parecer')} a.np-doc-link`)
+      .should('have.attr', 'title', 'Abrir o parecer na íntegra em outra aba')
+      .and('have.attr', 'aria-label', 'Abrir o parecer na íntegra em outra aba')
+      .and('have.attr', 'target', '_blank');
+    cy.get(`${linha('pl-4-2025-original')} a.np-doc-link`)
+      .should('have.attr', 'title', 'Abrir o documento em outra aba')
+      .and('have.attr', 'aria-label', 'Abrir o documento em outra aba');
+  });
 });
