@@ -7,7 +7,7 @@
 
 ## 2. Tela 2b
 
-- [ ] 2.1 Em `nova-proposicao.component.ts`, exibir a ementa abaixo do título (2 linhas, `title` com o texto completo), tornar o ícone condicional a `urlDocumento`, usar o tooltip e o `aria-label` de `tooltipDoDocumento` e trocar "inteiro teor" por "documento" no parágrafo da tela. Verificar com testes de componente em `tela2b.component.test.ts` (ementa presente e ausente, ícone presente e ausente, tooltip padrão e do host).
+- [x] 2.1 Em `nova-proposicao.component.ts`, exibir a ementa abaixo do título (2 linhas, `title` com o texto completo), tornar o ícone condicional a `urlDocumento`, usar o tooltip e o `aria-label` de `tooltipDoDocumento` e trocar "inteiro teor" por "documento" no parágrafo da tela. Verificar com testes de componente em `tela2b.component.test.ts` (ementa presente e ausente, ícone presente e ausente, tooltip padrão e do host).
 
 ## 3. Demo
 

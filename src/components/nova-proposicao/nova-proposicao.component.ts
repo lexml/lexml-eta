@@ -15,7 +15,7 @@ import { ColegiadoApreciador } from '../../model/proposicao/proposicao';
 import { inicializarVocabulario } from '../../model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoDocumento } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { montaEpigrafeNovaProposicao } from './epigrafeNovaProposicao';
-import { filtrarDocumentos, linhaDetalheDocumento, textoEstruturadoDisponivel, urlDocumentoSegura } from './documentosMateria';
+import { filtrarDocumentos, linhaDetalheDocumento, textoEstruturadoDisponivel, tooltipDoDocumento, urlDocumentoSegura } from './documentosMateria';
 import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
 import { lerDadosIdentificacao } from './lerDadosIdentificacao';
 import { isPlv, montaUrnNovaProposicao, numeroOriginalVale } from './montaUrnNovaProposicao';
@@ -1211,7 +1211,7 @@ export class NovaProposicaoComponent extends LitElement {
     const rotuloMesma = `${this.tipoProposicao?.sigla ?? ''} ${this.numeroProposicao.trim()}/${this.anoProposicao.trim()}`;
     return html`
       ${this.cabecalho}
-      <p id="np-tela-2b">Texto de outra proposição: escolha o documento que será o ponto de partida. O ícone ao lado de cada documento abre o inteiro teor em outra aba.</p>
+      <p id="np-tela-2b">Texto de outra proposição: escolha o documento que será o ponto de partida. O ícone ao lado de cada documento o abre em outra aba.</p>
 
       <fieldset id="np-g-materia">
         <legend>Em qual matéria está o documento?</legend>
@@ -1315,7 +1315,8 @@ export class NovaProposicaoComponent extends LitElement {
 
   private renderDocumento(doc: DocumentoMateria, selecionado: boolean): TemplateResult {
     const disponivel = textoEstruturadoDisponivel(doc);
-    const inteiroTeor = urlDocumentoSegura(doc.urlDocumento);
+    const urlDocumento = urlDocumentoSegura(doc.urlDocumento);
+    const ementa = (doc.ementa ?? '').trim();
     return html`<div
       class="np-doc ${selecionado ? 'np-doc--selecionado' : ''} ${disponivel ? '' : 'np-doc--desabilitado'}"
       role="option"
@@ -1326,17 +1327,18 @@ export class NovaProposicaoComponent extends LitElement {
     >
       <div class="np-doc-texto">
         <div class="np-doc-titulo">${doc.titulo}</div>
+        ${ementa ? html`<div class="np-doc-ementa" title=${ementa}>${ementa}</div>` : nothing}
         <div class="np-doc-detalhe">${linhaDetalheDocumento(doc)}</div>
         ${disponivel ? nothing : html`<div class="np-doc-aviso">Texto estruturado não disponível</div>`}
       </div>
-      ${inteiroTeor
+      ${urlDocumento
         ? html`<a
-            class="np-doc-inteiro-teor"
-            href=${inteiroTeor}
+            class="np-doc-link"
+            href=${urlDocumento}
             target="_blank"
             rel="noopener noreferrer"
-            title="Abrir o inteiro teor em outra aba"
-            aria-label="Abrir o inteiro teor de ${doc.titulo} em outra aba"
+            title=${tooltipDoDocumento(doc)}
+            aria-label=${tooltipDoDocumento(doc)}
             @click=${(e: Event): void => e.stopPropagation()}
             >&#8599;</a
           >`
@@ -1482,12 +1484,19 @@ export class NovaProposicaoComponent extends LitElement {
         lexml-nova-proposicao .np-doc-titulo {
           font-weight: 600;
         }
+        lexml-nova-proposicao .np-doc-ementa {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          font-size: 0.9em;
+        }
         lexml-nova-proposicao .np-doc-detalhe,
         lexml-nova-proposicao .np-doc-aviso {
           font-size: 0.85em;
           color: var(--sl-color-gray-600, #666);
         }
-        lexml-nova-proposicao .np-doc-inteiro-teor {
+        lexml-nova-proposicao .np-doc-link {
           text-decoration: none;
           padding: 0 6px;
         }

@@ -22,9 +22,27 @@ const doc = (o: Partial<DocumentoMateria> = {}): DocumentoMateria => ({
   ...o,
 });
 const DOCUMENTOS = [
-  doc(),
-  doc({ id: 'd2', titulo: 'Parecer do relator 1 – CCJC', siglaComissao: 'CCJC', nomeAutor: 'Beltrano', papelAutor: 'Relator', indSexoAutor: 'M', dataApresentacao: '2025-08-12' }),
-  doc({ id: 'd3', titulo: 'PL 117/2025 (apensado)', sigla: 'PL', numero: '117', siglaComissao: undefined, papelAutor: 'Autor', textoEstruturadoDisponivel: false }),
+  doc({ ementa: 'Dispõe sobre a atualização do Código Civil e da legislação correlata.' }),
+  doc({
+    id: 'd2',
+    titulo: 'Parecer do relator 1 – CCJC',
+    siglaComissao: 'CCJC',
+    nomeAutor: 'Beltrano',
+    papelAutor: 'Relator',
+    indSexoAutor: 'M',
+    dataApresentacao: '2025-08-12',
+    tooltipDocumento: 'Parecer na íntegra (PDF)',
+  }),
+  doc({
+    id: 'd3',
+    titulo: 'PL 117/2025 (apensado)',
+    sigla: 'PL',
+    numero: '117',
+    siglaComissao: undefined,
+    papelAutor: 'Autor',
+    textoEstruturadoDisponivel: false,
+    urlDocumento: undefined,
+  }),
 ];
 
 describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => {
@@ -233,8 +251,8 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
       expect(botaoHabilitado('np-continuar')).to.be.false;
     });
 
-    it('o ícone de inteiro teor abre em outra aba sem selecionar o documento', async () => {
-      const a = linha('d1').querySelector<HTMLAnchorElement>('a.np-doc-inteiro-teor')!;
+    it('o ícone do documento abre em outra aba sem selecionar o documento', async () => {
+      const a = linha('d1').querySelector<HTMLAnchorElement>('a.np-doc-link')!;
       expect(a.getAttribute('href')).to.equal('https://exemplo.test/d1');
       expect(a.getAttribute('target')).to.equal('_blank');
       expect(a.getAttribute('rel')).to.contain('noopener');
@@ -242,6 +260,37 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
       a.click();
       await atualizar();
       expect(existe('np-fonte-selecionada')).to.be.false;
+    });
+
+    it('sem urlDocumento a linha não exibe o ícone', async () => {
+      expect(linha('d3').querySelector('a.np-doc-link')).to.equal(null);
+      expect(linha('d1').querySelector('a.np-doc-link')).to.not.equal(null);
+    });
+
+    it('tooltip e aria-label: o padrão sem tooltipDocumento e o do host quando informado', async () => {
+      const padrao = linha('d1').querySelector<HTMLAnchorElement>('a.np-doc-link')!;
+      expect(padrao.getAttribute('title')).to.equal('Abrir o documento em outra aba');
+      expect(padrao.getAttribute('aria-label')).to.equal('Abrir o documento em outra aba');
+      const host = linha('d2').querySelector<HTMLAnchorElement>('a.np-doc-link')!;
+      expect(host.getAttribute('title')).to.equal('Parecer na íntegra (PDF)');
+      expect(host.getAttribute('aria-label')).to.equal('Parecer na íntegra (PDF)');
+    });
+
+    it('a ementa aparece abaixo do título, limitada a 2 linhas, com o texto completo no tooltip; sem ementa não há bloco', async () => {
+      const ementa = linha('d1').querySelector<HTMLElement>('.np-doc-ementa')!;
+      expect(ementa.textContent?.trim()).to.equal('Dispõe sobre a atualização do Código Civil e da legislação correlata.');
+      expect(ementa.getAttribute('title')).to.equal('Dispõe sobre a atualização do Código Civil e da legislação correlata.');
+      expect(getComputedStyle(ementa).webkitLineClamp).to.equal('2');
+      const titulo = linha('d1').querySelector('.np-doc-titulo')!;
+      const detalhe = linha('d1').querySelector('.np-doc-detalhe')!;
+      expect(titulo.nextElementSibling).to.equal(ementa);
+      expect(ementa.nextElementSibling).to.equal(detalhe);
+      expect(linha('d2').querySelector('.np-doc-ementa')).to.equal(null);
+    });
+
+    it('o filtro alcança a ementa', async () => {
+      await digitar('np-docs-filtro', 'codigo civil');
+      expect(linhas().map(l => l.dataset.id)).to.deep.equal(['d1']);
     });
 
     it('o filtro é textual, sem acento nem caixa, e alcança a data exibida', async () => {
@@ -263,7 +312,7 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
       await iniciar();
       await irParaTela2b();
       expect(linhas().length).to.equal(1);
-      expect(el.querySelector('a.np-doc-inteiro-teor')).to.equal(null);
+      expect(el.querySelector('a.np-doc-link')).to.equal(null);
     });
 
     it('matéria sem documentos', async () => {
