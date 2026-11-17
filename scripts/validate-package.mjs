@@ -46,6 +46,7 @@ const publicTypes = [
   'ConfigNovaProposicao',
   'ConsultaDocumento',
   'ConsultaProposicao',
+  'ContextoImportacaoArquivo',
   'DadosBasicos',
   'DadosIniciaisEdicao',
   'DadosNovaProposicao',

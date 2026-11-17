@@ -15,6 +15,7 @@ import { ColegiadoApreciador } from '../../model/proposicao/proposicao';
 import { inicializarVocabulario } from '../../model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoDocumento } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { montaEpigrafeNovaProposicao } from './epigrafeNovaProposicao';
+import { montaContextoImportacaoArquivo } from './contextoImportacaoArquivo';
 import { filtrarDocumentos, linhaDetalheDocumento, textoEstruturadoDisponivel, tooltipDoDocumento, urlDocumentoSegura } from './documentosMateria';
 import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
 import { lerDadosIdentificacao } from './lerDadosIdentificacao';
@@ -43,8 +44,10 @@ import {
 import {
   ConfigNovaProposicao,
   CONTENT_TYPE_IMPORTACAO,
+  ContextoImportacaoArquivo,
   DocumentoMateria,
   montaUrlComissoes,
+  montaUrlImportacao,
   montaUrlProposicao,
   montaUrlTextoDocumento,
   normalizaConsultaProposicao,
@@ -804,14 +807,15 @@ export class NovaProposicaoComponent extends LitElement {
         return { aviso: { linhas: [MENSAGEM_JSON_INVALIDO] } };
       }
     }
-    if (this._config!.onImportarArquivo) return this.importarPeloCallback(arquivo);
-    return this.importarPelaUrl(arquivo, CONTENT_TYPE_IMPORTACAO[extensao]);
+    const contexto = montaContextoImportacaoArquivo(this.dados, montaUrnNovaProposicao(this.dados, this.numeroOriginal));
+    if (this._config!.onImportarArquivo) return this.importarPeloCallback(arquivo, contexto);
+    return this.importarPelaUrl(arquivo, CONTENT_TYPE_IMPORTACAO[extensao], contexto);
   }
 
-  private async importarPeloCallback(arquivo: File): Promise<DesfechoImportacao> {
+  private async importarPeloCallback(arquivo: File, contexto: ContextoImportacaoArquivo): Promise<DesfechoImportacao> {
     let resultado;
     try {
-      resultado = await this._config!.onImportarArquivo!(arquivo);
+      resultado = await this._config!.onImportarArquivo!(arquivo, contexto);
     } catch {
       return 'falha';
     }
@@ -822,10 +826,10 @@ export class NovaProposicaoComponent extends LitElement {
   }
 
   // O corpo do 400 é mensagem para o usuário; o das demais falhas pode ser técnico e não é exibido.
-  private async importarPelaUrl(arquivo: File, contentType: string): Promise<DesfechoImportacao> {
+  private async importarPelaUrl(arquivo: File, contentType: string, contexto: ContextoImportacaoArquivo): Promise<DesfechoImportacao> {
     let resposta: Response;
     try {
-      resposta = await fetch(this._config!.urlImportacaoArquivo!, { method: 'POST', body: arquivo, headers: { 'Content-Type': contentType } });
+      resposta = await fetch(montaUrlImportacao(this._config!.urlImportacaoArquivo!, contexto), { method: 'POST', body: arquivo, headers: { 'Content-Type': contentType } });
     } catch {
       return 'falha';
     }

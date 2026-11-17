@@ -2,6 +2,7 @@ import { expect } from '@open-wc/testing';
 import { getPreambuloNovaProposicao, PREAMBULO_FALLBACK } from '../../../src/components/nova-proposicao/preambuloNovaProposicao';
 import { getSufixoEpigrafe } from '../../../src/components/nova-proposicao/epigrafeNovaProposicao';
 import { getIdentificacaoDocumento, getNovoOuNova } from '../../../src/components/nova-proposicao/identificacaoDocumento';
+import { montaContextoImportacaoArquivo } from '../../../src/components/nova-proposicao/contextoImportacaoArquivo';
 import { montaUrnNovaProposicao } from '../../../src/components/nova-proposicao/montaUrnNovaProposicao';
 import {
   getSiglasNovaProposicao,
@@ -12,7 +13,9 @@ import {
 } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
 import { DadosIdentificacao } from '../../../src/components/nova-proposicao/tiposNovaProposicao';
 import {
+  ContextoImportacaoArquivo,
   montaUrlComissoes,
+  montaUrlImportacao,
   montaUrlProposicao,
   montaUrlTextoDocumento,
   normalizaConsultaProposicao,
@@ -219,9 +222,64 @@ describe('Módulos puros da nova proposição', () => {
     });
   });
 
+  describe('contexto da importação de arquivo', () => {
+    const contexto = (d: DadosIdentificacao): any => montaContextoImportacaoArquivo(d, montaUrnNovaProposicao(d));
+
+    it('proposição sem referência (PEC da CD)', () => {
+      inicializarVocabulario('CD');
+      const c = contexto(dados('CD', { tipoProposicao: tipo('CD', 'PEC') }));
+      expect(c).to.deep.equal({ casa: 'CD', especie: 'proposicao', urn: 'urn:lex:br:camara.deputados:proposta.emenda.constitucional;pec:2026;999999', siglaDocumento: 'PEC' });
+      expect(Object.isFrozen(c)).to.equal(true);
+    });
+
+    it('PLV traz a MPV como documento referenciado', () => {
+      inicializarVocabulario('SF');
+      const c = contexto(dados('SF', { tipoProposicao: tipo('SF', 'PLV'), numeroMpv: '04321', anoMpv: '2025' }));
+      expect(c.siglaDocumento).to.equal('PLV');
+      expect(c.documentoReferenciado).to.deep.equal({ urn: 'urn:lex:br:federal:medida.provisoria;mpv:2025;4321', sigla: 'MPV', numero: '4321', ano: '2025' });
+    });
+
+    it('substitutivo do SF usa a sigla da proposição referenciada e a URN com sufixo', () => {
+      inicializarVocabulario('SF');
+      const c = contexto(dados('SF', { especie: 'substitutivo', tipoProposicao: tipo('SF', 'PL', true), numeroProposicao: '0012' }));
+      expect(c.siglaDocumento).to.equal('PL');
+      expect(c.urn).to.equal('urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo');
+      expect(c.documentoReferenciado).to.deep.equal({ urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;12', sigla: 'PL', numero: '12', ano: '2026' });
+    });
+
+    it('substitutivo e subemenda substitutiva da CD usam SBT e SSP', () => {
+      inicializarVocabulario('CD');
+      const base = { tipoProposicao: tipo('CD', 'PL', true), numeroProposicao: '12' };
+      const sbt = contexto(dados('CD', { ...base, especie: 'substitutivo', tipoSubstitutivo: getTipoSubstitutivoCd('substitutivo') }));
+      const ssp = contexto(dados('CD', { ...base, especie: 'subemenda', tipoSubstitutivo: getTipoSubstitutivoCd('subemenda') }));
+      expect([sbt.siglaDocumento, ssp.siglaDocumento]).to.deep.equal(['SBT', 'SSP']);
+      expect(sbt.documentoReferenciado.sigla).to.equal('PL');
+    });
+
+    it('referenciada complementar mantém a URN de lei complementar', () => {
+      inicializarVocabulario('SF');
+      const pls = resolverTipoComplementar(tipo('SF', 'PLS', true), true);
+      const c = contexto(dados('SF', { especie: 'substitutivo', tipoProposicao: pls, numeroProposicao: '7' }));
+      expect(c.documentoReferenciado.urn).to.equal('urn:lex:br:senado.federal:projeto.lei.complementar;pls:2026;7');
+      expect(c.documentoReferenciado.sigla).to.equal('PLS');
+    });
+  });
+
   describe('URLs', () => {
     it('sigla em maiúsculas e número sem zeros à esquerda', () => {
       expect(montaUrlProposicao('/v/{sigla}/{numero}/{ano}', 'pl', '0012', '2026')).to.equal('/v/PL/12/2026');
+    });
+
+    it('placeholders do contexto da importação: codificados, e vazios quando ausentes', () => {
+      const c: ContextoImportacaoArquivo = { casa: 'SF', especie: 'proposicao', urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;999999', siglaDocumento: 'PL' };
+      expect(montaUrlImportacao('/i?urn={urn}&especie={especie}&ref={siglaReferenciada}&casa={casa}', c)).to.equal(
+        '/i?urn=urn%3Alex%3Abr%3Asenado.federal%3Aprojeto.lei%3Bpl%3A2026%3B999999&especie=proposicao&ref=&casa=SF'
+      );
+      const comReferencia: ContextoImportacaoArquivo = { ...c, documentoReferenciado: { urn: 'u', sigla: 'PL', numero: '12', ano: '2026' } };
+      expect(montaUrlImportacao('/i/{siglaReferenciada}/{numeroReferenciado}/{anoReferenciado}/{urnDocumentoReferenciado}/{siglaDocumento}', comReferencia)).to.equal(
+        '/i/PL/12/2026/u/PL'
+      );
+      expect(montaUrlImportacao('/importacao', c)).to.equal('/importacao');
     });
 
     it('casa nas comissões', () => {

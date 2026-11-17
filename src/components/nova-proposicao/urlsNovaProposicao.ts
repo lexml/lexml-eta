@@ -1,4 +1,6 @@
+import type { CasaLegislativaEditor } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { semZerosAEsquerda } from './montaUrnNovaProposicao';
+import type { EspecieDocumento } from './tiposNovaProposicao';
 
 export interface ComissaoNovaProposicao {
   siglaCasaLegislativa: string;
@@ -66,7 +68,27 @@ export type ObterTextoCallback = (consulta: ConsultaProposicao) => unknown | Pro
 export type ListarDocumentosCallback = (consulta: ConsultaProposicao) => DocumentoMateria[] | undefined | Promise<DocumentoMateria[] | undefined>;
 /** `undefined` indica texto indisponível; o texto é o JSONIX do documento. */
 export type ObterTextoDocumentoCallback = (consulta: ConsultaDocumento) => unknown | Promise<unknown>;
-export type ImportarArquivoCallback = (arquivo: File) => ResultadoImportacaoArquivo | Promise<ResultadoImportacaoArquivo>;
+export interface ReferenciaImportacaoArquivo {
+  urn: string;
+  sigla: string;
+  /** Sem zeros à esquerda. */
+  numero: string;
+  ano: string;
+}
+
+/** Escolhas da Tela 1 informadas ao host que converte o arquivo; vale a URN, e os demais campos a decompõem. */
+export interface ContextoImportacaoArquivo {
+  readonly casa: CasaLegislativaEditor;
+  readonly especie: EspecieDocumento;
+  /** URN do documento a criar (a mesma do resultado). */
+  readonly urn: string;
+  /** Sigla do documento a criar; no substitutivo do SF, a da proposição referenciada. */
+  readonly siglaDocumento: string;
+  /** Presente em substitutivo, subemenda substitutiva e PLV (a MPV). */
+  readonly documentoReferenciado?: Readonly<ReferenciaImportacaoArquivo>;
+}
+
+export type ImportarArquivoCallback = (arquivo: File, contexto: ContextoImportacaoArquivo) => ResultadoImportacaoArquivo | Promise<ResultadoImportacaoArquivo>;
 
 export interface ConfigNovaProposicao {
   casaLegislativaEditor?: string;
@@ -135,3 +157,21 @@ export const montaUrlProposicao = (modelo: string, sigla: string, numero: string
 export const montaUrlTextoDocumento = (modelo: string, id: string): string => modelo.replace(/\{id\}/g, encodeURIComponent(id));
 
 export const montaUrlComissoes = (modelo: string, casa: string): string => modelo.replace(/\{casa\}/g, encodeURIComponent(casa));
+
+/** Valor ausente vira texto vazio; URL sem placeholders não muda. */
+export const montaUrlImportacao = (modelo: string, contexto: ContextoImportacaoArquivo): string => {
+  const referenciado = contexto.documentoReferenciado;
+  const valores: Record<string, string> = {
+    casa: contexto.casa,
+    especie: contexto.especie,
+    urn: contexto.urn,
+    siglaDocumento: contexto.siglaDocumento,
+    urnDocumentoReferenciado: referenciado?.urn ?? '',
+    siglaReferenciada: referenciado?.sigla ?? '',
+    numeroReferenciado: referenciado?.numero ?? '',
+    anoReferenciado: referenciado?.ano ?? '',
+  };
+  return modelo.replace(/\{(casa|especie|urn|siglaDocumento|urnDocumentoReferenciado|siglaReferenciada|numeroReferenciado|anoReferenciado)\}/g, (_, nome: string) =>
+    encodeURIComponent(valores[nome])
+  );
+};
