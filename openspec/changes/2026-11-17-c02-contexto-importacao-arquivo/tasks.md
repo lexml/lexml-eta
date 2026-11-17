@@ -7,8 +7,8 @@
 
 ## 2. Componente
 
-- [ ] 2.1 Em `nova-proposicao.component.ts`, montar o contexto (congelado) ao acionar **Continuar** na importação e passá-lo a `importarPeloCallback` e `importarPelaUrl`. Verificar com testes de componente em `callbacks.component.test.ts`: o callback recebe o contexto do substitutivo do SF e de um SBT da CD, e o `fetch` da URL é chamado com os placeholders preenchidos (um caso por formato distinto, sem repetir a matriz do 1.1).
-- [ ] 2.2 Desabilitar **Voltar** e **Cancelar** das Telas 2 e 2b enquanto `processando`. Verificar com testes de componente: com importação pendente (promise não resolvida) os dois botões ficam desabilitados e voltam a ficar habilitados ao responder (sucesso e falha); o mesmo na obtenção de texto da Tela 2b.
+- [x] 2.1 Em `nova-proposicao.component.ts`, montar o contexto (congelado) ao acionar **Continuar** na importação e passá-lo a `importarPeloCallback` e `importarPelaUrl`. Verificar com testes de componente em `callbacks.component.test.ts`: o callback recebe o contexto do substitutivo do SF e de um SBT da CD, e o `fetch` da URL é chamado com os placeholders preenchidos (um caso por formato distinto, sem repetir a matriz do 1.1).
+- [x] 2.2 Desabilitar **Voltar** e **Cancelar** das Telas 2 e 2b enquanto `processando`. Verificar com testes de componente: com importação pendente (promise não resolvida) os dois botões ficam desabilitados e voltam a ficar habilitados ao responder (sucesso e falha); o mesmo na obtenção de texto da Tela 2b.
 
 ## 3. Demo
 

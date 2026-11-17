@@ -1,6 +1,6 @@
 import { expect, fixture, html } from '@open-wc/testing';
 import { EVENTO_CONCLUIDA, NovaProposicaoComponent } from '../../../src/components/nova-proposicao/nova-proposicao.component';
-import { ConfigNovaProposicao } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
+import { ConfigNovaProposicao, ContextoImportacaoArquivo } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
 const COMISSOES = [
@@ -287,15 +287,56 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
       await marcar('opcaoTexto', 'importar');
     };
     const arquivosRecebidos: File[] = [];
+    const contextosRecebidos: ContextoImportacaoArquivo[] = [];
     const registrando =
       (resposta: () => unknown): ConfigNovaProposicao['onImportarArquivo'] =>
-      (arquivo): any => {
+      (arquivo, contexto): any => {
         arquivosRecebidos.push(arquivo);
+        contextosRecebidos.push(contexto);
         return resposta();
       };
 
     beforeEach(() => {
       arquivosRecebidos.length = 0;
+      contextosRecebidos.length = 0;
+    });
+
+    it('contexto: o callback recebe o do substitutivo escolhido na Tela 1', async () => {
+      await iniciar({ ...callbacks(), onImportarArquivo: registrando(() => ({ texto: TEXTO, erros: [] })) });
+      await irParaTela2Substitutivo();
+      await marcar('opcaoTexto', 'importar');
+      await selecionarArquivo(new File(['x'], 'minuta.docx'));
+      await clicar('np-continuar');
+      expect(contextosRecebidos).to.deep.equal([
+        {
+          casa: 'SF',
+          especie: 'substitutivo',
+          urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo',
+          siglaDocumento: 'PL',
+          documentoReferenciado: { urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;12', sigla: 'PL', numero: '12', ano: '2026' },
+        },
+      ]);
+      expect(Object.isFrozen(contextosRecebidos[0])).to.be.true;
+    });
+
+    it('contexto na URL: o POST leva os placeholders preenchidos e codificados', async () => {
+      await iniciar({ ...callbacks(), onImportarArquivo: undefined, urlImportacaoArquivo: '/i?urn={urn}&especie={especie}&ref={siglaReferenciada}' });
+      await irParaTela2Substitutivo();
+      await marcar('opcaoTexto', 'importar');
+      await selecionarArquivo(new File(['x'], 'minuta.docx'));
+      await clicar('np-continuar');
+      expect(urlsChamadas).to.deep.equal(['/i?urn=urn%3Alex%3Abr%3Asenado.federal%3Aprojeto.lei%3Bpl%3A2026%3B12%40apresentacao.substitutivo&especie=substitutivo&ref=PL']);
+    });
+
+    it('enquanto o host converte, Voltar e Cancelar ficam desabilitados e voltam ao responder', async () => {
+      let rejeitar!: (e: Error) => void;
+      await prepararImportacao(() => new Promise((_, reject) => (rejeitar = reject)) as any);
+      await selecionarArquivo(new File(['x'], 'minuta.docx'));
+      await clicar('np-continuar');
+      expect(botaoHabilitado('np-voltar') || botaoHabilitado('np-cancelar')).to.be.false;
+      rejeitar(new Error('falha'));
+      await atualizar();
+      expect(botaoHabilitado('np-voltar') && botaoHabilitado('np-cancelar')).to.be.true;
     });
 
     it('sucesso: recebe o arquivo e conclui com o texto devolvido em documentoImportado', async () => {
