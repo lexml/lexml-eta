@@ -1,5 +1,12 @@
 import { expect } from '@open-wc/testing';
-import { filtrarDocumentos, formataDataApresentacao, linhaDetalheDocumento, urlInteiroTeorSegura } from '../../../src/components/nova-proposicao/documentosMateria';
+import {
+  filtrarDocumentos,
+  formataDataApresentacao,
+  linhaDetalheDocumento,
+  TOOLTIP_DOCUMENTO_PADRAO,
+  tooltipDoDocumento,
+  urlDocumentoSegura,
+} from '../../../src/components/nova-proposicao/documentosMateria';
 import { DocumentoMateria } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
 
 const doc = (o: Partial<DocumentoMateria> = {}): DocumentoMateria => ({
@@ -8,7 +15,7 @@ const doc = (o: Partial<DocumentoMateria> = {}): DocumentoMateria => ({
   sigla: 'PRL',
   numero: '1',
   ano: 2025,
-  urlInteiroTeor: 'https://exemplo.test/x',
+  urlDocumento: 'https://exemplo.test/x',
   nomeAutor: 'José',
   papelAutor: 'Relator',
   indSexoAutor: 'M',
@@ -38,10 +45,26 @@ describe('documentosMateria', () => {
     expect(filtrarDocumentos(lista, '   ')).to.equal(lista);
   });
 
-  it('só http(s) e endereços relativos viram link', () => {
-    expect(urlInteiroTeorSegura('https://a.test/x')).to.equal('https://a.test/x');
-    expect(urlInteiroTeorSegura('/relativo')).to.equal('/relativo');
-    expect(urlInteiroTeorSegura('javascript:alert(1)')).to.equal(undefined);
-    expect(urlInteiroTeorSegura('data:text/html,x')).to.equal(undefined);
+  it('filtro: alcança a ementa, sem acento e caixa; documento sem ementa não quebra', () => {
+    const lista = [doc({ ementa: 'Dispõe sobre a atualização do Código Civil.' }), doc({ id: 'y', titulo: 'Parecer', ementa: undefined })];
+    expect(filtrarDocumentos(lista, 'codigo civil').map(d => d.id)).to.deep.equal(['x']);
+    expect(filtrarDocumentos(lista, 'ATUALIZACAO').map(d => d.id)).to.deep.equal(['x']);
+    expect(filtrarDocumentos(lista, 'parecer').map(d => d.id)).to.deep.equal(['y']);
+  });
+
+  it('só http(s) e endereços relativos viram link; ausente ou vazio não vira', () => {
+    expect(urlDocumentoSegura('https://a.test/x')).to.equal('https://a.test/x');
+    expect(urlDocumentoSegura('/relativo')).to.equal('/relativo');
+    expect(urlDocumentoSegura('javascript:alert(1)')).to.equal(undefined);
+    expect(urlDocumentoSegura('data:text/html,x')).to.equal(undefined);
+    expect(urlDocumentoSegura(undefined)).to.equal(undefined);
+    expect(urlDocumentoSegura('   ')).to.equal(undefined);
+  });
+
+  it('tooltip: o do host quando preenchido, o padrão quando ausente ou vazio', () => {
+    expect(TOOLTIP_DOCUMENTO_PADRAO).to.equal('Abrir o documento em outra aba');
+    expect(tooltipDoDocumento(doc())).to.equal(TOOLTIP_DOCUMENTO_PADRAO);
+    expect(tooltipDoDocumento(doc({ tooltipDocumento: '   ' }))).to.equal(TOOLTIP_DOCUMENTO_PADRAO);
+    expect(tooltipDoDocumento(doc({ tooltipDocumento: 'Parecer na íntegra (PDF)' }))).to.equal('Parecer na íntegra (PDF)');
   });
 });

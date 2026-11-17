@@ -15,7 +15,7 @@ import { ColegiadoApreciador } from '../../model/proposicao/proposicao';
 import { inicializarVocabulario } from '../../model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoDocumento } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { montaEpigrafeNovaProposicao } from './epigrafeNovaProposicao';
-import { filtrarDocumentos, linhaDetalheDocumento, textoEstruturadoDisponivel, urlInteiroTeorSegura } from './documentosMateria';
+import { filtrarDocumentos, linhaDetalheDocumento, textoEstruturadoDisponivel, urlDocumentoSegura } from './documentosMateria';
 import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
 import { lerDadosIdentificacao } from './lerDadosIdentificacao';
 import { isPlv, montaUrnNovaProposicao, numeroOriginalVale } from './montaUrnNovaProposicao';
@@ -1315,7 +1315,7 @@ export class NovaProposicaoComponent extends LitElement {
 
   private renderDocumento(doc: DocumentoMateria, selecionado: boolean): TemplateResult {
     const disponivel = textoEstruturadoDisponivel(doc);
-    const inteiroTeor = urlInteiroTeorSegura(doc.urlInteiroTeor);
+    const inteiroTeor = urlDocumentoSegura(doc.urlDocumento);
     return html`<div
       class="np-doc ${selecionado ? 'np-doc--selecionado' : ''} ${disponivel ? '' : 'np-doc--desabilitado'}"
       role="option"

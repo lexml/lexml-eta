@@ -13,7 +13,7 @@ const doc = (o: Partial<DocumentoMateria> = {}): DocumentoMateria => ({
   sigla: 'PRL',
   numero: '1',
   ano: 2025,
-  urlInteiroTeor: 'https://exemplo.test/d1',
+  urlDocumento: 'https://exemplo.test/d1',
   nomeAutor: 'Fulana',
   papelAutor: 'Relatora',
   indSexoAutor: 'F',
@@ -259,7 +259,7 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
 
   describe('estados da lista', () => {
     it('não cria link para endereço que não é http(s)', async () => {
-      respostas.listar = () => [doc({ urlInteiroTeor: 'javascript:alert(1)' })];
+      respostas.listar = () => [doc({ urlDocumento: 'javascript:alert(1)' })];
       await iniciar();
       await irParaTela2b();
       expect(linhas().length).to.equal(1);

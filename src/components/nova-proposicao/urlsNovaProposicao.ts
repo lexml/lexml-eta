@@ -28,7 +28,12 @@ export interface DocumentoMateria {
   sigla: string;
   numero: string;
   ano?: number;
-  urlInteiroTeor: string;
+  /** Opcional: sem endereço, a linha não mostra o ícone. */
+  urlDocumento?: string;
+  /** Opcional: texto do tooltip do ícone; ausente ou vazio, vale "Abrir o documento em outra aba". */
+  tooltipDocumento?: string;
+  /** Opcional: exibida abaixo do título, em até 2 linhas. */
+  ementa?: string;
   /** Verdadeiro quando ausente. */
   textoEstruturadoDisponivel?: boolean;
   /** Sem tratamento: o componente acrescenta "Dep.". */

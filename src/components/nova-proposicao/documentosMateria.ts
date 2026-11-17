@@ -27,9 +27,9 @@ const normaliza = (texto: string): string =>
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase();
 
-const textoPesquisavel = (doc: DocumentoMateria): string => normaliza([doc.titulo, linhaDetalheDocumento(doc)].join(' '));
+const textoPesquisavel = (doc: DocumentoMateria): string => normaliza([doc.titulo, doc.ementa ?? '', linhaDetalheDocumento(doc)].join(' '));
 
-/** Filtro textual genérico sobre tudo o que a linha exibe (inclusive a data), sem acento nem caixa; cada termo precisa aparecer. */
+/** Filtro textual genérico sobre tudo o que a linha exibe (inclusive a data e a ementa), sem acento nem caixa; cada termo precisa aparecer. */
 export const filtrarDocumentos = (documentos: DocumentoMateria[], filtro: string): DocumentoMateria[] => {
   const termos = normaliza(filtro ?? '')
     .split(/\s+/)
@@ -41,14 +41,21 @@ export const filtrarDocumentos = (documentos: DocumentoMateria[], filtro: string
   });
 };
 
-/** Só http(s) vira link: o endereço vem do host e não pode ser `javascript:` etc. */
-export const urlInteiroTeorSegura = (url: string): string | undefined => {
+/** Só http(s) ou relativa vira link: o endereço vem do host e não pode ser `javascript:` etc. */
+export const urlDocumentoSegura = (url?: string): string | undefined => {
+  const endereco = (url ?? '').trim();
+  if (!endereco) return undefined;
   try {
-    const u = new URL((url ?? '').trim(), 'http://base.invalid');
-    return u.protocol === 'http:' || u.protocol === 'https:' ? (url ?? '').trim() : undefined;
+    const u = new URL(endereco, 'http://base.invalid');
+    return u.protocol === 'http:' || u.protocol === 'https:' ? endereco : undefined;
   } catch {
     return undefined;
   }
 };
+
+export const TOOLTIP_DOCUMENTO_PADRAO = 'Abrir o documento em outra aba';
+
+/** Texto do tooltip (e do aria-label) do ícone: o do host, ou o padrão quando ausente ou vazio. */
+export const tooltipDoDocumento = (doc: DocumentoMateria): string => (doc.tooltipDocumento ?? '').trim() || TOOLTIP_DOCUMENTO_PADRAO;
 
 export const textoEstruturadoDisponivel = (doc: DocumentoMateria): boolean => doc.textoEstruturadoDisponivel !== false;
