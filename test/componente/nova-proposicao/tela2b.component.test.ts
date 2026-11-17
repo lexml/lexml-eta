@@ -361,6 +361,18 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
       expect(r.detail.urnDocumentoReferenciado).to.equal('urn:lex:br:camara.deputados:projeto.lei;pl:2026;12');
     });
 
+    it('enquanto o texto não chega, Voltar e Cancelar ficam desabilitados', async () => {
+      let liberar!: (v: unknown) => void;
+      respostas.texto = () => new Promise(resolve => (liberar = resolve));
+      linha('d2').click();
+      await atualizar();
+      await clicar('np-continuar');
+      expect(botaoHabilitado('np-voltar') || botaoHabilitado('np-cancelar')).to.be.false;
+      liberar(undefined);
+      await atualizar();
+      expect(botaoHabilitado('np-voltar') && botaoHabilitado('np-cancelar')).to.be.true;
+    });
+
     it('texto indisponível: informa, permanece na Tela 2b e permite escolher outro documento', async () => {
       respostas.texto = () => undefined;
       const r = concluida();

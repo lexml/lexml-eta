@@ -1196,12 +1196,13 @@ export class NovaProposicaoComponent extends LitElement {
         <sl-button id="np-continuar" variant="primary" ?disabled=${!this.tela2Valida} @click=${(): void => void this.continuarTela2()}>Continuar</sl-button>
         <sl-button
           id="np-voltar"
+          ?disabled=${this.processando}
           @click=${(): void => {
             this.tela = 1;
           }}
           >Voltar</sl-button
         >
-        <sl-button id="np-cancelar" @click=${(): void => this.cancelar()}>Cancelar</sl-button>
+        <sl-button id="np-cancelar" ?disabled=${this.processando} @click=${(): void => this.cancelar()}>Cancelar</sl-button>
       </div>
     `;
   }
@@ -1263,12 +1264,13 @@ export class NovaProposicaoComponent extends LitElement {
         <sl-button id="np-continuar" variant="primary" ?disabled=${!this.tela2bValida} @click=${(): void => void this.continuarTela2b()}>Continuar</sl-button>
         <sl-button
           id="np-voltar"
+          ?disabled=${this.processando}
           @click=${(): void => {
             this.tela = 2;
           }}
           >Voltar</sl-button
         >
-        <sl-button id="np-cancelar" @click=${(): void => this.cancelar()}>Cancelar</sl-button>
+        <sl-button id="np-cancelar" ?disabled=${this.processando} @click=${(): void => this.cancelar()}>Cancelar</sl-button>
       </div>
     `;
   }
