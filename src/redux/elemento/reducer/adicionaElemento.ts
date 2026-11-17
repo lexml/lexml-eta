@@ -178,7 +178,9 @@ export const adicionaElemento = (state: any, action: any): State => {
     );
   }
 
-  eventos.add(StateType.ElementoMarcado, [createElemento(novo), createElemento(atual)]);
+  // Enter no início do texto: o cursor fica no dispositivo que manteve o texto (o menu "antes" vai para o novo).
+  const manterFocoNoAtual = action.manterFocoNoAtual && action.posicao === 'antes';
+  eventos.add(StateType.ElementoMarcado, manterFocoNoAtual ? [createElemento(atual), createElemento(novo)] : [createElemento(novo), createElemento(atual)]);
 
   const builtEvents = eventos.build();
   return {
