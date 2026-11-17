@@ -12,12 +12,12 @@
 
 ## 3. Demo
 
-- [ ] 3.1 Em `demo/components/demoview.ts`, acrescentar placeholders à `urlImportacaoArquivo` da demo e garantir que `demo/server/handlers.mjs` aceite a query string (hoje decide só pelo `Content-Type`). Verificar com `npm run test:demo-server`, incluindo um caso com query string.
+- [x] 3.1 Em `demo/components/demoview.ts`, acrescentar placeholders à `urlImportacaoArquivo` da demo e garantir que `demo/server/handlers.mjs` aceite a query string (hoje decide só pelo `Content-Type`). Verificar com `npm run test:demo-server`, incluindo um caso com query string.
 
 ## 4. E2E (Cypress)
 
-- [ ] 4.1 Estender `cypress/e2e/nova-proposicao/callbacks.cy.ts` (consultar `docs/guia-cypress.md`): o stub de `onImportarArquivo` recebe o contexto de um substitutivo (`calledWith` com `urn`, `especie` e `documentoReferenciado`), e um cenário com `cy.intercept` na URL com placeholders confere a query do `POST`. Verificar com `npm run cy:run:local` só nesse spec. O bloqueio de **Voltar** e **Cancelar** fica no teste de componente (2.2), porque exigir uma resposta pendente no navegador é frágil; registrar a decisão aqui se o E2E do bloqueio não for feito.
+- [x] 4.1 Estender `cypress/e2e/nova-proposicao/callbacks.cy.ts` (consultar `docs/guia-cypress.md`): o stub de `onImportarArquivo` recebe o contexto de um substitutivo (`calledWith` com `urn`, `especie` e `documentoReferenciado`), e um cenário com `cy.intercept` na URL com placeholders confere a query do `POST`. Verificar com `npm run cy:run:local` só nesse spec. O bloqueio de **Voltar** e **Cancelar** fica no teste de componente (2.2), porque exigir uma resposta pendente no navegador é frágil; registrar a decisão aqui se o E2E do bloqueio não for feito.
 
 ## 5. Validação
 
-- [ ] 5.1 Validar a change com `openspec validate "2026-11-17-c02-contexto-importacao-arquivo" --strict` e rodar `npm test` para conferir que nenhum teste existente depende do `onImportarArquivo(arquivo)` de um só parâmetro.
+- [x] 5.1 Validar a change com `openspec validate "2026-11-17-c02-contexto-importacao-arquivo" --strict` e rodar `npm test` para conferir que nenhum teste existente depende do `onImportarArquivo(arquivo)` de um só parâmetro.
