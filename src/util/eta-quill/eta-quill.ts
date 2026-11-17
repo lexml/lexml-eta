@@ -117,6 +117,12 @@ export class EtaQuill extends PrivateQuill {
       e.preventDefault();
     });
     this.root.addEventListener('click', this.customClickHandler);
+    this.focarRootSemRolagem();
+  }
+
+  // Com o foco no <p> do dispositivo, o Quill chama root.focus() a cada setSelection, e o Chrome rolava ao topo (#1077).
+  private focarRootSemRolagem(): void {
+    this.root.focus = (opcoes?: FocusOptions): void => HTMLElement.prototype.focus.call(this.root, opcoes ?? { preventScroll: true });
   }
 
   customClickHandler = (ev: MouseEvent): void => {
