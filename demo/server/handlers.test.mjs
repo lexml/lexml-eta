@@ -98,11 +98,20 @@ test('documentos da matéria: PL 4/2025 devolve a lista no contrato, sem expor o
   const lista = corpo(r);
   assert.equal(lista.length, 6);
   for (const d of lista) {
-    assert.ok(d.id && d.titulo && d.sigla && d.numero && d.urlInteiroTeor && d.nomeAutor && d.papelAutor && d.indSexoAutor);
+    assert.ok(d.id && d.titulo && d.sigla && d.numero && d.nomeAutor && d.papelAutor && d.indSexoAutor);
     assert.match(d.dataApresentacao, /^\d{4}-\d{2}-\d{2}$/);
     assert.equal('arquivo' in d, false);
+    assert.equal('urlInteiroTeor' in d, false);
   }
   assert.equal(lista.filter(d => d.textoEstruturadoDisponivel === false).length, 1);
+});
+
+test('documentos da matéria: PL 4/2025 exercita os campos opcionais (urlDocumento, ementa e tooltipDocumento)', () => {
+  const lista = corpo(tratarRequisicaoDemo('/demo-api/materias/PL/4/2025/documentos'));
+  assert.equal(lista.filter(d => !d.urlDocumento).length, 1, 'um documento sem urlDocumento');
+  assert.equal(lista.filter(d => !d.ementa).length, 1, 'um documento sem ementa');
+  assert.equal(lista.filter(d => d.tooltipDocumento).length, 1, 'um documento com tooltipDocumento');
+  assert.ok(lista.filter(d => d.urlDocumento).every(d => /^https:\/\//.test(d.urlDocumento)));
 });
 
 test('documentos da matéria: sigla em minúsculas e zeros à esquerda; lista vazia; matéria sem mock devolve 404', () => {

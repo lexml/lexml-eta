@@ -11,7 +11,7 @@
 
 ## 3. Demo
 
-- [ ] 3.1 Em `demo/server/dados/documentos-materia.json`, trocar `urlInteiroTeor` por `urlDocumento` e acrescentar ementas, um documento sem `ementa`, um sem `urlDocumento` e um com `tooltipDocumento`; ajustar `handlers.test.mjs`. Verificar com `npm run test:demo-server`.
+- [x] 3.1 Em `demo/server/dados/documentos-materia.json`, trocar `urlInteiroTeor` por `urlDocumento` e acrescentar ementas, um documento sem `ementa`, um sem `urlDocumento` e um com `tooltipDocumento`; ajustar `handlers.test.mjs`. Verificar com `npm run test:demo-server`.
 
 ## 4. E2E (Cypress)
 
