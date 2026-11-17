@@ -485,7 +485,7 @@ nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
 ```
 
 - **Configuração.** Cada origem de dados (verificação, texto estruturado, comissões e importação de arquivo) exige a **URL ou o callback** correspondente: sem os dois, a atribuição de `config` lança erro que nomeia a URL ausente (e cita o callback alternativo) e nenhuma tela é exibida. Só a casa tem padrão. O componente inicializa o vocabulário da casa ao ser criado e a cada nova configuração; manter a mesma casa no `<lexml-eta>` é responsabilidade do host.
-- **Placeholders.** `{sigla}` (maiúsculas), `{numero}` (sem zeros à esquerda) e `{ano}` nas duas URLs de proposição; `{casa}` (`SF`, `CD` ou `CN`) em `urlComissoes`. `urlImportacaoArquivo` não tem placeholders.
+- **Placeholders.** `{sigla}` (maiúsculas), `{numero}` (sem zeros à esquerda) e `{ano}` nas duas URLs de proposição; `{casa}` (`SF`, `CD` ou `CN`) em `urlComissoes`. `urlImportacaoArquivo` aceita os placeholders do contexto da importação (ver "Importação de arquivo"); todos são opcionais.
 - **Callbacks opcionais.** Quando existe, o callback é usado no lugar da origem correspondente (a URL, mesmo informada, não é chamada); quando não existe, vale o comportamento por URL. Telas e resultado não mudam. Devolvem dados de domínio (não `Response`), de forma síncrona ou assíncrona; promise rejeitada ou exceção equivale a erro de rede:
 
   ```ts
@@ -497,13 +497,13 @@ nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
     },
     onObterTexto: async ({ sigla, numero, ano }) => (await api.get(`/proposicoes/${sigla}/${numero}/${ano}/texto`)).data, // undefined = indisponível
     onObterComissoes: async casa => (await api.get(`/comissoes/${casa}`)).data,
-    onImportarArquivo: async arquivo => converter(arquivo), // { texto?, erros }
+    onImportarArquivo: async (arquivo, contexto) => converter(arquivo, contexto), // { texto?, erros }
   } satisfies ConfigNovaProposicao;
   ```
 
   - `onVerificarProposicao` e `onObterTexto` recebem `{ sigla, numero, ano }` já normalizados (sigla em maiúsculas, número sem zeros à esquerda). Na verificação, `undefined` indica documento inexistente; no texto, `undefined` indica indisponível.
   - `onObterComissoes` recebe a casa (`SF`, `CD` ou `CN`) e devolve a lista de `{ siglaCasaLegislativa, sigla, nome }`; só os itens da casa pedida são usados. Vale também no modo de edição.
-  - `onImportarArquivo` recebe o arquivo já validado (PDF, DOCX, TXT ou XML de até 5 MB; nunca é chamado para arquivo recusado nem para `.json`) e devolve `{ texto?, erros }`. Com `erros`, o componente vai para a Tela 3; sem erros, conclui com `texto` em `documentoImportado` (sem `texto`, a Tela 3 mostra que o conversor não devolveu o texto); se rejeitar, tem o efeito da falha do serviço de conversão (alerta de erro na Tela 2, com nova tentativa). Não há campo de avisos de conversão.
+  - `onImportarArquivo(arquivo, contexto)` recebe o arquivo já validado (PDF, DOCX, TXT ou XML de até 5 MB; nunca é chamado para arquivo recusado nem para `.json`) e o contexto da importação (ver "Importação de arquivo"), e devolve `{ texto?, erros }`. Quem declara só o primeiro parâmetro continua funcionando. Com `erros`, o componente vai para a Tela 3; sem erros, conclui com `texto` em `documentoImportado` (sem `texto`, a Tela 3 mostra que o conversor não devolveu o texto); se rejeitar, tem o efeito da falha do serviço de conversão (alerta de erro na Tela 2, com nova tentativa). Não há campo de avisos de conversão.
 - **Origens da Tela 2b (só na `CD`).** Em substitutivo ou subemenda substitutiva, a opção "Texto de outra proposição" não pede sigla, número e ano: leva a uma lista de documentos da matéria, porque nessa casa tipo + número + ano não identificam o documento. Com `casaLegislativaEditor: 'CD'`, a configuração **passa a exigir** (**BREAKING** para quem já usa a `CD`) `urlDocumentosMateria` ou `onListarDocumentos` e `urlTextoDocumento` ou `onObterTextoDocumento`; no `SF` não são exigidas. O `onObterTexto` não muda.
   - `urlDocumentosMateria` usa `{sigla}`, `{numero}` e `{ano}` (normalizados como nas demais URLs); `200` devolve a lista de documentos e `404` indica matéria inexistente. `onListarDocumentos({ sigla, numero, ano })` devolve a lista ou `undefined` (inexistente).
   - `urlTextoDocumento` usa `{id}`; `200` devolve o JSONIX e `404` indica texto indisponível. `onObterTextoDocumento({ id })` devolve o JSONIX ou `undefined`.
@@ -544,6 +544,20 @@ nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
   - `500`, outro status, `200` sem JSON ou falha de rede: alerta de erro na Tela 2 com o nome do arquivo, sem exibir o corpo; **Continuar** permite nova tentativa.
 
   Os alertas saem ao trocar o arquivo ou a opção de texto inicial.
+- **Contexto da importação.** Montado ao acionar **Continuar** com a opção "Importar documento", a partir da Tela 1, e entregue como segundo parâmetro de `onImportarArquivo` (somente leitura) e nos placeholders de `urlImportacaoArquivo`:
+
+  | Campo | Placeholder | Conteúdo |
+  | --- | --- | --- |
+  | `casa` | `{casa}` | `SF`, `CD` ou `CN` |
+  | `especie` | `{especie}` | `proposicao`, `substitutivo` ou `subemenda` |
+  | `urn` | `{urn}` | URN do documento a criar (a mesma do resultado; no substitutivo do `SF` leva `@apresentacao.substitutivo`) |
+  | `siglaDocumento` | `{siglaDocumento}` | sigla do documento a criar (`SBT`/`SSP` na `CD`; no substitutivo do `SF`, a da proposição referenciada) |
+  | `documentoReferenciado.urn` | `{urnDocumentoReferenciado}` | URN do documento referenciado |
+  | `documentoReferenciado.sigla` | `{siglaReferenciada}` | sigla do documento referenciado |
+  | `documentoReferenciado.numero` | `{numeroReferenciado}` | número, sem zeros à esquerda |
+  | `documentoReferenciado.ano` | `{anoReferenciado}` | ano |
+
+  `documentoReferenciado` existe em substitutivo, subemenda substitutiva e PLV (a MPV); sem ele, os placeholders correspondentes viram texto vazio. Os valores são codificados como componente de URL, e uma URL sem placeholders não é alterada. A URN é a fonte da verdade: ela distingue lei complementar da ordinária e traz o tipo da norma no segmento de tipo (ex.: `projeto.lei;pl`), que o host pode extrair em vez de derivá-lo da sigla. Na criação, o número do documento é `999999`. O tipo `ContextoImportacaoArquivo` é exportado. **Voltar** e **Cancelar** ficam desabilitados enquanto o componente aguarda o host.
 - **Epígrafe e preâmbulo.** A epígrafe vem de `montaEpigrafe` (seção 7.1). No `SF`, o sufixo é `- PLEN` com destino Plenário e `- <sigla da comissão>` com destino Comissão; na `CD`, não há sufixo. Tipo sem texto padrão recebe `O CONGRESSO NACIONAL decreta:` com log de erro (regra do componente; a abertura de documentos não muda).
 
 ## 12. Referências
