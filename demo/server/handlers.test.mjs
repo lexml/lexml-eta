@@ -88,6 +88,12 @@ test('importação: outro tipo devolve 400 e GET não é tratado como importaç�
   assert.equal(tratarRequisicaoDemo('/demo-api/importacao').status, 404);
 });
 
+test('importação: a query string com o contexto não altera a decisão pelo Content-Type', () => {
+  const query = '?casa=SF&especie=substitutivo&urn=urn%3Alex%3Abr%3Asenado.federal%3Aprojeto.lei%3Bpl%3A2026%3B12%40apresentacao.substitutivo&siglaReferenciada=';
+  assert.equal(tratarRequisicaoDemo(`/demo-api/importacao${query}`, 'POST', 'application/xml').status, 200);
+  assert.equal(tratarRequisicaoDemo(`/demo-api/importacao${query}`, 'POST', 'application/pdf').status, 500);
+});
+
 test('rota desconhecida da demo devolve 404', () => {
   assert.equal(tratarRequisicaoDemo('/demo-api/outra').status, 404);
 });
