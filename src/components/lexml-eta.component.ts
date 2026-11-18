@@ -601,7 +601,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       this.updateView();
       await this.updateComplete;
       this.sincronizarESelecionarAba(this._tabsEsquerda, 'lexml-eta-proposicao');
-      this.sincronizarESelecionarAba(this._tabsDireita, this.anexoParecer ? 'comentarios' : 'notas');
+      this.sincronizarESelecionarAba(this._tabsDireita, 'comentarios');
     } catch (err) {
       console.error(err);
       this.emitirEventoFatalError(err);
@@ -618,7 +618,10 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.documentoInicializado = false;
     this.limparAlertas();
     this.querySelector<HTMLElement>('lexml-eta-articulacao')?.style.setProperty('display', 'none');
-    this.updateComplete.then(() => this.sincronizarESelecionarAba(this._tabsEsquerda, 'lexml-eta-proposicao'));
+    this.updateComplete.then(() => {
+      this.sincronizarESelecionarAba(this._tabsEsquerda, 'lexml-eta-proposicao');
+      this.sincronizarESelecionarAba(this._tabsDireita, 'comentarios');
+    });
   }
 
   // Descarta tudo o que é do documento (Redux e componentes); a configuração da sessão e o usuário ficam.
@@ -1339,18 +1342,20 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
                 `
               : ''}
             <sl-tab-panel name="comentarios" class="overflow-hidden">
-              <lexml-eta-comentarios
-                .sequencias=${this.sequenciasComentario}
-                .usuario=${rootStore.getState().elementoReducer.usuario}
-                .idSequenciaAtual=${this.idSequenciaComentarioAtual}
-                .getTrecho=${this.getTrechoComentario}
-                .getPosicao=${this.getPosicaoComentario}
-                @comentario-selecionar-sequencia=${this.selecionarSequenciaComentario}
-                @comentario-responder=${this.responderComentario}
-                @comentario-editar=${this.editarComentario}
-                @comentario-excluir=${this.excluirComentario}
-                @comentario-excluir-sequencia=${this.excluirSequenciaComentario}
-              ></lexml-eta-comentarios>
+              <div ?hidden=${neutro}>
+                <lexml-eta-comentarios
+                  .sequencias=${this.sequenciasComentario}
+                  .usuario=${rootStore.getState().elementoReducer.usuario}
+                  .idSequenciaAtual=${this.idSequenciaComentarioAtual}
+                  .getTrecho=${this.getTrechoComentario}
+                  .getPosicao=${this.getPosicaoComentario}
+                  @comentario-selecionar-sequencia=${this.selecionarSequenciaComentario}
+                  @comentario-responder=${this.responderComentario}
+                  @comentario-editar=${this.editarComentario}
+                  @comentario-excluir=${this.excluirComentario}
+                  @comentario-excluir-sequencia=${this.excluirSequenciaComentario}
+                ></lexml-eta-comentarios>
+              </div>
             </sl-tab-panel>
             ${!this.anexoParecer
               ? html`
