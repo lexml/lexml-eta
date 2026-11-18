@@ -11,4 +11,4 @@
 
 ## 3. Validação
 
-- [ ] 3.1 Validar com `openspec validate "2026-11-18-c02-contexto-documento-destino-apresentacao" --strict`, rodar `npm test` e, depois de `npm run build:types`, `node scripts/validate-package.mjs`, sem falhas.
+- [x] 3.1 Validar com `openspec validate "2026-11-18-c02-contexto-documento-destino-apresentacao" --strict`, rodar `npm test` e, depois de `npm run build:types`, `node scripts/validate-package.mjs`, sem falhas.
