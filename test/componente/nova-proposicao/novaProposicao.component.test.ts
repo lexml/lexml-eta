@@ -577,7 +577,7 @@ describe('lexml-nova-proposicao', () => {
 
       it('rótulo e seletor oferecem PDF, DOCX, TXT, XML e JSON', async () => {
         await prepararImportacao();
-        expect(opcao('importar')!.textContent).to.contain('Importar documento (PDF, DOCX, TXT ou LexML)');
+        expect(opcao('importar')!.textContent).to.contain('Importar documento (DOCX, TXT ou PDF do Editor)');
         expect(q<HTMLInputElement>('np-arquivo')!.accept).to.equal('.pdf,.docx,.txt,.xml,.json');
       });
 
