@@ -7,7 +7,7 @@
 
 ## 2. E2E (Cypress)
 
-- [ ] 2.1 Em `cypress/e2e/nova-proposicao/callbacks.cy.ts` (consultar `docs/guia-cypress.md`), estender o teste do contexto pelo callback para conferir `colegiadoDestino` (`Comissão`, `CBX`) e `anexoParecer` (`true`), e o teste da importação pela URL para incluir `{tipoColegiado}`, `{siglaComissao}` e `{anexoParecer}` na `urlImportacaoArquivo` e conferir `Comissão`, `CBX` e `true` na query interceptada. Verificar com `npm run cy:run:local` só nesse spec (com o `npm start` ativo). A recarga da Tela 2b por troca de destino fica nos testes de componente da 1.1, como na c01.
+- [x] 2.1 Em `cypress/e2e/nova-proposicao/callbacks.cy.ts` (consultar `docs/guia-cypress.md`), estender o teste do contexto pelo callback para conferir `colegiadoDestino` (`Comissão`, `CBX`) e `anexoParecer` (`true`), e o teste da importação pela URL para incluir `{tipoColegiado}`, `{siglaComissao}` e `{anexoParecer}` na `urlImportacaoArquivo` e conferir `Comissão`, `CBX` e `true` na query interceptada. Verificar com `npm run cy:run:local` só nesse spec (com o `npm start` ativo). A recarga da Tela 2b por troca de destino fica nos testes de componente da 1.1, como na c01.
 
 ## 3. Validação
 

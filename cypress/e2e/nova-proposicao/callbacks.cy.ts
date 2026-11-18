@@ -174,6 +174,8 @@ describe('Nova proposição — callbacks opcionais na configuração', () => {
           urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2023;5008@apresentacao.substitutivo',
           siglaDocumento: 'PL',
           documentoReferenciado: { urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2023;5008', sigla: 'PL', numero: '5008', ano: '2023' },
+          colegiadoDestino: { tipoColegiado: 'Comissão', siglaComissao: 'CBX' },
+          anexoParecer: true,
         });
     });
   });
@@ -182,7 +184,10 @@ describe('Nova proposição — callbacks opcionais na configuração', () => {
     cy.intercept('POST', '**/demo-api/importacao**').as('importacao');
 
     abrirModal();
-    configurarComCallbacks({ ...CALLBACKS_DE_VERIFICACAO(), urlImportacaoArquivo: '/demo-api/importacao?urn={urn}&especie={especie}&ref={siglaReferenciada}' });
+    configurarComCallbacks({
+      ...CALLBACKS_DE_VERIFICACAO(),
+      urlImportacaoArquivo: '/demo-api/importacao?urn={urn}&especie={especie}&ref={siglaReferenciada}&destino={tipoColegiado}&comissao={siglaComissao}&parecer={anexoParecer}',
+    });
     irParaImportacaoDeSubstitutivo();
     cy.get('#np-arquivo').selectFile({ contents: Cypress.Buffer.from('<LexML/>'), fileName: 'minuta.xml' }, { force: true });
     cy.get('#np-continuar').click();
@@ -192,6 +197,9 @@ describe('Nova proposição — callbacks opcionais na configuração', () => {
       expect(query.get('urn')).to.equal('urn:lex:br:senado.federal:projeto.lei;pl:2023;5008@apresentacao.substitutivo');
       expect(query.get('especie')).to.equal('substitutivo');
       expect(query.get('ref')).to.equal('PL');
+      expect(query.get('destino')).to.equal('Comissão');
+      expect(query.get('comissao')).to.equal('CBX');
+      expect(query.get('parecer')).to.equal('true');
     });
   });
 
