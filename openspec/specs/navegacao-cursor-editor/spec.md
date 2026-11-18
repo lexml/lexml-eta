@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Definir em quais linhas do editor da articulação o cursor pode ficar e como as setas o movem entre elas, pulando as linhas não editáveis, como a epígrafe e o preâmbulo, e onde o cursor fica depois do Enter que cria dispositivo.
+Definir em quais linhas do editor da articulação o cursor pode ficar e como as setas o movem entre elas, pulando as linhas não editáveis, como a epígrafe e o preâmbulo, onde o cursor fica depois do Enter que cria dispositivo, que reposicionar o cursor, como pela tecla Home, não rola a tela, e como fica a seleção que alcança o rótulo do dispositivo.
 
 ## Requirements
 
@@ -74,3 +74,41 @@ Quando o Enter cria um dispositivo a partir de um artigo, parágrafo, inciso, al
 #### Scenario: Adicionar artigo antes pelo menu
 - **WHEN** o usuário escolhe "Adicionar artigo antes" no menu do Art. 4º
 - **THEN** um Art. 4º vazio é criado e o cursor fica nele, como antes
+
+### Requirement: Reposicionar o cursor não rola a tela
+Quando o editor reposiciona o cursor dentro da área visível, como ao devolvê-lo do rótulo ao início do texto, a tela SHALL NOT rolar. A tecla Home SHALL levar o cursor ao início da linha visual em que ele está, e na primeira linha do dispositivo ao início do texto, sem alterar a rolagem. Ctrl+Home e Ctrl+End SHALL continuar levando ao início e ao fim da proposição, com a rolagem correspondente.
+
+#### Scenario: Home no meio do texto de um dispositivo
+- **WHEN** a proposição é maior que a tela, o usuário rola até o meio dela, clica no meio do texto de um dispositivo e tecla Home
+- **THEN** o cursor vai para o início do texto do dispositivo, e a tela continua na mesma posição
+
+#### Scenario: Home repetido em pontos diferentes da proposição
+- **WHEN** o usuário repete, em várias posições de rolagem, o clique no meio de um dispositivo seguido de Home
+- **THEN** em nenhuma das vezes a tela rola para o início da proposição
+
+#### Scenario: Ctrl+Home
+- **WHEN** o cursor está no meio da proposição e o usuário tecla Ctrl+Home
+- **THEN** o cursor vai para o início do primeiro dispositivo e a tela rola para o início, como antes
+
+### Requirement: Seleção que alcança o rótulo fica no texto
+Quando uma seleção com texto selecionado se estende até o rótulo do dispositivo ou outro elemento não editável do início da linha, o editor SHALL limitar o começo da seleção ao início do texto do dispositivo, em vez de desfazê-la. O fim da seleção e o sentido em que ela foi feita SHALL ser mantidos. O cursor sem seleção que cai nesses elementos SHALL continuar sendo levado ao início do texto.
+
+#### Scenario: End seguido de Shift+Home
+- **WHEN** o texto de um dispositivo ocupa uma linha na tela, o usuário tecla End e depois Shift+Home
+- **THEN** todo o texto do dispositivo fica selecionado, sem o rótulo
+
+#### Scenario: Home seguido de Shift+End
+- **WHEN** o texto de um dispositivo ocupa uma linha na tela, o usuário tecla Home e depois Shift+End
+- **THEN** todo o texto do dispositivo fica selecionado, como antes
+
+#### Scenario: O sentido da seleção é mantido
+- **WHEN** o usuário tecla End, Shift+Home e depois Shift+→
+- **THEN** a seleção perde o primeiro caractere do texto e continua terminando no fim do texto
+
+#### Scenario: Arrastar o mouse até o rótulo
+- **WHEN** o usuário pressiona o botão do mouse no meio do texto de um dispositivo e o arrasta até o rótulo
+- **THEN** fica selecionado o texto do início até o ponto onde o arrasto começou
+
+#### Scenario: Cursor sem seleção no rótulo
+- **WHEN** o cursor, sem seleção, cai no rótulo do dispositivo
+- **THEN** o cursor vai para o início do texto, como antes
