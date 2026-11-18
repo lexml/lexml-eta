@@ -516,7 +516,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.cancelarTimerOnChangePendente();
     if (posicao === 'antes') {
       const actionAntes = this.getActionAdicionarAntes(linha.tipo);
-      rootStore.dispatch(actionAntes.execute(elemento, textoNovaLinha));
+      // Diferente do menu "antes", o Enter deixa o cursor no dispositivo que manteve o texto.
+      rootStore.dispatch({ ...actionAntes.execute(elemento, textoNovaLinha), manterFocoNoAtual: true });
     } else {
       rootStore.dispatch(adicionarElementoAction.execute(elemento, textoNovaLinha));
     }
