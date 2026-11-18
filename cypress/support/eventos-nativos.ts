@@ -3,6 +3,10 @@
 export const TECLA_HOME = { key: 'Home', code: 'Home', windowsVirtualKeyCode: 36, nativeVirtualKeyCode: 36 };
 export const TECLA_END = { key: 'End', code: 'End', windowsVirtualKeyCode: 35, nativeVirtualKeyCode: 35 };
 export const TECLA_SETA_DIREITA = { key: 'ArrowRight', code: 'ArrowRight', windowsVirtualKeyCode: 39, nativeVirtualKeyCode: 39 };
+export const TECLA_SETA_ESQUERDA = { key: 'ArrowLeft', code: 'ArrowLeft', windowsVirtualKeyCode: 37, nativeVirtualKeyCode: 37 };
+export const TECLA_SETA_ACIMA = { key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38, nativeVirtualKeyCode: 38 };
+// Tecla que digita um caractere: o campo text faz o navegador inserir o texto.
+export const TECLA_X = { key: 'x', code: 'KeyX', text: 'x', windowsVirtualKeyCode: 88, nativeVirtualKeyCode: 88 };
 
 export const ALT = 1;
 export const CTRL = 2;
