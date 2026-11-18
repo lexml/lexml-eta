@@ -23,4 +23,4 @@
 
 ## 6. Validação
 
-- [ ] 6.1 Validar a change com `openspec validate "2026-11-18-c01-contexto-documento-listagem" --strict` e rodar `npm test` para conferir que nenhum teste existente depende de `onListarDocumentos(consulta)` de um só parâmetro.
+- [x] 6.1 Validar a change com `openspec validate "2026-11-18-c01-contexto-documento-listagem" --strict` e rodar `npm test` para conferir que nenhum teste existente depende de `onListarDocumentos(consulta)` de um só parâmetro.
