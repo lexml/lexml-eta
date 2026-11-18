@@ -280,6 +280,9 @@ describe('Módulos puros da nova proposição', () => {
         '/i/PL/12/2026/u/PL'
       );
       expect(montaUrlContexto('/importacao', c)).to.equal('/importacao');
+      const listagem = montaUrlProposicao('/m/{sigla}/{numero}/{ano}?especie={especie}', 'pl', '0012', '2026');
+      expect(montaUrlContexto(listagem, comReferencia)).to.equal('/m/PL/12/2026?especie=proposicao');
+      expect(montaUrlContexto('/m/PL/12/2026', c)).to.equal('/m/PL/12/2026');
     });
 
     it('casa nas comissões', () => {

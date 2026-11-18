@@ -65,7 +65,7 @@ export type VerificarProposicaoCallback = (consulta: ConsultaProposicao) => Resu
 /** `undefined` indica texto indisponível; o texto é o JSONIX do documento. */
 export type ObterTextoCallback = (consulta: ConsultaProposicao) => unknown | Promise<unknown>;
 /** `undefined` indica matéria inexistente. */
-export type ListarDocumentosCallback = (consulta: ConsultaProposicao) => DocumentoMateria[] | undefined | Promise<DocumentoMateria[] | undefined>;
+export type ListarDocumentosCallback = (consulta: ConsultaProposicao, contexto: ContextoDocumento) => DocumentoMateria[] | undefined | Promise<DocumentoMateria[] | undefined>;
 /** `undefined` indica texto indisponível; o texto é o JSONIX do documento. */
 export type ObterTextoDocumentoCallback = (consulta: ConsultaDocumento) => unknown | Promise<unknown>;
 export interface ReferenciaDocumento {

@@ -681,19 +681,21 @@ export class NovaProposicaoComponent extends LitElement {
     this.rotuloMateria = `${normalizada.sigla} ${normalizada.numero}/${normalizada.ano}`;
     this.documentoSelecionado = undefined;
     this.documentosMateria = { estado: 'carregando', lista: [] };
-    const resultado = await this.listarDocumentos(normalizada);
+    const contexto = montaContextoDocumento(this.dados, montaUrnNovaProposicao(this.dados, this.numeroOriginal));
+    const resultado = await this.listarDocumentos(normalizada, contexto);
     if (carga !== this.cargaDocumentos) return;
     this.documentosMateria = resultado;
   }
 
-  private async listarDocumentos(consulta: { sigla: string; numero: string; ano: string }): Promise<DocumentosCarregados> {
+  private async listarDocumentos(consulta: { sigla: string; numero: string; ano: string }, contexto: ContextoDocumento): Promise<DocumentosCarregados> {
     const erro: DocumentosCarregados = { estado: 'erro', lista: [] };
     try {
       let lista: unknown;
       if (this._config!.onListarDocumentos) {
-        lista = await this._config!.onListarDocumentos(consulta);
+        lista = await this._config!.onListarDocumentos(consulta, contexto);
       } else {
-        const resposta = await fetch(montaUrlProposicao(this._config!.urlDocumentosMateria!, consulta.sigla, consulta.numero, consulta.ano));
+        const url = montaUrlContexto(montaUrlProposicao(this._config!.urlDocumentosMateria!, consulta.sigla, consulta.numero, consulta.ano), contexto);
+        const resposta = await fetch(url);
         if (resposta.status === 404) return { estado: 'inexistente', lista: [] };
         if (resposta.status !== 200) return erro;
         lista = await resposta.json();

@@ -48,6 +48,7 @@ const DOCUMENTOS = [
 describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => {
   let el: NovaProposicaoComponent;
   let consultas: Array<{ origem: string; arg: unknown }>;
+  let contextos: unknown[];
   let respostas: { listar: (c: any) => unknown; texto: (c: any) => unknown; verificar: (c: any) => unknown };
 
   const pausa = (): Promise<void> => new Promise(r => setTimeout(r, 0));
@@ -104,8 +105,9 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
       consultas.push({ origem: 'verificacao', arg: c });
       return respostas.verificar(c);
     },
-    onListarDocumentos: (c): any => {
+    onListarDocumentos: (c, contexto): any => {
       consultas.push({ origem: 'listar', arg: c });
+      contextos.push(contexto);
       return respostas.listar(c);
     },
     onObterTextoDocumento: (c): any => {
@@ -135,6 +137,7 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
 
   beforeEach(() => {
     consultas = [];
+    contextos = [];
     respostas = { listar: () => DOCUMENTOS, texto: () => TEXTO, verificar: () => ({ ementa: 'Ementa' }) };
   });
 
@@ -152,6 +155,25 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
       expect(existe('np-sigla-materia')).to.be.false;
       expect(chamadasDe('listar')).to.deep.equal([{ sigla: 'PL', numero: '12', ano: '2026' }]);
       expect(linhas().length).to.equal(3);
+    });
+
+    it('o callback de listagem recebe o contexto da subemenda; o documento referenciado é o da Tela 1, mesmo em outra matéria', async () => {
+      const referenciado = { urn: 'urn:lex:br:camara.deputados:projeto.lei;pl:2026;12', sigla: 'PL', numero: '12', ano: '2026' };
+      const c: any = contextos[0];
+      expect(c.casa).to.equal('CD');
+      expect(c.especie).to.equal('subemenda');
+      expect(c.siglaDocumento).to.equal('SSP');
+      expect(c.urn).to.match(/^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/);
+      expect(c.documentoReferenciado).to.deep.equal(referenciado);
+      expect(Object.isFrozen(c)).to.be.true;
+
+      await marcar('materia', 'outra');
+      await escolherSigla('np-sigla-materia', 'PL');
+      await digitar('np-numero-materia', '0004');
+      await digitar('np-ano-materia', '2025');
+      await clicar('np-materia-verificar');
+      expect(chamadasDe('listar').pop()).to.deep.equal({ sigla: 'PL', numero: '4', ano: '2025' });
+      expect((contextos.pop() as any).documentoReferenciado).to.deep.equal(referenciado);
     });
 
     it('"Em outra matéria": lista só depois de verificar e descarta a seleção anterior', async () => {
@@ -303,6 +325,31 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
       await digitar('np-docs-filtro', 'zzz');
       expect(linhas().length).to.equal(0);
       expect(existe('np-docs-sem-resultado')).to.be.true;
+    });
+  });
+
+  describe('listagem por URL', () => {
+    const fetchOriginal = window.fetch;
+    let urls: string[];
+
+    beforeEach(async () => {
+      urls = [];
+      window.fetch = (async (url: string) => {
+        urls.push(url);
+        return new Response(JSON.stringify(DOCUMENTOS), { status: 200 });
+      }) as typeof fetch;
+      el = await fixture<NovaProposicaoComponent>(html`<lexml-nova-proposicao></lexml-nova-proposicao>`);
+      el.config = { ...config(), onListarDocumentos: undefined, urlDocumentosMateria: '/m/{sigla}/{numero}/{ano}?especie={especie}&ref={urnDocumentoReferenciado}' };
+      await atualizar();
+      await irParaTela2b();
+    });
+
+    afterEach(() => {
+      window.fetch = fetchOriginal;
+    });
+
+    it('preenche e codifica os placeholders do contexto na URL de listagem', () => {
+      expect(urls).to.deep.equal(['/m/PL/12/2026?especie=subemenda&ref=urn%3Alex%3Abr%3Acamara.deputados%3Aprojeto.lei%3Bpl%3A2026%3B12']);
     });
   });
 
