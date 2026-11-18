@@ -353,6 +353,88 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
     });
   });
 
+  describe('recarga da lista', () => {
+    const voltarParaTela1 = async (): Promise<void> => {
+      await clicar('np-voltar');
+      await clicar('np-voltar');
+    };
+    // Reabre a Tela 1 com a espécie dada, repete a identificação e volta à Tela 2b.
+    const trocarEspecieEIr = async (especie: string): Promise<void> => {
+      await voltarParaTela1();
+      await marcar('especie', especie);
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await digitar('np-numero-proposicao', '0012');
+      await digitar('np-ano-proposicao', '2026');
+      await clicar('np-proposicao-verificar');
+      await escolherNaLista('np-comissao', 'CFT');
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'outra');
+      await clicar('np-continuar');
+    };
+
+    beforeEach(async () => {
+      await iniciar();
+      await irParaTela2b();
+    });
+
+    it('trocar a espécie com a mesma matéria recarrega com o novo contexto e descarta a seleção', async () => {
+      linha('d1').click();
+      await atualizar();
+      expect(existe('np-fonte-selecionada')).to.be.true;
+
+      await trocarEspecieEIr('substitutivo');
+
+      expect(chamadasDe('listar').length).to.equal(2);
+      expect((contextos[0] as any).especie).to.equal('subemenda');
+      expect((contextos[1] as any).especie).to.equal('substitutivo');
+      expect(existe('np-fonte-selecionada')).to.be.false;
+      expect(linhas().length).to.equal(3);
+    });
+
+    it('descarta a resposta de uma carga em andamento quando o contexto muda', async () => {
+      const antigas = [doc({ id: 'antiga', titulo: 'Documento antigo' })];
+      let liberar!: (lista: DocumentoMateria[]) => void;
+      respostas.listar = (): unknown => new Promise(r => (liberar = r));
+      await trocarEspecieEIr('substitutivo');
+      expect(el.querySelector('#np-docs-lista .np-doc')).to.be.null;
+
+      respostas.listar = () => DOCUMENTOS;
+      await trocarEspecieEIr('subemenda');
+      liberar(antigas);
+      await atualizar();
+
+      expect(chamadasDe('listar').length).to.equal(3);
+      expect(linhas().map(l => l.dataset.id)).to.deep.equal(['d1', 'd2', 'd3']);
+    });
+
+    it('voltar à Tela 2 e retornar sem mudar a Tela 1 preserva a lista e a seleção', async () => {
+      linha('d2').click();
+      await atualizar();
+      await clicar('np-voltar');
+      await clicar('np-continuar');
+      expect(chamadasDe('listar').length).to.equal(1);
+      expect(existe('np-fonte-selecionada')).to.be.true;
+    });
+
+    it('"Em outra matéria" já verificada também recarrega ao trocar a espécie', async () => {
+      await marcar('materia', 'outra');
+      await escolherSigla('np-sigla-materia', 'PL');
+      await digitar('np-numero-materia', '0004');
+      await digitar('np-ano-materia', '2025');
+      await clicar('np-materia-verificar');
+      linha('d1').click();
+      await atualizar();
+      expect(chamadasDe('listar').length).to.equal(2);
+
+      await trocarEspecieEIr('substitutivo');
+
+      expect(chamadasDe('listar').length).to.equal(3);
+      expect(chamadasDe('listar').pop()).to.deep.equal({ sigla: 'PL', numero: '4', ano: '2025' });
+      expect((contextos.pop() as any).especie).to.equal('substitutivo');
+      expect(existe('np-fonte-selecionada')).to.be.false;
+    });
+  });
+
   describe('estados da lista', () => {
     it('não cria link para endereço que não é http(s)', async () => {
       respostas.listar = () => [doc({ urlDocumento: 'javascript:alert(1)' })];

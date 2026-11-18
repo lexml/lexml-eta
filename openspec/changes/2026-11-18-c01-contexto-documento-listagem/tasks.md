@@ -11,7 +11,7 @@
 
 ## 3. Recarga da lista
 
-- [ ] 3.1 Incluir o contexto na chave de `carregarDocumentos` e fazer `entrarTela2b` carregar em qualquer modo de matéria, descartando lista e seleção quando a chave difere da carregada. Verificar com testes de componente em `tela2b.component.test.ts`: troca de espécie (substitutivo → subemenda) com a mesma matéria recarrega com o novo contexto e descarta a seleção; carga em andamento durante a troca tem a resposta descartada; voltar à Tela 2 e retornar sem mudar a Tela 1 preserva a lista e a seleção e não chama `onListarDocumentos` de novo; "Em outra matéria" já verificada também recarrega.
+- [x] 3.1 Incluir o contexto na chave de `carregarDocumentos` e fazer `entrarTela2b` carregar em qualquer modo de matéria, descartando lista e seleção quando a chave difere da carregada. Verificar com testes de componente em `tela2b.component.test.ts`: troca de espécie (substitutivo → subemenda) com a mesma matéria recarrega com o novo contexto e descarta a seleção; carga em andamento durante a troca tem a resposta descartada; voltar à Tela 2 e retornar sem mudar a Tela 1 preserva a lista e a seleção e não chama `onListarDocumentos` de novo; "Em outra matéria" já verificada também recarrega.
 
 ## 4. Demo
 

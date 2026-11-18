@@ -634,7 +634,7 @@ export class NovaProposicaoComponent extends LitElement {
     this.erroComunicacao = '';
     this.textoIndisponivel = false;
     this.tela = '2b';
-    if (this.materiaDoDocumento === 'mesma') void this.carregarDocumentos();
+    void this.carregarDocumentos();
   }
 
   private limparDocumentos(): void {
@@ -673,7 +673,9 @@ export class NovaProposicaoComponent extends LitElement {
     const consulta = this.consultaMateria;
     if (!consulta) return;
     const normalizada = normalizaConsultaProposicao(consulta.sigla, consulta.numero, consulta.ano);
-    const chave = `${normalizada.sigla}|${normalizada.numero}|${normalizada.ano}`;
+    const contexto = montaContextoDocumento(this.dados, montaUrnNovaProposicao(this.dados, this.numeroOriginal));
+    // O contexto entra na chave: trocar a espécie ou o referenciado na Tela 1 invalida a lista.
+    const chave = `${normalizada.sigla}|${normalizada.numero}|${normalizada.ano}|${JSON.stringify(contexto)}`;
     if (chave === this.materiaCarregada && this.documentosMateria.estado !== 'erro') return;
 
     const carga = ++this.cargaDocumentos;
@@ -681,7 +683,6 @@ export class NovaProposicaoComponent extends LitElement {
     this.rotuloMateria = `${normalizada.sigla} ${normalizada.numero}/${normalizada.ano}`;
     this.documentoSelecionado = undefined;
     this.documentosMateria = { estado: 'carregando', lista: [] };
-    const contexto = montaContextoDocumento(this.dados, montaUrnNovaProposicao(this.dados, this.numeroOriginal));
     const resultado = await this.listarDocumentos(normalizada, contexto);
     if (carga !== this.cargaDocumentos) return;
     this.documentosMateria = resultado;
