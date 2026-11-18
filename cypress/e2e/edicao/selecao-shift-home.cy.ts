@@ -1,6 +1,6 @@
-// #1070: a seleção que alcança o rótulo começa no início do texto, em vez de ser desfeita.
+// #1070 e #1071: a seleção que alcança o rótulo começa no início do texto, em vez de ser desfeita.
 // Eventos nativos (CDP): com eventos sintéticos o navegador não estende a seleção.
-import { SHIFT, TECLA_END, TECLA_HOME, TECLA_SETA_DIREITA, arrastoNativo, cliqueNativo, teclaNativa } from '../../support/eventos-nativos';
+import { CTRL, SHIFT, TECLA_END, TECLA_HOME, TECLA_SETA_DIREITA, TECLA_SETA_ESQUERDA, arrastoNativo, cliqueNativo, teclaNativa } from '../../support/eventos-nativos';
 
 const getQuill = (win: any): any => win.document.querySelector('lexml-eta-proposicao-editor').quill;
 
@@ -81,6 +81,21 @@ describe('Seleção até o rótulo (#1070)', () => {
     cy.then(() => teclaNativa(TECLA_HOME));
     cy.wait(200);
     cy.then(() => teclaNativa(TECLA_END, SHIFT));
+    cy.wait(300);
+    conferirSelecao(0, tamanho);
+  });
+
+  it('Ctrl+Shift+← palavra a palavra até o início seleciona todo o texto e não perde a seleção (#1071)', () => {
+    cy.then(() => teclaNativa(TECLA_END));
+    cy.wait(200);
+    // Uma tecla por palavra e mais algumas além do início do texto, com pausa para o selectionchange de cada uma.
+    cy.then(async () => {
+      const palavras = (alvo.textContent || '').trim().split(/\s+/).length;
+      for (let i = 0; i < palavras + 3; i++) {
+        await teclaNativa(TECLA_SETA_ESQUERDA, CTRL | SHIFT);
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    });
     cy.wait(300);
     conferirSelecao(0, tamanho);
   });
