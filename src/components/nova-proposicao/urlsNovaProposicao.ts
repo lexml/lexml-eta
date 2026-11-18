@@ -1,6 +1,6 @@
 import type { CasaLegislativaEditor } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { semZerosAEsquerda } from './montaUrnNovaProposicao';
-import type { EspecieDocumento } from './tiposNovaProposicao';
+import type { ColegiadoDestino, EspecieDocumento } from './tiposNovaProposicao';
 
 export interface ComissaoNovaProposicao {
   siglaCasaLegislativa: string;
@@ -86,6 +86,10 @@ export interface ContextoDocumento {
   readonly siglaDocumento: string;
   /** Presente em substitutivo, subemenda substitutiva e PLV (a MPV). */
   readonly documentoReferenciado?: Readonly<ReferenciaDocumento>;
+  /** Destino como no resultado do fluxo; na `CD`, em substitutivo e subemenda substitutiva, traz a comissão também no Plenário. */
+  readonly colegiadoDestino: Readonly<ColegiadoDestino>;
+  /** Forma de apresentação: o documento será apresentado em parecer. */
+  readonly anexoParecer: boolean;
 }
 
 export type ImportarArquivoCallback = (arquivo: File, contexto: ContextoDocumento) => ResultadoImportacaoArquivo | Promise<ResultadoImportacaoArquivo>;
@@ -170,8 +174,10 @@ export const montaUrlContexto = (modelo: string, contexto: ContextoDocumento): s
     siglaReferenciada: referenciado?.sigla ?? '',
     numeroReferenciado: referenciado?.numero ?? '',
     anoReferenciado: referenciado?.ano ?? '',
+    tipoColegiado: contexto.colegiadoDestino.tipoColegiado,
+    siglaComissao: contexto.colegiadoDestino.siglaComissao ?? '',
+    anexoParecer: String(contexto.anexoParecer),
   };
-  return modelo.replace(/\{(casa|especie|urn|siglaDocumento|urnDocumentoReferenciado|siglaReferenciada|numeroReferenciado|anoReferenciado)\}/g, (_, nome: string) =>
-    encodeURIComponent(valores[nome])
-  );
+  const nomes = Object.keys(valores).join('|');
+  return modelo.replace(new RegExp(`\\{(${nomes})\\}`, 'g'), (_, nome: string) => encodeURIComponent(valores[nome]));
 };

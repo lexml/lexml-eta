@@ -165,6 +165,8 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
       expect(c.siglaDocumento).to.equal('SSP');
       expect(c.urn).to.match(/^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/);
       expect(c.documentoReferenciado).to.deep.equal(referenciado);
+      expect(c.colegiadoDestino).to.deep.equal({ tipoColegiado: 'Comissão', siglaComissao: 'CFT' });
+      expect(c.anexoParecer).to.be.true;
       expect(Object.isFrozen(c)).to.be.true;
 
       await marcar('materia', 'outra');
@@ -405,6 +407,36 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
 
       expect(chamadasDe('listar').length).to.equal(3);
       expect(linhas().map(l => l.dataset.id)).to.deep.equal(['d1', 'd2', 'd3']);
+    });
+
+    it('trocar o destino com a mesma matéria recarrega com o novo contexto e descarta a seleção', async () => {
+      linha('d1').click();
+      await atualizar();
+      expect(existe('np-fonte-selecionada')).to.be.true;
+
+      await voltarParaTela1();
+      await marcar('destino', 'Plenário');
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'outra');
+      await clicar('np-continuar');
+
+      expect(chamadasDe('listar').length).to.equal(2);
+      expect((contextos[1] as any).colegiadoDestino).to.deep.equal({ tipoColegiado: 'Plenário', siglaComissao: 'CFT' });
+      expect(existe('np-fonte-selecionada')).to.be.false;
+    });
+
+    it('trocar a forma de apresentação com a mesma matéria recarrega com o novo contexto', async () => {
+      await voltarParaTela1();
+      q<any>('np-anexo-parecer')!.checked = false;
+      q<any>('np-anexo-parecer')!.dispatchEvent(new CustomEvent('sl-change', { bubbles: true }));
+      await atualizar();
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'outra');
+      await clicar('np-continuar');
+
+      expect(chamadasDe('listar').length).to.equal(2);
+      expect((contextos[0] as any).anexoParecer).to.be.true;
+      expect((contextos[1] as any).anexoParecer).to.be.false;
     });
 
     it('voltar à Tela 2 e retornar sem mudar a Tela 1 preserva a lista e a seleção', async () => {

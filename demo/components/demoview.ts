@@ -219,7 +219,8 @@ export class DemoView extends LitElement {
       // O contexto vai na query; o backend simulado a ignora e decide só pelo Content-Type.
       urlImportacaoArquivo:
         '/demo-api/importacao?casa={casa}&especie={especie}&urn={urn}&siglaDocumento={siglaDocumento}' +
-        '&urnReferenciada={urnDocumentoReferenciado}&siglaReferenciada={siglaReferenciada}&numeroReferenciado={numeroReferenciado}&anoReferenciado={anoReferenciado}',
+        '&urnReferenciada={urnDocumentoReferenciado}&siglaReferenciada={siglaReferenciada}&numeroReferenciado={numeroReferenciado}&anoReferenciado={anoReferenciado}' +
+        '&tipoColegiado={tipoColegiado}&siglaComissao={siglaComissao}&anexoParecer={anexoParecer}',
       urlDocumentosMateria: '/demo-api/materias/{sigla}/{numero}/{ano}/documentos?especie={especie}',
       urlTextoDocumento: '/demo-api/documentos/{id}/texto',
     };

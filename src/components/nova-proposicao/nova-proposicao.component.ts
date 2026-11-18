@@ -459,6 +459,17 @@ export class NovaProposicaoComponent extends LitElement {
     return this.tipoColegiado === 'Comissão' || this.comissaoObrigatoria;
   }
 
+  private get colegiadoDestino(): ColegiadoDestino {
+    return this.comissaoVisivel ? { tipoColegiado: this.tipoColegiado, siglaComissao: this.siglaComissao } : { tipoColegiado: 'Plenário' };
+  }
+
+  private get contextoDocumento(): ContextoDocumento {
+    return montaContextoDocumento(this.dados, montaUrnNovaProposicao(this.dados, this.numeroOriginal), {
+      colegiadoDestino: this.colegiadoDestino,
+      anexoParecer: this.anexoParecer,
+    });
+  }
+
   private numeroPreenchido = (valor: string): boolean => /^\d+$/.test(valor.trim());
   private anoPreenchido = (valor: string): boolean => /^\d{4}$/.test(valor.trim());
 
@@ -673,8 +684,8 @@ export class NovaProposicaoComponent extends LitElement {
     const consulta = this.consultaMateria;
     if (!consulta) return;
     const normalizada = normalizaConsultaProposicao(consulta.sigla, consulta.numero, consulta.ano);
-    const contexto = montaContextoDocumento(this.dados, montaUrnNovaProposicao(this.dados, this.numeroOriginal));
-    // O contexto entra na chave: trocar a espécie ou o referenciado na Tela 1 invalida a lista.
+    const contexto = this.contextoDocumento;
+    // O contexto entra na chave: trocar a espécie, o referenciado, o destino ou a forma de apresentação na Tela 1 invalida a lista.
     const chave = `${normalizada.sigla}|${normalizada.numero}|${normalizada.ano}|${JSON.stringify(contexto)}`;
     if (chave === this.materiaCarregada && this.documentosMateria.estado !== 'erro') return;
 
@@ -810,7 +821,7 @@ export class NovaProposicaoComponent extends LitElement {
         return { aviso: { linhas: [MENSAGEM_JSON_INVALIDO] } };
       }
     }
-    const contexto = montaContextoDocumento(this.dados, montaUrnNovaProposicao(this.dados, this.numeroOriginal));
+    const contexto = this.contextoDocumento;
     if (this._config!.onImportarArquivo) return this.importarPeloCallback(arquivo, contexto);
     return this.importarPelaUrl(arquivo, CONTENT_TYPE_IMPORTACAO[extensao], contexto);
   }
@@ -914,7 +925,7 @@ export class NovaProposicaoComponent extends LitElement {
 
   private montarResultado({ texto, documentoImportado }: ConteudoInicial = {}): ResultadoNovaProposicao {
     const { urn, urnDocumentoReferenciado } = montaUrnNovaProposicao(this.dados, this.numeroOriginal);
-    const colegiadoDestino: ColegiadoDestino = this.comissaoVisivel ? { tipoColegiado: this.tipoColegiado, siglaComissao: this.siglaComissao } : { tipoColegiado: 'Plenário' };
+    const colegiadoDestino = this.colegiadoDestino;
     const detail: ResultadoNovaProposicao = {
       urn,
       ...(urnDocumentoReferenciado && { urnDocumentoReferenciado }),

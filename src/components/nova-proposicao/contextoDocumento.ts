@@ -1,10 +1,19 @@
 import { semZerosAEsquerda } from './montaUrnNovaProposicao';
 import { getTipoMpv } from './siglasNovaProposicao';
-import { DadosIdentificacao, UrnNovaProposicao } from './tiposNovaProposicao';
+import { ColegiadoDestino, DadosIdentificacao, UrnNovaProposicao } from './tiposNovaProposicao';
 import { ContextoDocumento } from './urlsNovaProposicao';
 
-/** Contexto do documento a partir dos dados da Tela 1 e das URNs já calculadas. */
-export const montaContextoDocumento = (dados: DadosIdentificacao, { urn, urnDocumentoReferenciado }: UrnNovaProposicao): ContextoDocumento => {
+export interface EscolhasDestino {
+  colegiadoDestino: ColegiadoDestino;
+  anexoParecer: boolean;
+}
+
+/** Contexto do documento a partir dos dados da Tela 1, das URNs já calculadas e do destino e da forma de apresentação. */
+export const montaContextoDocumento = (
+  dados: DadosIdentificacao,
+  { urn, urnDocumentoReferenciado }: UrnNovaProposicao,
+  { colegiadoDestino, anexoParecer }: EscolhasDestino
+): ContextoDocumento => {
   const { casa, especie, tipoProposicao, tipoSubstitutivo } = dados;
   // No substitutivo do SF não há tipo próprio: vale a sigla da proposição referenciada.
   const siglaDocumento = (tipoSubstitutivo ?? tipoProposicao)?.sigla ?? '';
@@ -20,5 +29,13 @@ export const montaContextoDocumento = (dados: DadosIdentificacao, { urn, urnDocu
     });
   }
 
-  return Object.freeze({ casa, especie, urn, siglaDocumento, ...(documentoReferenciado && { documentoReferenciado }) });
+  return Object.freeze({
+    casa,
+    especie,
+    urn,
+    siglaDocumento,
+    ...(documentoReferenciado && { documentoReferenciado }),
+    colegiadoDestino: Object.freeze({ ...colegiadoDestino }),
+    anexoParecer,
+  });
 };

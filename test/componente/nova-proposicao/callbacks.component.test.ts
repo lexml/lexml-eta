@@ -314,18 +314,41 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
           urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo',
           siglaDocumento: 'PL',
           documentoReferenciado: { urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;12', sigla: 'PL', numero: '12', ano: '2026' },
+          colegiadoDestino: { tipoColegiado: 'Comissão', siglaComissao: 'CCJ' },
+          anexoParecer: true,
         },
       ]);
       expect(Object.isFrozen(contextosRecebidos[0])).to.be.true;
     });
 
+    it('contexto: traz o destino e a forma de apresentação alterados pelo usuário na Tela 1', async () => {
+      await iniciar({ ...callbacks(), onImportarArquivo: registrando(() => ({ texto: TEXTO, erros: [] })) });
+      await verificarSubstitutivo();
+      await marcar('destino', 'Plenário');
+      q<any>('np-anexo-parecer')!.checked = false;
+      q<any>('np-anexo-parecer')!.dispatchEvent(new CustomEvent('sl-change', { bubbles: true }));
+      await atualizar();
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'importar');
+      await selecionarArquivo(new File(['x'], 'minuta.docx'));
+      await clicar('np-continuar');
+      expect(contextosRecebidos[0].colegiadoDestino).to.deep.equal({ tipoColegiado: 'Plenário' });
+      expect(contextosRecebidos[0].anexoParecer).to.be.false;
+    });
+
     it('contexto na URL: o POST leva os placeholders preenchidos e codificados', async () => {
-      await iniciar({ ...callbacks(), onImportarArquivo: undefined, urlImportacaoArquivo: '/i?urn={urn}&especie={especie}&ref={siglaReferenciada}' });
+      await iniciar({
+        ...callbacks(),
+        onImportarArquivo: undefined,
+        urlImportacaoArquivo: '/i?urn={urn}&especie={especie}&ref={siglaReferenciada}&destino={tipoColegiado}&comissao={siglaComissao}&parecer={anexoParecer}',
+      });
       await irParaTela2Substitutivo();
       await marcar('opcaoTexto', 'importar');
       await selecionarArquivo(new File(['x'], 'minuta.docx'));
       await clicar('np-continuar');
-      expect(urlsChamadas).to.deep.equal(['/i?urn=urn%3Alex%3Abr%3Asenado.federal%3Aprojeto.lei%3Bpl%3A2026%3B12%40apresentacao.substitutivo&especie=substitutivo&ref=PL']);
+      expect(urlsChamadas).to.deep.equal([
+        '/i?urn=urn%3Alex%3Abr%3Asenado.federal%3Aprojeto.lei%3Bpl%3A2026%3B12%40apresentacao.substitutivo&especie=substitutivo&ref=PL&destino=Comiss%C3%A3o&comissao=CCJ&parecer=true',
+      ]);
     });
 
     it('enquanto o host converte, Voltar e Cancelar ficam desabilitados e voltam ao responder', async () => {

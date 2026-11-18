@@ -2,7 +2,7 @@ import { expect } from '@open-wc/testing';
 import { getPreambuloNovaProposicao, PREAMBULO_FALLBACK } from '../../../src/components/nova-proposicao/preambuloNovaProposicao';
 import { getSufixoEpigrafe } from '../../../src/components/nova-proposicao/epigrafeNovaProposicao';
 import { getIdentificacaoDocumento, getNovoOuNova } from '../../../src/components/nova-proposicao/identificacaoDocumento';
-import { montaContextoDocumento } from '../../../src/components/nova-proposicao/contextoDocumento';
+import { EscolhasDestino, montaContextoDocumento } from '../../../src/components/nova-proposicao/contextoDocumento';
 import { montaUrnNovaProposicao } from '../../../src/components/nova-proposicao/montaUrnNovaProposicao';
 import {
   getSiglasNovaProposicao,
@@ -223,13 +223,31 @@ describe('Módulos puros da nova proposição', () => {
   });
 
   describe('contexto do documento', () => {
-    const contexto = (d: DadosIdentificacao): any => montaContextoDocumento(d, montaUrnNovaProposicao(d));
+    const contexto = (d: DadosIdentificacao, escolhas: EscolhasDestino = { colegiadoDestino: { tipoColegiado: 'Plenário' }, anexoParecer: false }): any =>
+      montaContextoDocumento(d, montaUrnNovaProposicao(d), escolhas);
 
     it('proposição sem referência (PEC da CD)', () => {
       inicializarVocabulario('CD');
       const c = contexto(dados('CD', { tipoProposicao: tipo('CD', 'PEC') }));
-      expect(c).to.deep.equal({ casa: 'CD', especie: 'proposicao', urn: 'urn:lex:br:camara.deputados:proposta.emenda.constitucional;pec:2026;999999', siglaDocumento: 'PEC' });
+      expect(c).to.deep.equal({
+        casa: 'CD',
+        especie: 'proposicao',
+        urn: 'urn:lex:br:camara.deputados:proposta.emenda.constitucional;pec:2026;999999',
+        siglaDocumento: 'PEC',
+        colegiadoDestino: { tipoColegiado: 'Plenário' },
+        anexoParecer: false,
+      });
       expect(Object.isFrozen(c)).to.equal(true);
+      expect(Object.isFrozen(c.colegiadoDestino)).to.equal(true);
+    });
+
+    it('traz o destino e a forma de apresentação informados, sem alterá-los', () => {
+      inicializarVocabulario('SF');
+      const colegiadoDestino = { tipoColegiado: 'Comissão' as const, siglaComissao: 'CCJ' };
+      const c = contexto(dados('SF', { especie: 'substitutivo', tipoProposicao: tipo('SF', 'PL', true), numeroProposicao: '12' }), { colegiadoDestino, anexoParecer: true });
+      expect(c.colegiadoDestino).to.deep.equal({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
+      expect(c.colegiadoDestino).to.not.equal(colegiadoDestino);
+      expect(c.anexoParecer).to.equal(true);
     });
 
     it('PLV traz a MPV como documento referenciado', () => {
@@ -271,7 +289,14 @@ describe('Módulos puros da nova proposição', () => {
     });
 
     it('placeholders do contexto: codificados, e vazios quando ausentes', () => {
-      const c: ContextoDocumento = { casa: 'SF', especie: 'proposicao', urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;999999', siglaDocumento: 'PL' };
+      const c: ContextoDocumento = {
+        casa: 'SF',
+        especie: 'proposicao',
+        urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;999999',
+        siglaDocumento: 'PL',
+        colegiadoDestino: { tipoColegiado: 'Plenário' },
+        anexoParecer: false,
+      };
       expect(montaUrlContexto('/i?urn={urn}&especie={especie}&ref={siglaReferenciada}&casa={casa}', c)).to.equal(
         '/i?urn=urn%3Alex%3Abr%3Asenado.federal%3Aprojeto.lei%3Bpl%3A2026%3B999999&especie=proposicao&ref=&casa=SF'
       );
@@ -283,6 +308,23 @@ describe('Módulos puros da nova proposição', () => {
       const listagem = montaUrlProposicao('/m/{sigla}/{numero}/{ano}?especie={especie}', 'pl', '0012', '2026');
       expect(montaUrlContexto(listagem, comReferencia)).to.equal('/m/PL/12/2026?especie=proposicao');
       expect(montaUrlContexto('/m/PL/12/2026', c)).to.equal('/m/PL/12/2026');
+    });
+
+    it('placeholders do destino e da forma de apresentação: codificados, e vazia a sigla sem comissão', () => {
+      const base: ContextoDocumento = {
+        casa: 'SF',
+        especie: 'substitutivo',
+        urn: 'u',
+        siglaDocumento: 'PL',
+        colegiadoDestino: { tipoColegiado: 'Plenário' },
+        anexoParecer: false,
+      };
+      const modelo = '/i?destino={tipoColegiado}&comissao={siglaComissao}&parecer={anexoParecer}';
+      expect(montaUrlContexto(modelo, base)).to.equal('/i?destino=Plen%C3%A1rio&comissao=&parecer=false');
+      expect(montaUrlContexto(modelo, { ...base, colegiadoDestino: { tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }, anexoParecer: true })).to.equal(
+        '/i?destino=Comiss%C3%A3o&comissao=CCJ&parecer=true'
+      );
+      expect(montaUrlContexto('/importacao', base)).to.equal('/importacao');
     });
 
     it('casa nas comissões', () => {
