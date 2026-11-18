@@ -19,7 +19,7 @@
 
 ## 5. E2E (Cypress)
 
-- [ ] 5.1 Estender `cypress/e2e/nova-proposicao/documento-origem-camara.cy.ts` (consultar `docs/guia-cypress.md`) usando o mock: na subemenda substitutiva a lista não traz os documentos `PL` e, ao voltar à Tela 1 e trocar para substitutivo com a mesma matéria, a lista volta a traze-los. Verificar com `npm run cy:run:local` só nesse spec (com o `npm start` ativo). Se o fluxo de voltar e trocar a espécie não for viável no Cypress, registrar a decisão e deixá-lo coberto pelo teste de componente do 3.1.
+- [x] 5.1 Estender `cypress/e2e/nova-proposicao/documento-origem-camara.cy.ts` (consultar `docs/guia-cypress.md`) usando o mock: na subemenda substitutiva a lista não traz os documentos `PL` e, ao voltar à Tela 1 e trocar para substitutivo com a mesma matéria, a lista volta a traze-los. Verificar com `npm run cy:run:local` só nesse spec (com o `npm start` ativo). Se o fluxo de voltar e trocar a espécie não for viável no Cypress, registrar a decisão e deixá-lo coberto pelo teste de componente do 3.1.
 
 ## 6. Validação
 

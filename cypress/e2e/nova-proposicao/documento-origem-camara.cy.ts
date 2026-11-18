@@ -15,11 +15,8 @@ const LISTA = '#np-docs-lista';
 
 const linha = (id: string): string => `${LISTA} .np-doc[data-id="${id}"]`;
 
-const irParaTela2 = (): void => {
-  cy.get('#casaEditor').select('CD');
-  cy.get(BOTAO_NOVA).click();
-  cy.get(`${MODAL}[open]`).should('exist');
-  marcarRadioSl('especie', 'subemenda');
+const identificarProposicao = (especie: string): void => {
+  marcarRadioSl('especie', especie);
   escolherItemLista('#np-sigla-proposicao', 'PL');
   digitarEmSl('#np-numero-proposicao', '4');
   digitarEmSl('#np-ano-proposicao', '2025');
@@ -28,8 +25,16 @@ const irParaTela2 = (): void => {
   cy.get('#np-continuar').click();
 };
 
-const irParaTela2b = (): void => {
-  irParaTela2();
+// O substitutivo é o padrão: a lista completa do mock traz os documentos PL, que a subemenda substitutiva omite.
+const irParaTela2 = (especie = 'substitutivo'): void => {
+  cy.get('#casaEditor').select('CD');
+  cy.get(BOTAO_NOVA).click();
+  cy.get(`${MODAL}[open]`).should('exist');
+  identificarProposicao(especie);
+};
+
+const irParaTela2b = (especie = 'substitutivo'): void => {
+  irParaTela2(especie);
   marcarRadioSl('opcaoTexto', 'outra');
   cy.get('#np-continuar').click();
   cy.get('#np-tela-2b').should('exist');
@@ -54,8 +59,8 @@ describe('Nova proposição na CD — documento de origem (Tela 2b)', () => {
   });
 
   it('lista os documentos da matéria, filtra, seleciona e abre o editor com o texto do documento', () => {
-    irParaTela2b();
-    cy.get(`${LISTA} .np-doc`).should('have.length', 6);
+    irParaTela2b('subemenda');
+    cy.get(`${LISTA} .np-doc`).should('have.length', 3);
     cy.get(linha('prl-1-ccjc-parecer')).should('contain.text', 'Relator: Dep. Beltrano').and('contain.text', '12/08/2025');
     deveEstarDesabilitado('#np-continuar');
 
@@ -72,6 +77,21 @@ describe('Nova proposição na CD — documento de origem (Tela 2b)', () => {
       const urn = ($el[0] as any).getDocumentoArticulado().value.metadado.identificacao.urn;
       expect(urn).to.match(/^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/);
     });
+  });
+
+  it('a subemenda substitutiva não lista documentos PL; trocar para substitutivo na Tela 1 os traz de volta', () => {
+    irParaTela2b('subemenda');
+    cy.get(`${LISTA} .np-doc`).should('have.length', 3);
+    cy.get(`${LISTA} .np-doc`).should('not.contain.text', 'PL 117/2025');
+    cy.get(linha('pl-4-2025-original')).should('not.exist');
+
+    cy.get('#np-voltar').click();
+    cy.get('#np-voltar').click();
+    identificarProposicao('substitutivo');
+    marcarRadioSl('opcaoTexto', 'outra');
+    cy.get('#np-continuar').click();
+    cy.get(`${LISTA} .np-doc`).should('have.length', 6);
+    cy.get(linha('pl-4-2025-original')).should('exist');
   });
 
   it('documento sem texto estruturado fica desabilitado e não pode ser selecionado', () => {
