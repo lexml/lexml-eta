@@ -40,7 +40,7 @@ export type {
   ConfigNovaProposicao,
   ConsultaDocumento,
   ConsultaProposicao,
-  ContextoImportacaoArquivo,
+  ContextoDocumento,
   DocumentoMateria,
   ImportarArquivoCallback,
   ListarDocumentosCallback,

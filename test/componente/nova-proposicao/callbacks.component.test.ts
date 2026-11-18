@@ -1,6 +1,6 @@
 import { expect, fixture, html } from '@open-wc/testing';
 import { EVENTO_CONCLUIDA, NovaProposicaoComponent } from '../../../src/components/nova-proposicao/nova-proposicao.component';
-import { ConfigNovaProposicao, ContextoImportacaoArquivo } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
+import { ConfigNovaProposicao, ContextoDocumento } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 
 const COMISSOES = [
@@ -287,7 +287,7 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
       await marcar('opcaoTexto', 'importar');
     };
     const arquivosRecebidos: File[] = [];
-    const contextosRecebidos: ContextoImportacaoArquivo[] = [];
+    const contextosRecebidos: ContextoDocumento[] = [];
     const registrando =
       (resposta: () => unknown): ConfigNovaProposicao['onImportarArquivo'] =>
       (arquivo, contexto): any => {

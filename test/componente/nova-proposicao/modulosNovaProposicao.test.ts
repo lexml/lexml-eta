@@ -2,7 +2,7 @@ import { expect } from '@open-wc/testing';
 import { getPreambuloNovaProposicao, PREAMBULO_FALLBACK } from '../../../src/components/nova-proposicao/preambuloNovaProposicao';
 import { getSufixoEpigrafe } from '../../../src/components/nova-proposicao/epigrafeNovaProposicao';
 import { getIdentificacaoDocumento, getNovoOuNova } from '../../../src/components/nova-proposicao/identificacaoDocumento';
-import { montaContextoImportacaoArquivo } from '../../../src/components/nova-proposicao/contextoImportacaoArquivo';
+import { montaContextoDocumento } from '../../../src/components/nova-proposicao/contextoDocumento';
 import { montaUrnNovaProposicao } from '../../../src/components/nova-proposicao/montaUrnNovaProposicao';
 import {
   getSiglasNovaProposicao,
@@ -13,9 +13,9 @@ import {
 } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
 import { DadosIdentificacao } from '../../../src/components/nova-proposicao/tiposNovaProposicao';
 import {
-  ContextoImportacaoArquivo,
+  ContextoDocumento,
   montaUrlComissoes,
-  montaUrlImportacao,
+  montaUrlContexto,
   montaUrlProposicao,
   montaUrlTextoDocumento,
   normalizaConsultaProposicao,
@@ -222,8 +222,8 @@ describe('Módulos puros da nova proposição', () => {
     });
   });
 
-  describe('contexto da importação de arquivo', () => {
-    const contexto = (d: DadosIdentificacao): any => montaContextoImportacaoArquivo(d, montaUrnNovaProposicao(d));
+  describe('contexto do documento', () => {
+    const contexto = (d: DadosIdentificacao): any => montaContextoDocumento(d, montaUrnNovaProposicao(d));
 
     it('proposição sem referência (PEC da CD)', () => {
       inicializarVocabulario('CD');
@@ -270,16 +270,16 @@ describe('Módulos puros da nova proposição', () => {
       expect(montaUrlProposicao('/v/{sigla}/{numero}/{ano}', 'pl', '0012', '2026')).to.equal('/v/PL/12/2026');
     });
 
-    it('placeholders do contexto da importação: codificados, e vazios quando ausentes', () => {
-      const c: ContextoImportacaoArquivo = { casa: 'SF', especie: 'proposicao', urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;999999', siglaDocumento: 'PL' };
-      expect(montaUrlImportacao('/i?urn={urn}&especie={especie}&ref={siglaReferenciada}&casa={casa}', c)).to.equal(
+    it('placeholders do contexto: codificados, e vazios quando ausentes', () => {
+      const c: ContextoDocumento = { casa: 'SF', especie: 'proposicao', urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;999999', siglaDocumento: 'PL' };
+      expect(montaUrlContexto('/i?urn={urn}&especie={especie}&ref={siglaReferenciada}&casa={casa}', c)).to.equal(
         '/i?urn=urn%3Alex%3Abr%3Asenado.federal%3Aprojeto.lei%3Bpl%3A2026%3B999999&especie=proposicao&ref=&casa=SF'
       );
-      const comReferencia: ContextoImportacaoArquivo = { ...c, documentoReferenciado: { urn: 'u', sigla: 'PL', numero: '12', ano: '2026' } };
-      expect(montaUrlImportacao('/i/{siglaReferenciada}/{numeroReferenciado}/{anoReferenciado}/{urnDocumentoReferenciado}/{siglaDocumento}', comReferencia)).to.equal(
+      const comReferencia: ContextoDocumento = { ...c, documentoReferenciado: { urn: 'u', sigla: 'PL', numero: '12', ano: '2026' } };
+      expect(montaUrlContexto('/i/{siglaReferenciada}/{numeroReferenciado}/{anoReferenciado}/{urnDocumentoReferenciado}/{siglaDocumento}', comReferencia)).to.equal(
         '/i/PL/12/2026/u/PL'
       );
-      expect(montaUrlImportacao('/importacao', c)).to.equal('/importacao');
+      expect(montaUrlContexto('/importacao', c)).to.equal('/importacao');
     });
 
     it('casa nas comissões', () => {
