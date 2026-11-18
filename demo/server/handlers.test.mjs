@@ -128,6 +128,17 @@ test('documentos da matéria: sigla em minúsculas e zeros à esquerda; lista va
   assert.equal(tratarRequisicaoDemo('/demo-api/materias/PL/1/1999/documentos').status, 404);
 });
 
+test('documentos da matéria: a subemenda substitutiva omite os documentos PL; substitutivo e sem parâmetro trazem a lista completa', () => {
+  const siglas = url => corpo(tratarRequisicaoDemo(url)).map(d => d.sigla);
+  const base = '/demo-api/materias/PL/4/2025/documentos';
+  assert.equal(siglas(`${base}?especie=substitutivo`).length, 6);
+  assert.equal(siglas(base).length, 6);
+  const subemenda = siglas(`${base}?especie=subemenda`);
+  assert.equal(subemenda.length, 3);
+  assert.equal(subemenda.includes('PL'), false);
+  assert.equal(tratarRequisicaoDemo('/demo-api/materias/PL/1/1999/documentos?especie=subemenda').status, 404);
+});
+
 test('texto do documento: devolve o JSONIX; documento sem texto ou inexistente devolve 404', () => {
   const r = tratarRequisicaoDemo('/demo-api/documentos/prl-1-csaude-substitutivo/texto');
   assert.equal(r.status, 200);

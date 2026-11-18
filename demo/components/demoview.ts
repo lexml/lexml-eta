@@ -220,7 +220,7 @@ export class DemoView extends LitElement {
       urlImportacaoArquivo:
         '/demo-api/importacao?casa={casa}&especie={especie}&urn={urn}&siglaDocumento={siglaDocumento}' +
         '&urnReferenciada={urnDocumentoReferenciado}&siglaReferenciada={siglaReferenciada}&numeroReferenciado={numeroReferenciado}&anoReferenciado={anoReferenciado}',
-      urlDocumentosMateria: '/demo-api/materias/{sigla}/{numero}/{ano}/documentos',
+      urlDocumentosMateria: '/demo-api/materias/{sigla}/{numero}/{ano}/documentos?especie={especie}',
       urlTextoDocumento: '/demo-api/documentos/{id}/texto',
     };
   }

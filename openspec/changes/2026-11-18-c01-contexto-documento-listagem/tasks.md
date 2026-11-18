@@ -15,7 +15,7 @@
 
 ## 4. Demo
 
-- [ ] 4.1 Em `demo/components/demoview.ts`, acrescentar `?especie={especie}` à `urlDocumentosMateria`; em `demo/server/handlers.mjs`, na subemenda substitutiva (`especie=subemenda`) omitir os documentos de `sigla` `PL`. Verificar com `npm run test:demo-server`, com casos para `especie=substitutivo` (lista completa), `especie=subemenda` (sem `PL`) e sem o parâmetro (lista completa).
+- [x] 4.1 Em `demo/components/demoview.ts`, acrescentar `?especie={especie}` à `urlDocumentosMateria`; em `demo/server/handlers.mjs`, na subemenda substitutiva (`especie=subemenda`) omitir os documentos de `sigla` `PL`. Verificar com `npm run test:demo-server`, com casos para `especie=substitutivo` (lista completa), `especie=subemenda` (sem `PL`) e sem o parâmetro (lista completa).
 
 ## 5. E2E (Cypress)
 

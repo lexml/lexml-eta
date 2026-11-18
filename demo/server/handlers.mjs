@@ -78,7 +78,10 @@ export const tratarRequisicaoDemo = (url, metodo = 'GET', contentType = '') => {
 
   if (partes[0] === 'materias' && partes.length === 5 && partes[4] === 'documentos') {
     const materia = buscarMateria(partes[1], partes[2], partes[3]);
-    return materia ? json(200, materia.documentos.map(paraResposta)) : naoEncontrado();
+    if (!materia) return naoEncontrado();
+    // Exercita o contexto: a subemenda substitutiva não parte de um projeto, então os documentos PL ficam de fora.
+    const subemenda = new URL(url, 'http://localhost').searchParams.get('especie') === 'subemenda';
+    return json(200, materia.documentos.filter(d => !(subemenda && d.sigla === 'PL')).map(paraResposta));
   }
 
   if (partes[0] === 'documentos' && partes.length === 3 && partes[2] === 'texto') {
