@@ -292,8 +292,10 @@ export const getProximoArtigoAnterior = (pai: Dispositivo, referencia: Dispositi
       if (isArtigo(d)) {
         return d;
       }
-      if (isAgrupador(d)) {
-        return buscaArtigoAnteriorAbaixo(d);
+      // Agrupador sem artigos não interrompe a busca (#1076).
+      const artigo = isAgrupador(d) ? buscaArtigoAnteriorAbaixo(d) : undefined;
+      if (artigo) {
+        return artigo;
       }
     }
     if (pai?.pai) {
@@ -314,8 +316,9 @@ const buscaArtigoAnteriorAbaixo = (dispositivo: Dispositivo): Dispositivo | unde
       if (isArtigo(d)) {
         return d;
       }
-      if (isAgrupador(d)) {
-        return buscaArtigoAnteriorAbaixo(d);
+      const artigo = isAgrupador(d) ? buscaArtigoAnteriorAbaixo(d) : undefined;
+      if (artigo) {
+        return artigo;
       }
     }
   }
