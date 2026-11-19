@@ -1397,7 +1397,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
     const range = this.quill.getSelection();
     if (range) {
-      const linhaCursor: EtaContainerTable = this.quill.getLine(range.index - 1)[0].linha;
+      let linhaCursor: EtaContainerTable = this.quill.getLine(range.index - 1)[0].linha;
+
+      // Linha anterior não editável (preâmbulo, epígrafe) não recebe cursor: vai à próxima editável.
+      let proximaEditavel: EtaContainerTable | undefined = linhaCursor;
+      while (proximaEditavel && !proximaEditavel.editavel) proximaEditavel = proximaEditavel.next as EtaContainerTable | undefined;
+      linhaCursor = proximaEditavel ?? linhaCursor;
 
       const index: number = this.quill.getIndex(linhaCursor.blotConteudo);
 

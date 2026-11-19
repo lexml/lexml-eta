@@ -387,7 +387,7 @@ Quando vários `setTimeout` competem, capturar `new Error().stack` no momento do
 
 **Quando não usar:** se o teste só precisa que os handlers do editor rodem, os eventos sintéticos bastam e são mais rápidos. CDP só funciona em navegadores Chromium (Electron e Chrome do Cypress).
 
-Os helpers ficam em `cypress/support/eventos-nativos.ts`: `teclaNativa(tecla, modifiers)`, `cliqueNativo(win, x, y)`, `duploCliqueNativo(win, x, y)` (seleciona a palavra), `arrastoNativo(win, x1, y1, x2, y2)` (botão pressionado, com `mouseMoved` em passos), as teclas `TECLA_HOME`/`TECLA_END` e as setas (`TECLA_SETA_DIREITA`, `TECLA_SETA_ESQUERDA`, `TECLA_SETA_ABAIXO`, `TECLA_SETA_ACIMA`) e os modificadores `ALT`/`CTRL`/`SHIFT`. As coordenadas recebidas são as da aplicação (`getBoundingClientRect` dentro do iframe).
+Os helpers ficam em `cypress/support/eventos-nativos.ts`: `teclaNativa(tecla, modifiers)`, `cliqueNativo(win, x, y)`, `duploCliqueNativo(win, x, y)` (seleciona a palavra), `arrastoNativo(win, x1, y1, x2, y2)` (botão pressionado, com `mouseMoved` em passos), as teclas `TECLA_HOME`/`TECLA_END` e as setas (`TECLA_SETA_DIREITA`, `TECLA_SETA_ESQUERDA`, `TECLA_SETA_ABAIXO`, `TECLA_SETA_ACIMA`), `TECLA_D` (com `CTRL`, exclui o dispositivo) e os modificadores `ALT`/`CTRL`/`SHIFT`. As coordenadas recebidas são as da aplicação (`getBoundingClientRect` dentro do iframe).
 
 ```typescript
 import { SHIFT, TECLA_END, TECLA_HOME, cliqueNativo, teclaNativa } from '../../support/eventos-nativos';
@@ -404,8 +404,9 @@ cy.then(() => teclaNativa(TECLA_HOME, SHIFT));
 - **Coordenadas** (já tratadas no módulo): o CDP usa coordenadas da janela do runner, não do iframe da aplicação. Some a posição de `iframe.aut-iframe` (obtido por `win.top.document`; `win.frameElement` vem `null`) e multiplique pela escala (`frame.width / win.innerWidth`), porque o runner reduz o iframe para caber no painel.
 - **Teclas:** `type: 'keyDown'` (não `rawKeyDown`) com `key`, `code` e `windowsVirtualKeyCode`; modificadores pelo bitmask `modifiers` (Alt=1, Ctrl=2, Meta=4, Shift=8).
 - O evento vai para o elemento com foco no navegador: clique (nativo) no editor antes de teclar.
+- **Menu de contexto quando a posição do cursor importa:** não use `selecionarOpcaoDeMenuDoDispositivo`. Os cliques sintéticos dele no contêiner movem a seleção do Quill para outro ponto do documento, e uma ação que parte da seleção (como o reposicionamento do cursor depois de excluir) passa a dar resultado errado só no teste. Abra o menu com `cliqueNativo` no `sl-button[slot="trigger"]` da linha e no `sl-menu-item` visível (ver `cursor-apos-remover.cy.ts`).
 
-**Arquivos relacionados:** `cypress/support/eventos-nativos.ts`, `cypress/e2e/edicao/home-sem-rolagem.cy.ts`, `cypress/e2e/edicao/selecao-shift-home.cy.ts` (seleção com Shift, arrasto e duplo clique; no artigo, o "º" do rótulo se junta à primeira palavra e o duplo clique alcança o rótulo), `cypress/e2e/edicao/setas-dispositivo-vizinho.cy.ts` (↓/↑ e documento montado a partir de uma fixture com `selectFile({ contents })`).
+**Arquivos relacionados:** `cypress/support/eventos-nativos.ts`, `cypress/e2e/edicao/home-sem-rolagem.cy.ts`, `cypress/e2e/edicao/selecao-shift-home.cy.ts` (seleção com Shift, arrasto e duplo clique; no artigo, o "º" do rótulo se junta à primeira palavra e o duplo clique alcança o rótulo), `cypress/e2e/edicao/setas-dispositivo-vizinho.cy.ts` (↓/↑ e documento montado a partir de uma fixture com `selectFile({ contents })`), `cypress/e2e/edicao/cursor-apos-remover.cy.ts` (Ctrl+D e menu de contexto nativos).
 
 ---
 

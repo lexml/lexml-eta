@@ -6,6 +6,7 @@ export const TECLA_SETA_DIREITA = { key: 'ArrowRight', code: 'ArrowRight', windo
 export const TECLA_SETA_ESQUERDA = { key: 'ArrowLeft', code: 'ArrowLeft', windowsVirtualKeyCode: 37, nativeVirtualKeyCode: 37 };
 export const TECLA_SETA_ABAIXO = { key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40, nativeVirtualKeyCode: 40 };
 export const TECLA_SETA_ACIMA = { key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38, nativeVirtualKeyCode: 38 };
+export const TECLA_D = { key: 'd', code: 'KeyD', windowsVirtualKeyCode: 68, nativeVirtualKeyCode: 68 };
 
 export const ALT = 1;
 export const CTRL = 2;
