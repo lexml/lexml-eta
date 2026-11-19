@@ -952,9 +952,8 @@ export class NovaProposicaoComponent extends LitElement {
 
   private renderTela2(): TemplateResult {
     return html`
-      ${this.cabecalho}
+      ${this.cabecalho} ${this.renderAlertasImportacao()}
       <p>Como você quer iniciar?</p>
-      ${this.renderAlertasImportacao()}
       <sl-radio-group>
         ${this.opcao('vazio', 'Texto vazio')} ${this.opcao('importar', 'Importar documento (DOCX, TXT ou PDF do Editor)')}
         ${this.opcaoTexto === 'importar'
