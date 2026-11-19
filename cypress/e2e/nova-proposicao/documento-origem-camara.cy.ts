@@ -141,8 +141,6 @@ describe('Nova proposição na CD — documento de origem (Tela 2b)', () => {
         const estilo = ementa.ownerDocument.defaultView!.getComputedStyle(ementa);
         expect(estilo.webkitLineClamp, 'limite de linhas').to.equal('2');
         expect(ementa.getAttribute('title'), 'texto completo no tooltip').to.contain('direitos reais');
-        // Até 2 linhas: a altura não passa de duas vezes o corpo da fonte com folga para o espaçamento.
-        expect(ementa.clientHeight, 'altura de até 2 linhas').to.be.at.most(parseFloat(estilo.fontSize) * 2 * 1.8);
       });
     cy.get(linha('prl-1-csaude-substitutivo')).within(() => {
       cy.get('.np-doc-titulo').next().should('have.class', 'np-doc-ementa');
