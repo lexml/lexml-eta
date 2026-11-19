@@ -216,7 +216,13 @@ export class DemoView extends LitElement {
       urlVerificacaoProposicao: '/demo-api/proposicoes/{sigla}/{numero}/{ano}',
       urlTextoEstruturado: '/demo-api/proposicoes/{sigla}/{numero}/{ano}/texto',
       urlComissoes: '/demo-api/comissoes/{casa}',
-      urlImportacaoArquivo: '/demo-api/importacao',
+      // O contexto vai na query; o backend simulado a ignora e decide só pelo Content-Type.
+      urlImportacaoArquivo:
+        '/demo-api/importacao?casa={casa}&especie={especie}&urn={urn}&siglaDocumento={siglaDocumento}' +
+        '&urnReferenciada={urnDocumentoReferenciado}&siglaReferenciada={siglaReferenciada}&numeroReferenciado={numeroReferenciado}&anoReferenciado={anoReferenciado}' +
+        '&tipoColegiado={tipoColegiado}&siglaComissao={siglaComissao}&anexoParecer={anexoParecer}',
+      urlDocumentosMateria: '/demo-api/materias/{sigla}/{numero}/{ano}/documentos?especie={especie}',
+      urlTextoDocumento: '/demo-api/documentos/{id}/texto',
     };
   }
 
@@ -580,7 +586,7 @@ export class DemoView extends LitElement {
             id="dialogNovaProposicao"
             open
             label=${this.dadosBasicosEmEdicao ? 'Alterar dados básicos' : 'Nova proposição'}
-            style="--width: 46rem"
+            style="--width: 46rem; --body-spacing: 0"
             no-header
             @sl-hide=${(e: Event): void => {
               if (e.target === e.currentTarget) this.modalNovaProposicao = false;

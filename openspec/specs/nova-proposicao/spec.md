@@ -197,7 +197,7 @@ O botão **Verificar** (grupos da proposição referenciada e da medida provisó
 - **THEN** a URN continua com o tipo de PL
 
 ### Requirement: Destino do documento
-A Tela 1 SHALL exibir sempre o colegiado de destino, com as opções Plenário e Comissão (sem "Plenário via comissão"). O padrão SHALL ser Comissão em Substitutivo e Subemenda substitutiva e Plenário nos demais casos. Em Comissão, a comissão SHALL ser informada, escolhida de uma lista obtida da URL de comissões da configuração, cujo placeholder de casa é preenchido pela autoridade da URN do novo documento: `SF` para `senado.federal`, `CD` para `camara.deputados` e `CN` para `congresso.nacional`. A resposta da URL SHALL ter o mesmo formato da usada pelo componente de destino atual: lista JSON de objetos com `siglaCasaLegislativa`, `sigla` e `nome`, da qual só são usados os itens cuja `siglaCasaLegislativa` é igual à casa pedida. O resultado SHALL informar o tipo do colegiado e, em Comissão, a sigla da comissão. No `SF`, o destino alimenta o sufixo opcional do serviço de epígrafe.
+A Tela 1 SHALL exibir sempre o colegiado de destino, com as opções Plenário e Comissão (sem "Plenário via comissão"). O padrão SHALL ser Comissão em Substitutivo e Subemenda substitutiva e Plenário nos demais casos. Em Comissão, a comissão SHALL ser informada, escolhida de uma lista obtida da URL de comissões da configuração, cujo placeholder de casa é preenchido pela autoridade da URN do novo documento: `SF` para `senado.federal`, `CD` para `camara.deputados` e `CN` para `congresso.nacional`. A resposta da URL SHALL ter o mesmo formato da usada pelo componente de destino atual: lista JSON de objetos com `siglaCasaLegislativa`, `sigla` e `nome`, da qual só são usados os itens cuja `siglaCasaLegislativa` é igual à casa pedida. O resultado SHALL informar o tipo do colegiado e, em Comissão, a sigla da comissão. Na `CD`, em Substitutivo e Subemenda substitutiva, uma comissão SHALL ser informada também com o destino Plenário (uma só), e o resultado SHALL informar a sigla da comissão nos dois destinos. No `SF`, o destino alimenta o sufixo opcional do serviço de epígrafe.
 
 #### Scenario: Padrão em substitutivo
 - **WHEN** a espécie é Substitutivo ou Subemenda substitutiva
@@ -212,7 +212,7 @@ A Tela 1 SHALL exibir sempre o colegiado de destino, com as opções Plenário e
 - **THEN** **Continuar** está desabilitado
 
 #### Scenario: Destino Plenário
-- **WHEN** o destino é Plenário
+- **WHEN** o destino é Plenário, exceto em Substitutivo e Subemenda substitutiva da `CD`
 - **THEN** o resultado não contém sigla de comissão
 
 #### Scenario: Comissão do Congresso
@@ -222,6 +222,26 @@ A Tela 1 SHALL exibir sempre o colegiado de destino, com as opções Plenário e
 #### Scenario: Falha na obtenção das comissões
 - **WHEN** a obtenção da lista de comissões falha por erro de rede ou resposta de erro
 - **THEN** o usuário é informado do erro, a opção Comissão fica indisponível, só Plenário é oferecido e o padrão em substitutivo passa a ser Plenário
+
+#### Scenario: Plenário na CD em substitutivo exige comissão
+- **WHEN** a casa do editor é `CD`, a espécie é Substitutivo ou Subemenda substitutiva e o destino é Plenário
+- **THEN** o seletor de comissão é exibido e **Continuar** está desabilitado enquanto nenhuma comissão for escolhida
+
+#### Scenario: Plenário na CD em substitutivo com comissão
+- **WHEN** nesse caso o usuário escolhe a comissão CCJC e conclui
+- **THEN** o resultado tem `colegiadoDestino` com `tipoColegiado` Plenário e `siglaComissao` CCJC
+
+#### Scenario: Troca de destino mantém a comissão
+- **WHEN** nesse caso o usuário escolheu a comissão CCJC e troca o destino entre Plenário e Comissão
+- **THEN** a comissão CCJC continua escolhida
+
+#### Scenario: Proposição na CD não exige comissão no Plenário
+- **WHEN** a casa do editor é `CD`, a espécie é Proposição e o destino é Plenário
+- **THEN** nenhuma comissão é pedida e o resultado não contém sigla de comissão
+
+#### Scenario: Falha nas comissões na CD em substitutivo
+- **WHEN** a casa é `CD`, a espécie é Substitutivo ou Subemenda substitutiva e a lista de comissões falha
+- **THEN** o usuário é informado do erro e **Continuar** permanece desabilitado
 
 ### Requirement: Forma de apresentação
 A Tela 1 SHALL exibir a caixa de seleção "Este documento será apresentado em parecer", marcada por padrão em Substitutivo e Subemenda substitutiva e desmarcada em Proposição, e o resultado SHALL informá-la em `anexoParecer`.
@@ -250,7 +270,7 @@ A Tela 1 SHALL exibir a caixa de seleção "Este documento será apresentado em 
 - **THEN** **Continuar** está habilitado, sem que nenhuma sigla ou ano do substitutivo tenha sido informado
 
 ### Requirement: Texto inicial da edição
-A Tela 2 SHALL perguntar "Como você quer iniciar?" com seleção única entre: texto vazio; importar documento (DOCX, TXT ou PDF do Editor); texto do documento referenciado (apenas em substitutivo, subemenda substitutiva ou PLV); texto de outra proposição. A opção padrão SHALL ser o texto do documento referenciado em substitutivo, subemenda substitutiva ou PLV e o texto vazio nos demais casos. O texto trazido nas duas últimas opções SHALL ser o texto original da proposição, obtido de um segundo serviço configurável pelo host, por URL com os mesmos placeholders de sigla, número e ano (mesmo formato dos valores da verificação): `200` devolve o texto estruturado em LexML no formato JSONIX, o mesmo usado ao abrir um documento, e `404` indica texto não encontrado (indisponível). Esse serviço SHALL ser consultado apenas quando uma dessas duas opções está escolhida, e MUST NOT ser consultado nas opções de texto vazio ou de importação. A opção de outra proposição SHALL aceitar qualquer sigla, ativa ou inativa.
+A Tela 2 SHALL perguntar "Como você quer iniciar?" com seleção única entre: texto vazio; importar documento (DOCX, TXT ou PDF do Editor); texto do documento referenciado (apenas em substitutivo, subemenda substitutiva ou PLV); texto de outra proposição. A opção padrão SHALL ser o texto do documento referenciado em substitutivo, subemenda substitutiva ou PLV e o texto vazio nos demais casos. O texto trazido nas duas últimas opções SHALL ser o texto original da proposição, obtido de um segundo serviço configurável pelo host, por URL com os mesmos placeholders de sigla, número e ano (mesmo formato dos valores da verificação): `200` devolve o texto estruturado em LexML no formato JSONIX, o mesmo usado ao abrir um documento, e `404` indica texto não encontrado (indisponível). Esse serviço SHALL ser consultado apenas quando uma dessas duas opções está escolhida, e MUST NOT ser consultado nas opções de texto vazio ou de importação. A opção de outra proposição SHALL aceitar qualquer sigla, ativa ou inativa. Na `CD`, em substitutivo ou subemenda substitutiva, a opção de outra proposição SHALL NOT exibir sigla, número, ano, verificação nem ementa, e **Continuar** SHALL levar à Tela 2b (requisito "Tela de escolha do documento de origem na CD"), sem consultar o serviço do texto por sigla, número e ano.
 
 #### Scenario: Texto obtido
 - **WHEN** o usuário continua com a opção do documento referenciado ou de outra proposição e o serviço do texto retorna `200`
@@ -273,8 +293,16 @@ A Tela 2 SHALL perguntar "Como você quer iniciar?" com seleção única entre: 
 - **THEN** a opção "Texto vazio" vem selecionada e a opção do documento referenciado não é oferecida
 
 #### Scenario: Outra proposição com sigla inativa
-- **WHEN** o usuário escolhe "Texto de outra proposição" e informa uma sigla inativa
+- **WHEN** o usuário escolhe "Texto de outra proposição" no `SF`, ou na `CD` em espécie que não é substitutivo nem subemenda substitutiva, e informa uma sigla inativa
 - **THEN** a sigla é aceita e a verificação segue a regra comum
+
+#### Scenario: Outra proposição em substitutivo da CD
+- **WHEN** a casa do editor é `CD`, a espécie é Substitutivo ou Subemenda Substitutiva e o usuário escolhe "Texto de outra proposição"
+- **THEN** a Tela 2 não exibe campos de sigla, número, ano, **Verificar** nem ementa, e **Continuar** está habilitado
+
+#### Scenario: Continuar com outra proposição em substitutivo da CD
+- **WHEN** o usuário aciona **Continuar** com essa opção
+- **THEN** a Tela 2b é exibida
 
 #### Scenario: Voltar
 - **WHEN** o usuário aciona **Voltar** na Tela 2
@@ -364,7 +392,7 @@ A URN do novo documento SHALL ser composta por autoridade, tipo, ano, número e 
 - **THEN** a URN é `urn:lex:br:congresso.nacional:projeto.lei.conversao;plv:2026;999999` e `urnDocumentoReferenciado` é `urn:lex:br:federal:medida.provisoria;mpv:2026;4321`
 
 ### Requirement: Sigla do texto de outra proposição
-Na opção "Texto de outra proposição", a sigla SHALL ser escolhida, e não digitada livremente, entre todas as siglas do vocabulário da casa do editor, ativas e inativas, inclusive a MPV, **uma única vez cada** (sigla repetida em mais de um tipo, como PLS e PLC, aparece uma só vez), com as ativas antes das inativas (cada grupo em ordem alfabética) e as inativas em cinza e selecionáveis. Número e ano SHALL ser informados nos campos do grupo, na mesma linha. A verificação e a busca do texto usam apenas sigla, número e ano.
+Na opção "Texto de outra proposição" (exceto em substitutivo ou subemenda substitutiva da `CD`, que usa a Tela 2b), a sigla SHALL ser escolhida, e não digitada livremente, entre todas as siglas do vocabulário da casa do editor, ativas e inativas, inclusive a MPV, **uma única vez cada** (sigla repetida em mais de um tipo, como PLS e PLC, aparece uma só vez), com as ativas antes das inativas (cada grupo em ordem alfabética) e as inativas em cinza e selecionáveis. Número e ano SHALL ser informados nos campos do grupo, na mesma linha. A verificação e a busca do texto usam apenas sigla, número e ano.
 
 #### Scenario: Lista da outra proposição
 - **WHEN** o usuário abre a lista de siglas da outra proposição
@@ -386,7 +414,7 @@ O componente SHALL oferecer um modo de edição de dados básicos, ativado pelo 
 - **THEN** o componente emite o evento de cancelamento, sem resultado
 
 ### Requirement: Tela 1 preenchida a partir dos dados iniciais
-No modo de edição, a Tela 1 SHALL ser preenchida a partir dos dados iniciais: espécie, siglas, número e ano lidos da URN e da URN do documento referenciado; destino lido do colegiado; forma de apresentação lida de `anexoParecer`. O PLV SHALL ser reconhecido pela sigla do tipo da própria URN, e a medida provisória lida da URN do documento referenciado. Na `CD`, o ano do substitutivo ou da subemenda substitutiva SHALL ser o da URN inicial, mantido mesmo quando o usuário troca a espécie entre Substitutivo e Subemenda substitutiva; quando a URN inicial não é de substitutivo nem de subemenda substitutiva, o ano SHALL ser o corrente.
+No modo de edição, a Tela 1 SHALL ser preenchida a partir dos dados iniciais: espécie, siglas, número e ano lidos da URN e da URN do documento referenciado; destino lido do colegiado; forma de apresentação lida de `anexoParecer`. O PLV SHALL ser reconhecido pela sigla do tipo da própria URN, e a medida provisória lida da URN do documento referenciado. Na `CD`, o ano do substitutivo ou da subemenda substitutiva SHALL ser o da URN inicial, mantido mesmo quando o usuário troca a espécie entre Substitutivo e Subemenda substitutiva; quando a URN inicial não é de substitutivo nem de subemenda substitutiva, o ano SHALL ser o corrente. Na `CD`, em substitutivo e subemenda substitutiva, a comissão do colegiado SHALL ser lida também quando o destino é Plenário.
 
 #### Scenario: Substitutivo do Senado
 - **WHEN** a URN inicial é de substitutivo do Senado ao PL nº 10, de 2025
@@ -407,6 +435,14 @@ No modo de edição, a Tela 1 SHALL ser preenchida a partir dos dados iniciais: 
 #### Scenario: Ano preservado ao alterar o destino
 - **WHEN** a URN inicial é de substitutivo da Câmara de 2025 e o usuário só troca o destino
 - **THEN** a URN do resultado mantém o ano 2025
+
+#### Scenario: Comissão lida no Plenário da CD
+- **WHEN** a URN inicial é de substitutivo da Câmara e o colegiado inicial é Plenário com a comissão CCJC
+- **THEN** o destino é Plenário e a comissão CCJC vem escolhida
+
+#### Scenario: Documento antigo da CD sem comissão no Plenário
+- **WHEN** a URN inicial é de substitutivo da Câmara e o colegiado inicial é Plenário sem comissão
+- **THEN** a Tela 1 abre com o destino Plenário, sem comissão, e **Continuar** fica desabilitado até uma comissão ser escolhida
 
 ### Requirement: Número do documento preservado
 No modo de edição, quando a URN inicial tem número diferente de `999999`, o componente SHALL exibir esse número como texto fixo no lugar de `s/n`, quando o documento tem campo de número na Tela 1, e SHALL mantê-lo na URN do resultado enquanto a espécie e a sigla do documento não mudarem. Na `CD`, em substitutivo e subemenda substitutiva, o número SHALL ser mantido na URN sem ser exibido, já que o grupo de identificação do documento não é exibido. Mudando espécie ou sigla, o número SHALL voltar a `s/n` (`999999`).
@@ -483,7 +519,7 @@ O componente SHALL expor `reiniciar()`, que volta ao estado original: modo de cr
 - **THEN** o componente volta à Tela 1 com os valores padrão
 
 ### Requirement: Callbacks opcionais para as origens de dados
-A configuração SHALL aceitar os callbacks opcionais `onObterComissoes`, `onVerificarProposicao`, `onObterTexto` e `onImportarArquivo`, que substituem, respectivamente, a URL de comissões, a URL de verificação, a URL do texto estruturado e a URL de importação. Existindo o callback, o componente SHALL usá-lo e MUST NOT chamar a URL da origem; não existindo, SHALL usar a URL. O callback MUST NOT alterar telas, regras de habilitação nem o resultado emitido.
+A configuração SHALL aceitar os callbacks opcionais `onObterComissoes`, `onVerificarProposicao`, `onObterTexto`, `onImportarArquivo`, `onListarDocumentos` e `onObterTextoDocumento`, que substituem, respectivamente, a URL de comissões, a URL de verificação, a URL do texto estruturado, a URL de importação, a URL `urlDocumentosMateria` e a URL `urlTextoDocumento`. Existindo o callback, o componente SHALL usá-lo e MUST NOT chamar a URL da origem; não existindo, SHALL usar a URL. O callback MUST NOT alterar telas, regras de habilitação nem o resultado emitido. Com `casaLegislativaEditor = 'CD'`, cada uma das duas últimas origens SHALL ser informada por URL ou callback, e a configuração é recusada se faltar; no `SF` elas não são exigidas.
 
 #### Scenario: Callback existente
 - **WHEN** a configuração informa `onVerificarProposicao` e o usuário aciona **Verificar**
@@ -504,6 +540,14 @@ A configuração SHALL aceitar os callbacks opcionais `onObterComissoes`, `onVer
 #### Scenario: Callback de importação e URL informados
 - **WHEN** a configuração informa `urlImportacaoArquivo` e `onImportarArquivo`, e o usuário importa um arquivo `.pdf`
 - **THEN** o arquivo é tratado pelo callback e a URL de importação não é chamada
+
+#### Scenario: Origens da Tela 2b ausentes na CD
+- **WHEN** `casaLegislativaEditor` é `CD` e a configuração não informa `urlDocumentosMateria` nem `onListarDocumentos`
+- **THEN** a configuração é recusada com mensagem que nomeia a origem faltante
+
+#### Scenario: Origens da Tela 2b ausentes no SF
+- **WHEN** `casaLegislativaEditor` é `SF` ou não informada, e a configuração não informa as origens da Tela 2b
+- **THEN** a configuração é aceita
 
 ### Requirement: Contrato dos callbacks de verificação e de texto
 `onVerificarProposicao` e `onObterTexto` SHALL receber `{ sigla, numero, ano }` com os valores normalizados dos placeholders da URL (sigla em maiúsculas, número sem zeros à esquerda). `onVerificarProposicao` SHALL devolver `{ ementa, textoEstruturadoDisponivel?, complementar? }` (disponível quando ausente) ou `undefined` se inexistente; `onObterTexto` SHALL devolver o JSONIX ou `undefined` se indisponível. Promise rejeitada ou exceção SHALL ser falha de comunicação.
@@ -556,7 +600,7 @@ A configuração SHALL aceitar os callbacks opcionais `onObterComissoes`, `onVer
 - **THEN** a lista de comissões vem do callback
 
 ### Requirement: Callback de importação de arquivo
-`onImportarArquivo` SHALL receber o arquivo selecionado, já validado quanto a extensão e tamanho (o callback MUST NOT ser chamado para arquivo recusado nem para arquivo `.json`), e devolver `{ texto?, erros }`, com `texto` o documento articulado e `erros` lista de mensagens. Com `erros` não vazio, o componente SHALL levar à Tela 3; com `erros` vazio, SHALL concluir com `texto` como documento importado. Promise rejeitada ou exceção SHALL ter o efeito da falha do serviço de conversão (requisito "Conversão por URL").
+`onImportarArquivo` SHALL receber o arquivo selecionado, já validado quanto a extensão e tamanho (o callback MUST NOT ser chamado para arquivo recusado nem para arquivo `.json`), e o contexto do documento (requisito "Contexto do documento") como segundo parâmetro, e devolver `{ texto?, erros }`, com `texto` o documento articulado e `erros` lista de mensagens. Com `erros` não vazio, o componente SHALL levar à Tela 3; com `erros` vazio, SHALL concluir com `texto` como documento importado. Promise rejeitada ou exceção SHALL ter o efeito da falha do serviço de conversão (requisito "Conversão por URL").
 
 #### Scenario: Importação com sucesso
 - **WHEN** `onImportarArquivo` devolve `{ texto, erros: [] }`
@@ -582,8 +626,12 @@ A configuração SHALL aceitar os callbacks opcionais `onObterComissoes`, `onVer
 - **WHEN** a configuração informa `onImportarArquivo` e o usuário importa um arquivo `.json`
 - **THEN** o callback não é chamado e o arquivo é lido pelo próprio componente
 
+#### Scenario: Callback com um só parâmetro
+- **WHEN** o host informa um `onImportarArquivo` que declara apenas o parâmetro do arquivo
+- **THEN** a importação funciona como antes
+
 ### Requirement: Conversão por URL
-Sem o callback `onImportarArquivo`, o componente SHALL enviar o arquivo à URL de importação (`urlImportacaoArquivo`, sem placeholders) por `POST`, com o conteúdo do arquivo no corpo (não multipart) e o cabeçalho `Content-Type` determinado pela extensão: `application/pdf` (`.pdf`), `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (`.docx`), `text/plain` (`.txt`) e `application/xml` (`.xml`). A resposta `200` SHALL trazer no corpo o documento articulado em JSONIX, que conclui o fluxo como documento importado. A resposta `400` SHALL exibir na Tela 2 um alerta de aviso com o título "O arquivo não pôde ser importado", o corpo da resposta como texto puro (ou "O serviço de conversão recusou o arquivo.", se vazio) e a orientação "Selecione outro arquivo ou escolha outra forma de iniciar o texto.". Qualquer outra resposta, corpo `200` que não seja JSON ou falha de rede SHALL exibir na Tela 2 um alerta de erro "Não foi possível converter o arquivo "<nome do arquivo>": o serviço de conversão apresentou uma falha. Tente novamente em alguns instantes.", sem exibir o corpo da resposta. Nos dois alertas, o usuário SHALL permanecer na Tela 2, podendo trocar o arquivo ou acionar **Continuar** novamente, e o alerta SHALL sair ao trocar o arquivo ou a opção de texto inicial.
+Sem o callback `onImportarArquivo`, o componente SHALL enviar o arquivo à URL de importação (`urlImportacaoArquivo`) por `POST`, com o conteúdo do arquivo no corpo (não multipart) e o cabeçalho `Content-Type` determinado pela extensão: `application/pdf` (`.pdf`), `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (`.docx`), `text/plain` (`.txt`) e `application/xml` (`.xml`). A URL SHALL aceitar os placeholders do requisito "Entrega do contexto do documento ao host". A resposta `200` SHALL trazer no corpo o documento articulado em JSONIX, que conclui o fluxo como documento importado. A resposta `400` SHALL exibir na Tela 2 um alerta de aviso com o título "O arquivo não pôde ser importado", o corpo da resposta como texto puro (ou "O serviço de conversão recusou o arquivo.", se vazio) e a orientação "Selecione outro arquivo ou escolha outra forma de iniciar o texto.". Qualquer outra resposta, corpo `200` que não seja JSON ou falha de rede SHALL exibir na Tela 2 um alerta de erro "Não foi possível converter o arquivo "<nome do arquivo>": o serviço de conversão apresentou uma falha. Tente novamente em alguns instantes.", sem exibir o corpo da resposta. Nos dois alertas, o usuário SHALL permanecer na Tela 2, podendo trocar o arquivo ou acionar **Continuar** novamente, e o alerta SHALL sair ao trocar o arquivo ou a opção de texto inicial.
 
 #### Scenario: Envio do arquivo
 - **WHEN** o usuário importa `proposicao.pdf` sem o callback `onImportarArquivo`
@@ -605,6 +653,101 @@ Sem o callback `onImportarArquivo`, o componente SHALL enviar o arquivo à URL d
 - **WHEN** um dos alertas da conversão está exibido e o usuário seleciona outro arquivo
 - **THEN** o alerta deixa de ser exibido
 
+### Requirement: Contexto do documento
+O contexto do documento SHALL ser montado a partir da Tela 1, ao acionar **Continuar** com a opção "Importar documento" e ao carregar a lista da Tela 2b, com: `casa`, `especie`, `urn` do documento a criar, `siglaDocumento` (no substitutivo do `SF`, a da proposição referenciada) e, havendo URN de documento referenciado (substitutivo, subemenda substitutiva e PLV), `documentoReferenciado` com `urn`, `sigla`, `numero` e `ano`. `documentoReferenciado` SHALL ser sempre o documento referenciado na Tela 1, mesmo quando a Tela 2b lista os documentos de outra matéria.
+
+#### Scenario: Proposição sem referência
+- **WHEN** o usuário importa um arquivo para uma PEC da `CD`
+- **THEN** o contexto traz `especie` `proposicao`, a URN e a sigla da PEC e não traz `documentoReferenciado`
+
+#### Scenario: Substitutivo do SF
+- **WHEN** o usuário importa um arquivo para um substitutivo do `SF` a um PL
+- **THEN** `urn` é a do substitutivo, `siglaDocumento` é a sigla do PL e `documentoReferenciado` traz a URN, a sigla, o número e o ano do PL
+
+#### Scenario: Substitutivo e subemenda substitutiva da CD
+- **WHEN** o usuário importa um arquivo para um substitutivo ou uma subemenda substitutiva da `CD`
+- **THEN** `siglaDocumento` é `SBT` ou `SSP`, respectivamente, e `documentoReferenciado` traz a proposição referenciada
+
+#### Scenario: PLV
+- **WHEN** o usuário importa um arquivo para um PLV
+- **THEN** `documentoReferenciado` traz a medida provisória informada
+
+#### Scenario: Contexto na listagem da Tela 2b
+- **WHEN** o usuário cria uma subemenda substitutiva da `CD` referenciando o PL 4/2025 e lista os documentos de outra matéria, o PL 9/2025
+- **THEN** a consulta é PL 9/2025, e o contexto traz `especie` `subemenda` e `documentoReferenciado` do PL 4/2025
+
+### Requirement: Entrega do contexto do documento ao host
+Com o callback (`onImportarArquivo` e `onListarDocumentos`), o contexto SHALL ser o segundo parâmetro, somente leitura. Com a URL (`urlImportacaoArquivo` e `urlDocumentosMateria`), o componente SHALL preencher os placeholders `{casa}`, `{especie}`, `{urn}`, `{siglaDocumento}`, `{urnDocumentoReferenciado}`, `{siglaReferenciada}`, `{numeroReferenciado}` e `{anoReferenciado}`, codificados como componente de URL. Valor ausente SHALL virar texto vazio, e URL sem placeholders do contexto MUST NOT ser alterada por eles.
+
+#### Scenario: Callback recebe o contexto
+- **WHEN** o usuário importa um arquivo para um substitutivo e o host informa `onImportarArquivo`
+- **THEN** o callback recebe o arquivo e, como segundo parâmetro, o contexto desse substitutivo
+
+#### Scenario: Callback de listagem recebe o contexto
+- **WHEN** a Tela 2b carrega os documentos de uma matéria e o host informa `onListarDocumentos`
+- **THEN** o callback recebe a consulta e, como segundo parâmetro, o contexto do novo documento
+
+#### Scenario: Placeholders na URL
+- **WHEN** `urlImportacaoArquivo` é `/api/importacao?urn={urn}&especie={especie}` e o usuário importa um arquivo para um substitutivo
+- **THEN** o `POST` vai para a URL com `urn` e `especie` preenchidos e codificados
+
+#### Scenario: Placeholders na URL de listagem
+- **WHEN** `urlDocumentosMateria` é `/m/{sigla}/{numero}/{ano}?especie={especie}` e a Tela 2b carrega o PL 4/2025 de uma subemenda substitutiva
+- **THEN** a requisição é feita para `/m/PL/4/2025?especie=subemenda`
+
+#### Scenario: Placeholder sem valor
+- **WHEN** a URL tem `{siglaReferenciada}` e o documento não tem referência
+- **THEN** o parâmetro é enviado vazio
+
+#### Scenario: URL sem placeholders
+- **WHEN** `urlImportacaoArquivo` ou `urlDocumentosMateria` não tem placeholders do contexto
+- **THEN** a requisição é feita como foi informada, com os placeholders próprios da URL
+
+#### Scenario: Callback de listagem com um só parâmetro
+- **WHEN** o host informa um `onListarDocumentos` que declara apenas o parâmetro da consulta
+- **THEN** a listagem funciona como antes
+
+### Requirement: Destino e forma de apresentação no contexto do documento
+Além dos campos do requisito "Contexto do documento", o contexto SHALL trazer `colegiadoDestino` (`tipoColegiado` e, quando há comissão, `siglaComissao`) e `anexoParecer`, com os valores que o resultado do fluxo teria se fosse concluído naquele momento (requisitos "Destino do documento" e "Forma de apresentação").
+
+#### Scenario: Proposição para o Plenário
+- **WHEN** o usuário importa um arquivo para uma proposição com destino Plenário e a caixa "Este documento será apresentado em parecer" desmarcada
+- **THEN** o contexto traz `colegiadoDestino` com `tipoColegiado` `Plenário` e sem `siglaComissao`, e `anexoParecer` `false`
+
+#### Scenario: Substitutivo para comissão
+- **WHEN** o usuário importa um arquivo para um substitutivo do `SF` com destino Comissão, a comissão CCJ escolhida e a caixa marcada
+- **THEN** o contexto traz `colegiadoDestino` com `tipoColegiado` `Comissão` e `siglaComissao` `CCJ`, e `anexoParecer` `true`
+
+#### Scenario: Plenário na CD em substitutivo
+- **WHEN** a casa é `CD`, a espécie é Substitutivo, o destino é Plenário com a comissão CCJC e a Tela 2b carrega os documentos
+- **THEN** o contexto da listagem traz `colegiadoDestino` com `tipoColegiado` `Plenário` e `siglaComissao` `CCJC`
+
+#### Scenario: Forma de apresentação alterada pelo usuário
+- **WHEN** o usuário desmarca a caixa num substitutivo e importa um arquivo
+- **THEN** o contexto traz `anexoParecer` `false`
+
+### Requirement: Placeholders do destino e da forma de apresentação
+`urlImportacaoArquivo` e `urlDocumentosMateria` SHALL aceitar também os placeholders `{tipoColegiado}` (`Plenário` ou `Comissão`), `{siglaComissao}` (vazio sem comissão) e `{anexoParecer}` (`true` ou `false`), preenchidos com os valores do contexto e codificados como componente de URL. URL sem esses placeholders MUST NOT ser alterada por eles.
+
+#### Scenario: Destino na URL de importação
+- **WHEN** `urlImportacaoArquivo` é `/api/importacao?destino={tipoColegiado}&comissao={siglaComissao}&parecer={anexoParecer}` e o usuário importa um arquivo para um substitutivo do `SF` com destino Comissão, a comissão CCJ e a caixa marcada
+- **THEN** o `POST` vai para `/api/importacao?destino=Comiss%C3%A3o&comissao=CCJ&parecer=true`
+
+#### Scenario: Plenário sem comissão
+- **WHEN** a URL tem `{siglaComissao}` e o destino é Plenário sem comissão
+- **THEN** o parâmetro é enviado vazio
+
+### Requirement: Bloqueio da navegação durante o processamento
+Enquanto o componente aguarda o host (importação de arquivo ou obtenção de texto), os botões **Voltar** e **Cancelar** das Telas 2 e 2b SHALL ficar desabilitados, para que o resultado não seja combinado com dados da Tela 1 diferentes dos usados na chamada.
+
+#### Scenario: Importação em andamento
+- **WHEN** o usuário aciona **Continuar** com um arquivo e o host ainda não respondeu
+- **THEN** **Voltar** e **Cancelar** ficam desabilitados e voltam a ficar habilitados quando a resposta chega
+
+#### Scenario: Obtenção de texto na Tela 2b
+- **WHEN** o usuário confirma um documento da lista e o texto ainda não chegou
+- **THEN** **Voltar** e **Cancelar** ficam desabilitados até a resposta
+
 ### Requirement: Importação de JSON
 O arquivo `.json` SHALL ser lido pelo próprio componente como documento articulado em JSONIX, sem chamar a URL de importação nem o callback `onImportarArquivo`, e o conteúdo SHALL concluir o fluxo como documento importado. Conteúdo que não seja um JSON válido SHALL exibir na Tela 2 um alerta de aviso "O arquivo JSON não pôde ser lido: o conteúdo não é um JSON válido.", mantendo o usuário na Tela 2. O componente MUST NOT validar a estrutura do documento além de ser um JSON; essa validação é do `lexml-eta`.
 
@@ -615,3 +758,143 @@ O arquivo `.json` SHALL ser lido pelo próprio componente como documento articul
 #### Scenario: JSON inválido
 - **WHEN** o usuário importa um arquivo `.json` cujo conteúdo não é um JSON válido
 - **THEN** a Tela 2 exibe o alerta de aviso de JSON inválido e o fluxo não é concluído
+
+### Requirement: Tela de escolha do documento de origem na CD
+Na `CD`, em substitutivo ou subemenda substitutiva, a Tela 2b SHALL perguntar "Em qual matéria está o documento?" com "Nesta mesma matéria" (padrão, usando a proposição referenciada da Tela 1, já verificada) ou "Em outra matéria" (sigla escolhida entre as da proposição referenciada, número, ano e **Verificar**, com a regra de verificação comum). **Voltar** SHALL levar à Tela 2 com a escolha preservada.
+
+#### Scenario: Matéria padrão
+- **WHEN** a Tela 2b é exibida
+- **THEN** "Nesta mesma matéria" vem selecionada e a lista é carregada para a proposição referenciada
+
+#### Scenario: Outra matéria verificada
+- **WHEN** o usuário escolhe "Em outra matéria", informa sigla, número e ano e a verificação retorna a matéria
+- **THEN** a lista é carregada para essa matéria e a seleção anterior é descartada
+
+#### Scenario: Outra matéria inexistente
+- **WHEN** a verificação de "Em outra matéria" indica matéria não encontrada
+- **THEN** o usuário é informado e a lista não é exibida
+
+### Requirement: Seleção do documento de origem
+A Tela 2b SHALL listar em "Documento de origem" todos os documentos devolvidos pelo host para a matéria, sem opção de ocultar documentos. A seleção SHALL ser única, e **Continuar** SHALL ficar habilitado apenas com um documento selecionado cujo texto estruturado esteja disponível.
+
+#### Scenario: Seleção do documento
+- **WHEN** o usuário seleciona um documento da lista
+- **THEN** a faixa "Fonte selecionada" mostra o documento e a matéria, e **Trocar** devolve a seleção ao estado sem documento escolhido
+
+#### Scenario: Documento sem texto estruturado
+- **WHEN** a lista contém um documento com `textoEstruturadoDisponivel` falso
+- **THEN** ele aparece desabilitado com o aviso "Texto estruturado não disponível" e não pode ser selecionado
+
+#### Scenario: Matéria sem documentos
+- **WHEN** o host devolve lista vazia
+- **THEN** a Tela 2b informa que não há documentos e **Continuar** permanece desabilitado
+
+#### Scenario: Concluir
+- **WHEN** o usuário aciona **Continuar** com um documento selecionado e o texto é obtido
+- **THEN** o resultado é emitido com esse texto em `texto`, como na opção de outra proposição do `SF`
+
+#### Scenario: Texto do documento indisponível ou com falha
+- **WHEN** o serviço do texto indica indisponibilidade ou falha
+- **THEN** o usuário é informado, permanece na Tela 2b e pode tentar novamente ou escolher outro documento
+
+### Requirement: Apresentação e filtro dos documentos da lista
+Cada documento da lista SHALL mostrar o título, a ementa (quando houver), a identificação (`sigla número/ano`, e `siglaComissao` quando houver), o autor com o papel e o tratamento "Dep." e a data de apresentação em DD/MM/AAAA, além de um ícone, quando houver `urlDocumento`, que a abre em outra aba sem selecionar o documento. A ementa SHALL aparecer abaixo do título, limitada a 2 linhas, com o texto completo ao passar o mouse. O ícone SHALL ter o tooltip `tooltipDocumento`, ou "Abrir o documento em outra aba" quando ele estiver ausente ou vazio, e o mesmo texto no `aria-label`. O tratamento "Dep." SHALL ser fixo, independentemente de `indSexoAutor`.
+
+#### Scenario: Linha do documento
+- **WHEN** o host devolve um documento com `papelAutor` "Relatora", `nomeAutor` "Fulana", `siglaComissao` "CCJC" e `dataApresentacao` "2025-08-12"
+- **THEN** a linha mostra "Relatora: Dep. Fulana" e "12/08/2025"
+
+#### Scenario: Ementa exibida
+- **WHEN** o host devolve um documento com `ementa`
+- **THEN** a ementa aparece abaixo do título, limitada a 2 linhas, e o texto completo é exibido ao passar o mouse
+
+#### Scenario: Documento sem ementa
+- **WHEN** o documento não traz `ementa`
+- **THEN** a linha não exibe espaço nem rótulo de ementa
+
+#### Scenario: Inteiro teor
+- **WHEN** o usuário aciona o ícone de um documento com `urlDocumento`
+- **THEN** `urlDocumento` é aberta em outra aba e a seleção não muda
+
+#### Scenario: Documento sem endereço
+- **WHEN** o documento não traz `urlDocumento`
+- **THEN** a linha não exibe o ícone
+
+#### Scenario: Tooltip padrão do ícone
+- **WHEN** o documento tem `urlDocumento` e não traz `tooltipDocumento`, ou o traz vazio
+- **THEN** o tooltip e o `aria-label` do ícone são "Abrir o documento em outra aba"
+
+#### Scenario: Tooltip do host
+- **WHEN** o documento tem `urlDocumento` e `tooltipDocumento` "Parecer na íntegra (PDF)"
+- **THEN** o tooltip e o `aria-label` do ícone são "Parecer na íntegra (PDF)"
+
+### Requirement: Filtro dos documentos da lista
+O campo de filtro SHALL ser textual e genérico, executado no componente sobre todos os dados exibidos de cada documento (inclusive a data e a ementa), sem diferenciar maiúsculas, minúsculas e acentos.
+
+#### Scenario: Filtro por texto
+- **WHEN** o usuário digita um trecho do título, do autor, da comissão ou da data exibida
+- **THEN** a lista mostra só os documentos que o contêm
+
+#### Scenario: Filtro pela ementa
+- **WHEN** o usuário digita um trecho da ementa de um documento
+- **THEN** a lista mostra só os documentos cuja ementa o contém
+
+### Requirement: Objeto documento da Tela 2b
+Cada documento devolvido pelo host SHALL ter `id` (único), `titulo`, `sigla`, `numero`, `ano` (inteiro, opcional), `textoEstruturadoDisponivel` (verdadeiro quando ausente), `nomeAutor` (sem tratamento), `papelAutor` (já flexionado), `indSexoAutor`, `dataApresentacao` (AAAA-MM-DD) e `siglaComissao` (opcional). Os campos `urlDocumento`, `ementa` e `tooltipDocumento` SHALL ser opcionais, e `urlDocumento` SHALL ser `http(s)` ou relativa para virar link.
+
+#### Scenario: Disponibilidade ausente
+- **WHEN** o documento não traz `textoEstruturadoDisponivel`
+- **THEN** o texto estruturado é considerado disponível
+
+#### Scenario: Campos opcionais ausentes
+- **WHEN** o documento não traz `urlDocumento`, `ementa` nem `tooltipDocumento`
+- **THEN** a linha é exibida normalmente, sem ícone e sem ementa
+
+#### Scenario: Endereço que não é http(s)
+- **WHEN** `urlDocumento` não é `http(s)` nem relativa
+- **THEN** a linha não exibe o ícone
+
+### Requirement: Contrato dos serviços da Tela 2b
+`onListarDocumentos` SHALL receber `{ sigla, numero, ano }` normalizados da matéria consultada e o contexto do documento (requisito "Contexto do documento") como segundo parâmetro, e devolver a lista de documentos ou `undefined` se a matéria for inexistente; `onObterTextoDocumento` SHALL receber `{ id }`, sem o contexto, e devolver o JSONIX ou `undefined` se indisponível. Promise rejeitada ou exceção SHALL ser falha de comunicação.
+
+#### Scenario: Listagem pelo callback
+- **WHEN** a Tela 2b carrega a matéria PL 4/2025
+- **THEN** `onListarDocumentos` recebe `{ sigla: 'PL', numero: '4', ano: '2025' }` e o contexto
+
+#### Scenario: Matéria inexistente
+- **WHEN** a listagem devolve `undefined` ou `404`
+- **THEN** a matéria é tratada como não encontrada
+
+#### Scenario: Texto por id
+- **WHEN** o usuário continua com o documento de `id` "abc"
+- **THEN** o serviço do texto recebe `{ id: 'abc' }` e não recebe sigla, número, ano nem o contexto
+
+#### Scenario: Falha na listagem
+- **WHEN** `onListarDocumentos` rejeita a promise
+- **THEN** o usuário é informado do erro e pode tentar novamente
+
+### Requirement: URLs dos serviços da Tela 2b
+`urlDocumentosMateria` SHALL usar os placeholders de sigla, número e ano da matéria consultada e aceitar os placeholders do requisito "Entrega do contexto do documento ao host"; `urlTextoDocumento` SHALL usar `{id}`, sem os placeholders do contexto. Ambas SHALL ter `200` (JSON) e `404` (inexistente ou indisponível) como nas demais origens; outra resposta ou erro de rede SHALL ser falha de comunicação.
+
+#### Scenario: URL do texto
+- **WHEN** o usuário continua com o documento de `id` "abc" e só há `urlTextoDocumento`
+- **THEN** a requisição é feita com `{id}` substituído por `abc`
+
+### Requirement: Recarga da lista ao mudar o contexto
+A lista da Tela 2b SHALL depender da matéria consultada e do contexto do documento. Ao entrar na Tela 2b com contexto diferente do da lista carregada, o componente SHALL descartar a lista e a seleção e recarregá-la; resposta de uma carga anterior SHALL ser descartada. Com o mesmo contexto e a mesma matéria, a lista e a seleção SHALL ser preservadas.
+
+#### Scenario: Troca de espécie com a mesma matéria
+- **WHEN** o usuário lista os documentos do PL 4/2025 para um substitutivo, volta à Tela 1, muda para subemenda substitutiva com o mesmo PL 4/2025 e chega à Tela 2b
+- **THEN** a lista é recarregada com o contexto da subemenda e a seleção anterior é descartada
+
+#### Scenario: Troca de destino ou de forma de apresentação
+- **WHEN** o usuário lista os documentos do PL 4/2025 para um substitutivo, volta à Tela 1, troca a comissão, o destino ou a caixa "Este documento será apresentado em parecer" e chega à Tela 2b
+- **THEN** a lista é recarregada com o novo contexto e a seleção anterior é descartada
+
+#### Scenario: Carga em andamento durante a troca
+- **WHEN** a lista de um contexto ainda está sendo carregada e o usuário volta, muda a espécie e retorna à Tela 2b
+- **THEN** a resposta da carga anterior é descartada e a lista exibida é a do contexto atual
+
+#### Scenario: Voltar sem mudar o contexto
+- **WHEN** o usuário volta da Tela 2b à Tela 2 e retorna sem alterar a Tela 1
+- **THEN** a lista e a seleção são preservadas e `onListarDocumentos` não é chamado de novo

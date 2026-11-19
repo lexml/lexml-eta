@@ -2,6 +2,7 @@ import { expect } from '@open-wc/testing';
 import { getPreambuloNovaProposicao, PREAMBULO_FALLBACK } from '../../../src/components/nova-proposicao/preambuloNovaProposicao';
 import { getSufixoEpigrafe } from '../../../src/components/nova-proposicao/epigrafeNovaProposicao';
 import { getIdentificacaoDocumento, getNovoOuNova } from '../../../src/components/nova-proposicao/identificacaoDocumento';
+import { EscolhasDestino, montaContextoDocumento } from '../../../src/components/nova-proposicao/contextoDocumento';
 import { montaUrnNovaProposicao } from '../../../src/components/nova-proposicao/montaUrnNovaProposicao';
 import {
   getSiglasNovaProposicao,
@@ -11,7 +12,15 @@ import {
   resolverTipoComplementar,
 } from '../../../src/components/nova-proposicao/siglasNovaProposicao';
 import { DadosIdentificacao } from '../../../src/components/nova-proposicao/tiposNovaProposicao';
-import { montaUrlComissoes, montaUrlProposicao, normalizaConsultaProposicao, validarConfigNovaProposicao } from '../../../src/components/nova-proposicao/urlsNovaProposicao';
+import {
+  ContextoDocumento,
+  montaUrlComissoes,
+  montaUrlContexto,
+  montaUrlProposicao,
+  montaUrlTextoDocumento,
+  normalizaConsultaProposicao,
+  validarConfigNovaProposicao,
+} from '../../../src/components/nova-proposicao/urlsNovaProposicao';
 import { inicializarVocabulario } from '../../../src/model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoRelacaoSubstitutivo } from '../../../src/model/lexml/documento/vocabulario/tiposVocabulario';
 
@@ -213,9 +222,109 @@ describe('Módulos puros da nova proposição', () => {
     });
   });
 
+  describe('contexto do documento', () => {
+    const contexto = (d: DadosIdentificacao, escolhas: EscolhasDestino = { colegiadoDestino: { tipoColegiado: 'Plenário' }, anexoParecer: false }): any =>
+      montaContextoDocumento(d, montaUrnNovaProposicao(d), escolhas);
+
+    it('proposição sem referência (PEC da CD)', () => {
+      inicializarVocabulario('CD');
+      const c = contexto(dados('CD', { tipoProposicao: tipo('CD', 'PEC') }));
+      expect(c).to.deep.equal({
+        casa: 'CD',
+        especie: 'proposicao',
+        urn: 'urn:lex:br:camara.deputados:proposta.emenda.constitucional;pec:2026;999999',
+        siglaDocumento: 'PEC',
+        colegiadoDestino: { tipoColegiado: 'Plenário' },
+        anexoParecer: false,
+      });
+      expect(Object.isFrozen(c)).to.equal(true);
+      expect(Object.isFrozen(c.colegiadoDestino)).to.equal(true);
+    });
+
+    it('traz o destino e a forma de apresentação informados, sem alterá-los', () => {
+      inicializarVocabulario('SF');
+      const colegiadoDestino = { tipoColegiado: 'Comissão' as const, siglaComissao: 'CCJ' };
+      const c = contexto(dados('SF', { especie: 'substitutivo', tipoProposicao: tipo('SF', 'PL', true), numeroProposicao: '12' }), { colegiadoDestino, anexoParecer: true });
+      expect(c.colegiadoDestino).to.deep.equal({ tipoColegiado: 'Comissão', siglaComissao: 'CCJ' });
+      expect(c.colegiadoDestino).to.not.equal(colegiadoDestino);
+      expect(c.anexoParecer).to.equal(true);
+    });
+
+    it('PLV traz a MPV como documento referenciado', () => {
+      inicializarVocabulario('SF');
+      const c = contexto(dados('SF', { tipoProposicao: tipo('SF', 'PLV'), numeroMpv: '04321', anoMpv: '2025' }));
+      expect(c.siglaDocumento).to.equal('PLV');
+      expect(c.documentoReferenciado).to.deep.equal({ urn: 'urn:lex:br:federal:medida.provisoria;mpv:2025;4321', sigla: 'MPV', numero: '4321', ano: '2025' });
+    });
+
+    it('substitutivo do SF usa a sigla da proposição referenciada e a URN com sufixo', () => {
+      inicializarVocabulario('SF');
+      const c = contexto(dados('SF', { especie: 'substitutivo', tipoProposicao: tipo('SF', 'PL', true), numeroProposicao: '0012' }));
+      expect(c.siglaDocumento).to.equal('PL');
+      expect(c.urn).to.equal('urn:lex:br:senado.federal:projeto.lei;pl:2026;12@apresentacao.substitutivo');
+      expect(c.documentoReferenciado).to.deep.equal({ urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;12', sigla: 'PL', numero: '12', ano: '2026' });
+    });
+
+    it('substitutivo e subemenda substitutiva da CD usam SBT e SSP', () => {
+      inicializarVocabulario('CD');
+      const base = { tipoProposicao: tipo('CD', 'PL', true), numeroProposicao: '12' };
+      const sbt = contexto(dados('CD', { ...base, especie: 'substitutivo', tipoSubstitutivo: getTipoSubstitutivoCd('substitutivo') }));
+      const ssp = contexto(dados('CD', { ...base, especie: 'subemenda', tipoSubstitutivo: getTipoSubstitutivoCd('subemenda') }));
+      expect([sbt.siglaDocumento, ssp.siglaDocumento]).to.deep.equal(['SBT', 'SSP']);
+      expect(sbt.documentoReferenciado.sigla).to.equal('PL');
+    });
+
+    it('referenciada complementar mantém a URN de lei complementar', () => {
+      inicializarVocabulario('SF');
+      const pls = resolverTipoComplementar(tipo('SF', 'PLS', true), true);
+      const c = contexto(dados('SF', { especie: 'substitutivo', tipoProposicao: pls, numeroProposicao: '7' }));
+      expect(c.documentoReferenciado.urn).to.equal('urn:lex:br:senado.federal:projeto.lei.complementar;pls:2026;7');
+      expect(c.documentoReferenciado.sigla).to.equal('PLS');
+    });
+  });
+
   describe('URLs', () => {
     it('sigla em maiúsculas e número sem zeros à esquerda', () => {
       expect(montaUrlProposicao('/v/{sigla}/{numero}/{ano}', 'pl', '0012', '2026')).to.equal('/v/PL/12/2026');
+    });
+
+    it('placeholders do contexto: codificados, e vazios quando ausentes', () => {
+      const c: ContextoDocumento = {
+        casa: 'SF',
+        especie: 'proposicao',
+        urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2026;999999',
+        siglaDocumento: 'PL',
+        colegiadoDestino: { tipoColegiado: 'Plenário' },
+        anexoParecer: false,
+      };
+      expect(montaUrlContexto('/i?urn={urn}&especie={especie}&ref={siglaReferenciada}&casa={casa}', c)).to.equal(
+        '/i?urn=urn%3Alex%3Abr%3Asenado.federal%3Aprojeto.lei%3Bpl%3A2026%3B999999&especie=proposicao&ref=&casa=SF'
+      );
+      const comReferencia: ContextoDocumento = { ...c, documentoReferenciado: { urn: 'u', sigla: 'PL', numero: '12', ano: '2026' } };
+      expect(montaUrlContexto('/i/{siglaReferenciada}/{numeroReferenciado}/{anoReferenciado}/{urnDocumentoReferenciado}/{siglaDocumento}', comReferencia)).to.equal(
+        '/i/PL/12/2026/u/PL'
+      );
+      expect(montaUrlContexto('/importacao', c)).to.equal('/importacao');
+      const listagem = montaUrlProposicao('/m/{sigla}/{numero}/{ano}?especie={especie}', 'pl', '0012', '2026');
+      expect(montaUrlContexto(listagem, comReferencia)).to.equal('/m/PL/12/2026?especie=proposicao');
+      expect(montaUrlContexto('/m/PL/12/2026', c)).to.equal('/m/PL/12/2026');
+    });
+
+    it('placeholders do destino e da forma de apresentação: codificados, e vazia a sigla sem comissão', () => {
+      const base: ContextoDocumento = {
+        casa: 'SF',
+        especie: 'substitutivo',
+        urn: 'u',
+        siglaDocumento: 'PL',
+        colegiadoDestino: { tipoColegiado: 'Plenário' },
+        anexoParecer: false,
+      };
+      const modelo = '/i?destino={tipoColegiado}&comissao={siglaComissao}&parecer={anexoParecer}';
+      expect(montaUrlContexto(modelo, base)).to.equal('/i?destino=Plen%C3%A1rio&comissao=&parecer=false');
+      expect(montaUrlContexto(modelo, { ...base, colegiadoDestino: { tipoColegiado: 'Comissão', siglaComissao: 'CCJ' }, anexoParecer: true })).to.equal(
+        '/i?destino=Comiss%C3%A3o&comissao=CCJ&parecer=true'
+      );
+      expect(montaUrlContexto('/importacao', base)).to.equal('/importacao');
     });
 
     it('casa nas comissões', () => {
@@ -269,6 +378,42 @@ describe('Módulos puros da nova proposição', () => {
 
     it('normaliza sigla, número e ano da consulta', () => {
       expect(normalizaConsultaProposicao(' pl ', '0012', ' 2026 ')).to.deep.equal({ sigla: 'PL', numero: '12', ano: '2026' });
+    });
+
+    it('id codificado na URL do texto do documento', () => {
+      expect(montaUrlTextoDocumento('/d/{id}/texto', 'a/b c')).to.equal('/d/a%2Fb%20c/texto');
+    });
+
+    describe('origens da Tela 2b', () => {
+      const CD: any = { ...URLS, casaLegislativaEditor: 'CD', urlDocumentosMateria: '/m', urlTextoDocumento: '/t' };
+
+      it('CD com as duas URLs é válida', () => {
+        expect(() => validarConfigNovaProposicao(CD)).to.not.throw();
+      });
+
+      ['urlDocumentosMateria', 'urlTextoDocumento'].forEach(nome => {
+        it(`CD sem ${nome} é recusada nomeando a origem`, () => {
+          const config: any = { ...CD };
+          delete config[nome];
+          expect(() => validarConfigNovaProposicao(config)).to.throw(nome);
+        });
+      });
+
+      [
+        ['urlDocumentosMateria', 'onListarDocumentos'],
+        ['urlTextoDocumento', 'onObterTextoDocumento'],
+      ].forEach(([url, callback]) => {
+        it(`CD: callback ${callback} dispensa ${url}`, () => {
+          const config: any = { ...CD, [callback]: () => undefined };
+          delete config[url];
+          expect(() => validarConfigNovaProposicao(config)).to.not.throw();
+        });
+      });
+
+      it('SF e casa não informada não exigem as origens', () => {
+        expect(() => validarConfigNovaProposicao({ ...URLS, casaLegislativaEditor: 'SF' })).to.not.throw();
+        expect(() => validarConfigNovaProposicao({ ...URLS })).to.not.throw();
+      });
     });
   });
 

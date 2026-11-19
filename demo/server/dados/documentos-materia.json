@@ -1,0 +1,101 @@
+[
+  {
+    "sigla": "PL",
+    "numero": "4",
+    "ano": "2025",
+    "documentos": [
+      {
+        "id": "pl-4-2025-original",
+        "titulo": "Texto original do PL 4/2025",
+        "sigla": "PL",
+        "numero": "4",
+        "ano": 2025,
+        "ementa": "Dispõe sobre a atualização da Lei nº 10.406, de 10 de janeiro de 2002 (Código Civil), e da legislação correlata.",
+        "urlDocumento": "https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=4",
+        "nomeAutor": "Fulano",
+        "papelAutor": "Autor",
+        "indSexoAutor": "M",
+        "dataApresentacao": "2025-02-03",
+        "arquivo": "pl_4687_2023.json"
+      },
+      {
+        "id": "prl-1-csaude-substitutivo",
+        "titulo": "Substitutivo do relator",
+        "sigla": "PRL",
+        "numero": "1",
+        "ano": 2025,
+        "siglaComissao": "CSAUDE",
+        "ementa": "Substitutivo do relator ao PL 4/2025, que consolida as alterações propostas ao Código Civil e reorganiza as disposições sobre títulos de crédito escriturais, registros públicos e direitos reais.",
+        "urlDocumento": "https://www.camara.leg.br/proposicoesWeb/prop_mostrarintegra?codteor=1",
+        "nomeAutor": "Fulana",
+        "papelAutor": "Relatora",
+        "indSexoAutor": "F",
+        "dataApresentacao": "2025-09-05",
+        "arquivo": "plp_197_2023.json"
+      },
+      {
+        "id": "prl-1-csaude-complementacao",
+        "titulo": "Complementação de voto",
+        "sigla": "PRL",
+        "numero": "1",
+        "ano": 2025,
+        "siglaComissao": "CSAUDE",
+        "ementa": "Complementação de voto ao parecer do relator, com ajustes de redação.",
+        "urlDocumento": "https://www.camara.leg.br/proposicoesWeb/prop_mostrarintegra?codteor=2",
+        "nomeAutor": "Fulana",
+        "papelAutor": "Relatora",
+        "indSexoAutor": "F",
+        "dataApresentacao": "2025-09-12",
+        "arquivo": "plp_68_2024.json"
+      },
+      {
+        "id": "prl-1-ccjc-parecer",
+        "titulo": "Parecer do relator 1 – CCJC",
+        "sigla": "PRL",
+        "numero": "1",
+        "ano": 2025,
+        "siglaComissao": "CCJC",
+        "ementa": "Parecer do relator pela constitucionalidade, juridicidade e técnica legislativa do PL 4/2025 e de seus apensados.",
+        "urlDocumento": "https://www.camara.leg.br/proposicoesWeb/prop_mostrarintegra?codteor=3",
+        "tooltipDocumento": "Abrir o parecer na íntegra em outra aba",
+        "nomeAutor": "Beltrano",
+        "papelAutor": "Relator",
+        "indSexoAutor": "M",
+        "dataApresentacao": "2025-08-12",
+        "arquivo": "plp_137_2019.json"
+      },
+      {
+        "id": "pl-117-2025-apensado",
+        "titulo": "PL 117/2025 (apensado)",
+        "sigla": "PL",
+        "numero": "117",
+        "ano": 2025,
+        "urlDocumento": "https://www.camara.leg.br/proposicoesWeb/fichadetramitacao?idProposicao=117",
+        "nomeAutor": "Fulano",
+        "papelAutor": "Autor",
+        "indSexoAutor": "M",
+        "dataApresentacao": "2025-03-10",
+        "arquivo": "pl_5008_2023.json"
+      },
+      {
+        "id": "pl-480-2025-apensado",
+        "titulo": "PL 480/2025 (apensado)",
+        "sigla": "PL",
+        "numero": "480",
+        "ano": 2025,
+        "ementa": "Altera a Lei nº 10.406, de 2002 (Código Civil), para dispor sobre o registro de garantias reais sobre bens móveis.",
+        "nomeAutor": "Fulana",
+        "papelAutor": "Autora",
+        "indSexoAutor": "F",
+        "dataApresentacao": "2025-04-22",
+        "arquivo": null
+      }
+    ]
+  },
+  {
+    "sigla": "PL",
+    "numero": "4687",
+    "ano": "2023",
+    "documentos": []
+  }
+]

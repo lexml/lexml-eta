@@ -9,6 +9,7 @@ const CONFIG = {
   urlComissoes: '/c/{casa}',
   urlImportacaoArquivo: '/importacao',
 };
+const CONFIG_CD = { ...CONFIG, casaLegislativaEditor: 'CD', urlDocumentosMateria: '/m/{sigla}/{numero}/{ano}', urlTextoDocumento: '/d/{id}' };
 const COMISSOES = [
   { siglaCasaLegislativa: 'SF', sigla: 'CCJ', nome: 'Comissão de Constituição, Justiça e Cidadania' },
   { siglaCasaLegislativa: 'CD', sigla: 'CFT', nome: 'Comissão de Finanças e Tributação' },
@@ -326,7 +327,7 @@ describe('lexml-nova-proposicao', () => {
   });
 
   describe('Tela 1 na CD', () => {
-    beforeEach(() => iniciar({ ...CONFIG, casaLegislativaEditor: 'CD' }));
+    beforeEach(() => iniciar(CONFIG_CD));
 
     const preencherSubstitutivo = async (especie: 'substitutivo' | 'subemenda'): Promise<void> => {
       await marcar('especie', especie);
@@ -380,6 +381,120 @@ describe('lexml-nova-proposicao', () => {
       await marcar('opcaoTexto', 'vazio');
       await clicar('np-continuar');
       expect(r.detail.urn).to.contain('subemenda.substitutiva;ssp:');
+    });
+  });
+
+  describe('Destino Plenário na CD: comissão obrigatória em substitutivo e subemenda', () => {
+    const preencher = async (especie: 'substitutivo' | 'subemenda'): Promise<void> => {
+      await marcar('especie', especie);
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      await digitar('np-numero-proposicao', '12');
+      await digitar('np-ano-proposicao', '2026');
+      await clicar('np-proposicao-verificar');
+    };
+    const concluirSemTexto = async (): Promise<any> => {
+      const r: { detail?: any } = {};
+      el.addEventListener(EVENTO_CONCLUIDA, (e: Event) => (r.detail = (e as CustomEvent).detail));
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'vazio');
+      await clicar('np-continuar');
+      return r.detail;
+    };
+
+    (['substitutivo', 'subemenda'] as const).forEach(especie => {
+      it(`${especie}: Plenário exibe a comissão, exige a escolha e a devolve no resultado`, async () => {
+        await iniciar(CONFIG_CD);
+        await preencher(especie);
+        await marcar('destino', 'Plenário');
+        expect(existe('np-comissao')).to.be.true;
+        expect(botaoHabilitado('np-continuar')).to.be.false;
+        await escolherComissao('CFT');
+        expect(botaoHabilitado('np-continuar')).to.be.true;
+        expect((await concluirSemTexto()).colegiadoDestino).to.deep.equal({ tipoColegiado: 'Plenário', siglaComissao: 'CFT' });
+      });
+    });
+
+    it('trocar o destino entre Plenário e Comissão mantém a comissão escolhida', async () => {
+      await iniciar(CONFIG_CD);
+      await preencher('substitutivo');
+      await escolherComissao('CFT');
+      await marcar('destino', 'Plenário');
+      expect(q<any>('np-comissao').value).to.equal('CFT');
+      await marcar('destino', 'Comissão');
+      expect(q<any>('np-comissao').value).to.equal('CFT');
+      expect(botaoHabilitado('np-continuar')).to.be.true;
+    });
+
+    it('Comissão continua devolvendo tipo e sigla', async () => {
+      await iniciar(CONFIG_CD);
+      await preencher('substitutivo');
+      await escolherComissao('CFT');
+      expect((await concluirSemTexto()).colegiadoDestino).to.deep.equal({ tipoColegiado: 'Comissão', siglaComissao: 'CFT' });
+    });
+
+    it('proposição na CD não pede comissão no Plenário e não a devolve', async () => {
+      await iniciar(CONFIG_CD);
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      expect(existe('np-comissao')).to.be.false;
+      expect(botaoHabilitado('np-continuar')).to.be.true;
+      expect((await concluirSemTexto()).colegiadoDestino).to.deep.equal({ tipoColegiado: 'Plenário' });
+    });
+
+    it('SF: substitutivo com Plenário não pede comissão', async () => {
+      await iniciar(CONFIG);
+      await marcar('especie', 'substitutivo');
+      await marcar('destino', 'Plenário');
+      expect(existe('np-comissao')).to.be.false;
+    });
+
+    it('falha na lista de comissões informa o erro e mantém Continuar desabilitado', async () => {
+      rotas['/c/CD'] = { status: 500 };
+      await iniciar(CONFIG_CD);
+      await preencher('substitutivo');
+      expect(existe('np-erro-comissoes')).to.be.true;
+      expect(q('np-erro-comissoes')?.textContent).to.contain('necessária para concluir');
+      expect(botaoHabilitado('np-continuar')).to.be.false;
+    });
+  });
+
+  describe('Tela 2 na CD: texto de outra proposição', () => {
+    beforeEach(() => iniciar(CONFIG_CD));
+
+    const irParaTela2 = async (especie?: 'substitutivo' | 'subemenda'): Promise<void> => {
+      if (especie) await marcar('especie', especie);
+      await escolherSigla('np-sigla-proposicao', 'PL');
+      if (especie) {
+        await digitar('np-numero-proposicao', '12');
+        await digitar('np-ano-proposicao', '2026');
+        await clicar('np-proposicao-verificar');
+        await escolherComissao('CFT');
+      }
+      await clicar('np-continuar');
+      await marcar('opcaoTexto', 'outra');
+    };
+
+    (['substitutivo', 'subemenda'] as const).forEach(especie => {
+      it(`${especie}: não exibe sigla, número, ano, verificação nem ementa, e Continuar está habilitado`, async () => {
+        await irParaTela2(especie);
+        ['np-sigla-outra', 'np-numero-outra', 'np-ano-outra', 'np-outra-verificar', 'np-outra-ementa'].forEach(id => expect(existe(id), id).to.be.false);
+        expect(botaoHabilitado('np-continuar')).to.be.true;
+      });
+
+      it(`${especie}: Continuar leva à Tela 2b e Voltar retorna à Tela 2`, async () => {
+        await irParaTela2(especie);
+        await clicar('np-continuar');
+        expect(existe('np-tela-2b')).to.be.true;
+        await clicar('np-voltar');
+        expect(existe('np-tela-2b')).to.be.false;
+        expect(existe('np-continuar')).to.be.true;
+      });
+    });
+
+    it('proposição na CD mantém sigla, número e ano da outra proposição', async () => {
+      await irParaTela2();
+      expect(existe('np-sigla-outra')).to.be.true;
+      expect(existe('np-numero-outra')).to.be.true;
+      expect(botaoHabilitado('np-continuar')).to.be.false;
     });
   });
 

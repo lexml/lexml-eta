@@ -15,6 +15,8 @@ import { ColegiadoApreciador } from '../../model/proposicao/proposicao';
 import { inicializarVocabulario } from '../../model/lexml/documento/vocabulario';
 import { CasaLegislativaEditor, TipoDocumento } from '../../model/lexml/documento/vocabulario/tiposVocabulario';
 import { montaEpigrafeNovaProposicao } from './epigrafeNovaProposicao';
+import { montaContextoDocumento } from './contextoDocumento';
+import { filtrarDocumentos, linhaDetalheDocumento, textoEstruturadoDisponivel, tooltipDoDocumento, urlDocumentoSegura } from './documentosMateria';
 import { getIdentificacaoDocumento, getNovoOuNova } from './identificacaoDocumento';
 import { lerDadosIdentificacao } from './lerDadosIdentificacao';
 import { isPlv, montaUrnNovaProposicao, numeroOriginalVale } from './montaUrnNovaProposicao';
@@ -42,8 +44,12 @@ import {
 import {
   ConfigNovaProposicao,
   CONTENT_TYPE_IMPORTACAO,
+  ContextoDocumento,
+  DocumentoMateria,
   montaUrlComissoes,
+  montaUrlContexto,
   montaUrlProposicao,
+  montaUrlTextoDocumento,
   normalizaConsultaProposicao,
   ResultadoVerificacaoProposicao,
   validarConfigNovaProposicao,
@@ -109,6 +115,13 @@ interface Comissao {
 
 type OpcaoTexto = 'vazio' | 'importar' | 'referenciado' | 'outra';
 
+interface DocumentosCarregados {
+  estado: 'nenhum' | 'carregando' | 'ok' | 'inexistente' | 'erro';
+  lista: DocumentoMateria[];
+}
+
+const semDocumentos = (): DocumentosCarregados => ({ estado: 'nenhum', lista: [] });
+
 const verificacaoVazia = (): Verificacao => ({ estado: 'nenhuma', ementa: '', textoEstruturadoDisponivel: true, complementar: false });
 
 @customElement('lexml-nova-proposicao')
@@ -119,7 +132,7 @@ export class NovaProposicaoComponent extends LitElement {
   private comissoesPorCasa = new Map<string, Comissao[] | 'indisponivel'>();
 
   @state() private erroConfiguracao = '';
-  @state() private tela: 1 | 2 | 3 = 1;
+  @state() private tela: 1 | 2 | '2b' | 3 = 1;
   @state() private especie: EspecieDocumento = 'proposicao';
   @state() private chaveProposicao = '';
   @state() private numeroProposicao = '';
@@ -150,6 +163,18 @@ export class NovaProposicaoComponent extends LitElement {
   @state() private processando = false;
   @state() private errosConversao: string[] = [];
 
+  // Tela 2b (só na CD): matéria e documento de origem.
+  @state() private materiaDoDocumento: 'mesma' | 'outra' = 'mesma';
+  @state() private chaveMateria = '';
+  @state() private numeroMateria = '';
+  @state() private anoMateria = this.anoCorrente;
+  @state() private verificacaoMateria = verificacaoVazia();
+  @state() private documentosMateria: DocumentosCarregados = semDocumentos();
+  @state() private filtroDocumentos = '';
+  @state() private documentoSelecionado?: DocumentoMateria;
+  @state() private rotuloMateria = '';
+  private materiaCarregada = '';
+  private cargaDocumentos = 0;
   // Definidos só por iniciar/iniciarModoEdicao/reiniciar.
   @state() modo: ModoNovaProposicao = 'criacao';
   @state() dadosIniciais?: DadosIniciaisEdicao;
@@ -234,6 +259,21 @@ export class NovaProposicaoComponent extends LitElement {
     this.avisoImportacao = undefined;
     this.processando = false;
     this.errosConversao = [];
+    this.reiniciarTela2b();
+  }
+
+  private reiniciarTela2b(): void {
+    this.cargaDocumentos++;
+    this.materiaDoDocumento = 'mesma';
+    this.chaveMateria = '';
+    this.numeroMateria = '';
+    this.anoMateria = this.anoCorrente;
+    this.verificacaoMateria = verificacaoVazia();
+    this.documentosMateria = semDocumentos();
+    this.filtroDocumentos = '';
+    this.documentoSelecionado = undefined;
+    this.rotuloMateria = '';
+    this.materiaCarregada = '';
   }
 
   // ---------------------------------------------------------------- modo de edição
@@ -269,7 +309,7 @@ export class NovaProposicaoComponent extends LitElement {
     this.verificacaoMpv = this.plv ? verificada : verificacaoVazia();
     const colegiado = iniciais.colegiadoApreciador;
     this.tipoColegiado = colegiado?.tipoColegiado === 'Comissão' ? 'Comissão' : 'Plenário';
-    this.siglaComissao = this.tipoColegiado === 'Comissão' ? colegiado?.siglaComissao ?? '' : '';
+    this.siglaComissao = this.comissaoVisivel ? colegiado?.siglaComissao ?? '' : '';
     this.anexoParecer = !!iniciais.anexoParecer;
 
     // Comissão fora da lista (ou lista indisponível): o destino fica inválido até o usuário escolher outro.
@@ -359,6 +399,11 @@ export class NovaProposicaoComponent extends LitElement {
     return this.casa === 'CD' && this.especie !== 'proposicao';
   }
 
+  // Na CD, o texto de outra proposição de um substitutivo/subemenda sai de uma lista (Tela 2b), não de sigla/número/ano.
+  private get outraPorLista(): boolean {
+    return this.documentoProprioCd;
+  }
+
   // Na referenciada, a sigla não distingue lei ordinária de complementar: quem decide é a verificação.
   private get tipoProposicaoResolvido(): TipoDocumento | undefined {
     const tipo = this.tipoProposicao;
@@ -401,7 +446,28 @@ export class NovaProposicaoComponent extends LitElement {
   }
 
   private get destinoValido(): boolean {
-    return this.tipoColegiado === 'Plenário' || (!!this.siglaComissao && this.comissoesDisponiveis.some(c => c.sigla === this.siglaComissao));
+    const comissaoValida = !!this.siglaComissao && this.comissoesDisponiveis.some(c => c.sigla === this.siglaComissao);
+    return (this.tipoColegiado === 'Plenário' && !this.comissaoObrigatoria) || comissaoValida;
+  }
+
+  // Na CD, substitutivo e subemenda substitutiva sempre pertencem a uma comissão, mesmo com destino Plenário.
+  private get comissaoObrigatoria(): boolean {
+    return this.documentoProprioCd;
+  }
+
+  private get comissaoVisivel(): boolean {
+    return this.tipoColegiado === 'Comissão' || this.comissaoObrigatoria;
+  }
+
+  private get colegiadoDestino(): ColegiadoDestino {
+    return this.comissaoVisivel ? { tipoColegiado: this.tipoColegiado, siglaComissao: this.siglaComissao } : { tipoColegiado: 'Plenário' };
+  }
+
+  private get contextoDocumento(): ContextoDocumento {
+    return montaContextoDocumento(this.dados, montaUrnNovaProposicao(this.dados, this.numeroOriginal), {
+      colegiadoDestino: this.colegiadoDestino,
+      anexoParecer: this.anexoParecer,
+    });
   }
 
   private numeroPreenchido = (valor: string): boolean => /^\d+$/.test(valor.trim());
@@ -450,7 +516,7 @@ export class NovaProposicaoComponent extends LitElement {
   private onTipoColegiado(tipo: TipoColegiadoDestino): void {
     if (tipo === this.tipoColegiado) return;
     this.tipoColegiado = tipo;
-    if (tipo === 'Plenário') this.limparComissao();
+    if (tipo === 'Plenário' && !this.comissaoObrigatoria) this.limparComissao();
     else this.carregarComissoes();
   }
 
@@ -559,6 +625,142 @@ export class NovaProposicaoComponent extends LitElement {
     this.verificacaoOutra = await this.consultar(this.siglaOutra, this.numeroOutra, this.anoOutra);
   }
 
+  // ---------------------------------------------------------------- Tela 2b: documento de origem na CD
+
+  private get tipoMateria(): TipoDocumento | undefined {
+    return getSiglasProposicaoReferenciada().find(t => chaveTipo(t) === this.chaveMateria);
+  }
+
+  // Matéria cujos documentos são listados: a referenciada na Tela 1 ou outra, já verificada.
+  private get consultaMateria(): { sigla: string; numero: string; ano: string } | undefined {
+    if (this.materiaDoDocumento === 'mesma') {
+      const sigla = this.tipoProposicao?.sigla;
+      return sigla ? { sigla, numero: this.numeroProposicao, ano: this.anoProposicao } : undefined;
+    }
+    const sigla = this.tipoMateria?.sigla;
+    return sigla && this.verificacaoMateria.estado === 'ok' ? { sigla, numero: this.numeroMateria, ano: this.anoMateria } : undefined;
+  }
+
+  private entrarTela2b(): void {
+    this.erroComunicacao = '';
+    this.textoIndisponivel = false;
+    this.tela = '2b';
+    void this.carregarDocumentos();
+  }
+
+  private limparDocumentos(): void {
+    this.cargaDocumentos++;
+    this.documentosMateria = semDocumentos();
+    this.documentoSelecionado = undefined;
+    this.materiaCarregada = '';
+    this.rotuloMateria = '';
+    this.textoIndisponivel = false;
+    this.erroComunicacao = '';
+  }
+
+  private onMateriaDoDocumento(valor: 'mesma' | 'outra'): void {
+    if (valor === this.materiaDoDocumento) return;
+    this.materiaDoDocumento = valor;
+    this.limparDocumentos();
+    if (valor === 'mesma') void this.carregarDocumentos();
+    else if (this.verificacaoMateria.estado === 'ok') void this.carregarDocumentos();
+  }
+
+  private onIdentificacaoMateria(): void {
+    this.verificacaoMateria = verificacaoVazia();
+    this.limparDocumentos();
+  }
+
+  private async verificarMateria(): Promise<void> {
+    const sigla = this.tipoMateria?.sigla ?? '';
+    this.limparDocumentos();
+    this.verificacaoMateria = { ...verificacaoVazia(), estado: 'verificando' };
+    const resultado = await this.consultar(sigla, this.numeroMateria, this.anoMateria);
+    this.verificacaoMateria = resultado;
+    if (resultado.estado === 'ok') await this.carregarDocumentos();
+  }
+
+  private async carregarDocumentos(): Promise<void> {
+    const consulta = this.consultaMateria;
+    if (!consulta) return;
+    const normalizada = normalizaConsultaProposicao(consulta.sigla, consulta.numero, consulta.ano);
+    const contexto = this.contextoDocumento;
+    // O contexto entra na chave: trocar a espécie, o referenciado, o destino ou a forma de apresentação na Tela 1 invalida a lista.
+    const chave = `${normalizada.sigla}|${normalizada.numero}|${normalizada.ano}|${JSON.stringify(contexto)}`;
+    if (chave === this.materiaCarregada && this.documentosMateria.estado !== 'erro') return;
+
+    const carga = ++this.cargaDocumentos;
+    this.materiaCarregada = chave;
+    this.rotuloMateria = `${normalizada.sigla} ${normalizada.numero}/${normalizada.ano}`;
+    this.documentoSelecionado = undefined;
+    this.documentosMateria = { estado: 'carregando', lista: [] };
+    const resultado = await this.listarDocumentos(normalizada, contexto);
+    if (carga !== this.cargaDocumentos) return;
+    this.documentosMateria = resultado;
+  }
+
+  private async listarDocumentos(consulta: { sigla: string; numero: string; ano: string }, contexto: ContextoDocumento): Promise<DocumentosCarregados> {
+    const erro: DocumentosCarregados = { estado: 'erro', lista: [] };
+    try {
+      let lista: unknown;
+      if (this._config!.onListarDocumentos) {
+        lista = await this._config!.onListarDocumentos(consulta, contexto);
+      } else {
+        const url = montaUrlContexto(montaUrlProposicao(this._config!.urlDocumentosMateria!, consulta.sigla, consulta.numero, consulta.ano), contexto);
+        const resposta = await fetch(url);
+        if (resposta.status === 404) return { estado: 'inexistente', lista: [] };
+        if (resposta.status !== 200) return erro;
+        lista = await resposta.json();
+      }
+      if (lista === undefined || lista === null) return { estado: 'inexistente', lista: [] };
+      return Array.isArray(lista) ? { estado: 'ok', lista: lista as DocumentoMateria[] } : erro;
+    } catch {
+      return erro;
+    }
+  }
+
+  private async buscarTextoDocumento(id: string): Promise<unknown | 'indisponivel' | 'erro'> {
+    try {
+      if (this._config!.onObterTextoDocumento) {
+        const texto = await this._config!.onObterTextoDocumento({ id });
+        return texto === undefined || texto === null ? 'indisponivel' : texto;
+      }
+      const resposta = await fetch(montaUrlTextoDocumento(this._config!.urlTextoDocumento!, id));
+      if (resposta.status === 404) return 'indisponivel';
+      if (resposta.status !== 200) return 'erro';
+      return await resposta.json();
+    } catch {
+      return 'erro';
+    }
+  }
+
+  private get tela2bValida(): boolean {
+    return !this.processando && !!this.documentoSelecionado && textoEstruturadoDisponivel(this.documentoSelecionado);
+  }
+
+  private selecionarDocumento(doc: DocumentoMateria): void {
+    if (!textoEstruturadoDisponivel(doc)) return;
+    this.documentoSelecionado = doc;
+    this.textoIndisponivel = false;
+    this.erroComunicacao = '';
+  }
+
+  private async continuarTela2b(): Promise<void> {
+    if (!this.tela2bValida) return;
+    this.erroComunicacao = '';
+    this.textoIndisponivel = false;
+    this.processando = true;
+    const texto = await this.buscarTextoDocumento(this.documentoSelecionado!.id);
+    this.processando = false;
+    if (texto === 'indisponivel') {
+      this.textoIndisponivel = true;
+    } else if (texto === 'erro') {
+      this.erroComunicacao = 'Não foi possível obter o texto do documento. Tente novamente.';
+    } else {
+      this.concluir({ texto });
+    }
+  }
+
   // ---------------------------------------------------------------- navegação e conclusão
 
   private cancelar(): void {
@@ -580,14 +782,17 @@ export class NovaProposicaoComponent extends LitElement {
 
   private get textoIndisponivelNaOpcao(): boolean {
     if (this.opcaoTexto === 'referenciado') return this.textoIndisponivel || !this.verificacaoReferenciada.textoEstruturadoDisponivel;
-    if (this.opcaoTexto === 'outra') return this.textoIndisponivel || (this.verificacaoOutra.estado === 'ok' && !this.verificacaoOutra.textoEstruturadoDisponivel);
+    if (this.opcaoTexto === 'outra') {
+      if (this.outraPorLista) return false;
+      return this.textoIndisponivel || (this.verificacaoOutra.estado === 'ok' && !this.verificacaoOutra.textoEstruturadoDisponivel);
+    }
     return false;
   }
 
   private get tela2Valida(): boolean {
     if (this.processando) return false;
     if (this.opcaoTexto === 'importar') return !!this.arquivo && !this.erroArquivo;
-    if (this.opcaoTexto === 'outra') return this.verificacaoOutra.estado === 'ok' && !this.textoIndisponivelNaOpcao;
+    if (this.opcaoTexto === 'outra') return this.outraPorLista || (this.verificacaoOutra.estado === 'ok' && !this.textoIndisponivelNaOpcao);
     if (this.opcaoTexto === 'referenciado') return !this.textoIndisponivelNaOpcao;
     return true;
   }
@@ -616,14 +821,15 @@ export class NovaProposicaoComponent extends LitElement {
         return { aviso: { linhas: [MENSAGEM_JSON_INVALIDO] } };
       }
     }
-    if (this._config!.onImportarArquivo) return this.importarPeloCallback(arquivo);
-    return this.importarPelaUrl(arquivo, CONTENT_TYPE_IMPORTACAO[extensao]);
+    const contexto = this.contextoDocumento;
+    if (this._config!.onImportarArquivo) return this.importarPeloCallback(arquivo, contexto);
+    return this.importarPelaUrl(arquivo, CONTENT_TYPE_IMPORTACAO[extensao], contexto);
   }
 
-  private async importarPeloCallback(arquivo: File): Promise<DesfechoImportacao> {
+  private async importarPeloCallback(arquivo: File, contexto: ContextoDocumento): Promise<DesfechoImportacao> {
     let resultado;
     try {
-      resultado = await this._config!.onImportarArquivo!(arquivo);
+      resultado = await this._config!.onImportarArquivo!(arquivo, contexto);
     } catch {
       return 'falha';
     }
@@ -634,10 +840,10 @@ export class NovaProposicaoComponent extends LitElement {
   }
 
   // O corpo do 400 é mensagem para o usuário; o das demais falhas pode ser técnico e não é exibido.
-  private async importarPelaUrl(arquivo: File, contentType: string): Promise<DesfechoImportacao> {
+  private async importarPelaUrl(arquivo: File, contentType: string, contexto: ContextoDocumento): Promise<DesfechoImportacao> {
     let resposta: Response;
     try {
-      resposta = await fetch(this._config!.urlImportacaoArquivo!, { method: 'POST', body: arquivo, headers: { 'Content-Type': contentType } });
+      resposta = await fetch(montaUrlContexto(this._config!.urlImportacaoArquivo!, contexto), { method: 'POST', body: arquivo, headers: { 'Content-Type': contentType } });
     } catch {
       return 'falha';
     }
@@ -675,6 +881,7 @@ export class NovaProposicaoComponent extends LitElement {
 
     if (this.opcaoTexto === 'vazio') return this.concluir();
 
+    if (this.opcaoTexto === 'outra' && this.outraPorLista) return this.entrarTela2b();
     if (this.opcaoTexto === 'importar') {
       this.processando = true;
       const desfecho = await this.importarArquivo(this.arquivo!);
@@ -718,7 +925,7 @@ export class NovaProposicaoComponent extends LitElement {
 
   private montarResultado({ texto, documentoImportado }: ConteudoInicial = {}): ResultadoNovaProposicao {
     const { urn, urnDocumentoReferenciado } = montaUrnNovaProposicao(this.dados, this.numeroOriginal);
-    const colegiadoDestino: ColegiadoDestino = this.tipoColegiado === 'Comissão' ? { tipoColegiado: 'Comissão', siglaComissao: this.siglaComissao } : { tipoColegiado: 'Plenário' };
+    const colegiadoDestino = this.colegiadoDestino;
     const detail: ResultadoNovaProposicao = {
       urn,
       ...(urnDocumentoReferenciado && { urnDocumentoReferenciado }),
@@ -909,8 +1116,16 @@ export class NovaProposicaoComponent extends LitElement {
           ${this.radio('destino', 'Plenário', 'Plenário', this.tipoColegiado === 'Plenário', () => this.onTipoColegiado('Plenário'))}
           ${this.radio('destino', 'Comissão', 'Comissão', this.tipoColegiado === 'Comissão', () => this.onTipoColegiado('Comissão'), this.comissaoIndisponivel)}
         </sl-radio-group>
-        ${this.comissaoIndisponivel ? this.aviso('np-erro-comissoes', 'danger', 'Não foi possível obter a lista de comissões. Só o Plenário está disponível.') : nothing}
-        ${this.tipoColegiado === 'Comissão' ? this.renderComissao() : nothing}
+        ${this.comissaoIndisponivel
+          ? this.aviso(
+              'np-erro-comissoes',
+              'danger',
+              this.comissaoObrigatoria
+                ? 'Não foi possível obter a lista de comissões. Ela é necessária para concluir.'
+                : 'Não foi possível obter a lista de comissões. Só o Plenário está disponível.'
+            )
+          : nothing}
+        ${this.comissaoVisivel ? this.renderComissao() : nothing}
       </fieldset>
 
       <fieldset id="np-g6">
@@ -965,7 +1180,7 @@ export class NovaProposicaoComponent extends LitElement {
           : nothing}
         ${this.referenciaExigida ? this.opcao('referenciado', `Texto do(a) ${this.descricaoReferenciada}`) : nothing} ${this.opcao('outra', 'Texto de outra proposição')}
       </sl-radio-group>
-      ${this.opcaoTexto === 'outra'
+      ${this.opcaoTexto === 'outra' && !this.outraPorLista
         ? html`<div class="np-subopcao">
             ${this.linhaIdentificacao(
               this.selectSiglas('np-sigla-outra', getSiglasOutraProposicao(), this.chaveOutra, chave => {
@@ -995,12 +1210,13 @@ export class NovaProposicaoComponent extends LitElement {
         <sl-button id="np-continuar" variant="primary" ?disabled=${!this.tela2Valida} @click=${(): void => void this.continuarTela2()}>Continuar</sl-button>
         <sl-button
           id="np-voltar"
+          ?disabled=${this.processando}
           @click=${(): void => {
             this.tela = 1;
           }}
           >Voltar</sl-button
         >
-        <sl-button id="np-cancelar" @click=${(): void => this.cancelar()}>Cancelar</sl-button>
+        <sl-button id="np-cancelar" ?disabled=${this.processando} @click=${(): void => this.cancelar()}>Cancelar</sl-button>
       </div>
     `;
   }
@@ -1008,6 +1224,146 @@ export class NovaProposicaoComponent extends LitElement {
   private get descricaoReferenciada(): string {
     if (this.plv) return `Medida Provisória nº ${this.numeroMpv.trim()} de ${this.anoMpv.trim()}`;
     return `${this.tipoProposicao?.descricao ?? ''} nº ${this.numeroProposicao.trim()} de ${this.anoProposicao.trim()}`;
+  }
+
+  private renderTela2b(): TemplateResult {
+    const rotuloMesma = `${this.tipoProposicao?.sigla ?? ''} ${this.numeroProposicao.trim()}/${this.anoProposicao.trim()}`;
+    return html`
+      ${this.cabecalho}
+      <p id="np-tela-2b">Texto de outra proposição: escolha o documento que será o ponto de partida. O ícone ao lado de cada documento o abre em outra aba.</p>
+
+      <fieldset id="np-g-materia">
+        <legend>Em qual matéria está o documento?</legend>
+        <sl-radio-group>
+          ${this.radio('materia', 'mesma', `Nesta mesma matéria (${rotuloMesma})`, this.materiaDoDocumento === 'mesma', () => this.onMateriaDoDocumento('mesma'))}
+          ${this.radio('materia', 'outra', 'Em outra matéria', this.materiaDoDocumento === 'outra', () => this.onMateriaDoDocumento('outra'))}
+        </sl-radio-group>
+        ${this.materiaDoDocumento === 'outra'
+          ? html`<div class="np-subopcao">
+              ${this.linhaIdentificacao(
+                this.selectSiglas('np-sigla-materia', getSiglasProposicaoReferenciada(), this.chaveMateria, chave => {
+                  if (chave === this.chaveMateria) return;
+                  this.chaveMateria = chave;
+                  this.onIdentificacaoMateria();
+                }),
+                this.campoNumero('np-numero-materia', this.numeroMateria, v => {
+                  this.numeroMateria = v;
+                  this.onIdentificacaoMateria();
+                }),
+                this.campoAno('np-ano-materia', this.anoMateria, v => {
+                  this.anoMateria = v;
+                  this.onIdentificacaoMateria();
+                })
+              )}
+              <sl-button
+                id="np-materia-verificar"
+                ?disabled=${!this.tipoMateria || !this.podeVerificar(this.numeroMateria, this.anoMateria) || this.verificacaoMateria.estado === 'verificando'}
+                @click=${(): void => void this.verificarMateria()}
+                >Verificar</sl-button
+              >
+              ${this.rotuloVerificacao(this.verificacaoMateria)}
+            </div>`
+          : nothing}
+      </fieldset>
+
+      <fieldset id="np-g-documentos">
+        <legend>Documento de origem</legend>
+        ${this.renderDocumentos()}
+      </fieldset>
+
+      ${this.textoIndisponivel ? this.aviso('np-texto-indisponivel', 'warning', 'Texto estruturado não disponível para edição') : nothing}
+      ${this.erroComunicacao ? this.aviso('np-erro-texto', 'danger', this.erroComunicacao) : nothing}
+
+      <div class="np-botoes">
+        <sl-button id="np-continuar" variant="primary" ?disabled=${!this.tela2bValida} @click=${(): void => void this.continuarTela2b()}>Continuar</sl-button>
+        <sl-button
+          id="np-voltar"
+          ?disabled=${this.processando}
+          @click=${(): void => {
+            this.tela = 2;
+          }}
+          >Voltar</sl-button
+        >
+        <sl-button id="np-cancelar" ?disabled=${this.processando} @click=${(): void => this.cancelar()}>Cancelar</sl-button>
+      </div>
+    `;
+  }
+
+  private renderDocumentos(): TemplateResult | typeof nothing {
+    const { estado, lista } = this.documentosMateria;
+    if (estado === 'nenhum') return nothing;
+    if (estado === 'carregando') return this.aviso('np-docs-carregando', 'neutral', 'Carregando documentos…');
+    if (estado === 'inexistente') return this.aviso('np-materia-nao-encontrada', 'danger', 'Matéria não encontrada.');
+    if (estado === 'erro') {
+      return html`${this.aviso('np-docs-erro', 'danger', 'Não foi possível obter os documentos da matéria.')}
+        <sl-button id="np-docs-tentar-novamente" @click=${(): void => void this.carregarDocumentos()}>Tentar novamente</sl-button>`;
+    }
+    if (!lista.length) return this.aviso('np-docs-vazia', 'neutral', 'Não há documentos para esta matéria.');
+
+    const visiveis = filtrarDocumentos(lista, this.filtroDocumentos);
+    const sel = this.documentoSelecionado;
+    return html`
+      <sl-input
+        id="np-docs-filtro"
+        placeholder="Filtrar por título, órgão, relator, data…"
+        .value=${this.filtroDocumentos}
+        @sl-input=${(e: Event): void => {
+          this.filtroDocumentos = this.valorDe(e);
+        }}
+      ></sl-input>
+      <div id="np-docs-lista" class="np-docs" role="listbox">
+        ${visiveis.length
+          ? visiveis.map(doc => this.renderDocumento(doc, sel === doc))
+          : html`<div id="np-docs-sem-resultado" class="np-docs-vazio">Nenhum documento corresponde ao filtro.</div>`}
+      </div>
+      ${sel
+        ? html`<div id="np-fonte-selecionada" class="np-fonte">
+            <span>Fonte selecionada: <strong>${sel.titulo}</strong> · ${linhaDetalheDocumento(sel)} · matéria ${this.rotuloMateria}</span>
+            <sl-button
+              id="np-trocar"
+              size="small"
+              @click=${(): void => {
+                this.documentoSelecionado = undefined;
+                this.textoIndisponivel = false;
+              }}
+              >Trocar</sl-button
+            >
+          </div>`
+        : nothing}
+    `;
+  }
+
+  private renderDocumento(doc: DocumentoMateria, selecionado: boolean): TemplateResult {
+    const disponivel = textoEstruturadoDisponivel(doc);
+    const urlDocumento = urlDocumentoSegura(doc.urlDocumento);
+    const ementa = (doc.ementa ?? '').trim();
+    return html`<div
+      class="np-doc ${selecionado ? 'np-doc--selecionado' : ''} ${disponivel ? '' : 'np-doc--desabilitado'}"
+      role="option"
+      data-id=${doc.id}
+      aria-selected=${selecionado ? 'true' : 'false'}
+      aria-disabled=${disponivel ? 'false' : 'true'}
+      @click=${(): void => this.selecionarDocumento(doc)}
+    >
+      <div class="np-doc-texto">
+        <div class="np-doc-titulo">${doc.titulo}</div>
+        ${ementa ? html`<div class="np-doc-ementa" title=${ementa}>${ementa}</div>` : nothing}
+        <div class="np-doc-detalhe">${linhaDetalheDocumento(doc)}</div>
+        ${disponivel ? nothing : html`<div class="np-doc-aviso">Texto estruturado não disponível</div>`}
+      </div>
+      ${urlDocumento
+        ? html`<a
+            class="np-doc-link"
+            href=${urlDocumento}
+            target="_blank"
+            rel="noopener noreferrer"
+            title=${tooltipDoDocumento(doc)}
+            aria-label=${tooltipDoDocumento(doc)}
+            @click=${(e: Event): void => e.stopPropagation()}
+            >&#8599;</a
+          >`
+        : nothing}
+    </div>`;
   }
 
   private renderTela3(): TemplateResult {
@@ -1040,6 +1396,25 @@ export class NovaProposicaoComponent extends LitElement {
     if (!this._config) return html``;
     return html`
       <style>
+        /* O componente se desenha no DOM do hospedeiro: fixa espaçamento, fonte, título e rótulos para não depender do CSS global dele. */
+        lexml-nova-proposicao {
+          display: block;
+          padding: var(--sl-spacing-large, 1.25rem);
+          font-family: var(--sl-font-sans, system-ui, sans-serif);
+          font-size: var(--sl-font-size-medium, 1rem);
+          line-height: var(--sl-line-height-normal, 1.5);
+          color: var(--sl-color-neutral-700, #333);
+          --sl-input-label-font-weight: var(--sl-font-weight-semibold, 600);
+          --sl-input-label-color: var(--sl-color-neutral-700, #333);
+        }
+        lexml-nova-proposicao h3 {
+          margin: 0 0 16px;
+          font-family: inherit;
+          font-size: var(--sl-font-size-large, 1.125rem);
+          font-weight: var(--sl-font-weight-semibold, 600);
+          line-height: 1.3;
+          color: var(--sl-color-neutral-900, #111);
+        }
         lexml-nova-proposicao fieldset {
           border: 1px solid var(--sl-color-gray-300, #ccc);
           border-radius: 4px;
@@ -1119,8 +1494,66 @@ export class NovaProposicaoComponent extends LitElement {
           flex-direction: column;
           gap: 4px;
         }
+        lexml-nova-proposicao .np-docs {
+          max-height: 300px;
+          overflow-y: auto;
+          border: 1px solid var(--sl-color-gray-300, #ccc);
+          border-radius: 4px;
+        }
+        lexml-nova-proposicao .np-doc {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 8px 12px;
+          cursor: pointer;
+          border-bottom: 1px solid var(--sl-color-gray-200, #e5e5e5);
+        }
+        lexml-nova-proposicao .np-doc:hover {
+          background: var(--sl-color-gray-100, #f5f5f5);
+        }
+        lexml-nova-proposicao .np-doc--selecionado {
+          background: var(--sl-color-primary-100, #e0f0fb);
+          border-left: 3px solid var(--sl-color-primary-600, #0369a1);
+        }
+        lexml-nova-proposicao .np-doc--desabilitado {
+          cursor: not-allowed;
+          color: var(--sl-color-gray-500, #888);
+        }
+        lexml-nova-proposicao .np-doc-titulo {
+          font-weight: 600;
+        }
+        lexml-nova-proposicao .np-doc-ementa {
+          display: -webkit-box;
+          -webkit-line-clamp: 2;
+          -webkit-box-orient: vertical;
+          overflow: hidden;
+          font-size: 0.9em;
+        }
+        lexml-nova-proposicao .np-doc-detalhe,
+        lexml-nova-proposicao .np-doc-aviso {
+          font-size: 0.85em;
+          color: var(--sl-color-gray-600, #666);
+        }
+        lexml-nova-proposicao .np-doc-link {
+          text-decoration: none;
+          padding: 0 6px;
+        }
+        lexml-nova-proposicao .np-docs-vazio {
+          padding: 12px;
+          color: var(--sl-color-gray-600, #666);
+        }
+        lexml-nova-proposicao .np-fonte {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 8px 12px;
+          background: var(--sl-color-gray-100, #f5f5f5);
+          border-radius: 4px;
+        }
       </style>
-      ${this.tela === 1 ? this.renderTela1() : this.tela === 2 ? this.renderTela2() : this.renderTela3()}
+      ${this.tela === 1 ? this.renderTela1() : this.tela === 2 ? this.renderTela2() : this.tela === '2b' ? this.renderTela2b() : this.renderTela3()}
     `;
   }
 }

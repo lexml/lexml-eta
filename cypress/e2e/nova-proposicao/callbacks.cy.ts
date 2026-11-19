@@ -46,6 +46,24 @@ const irParaTelaDeImportacao = (): void => {
   marcarRadioSl('opcaoTexto', 'importar');
 };
 
+// Substitutivo do SF ao PL 5008/2023, com verificação e comissões por callback, até a opção de importar.
+const irParaImportacaoDeSubstitutivo = (): void => {
+  marcarRadioSl('especie', 'substitutivo');
+  escolherItemLista('#np-sigla-proposicao', 'PL');
+  digitarEmSl('#np-numero-proposicao', '5008');
+  digitarEmSl('#np-ano-proposicao', '2023');
+  cy.get('#np-proposicao-verificar').click();
+  cy.get('#np-proposicao-ementa').should('have.text', EMENTA_CALLBACK);
+  escolherItemLista('#np-comissao', 'CBX');
+  cy.get('#np-continuar').click();
+  marcarRadioSl('opcaoTexto', 'importar');
+};
+
+const CALLBACKS_DE_VERIFICACAO = (): Record<string, unknown> => ({
+  onVerificarProposicao: cy.stub().returns({ ementa: EMENTA_CALLBACK, textoEstruturadoDisponivel: true }),
+  onObterComissoes: cy.stub().returns(COMISSOES_CALLBACK),
+});
+
 describe('Nova proposição — callbacks opcionais na configuração', () => {
   let urlsDaDemoChamadas: string[];
 
@@ -133,6 +151,55 @@ describe('Nova proposição — callbacks opcionais na configuração', () => {
           'consultas de proposição pela URL'
         ).to.deep.equal([])
       );
+    });
+  });
+
+  it('importação: o callback recebe o contexto do substitutivo escolhido na Tela 1', () => {
+    textoDoBackendDaDemo().then(texto => {
+      const onImportarArquivo = cy.stub().as('importar').returns({ texto, erros: [] });
+
+      abrirModal();
+      configurarComCallbacks({ ...CALLBACKS_DE_VERIFICACAO(), onImportarArquivo });
+      irParaImportacaoDeSubstitutivo();
+      cy.get('#np-arquivo').selectFile({ contents: Cypress.Buffer.from('texto'), fileName: 'minuta.docx' }, { force: true });
+      cy.get('#np-continuar').click();
+
+      cy.get(`${MODAL}[open]`).should('not.exist');
+      cy.get('@importar')
+        .should('have.been.calledOnce')
+        .its('firstCall.args.1')
+        .should('deep.equal', {
+          casa: 'SF',
+          especie: 'substitutivo',
+          urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2023;5008@apresentacao.substitutivo',
+          siglaDocumento: 'PL',
+          documentoReferenciado: { urn: 'urn:lex:br:senado.federal:projeto.lei;pl:2023;5008', sigla: 'PL', numero: '5008', ano: '2023' },
+          colegiadoDestino: { tipoColegiado: 'Comissão', siglaComissao: 'CBX' },
+          anexoParecer: true,
+        });
+    });
+  });
+
+  it('importação pela URL: o POST leva o contexto nos placeholders', () => {
+    cy.intercept('POST', '**/demo-api/importacao**').as('importacao');
+
+    abrirModal();
+    configurarComCallbacks({
+      ...CALLBACKS_DE_VERIFICACAO(),
+      urlImportacaoArquivo: '/demo-api/importacao?urn={urn}&especie={especie}&ref={siglaReferenciada}&destino={tipoColegiado}&comissao={siglaComissao}&parecer={anexoParecer}',
+    });
+    irParaImportacaoDeSubstitutivo();
+    cy.get('#np-arquivo').selectFile({ contents: Cypress.Buffer.from('<LexML/>'), fileName: 'minuta.xml' }, { force: true });
+    cy.get('#np-continuar').click();
+
+    cy.wait('@importacao').then(({ request }) => {
+      const query = new URL(request.url).searchParams;
+      expect(query.get('urn')).to.equal('urn:lex:br:senado.federal:projeto.lei;pl:2023;5008@apresentacao.substitutivo');
+      expect(query.get('especie')).to.equal('substitutivo');
+      expect(query.get('ref')).to.equal('PL');
+      expect(query.get('destino')).to.equal('Comissão');
+      expect(query.get('comissao')).to.equal('CBX');
+      expect(query.get('parecer')).to.equal('true');
     });
   });
 
