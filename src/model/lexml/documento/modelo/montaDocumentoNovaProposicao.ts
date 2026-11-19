@@ -13,7 +13,9 @@ export const montaDocumentoNovaProposicao = (urn: string, epigrafe: string, prea
   const documento = JSON.parse(JSON.stringify(modelo ?? DOCUMENTO_PADRAO));
   const valor = documento.value;
   valor.metadado.identificacao.urn = urn;
-  delete valor.metadadoProprietario;
+  // Do modelo nada além da articulação e da ementa: metadados e justificação seriam lidos na carga.
+  delete valor.metadado.metadadoProprietario;
+  delete valor.projetoNorma.justificacao;
 
   const estrutura = valor.projetoNorma.norma ?? valor.projetoNorma.projeto;
   const ementa = estrutura.parteInicial?.ementa;
