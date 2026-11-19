@@ -467,7 +467,13 @@ export class EditorTextoRicoComponent extends connect(rootStore)(LitElement) {
     this.setTitle(toolbarContainer, 'button.ql-redo', 'Refazer (Ctrl+y)');
     this.setTitle(toolbarContainer, 'button.ql-margin-bottom', 'Distância entre parágrafos');
     this.setTitle(toolbarContainer, 'button.ql-text-indent', 'Recuo de parágrafo');
-    this.setTitle(toolbarContainer, 'button.ql-table', 'Tabela');
+    this.setTitle(toolbarContainer, 'button.ql-link', 'Inserir link');
+    // Nos menus, a dica vai no rótulo: no picker, apareceria também sobre os itens abertos.
+    this.setTitle(toolbarContainer, '.ql-estilo .ql-picker-label', 'Estilo do parágrafo');
+    this.setTitle(toolbarContainer, '.ql-align .ql-picker-label', 'Alinhamento');
+    const [inserirTabela, formatarTabela] = Array.from(toolbarContainer.querySelectorAll('.ql-picker.ql-table .ql-picker-label')) as HTMLElement[];
+    inserirTabela?.setAttribute('title', 'Inserir tabela');
+    formatarTabela?.setAttribute('title', 'Formatar tabela');
     this.setTitle(toolbarContainer, 'button.ql-lexml-eta-nota-rodape', 'Nota de rodapé');
   };
 
