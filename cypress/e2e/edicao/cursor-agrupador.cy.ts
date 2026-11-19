@@ -47,21 +47,20 @@ describe('Cursor no nome do agrupador (#1073)', () => {
     });
   });
 
-  it('↑ a partir do nome leva o cursor ao início do nome, e o texto digitado entra no nome', () => {
+  // Desde a #1072, o ↑ na primeira linha visual vai direto ao dispositivo anterior.
+  it('↑ a partir do nome sai do agrupador, e o texto digitado não fica ao lado do rótulo', () => {
     cy.then(() => teclaNativa(TECLA_SETA_ACIMA));
     cy.wait(300);
     cy.window().then(win => {
-      const quill = getQuill(win);
-      expect(quill.linhaAtual === capitulo, 'cursor continua no capítulo').to.be.true;
-      expect(quill.getSelection(), 'cursor no início do nome').to.deep.equal({ index: inicio, length: 0 });
+      expect(getQuill(win).linhaAtual === capitulo, 'cursor saiu do capítulo').to.be.false;
     });
     cy.then(() => teclaNativa(TECLA_X));
     cy.wait(300);
     cy.window().then(win => {
-      const quill = getQuill(win);
-      expect(capitulo.domNode.querySelector('label.texto__rotulo').textContent, 'rótulo inalterado').to.equal(rotulo);
-      expect(quill.getText(inicio, capitulo.blotConteudo.tamanho), 'texto entrou no nome').to.equal('x' + nome);
-      expect(capitulo.blotConteudo.prev.domNode.textContent, 'quebra de linha sem texto').to.equal('');
+      const linha = getQuill(win).getLinha(capitulo.uuid);
+      expect(linha.domNode.querySelector('label.texto__rotulo').textContent, 'rótulo inalterado').to.equal(rotulo);
+      expect(linha.blotConteudo.domNode.textContent, 'nome inalterado').to.equal(nome);
+      expect(linha.blotConteudo.prev.domNode.textContent, 'quebra de linha sem texto').to.equal('');
     });
   });
 
