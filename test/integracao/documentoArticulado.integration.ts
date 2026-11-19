@@ -15,6 +15,8 @@ import { MPV_885_2019 } from '../assets/mpv_885_2019';
 import { lerJustificacao } from '../../src/model/lexml/documento/conversor/justificacao';
 import { Artigo } from '../../src/model/dispositivo/dispositivo';
 import { encodeHtml } from '../../src/util/string-util';
+import { SequenciaComentario } from '../../src/model/comentario/comentario';
+import { Usuario } from '../../src/model/revisao/usuario';
 import { Autoria, ColegiadoApreciador, MimeType } from '../../src/model/proposicao/proposicao';
 import { MPV_905_2019 } from '../doc/mpv_905_2019';
 import { MPV_1234_2024 } from '../doc/mpv_1234_2024';
@@ -31,6 +33,7 @@ import { buildJsonixArticulacaoFromProjetoNorma } from '../../src/model/lexml/do
 import { montaRevisoesArticulacao } from '../../src/model/lexml/documento/conversor/revisaoArticulacao';
 import { reconstroiRevisoes } from '../../src/model/lexml/documento/conversor/reconstroiRevisoes';
 import { aplicarRevisoesAction } from '../../src/model/lexml/acao/aplicarRevisoes';
+import { resolverUuid2DoRefComentario } from '../../src/model/comentario/dispositivoComentado';
 import { ABRIR_ARTICULACAO } from '../../src/model/lexml/acao/openArticulacaoAction';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../src/model/lexml/acao/ativarDesativarRevisaoAction';
 import { ATUALIZAR_USUARIO } from '../../src/model/lexml/acao/atualizarUsuarioAction';
@@ -288,6 +291,96 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, { justificacao: lida })).to.deep.equal(salvo);
   });
 
+  it('Comentarios e span _tc montados à mão (com ins dentro e dois fragmentos) vão e voltam pelo CLI e validam no XSD', async () => {
+    const NS = 'http://www.lexml.gov.br/1.0';
+    const el = (localPart: string, value: any): any => ({ name: { namespaceURI: NS, localPart, prefix: '', key: `{${NS}}${localPart}`, string: `{${NS}}${localPart}` }, value });
+    const inline = (value: object, content: any[]): any => ({ TYPE_NAME: 'br_gov_lexml__1.GenInline', ...value, content });
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const salvo: any = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, { justificacao: '<p>x</p>', pendencias: ['Remover comentários.'] });
+    const blocos = salvo.value.projetoNorma.justificacao[0].partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento;
+    blocos.length = 0;
+    blocos.push(
+      el('p', inline({}, ['Antes ', el('span', inline({ id: '_tcabc_1' }, ['trecho ', el('ins', inline({ id: '_rtr1_1' }, ['inserido']))]))])),
+      el('p', inline({}, [el('span', inline({ id: '_tcabc_2' }, ['continua'])), ' fim.']))
+    );
+    const lexedit = salvo.value.metadado.metadadoProprietario[0].any[0].value;
+    const p = (texto: string): any => inline({}, [texto]);
+    lexedit.comentarios = {
+      TYPE_NAME: 'br_gov_lexml_lexedit__1.Comentarios',
+      sequenciaComentario: [
+        {
+          TYPE_NAME: 'br_gov_lexml_lexedit__1.SequenciaComentario',
+          refIdElementoComentado: '_tcabc_1',
+          comentario: [
+            { TYPE_NAME: 'br_gov_lexml_lexedit__1.Comentario', refIdUsuario: 'sf:fulano', data: '2026-05-11T15:51:00-03:00', p: [p('Linha 1'), p('Linha 2')] },
+            { TYPE_NAME: 'br_gov_lexml_lexedit__1.Comentario', refIdUsuario: 'sf:ciclano', data: '2026-05-12T16:10:00-03:00', p: [p('Resposta'), p('Outra')] },
+          ],
+        },
+      ],
+    };
+    lexedit.usuarios = {
+      TYPE_NAME: 'br_gov_lexml_lexedit__1.Usuarios',
+      usuario: [
+        { TYPE_NAME: 'br_gov_lexml_lexedit__1.Usuario', idUsuario: 'sf:fulano', nome: 'Fulano' },
+        { TYPE_NAME: 'br_gov_lexml_lexedit__1.Usuario', idUsuario: 'sf:ciclano', nome: 'Ciclano' },
+      ],
+    };
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(retorno.jsonix.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
+  });
+
+  it('os comentários da justificação (dois fragmentos, revisão dentro, resposta, autor também de revisão) vão e voltam pelo CLI e validam no XSD', async () => {
+    const ID = 'a1b2c3d4000040008000000000000001';
+    const FULANO = new Usuario('Fulano de Tal', 'sf:fulano', 'FT');
+    const CICLANO = new Usuario('Ciclano', 'sf:ciclano');
+    const sequencias: SequenciaComentario[] = [
+      {
+        id: ID,
+        comentarios: [
+          { usuario: FULANO, data: '2026-05-11T15:51:00-03:00', texto: 'Confirmar a fonte.\nVer o anexo.' },
+          { usuario: CICLANO, data: '2026-05-12T16:10:00-03:00', texto: 'Confirmado & ok <sim>.' },
+        ],
+      },
+    ];
+    const ins = `<ins usuario="Fulano de Tal" date="2026-05-11 15:51:00 " id-revisao="r1" id-usuario="sf:fulano" sigla-usuario="FT">incluído</ins>`;
+    const com = (conteudo: string): string => `<comentario id-sequencia-comentario="${ID}">${conteudo}</comentario>`;
+    const justificacao = `<p>Texto ${com(`comentado ${ins}`)}</p><p>${com('segundo parágrafo')} fim.</p>`;
+    const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
+    const dados = { justificacao, comentarios: sequencias };
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, dados);
+
+    const retorno = await executeServerCommand<{ valido: boolean; xml: string; jsonix: any; erro?: string }, unknown>('validar-documento-lexml', salvo);
+
+    // A validação com lexedit.xsd confere também a unicidade dos `id` de span, ins e del.
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    expect(retorno.xml).to.include(`<span id="_tc${ID}_1">comentado <ins id="_rtr1_1">incluído</ins></span>`);
+    expect(retorno.xml).to.include(`<span id="_tc${ID}_2">segundo parágrafo</span>`);
+    expect(retorno.xml).to.include(`<lexedit:SequenciaComentario refIdElementoComentado="_tc${ID}_1">`);
+    expect(retorno.xml).to.match(
+      /<lexedit:Comentario refIdUsuario="sf:fulano" data="2026-05-11T15:51:00-03:00"><p>Confirmar a fonte.<\/p><p>Ver o anexo.<\/p><\/lexedit:Comentario>/
+    );
+    // O serializador do CLI escapa `&` e `<`, mas não `>`.
+    expect(retorno.xml).to.include('<p>Confirmado &amp; ok &lt;sim>.</p>');
+    expect(retorno.xml).to.include(
+      '<lexedit:Pendencias><lexedit:Pendencia>Remover comentários.</lexedit:Pendencia><lexedit:Pendencia>Resolver marcas de revisão de texto.</lexedit:Pendencia></lexedit:Pendencias>'
+    );
+    expect(retorno.xml.match(/<lexedit:Usuario idUsuario="sf:fulano"/g)).to.have.length(1);
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+    expect(retorno.jsonix.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
+
+    const lidos = lerMetadadoLexEdit(retorno.jsonix);
+    expect(Object.values(lidos.comentariosLidos!)).to.deep.equal(sequencias);
+    const lida = lerJustificacao(retorno.jsonix, lidos.revisoesTextuais, lidos.comentariosLidos);
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, { justificacao: lida, comentarios: Object.values(lidos.comentariosLidos!) })).to.deep.equal(
+      salvo
+    );
+  });
+
   it('o XSD rejeita ids repetidos em ins/del da justificação', async () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const marca = (tag: string): string => `<${tag} usuario="Fulano" date="2026-05-11 15:51:00 " id-revisao="r1">x</${tag}>`;
@@ -523,6 +616,56 @@ describe('Documento articulado — revisões da hierarquia pelo CLI real e XSD',
 
     expect(retorno.valido).to.equal(false);
     expect(retorno.erro).to.include('revisao');
+  });
+
+  it('os comentários da articulação (vivo, artigo, ementa e excluído em revisão) vão e voltam pelo CLI, validam no XSD e voltam ligados aos dispositivos', async () => {
+    const FULANO = new Usuario('Fulano de Tal', 'sf:fulano', 'FT');
+    let sessao = elementoReducer(undefined, {
+      type: ABRIR_ARTICULACAO,
+      articulacao: buildProjetoNormaFromJsonix(MPV_905_2019).articulacao!,
+      classificacao: ClassificacaoDocumento.PROJETO,
+    });
+    sessao = elementoReducer(sessao, { type: ATUALIZAR_USUARIO, usuario: FULANO });
+    const uuid2 = (id: string): string => buscaDispositivoById(sessao.articulacao!, id)!.uuid2!;
+    const comentario = (id: string, u2: string, texto: string): SequenciaComentario => ({
+      id,
+      uuid2Dispositivo: u2,
+      comentarios: [{ usuario: FULANO, data: '2026-11-16T10:00:00-03:00', texto }],
+    });
+    const sequencias = [
+      comentario('s-ementa', sessao.articulacao!.projetoNorma!.ementa!.uuid2!, 'Na ementa'),
+      comentario('s-art1', uuid2('art1'), 'No artigo'),
+      comentario('s-inc', uuid2('art6_cpt_inc1'), 'No inciso'),
+      comentario('s-excluido', uuid2('art2'), 'No artigo excluído'),
+    ];
+    sessao = elementoReducer(sessao, { type: ATIVAR_DESATIVAR_REVISAO });
+    sessao = elementoReducer(sessao, { type: REMOVER_ELEMENTO, atual: elemento(sessao, 'art2') });
+    const revisoes = montaRevisoesArticulacao(sessao)!;
+    const salvo = criarDocumentoArticulado(sessao.articulacao!.projetoNorma!, URN, {}, {}, { revisoes, comentarios: sequencias });
+
+    const retorno = await executeServerCommand<Resultado, unknown>('validar-documento-lexml', salvo);
+
+    expect(retorno.valido, retorno.erro).to.equal(true);
+    // Excluir o art. 2º em revisão o tira da articulação: o art. 6º passa a ser o art. 5º, e o ref acompanha o id atual.
+    ['ementa', 'art1_cpt', 'art5_cpt_inc1', '_art2-exc1_cpt'].forEach(ref => expect(retorno.xml).to.include(`<lexedit:SequenciaComentario refIdElementoComentado="${ref}">`));
+    expect(retorno.xml).to.include('<lexedit:Pendencia>Remover comentários.</lexedit:Pendencia>');
+    expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
+
+    // Reaberto do retorno do CLI: revisões reconstruídas e cada sequência ligada a um dispositivo.
+    const aberto = abreArticulacao(lerDocumentoArticulado(retorno.jsonix));
+    const lidos = lerMetadadoLexEdit(retorno.jsonix);
+    const mapa = new Map<string, string>();
+    const reaberto = elementoReducer(aberto, aplicarRevisoesAction.execute(reconstroiRevisoes(aberto.articulacao!, lidos.revisoesLidas!, undefined, mapa)));
+    const ligados = lidos.comentariosArticulacaoLidos!.map(l => resolverUuid2DoRefComentario(reaberto.articulacao!, reaberto.revisoes, l.refId, mapa));
+
+    expect(lidos.comentariosArticulacaoLidos!.map(l => l.sequencia.comentarios[0].texto)).to.deep.equal(['Na ementa', 'No artigo', 'No inciso', 'No artigo excluído']);
+    expect(ligados.slice(0, 3)).to.deep.equal([
+      reaberto.articulacao!.projetoNorma!.ementa!.uuid2,
+      buscaDispositivoById(reaberto.articulacao!, 'art1')!.uuid2,
+      buscaDispositivoById(reaberto.articulacao!, 'art5_cpt_inc1')!.uuid2,
+    ]);
+    const excluido = principais(reaberto).find(r => r.stateType === 'ElementoRemovido')!;
+    expect(ligados[3]).to.equal(excluido.elementoAntesRevisao!.uuid2);
   });
 
   describe('alteracaoRotulo (MPV 1234/2024)', () => {

@@ -167,6 +167,7 @@ interface RevisaoDeExclusaoMontada {
   chave: [number, number, number];
   revisao: RevisaoArticulacaoLexEdit;
   situacao: SituacaoNaNormaVigente;
+  idsGravados: Record<string, string>;
 }
 
 // Mesma regra da articulação viva, com o id já reescrito para o gravado na revisão.
@@ -178,6 +179,15 @@ const coletaSituacaoDoExcluido = (subarvore: SubarvoreSolta, idNovo: string): Si
   });
   return situacao;
 };
+
+// No mesmo laço que reescreve os ids: o ref de um comentário no excluído não pode divergir do id gravado.
+const coletaIdsGravados = (subarvore: SubarvoreSolta, idNovo: string): Record<string, string> =>
+  Object.fromEntries(
+    subarvore.dispositivos
+      .filter(d => d.uuid2)
+      // No artigo, o ref é o id do caput, como no artigo vivo.
+      .map(d => [d.uuid2!, idNovo + buildId(isArtigo(d) ? (d as Artigo).caput! : d).substring(subarvore.idTemporario.length)])
+  );
 
 const montaRevisoesDeExclusao = (state: State, exclusoes: Exclusao[]): RevisaoDeExclusaoMontada[] => {
   const lista = getDispositivoAndFilhosAsLista(state.articulacao!);
@@ -202,7 +212,12 @@ const montaRevisoesDeExclusao = (state: State, exclusoes: Exclusao[]): RevisaoDe
       reescreveIds(no.value, exclusao.subarvore.idTemporario, idNovo);
       const revisao = montaRevisaoBase(exclusao.revisao, getOperacoesDaRevisao(state, exclusao.revisao));
       revisao[lowerFirst(no.name.localPart)] = no.value;
-      resultado.push({ chave: [lista.indexOf(exclusao.pai), exclusao.posicao, i], revisao, situacao: coletaSituacaoDoExcluido(exclusao.subarvore, idNovo) });
+      resultado.push({
+        chave: [lista.indexOf(exclusao.pai), exclusao.posicao, i],
+        revisao,
+        situacao: coletaSituacaoDoExcluido(exclusao.subarvore, idNovo),
+        idsGravados: coletaIdsGravados(exclusao.subarvore, idNovo),
+      });
     });
   });
   return resultado;
@@ -264,6 +279,8 @@ export const montaRevisoesArticulacao = (state: State): RevisoesLexEdit | undefi
     novos: [],
   } as SituacaoNaNormaVigente);
 
+  const idsGravadosDosExcluidos = Object.assign({}, ...excluidasMontadas.map(x => x.idsGravados));
+
   const revisaoArticulacao = [...naoExcluidas, ...excluidas];
   if (!revisaoArticulacao.length) {
     return undefined;
@@ -272,5 +289,6 @@ export const montaRevisoesArticulacao = (state: State): RevisoesLexEdit | undefi
     revisoesArticulacao: { TYPE_NAME: 'br_gov_lexml_lexedit__1.RevisoesArticulacao', revisaoArticulacao },
     usuarios: montaUsuarios(principais),
     ...((situacaoDosExcluidos.existentes.length > 0 || situacaoDosExcluidos.novos.length > 0) && { situacaoDosExcluidos }),
+    ...(Object.keys(idsGravadosDosExcluidos).length > 0 && { idsGravadosDosExcluidos }),
   };
 };
