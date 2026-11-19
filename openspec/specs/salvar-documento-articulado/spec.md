@@ -143,7 +143,7 @@ Quando a justificação do documento em edição for obrigatória e não tiver t
 - **THEN** o editor recalcula a pendência a partir da justificação em edição, sem usar o item gravado
 
 ### Requirement: Ordem das pendências no arquivo salvo
-Quando houver mais de uma pendência a gravar, o sistema SHALL gravar, nesta ordem, as que existirem: justificação não informada, remissões internas inválidas, revisões de texto e revisões da hierarquia.
+Quando houver mais de uma pendência a gravar, o sistema SHALL gravar, nesta ordem, as que existirem: justificação não informada, remissões internas inválidas, comentários, revisões de texto e revisões da hierarquia.
 
 #### Scenario: Justificação vazia e remissão inválida
 - **WHEN** o usuário salva um documento com a justificação obrigatória vazia e ao menos uma remissão interna inválida
@@ -152,6 +152,10 @@ Quando houver mais de uma pendência a gravar, o sistema SHALL gravar, nesta ord
 #### Scenario: Remissão inválida e revisões de texto e da hierarquia
 - **WHEN** o usuário salva um documento com uma remissão interna inválida, uma marca de revisão de texto na justificação e uma revisão da hierarquia
 - **THEN** a lista de pendências do arquivo salvo contém exatamente "Corrigir remissões internas inválidas.", "Resolver marcas de revisão de texto." e "Resolver marcas de revisão na articulação.", nessa ordem
+
+#### Scenario: Comentário entre remissões e revisões
+- **WHEN** o usuário salva um documento com uma remissão interna inválida, um trecho comentado na justificação e uma marca de revisão de texto
+- **THEN** a lista de pendências do arquivo salvo contém exatamente "Corrigir remissões internas inválidas.", "Remover comentários." e "Resolver marcas de revisão de texto.", nessa ordem
 
 ### Requirement: Serialização das opções de impressão
 Ao salvar, o sistema SHALL registrar as opções de impressão do documento em edição no grupo `OpcoesImpressao` dos metadados do LexEdit, sempre com os quatro atributos (`imprimirBrasao`, `textoCabecalho`, `reduzirEspacoEntreLinhas` e `tamanhoFonte`), inclusive quando os valores coincidirem com o padrão da aplicação. O valor registrado SHALL ser o do momento em que o documento é obtido, sem compartilhar referência com o formulário de opções de impressão.
@@ -608,3 +612,97 @@ Enquanto houver ao menos uma marca de revisão de texto na justificação gravad
 #### Scenario: Pendência ausente no modo anexo de parecer
 - **WHEN** o usuário salva, no modo anexo de parecer, um documento com marca de revisão de texto na justificação
 - **THEN** a lista de pendências não contém esse item
+
+### Requirement: Comentários na justificação gravada
+
+Ao gravar a justificação, o sistema SHALL gravar cada trecho comentado como `span` com `id` de prefixo `_tc`, no ponto do texto em que está e com o conteúdo e a formatação que tiver, inclusive marcas de revisão de texto e notas de rodapé. Cada sequência de comentários SHALL ser gravada como um `SequenciaComentario` nos metadados do LexEdit, com `refIdElementoComentado` igual ao `id` do trecho e um `Comentario` por comentário, na ordem da sequência, com o autor em `refIdUsuario`, a data com fuso horário em `data` e o texto em parágrafos `p`, um por linha. A marcação de trecho sem sequência SHALL ser gravada só como texto. O arquivo salvo SHALL ser válido pelo esquema LexML.
+
+#### Scenario: Trecho comentado com resposta
+
+- **WHEN** o usuário salva uma justificação com um trecho comentado cuja sequência tem um comentário e uma resposta
+- **THEN** o texto gravado contém o trecho dentro de um `span` com `id` de prefixo `_tc`
+- **AND** `Comentarios` contém um `SequenciaComentario` com `refIdElementoComentado` igual a esse `id` e dois `Comentario`, na ordem, cada um com o `refIdUsuario` do autor, a data e o texto
+
+#### Scenario: Comentário em duas linhas
+
+- **WHEN** o usuário salva um comentário escrito em duas linhas
+- **THEN** o `Comentario` gravado tem dois `p`, um para cada linha
+
+#### Scenario: Justificação sem comentários
+
+- **WHEN** o usuário salva uma justificação sem nenhum trecho comentado
+- **THEN** o arquivo salvo não contém `span` com `id` de prefixo `_tc`
+
+#### Scenario: Modo anexo de parecer
+
+- **WHEN** o usuário salva um documento no modo anexo de parecer
+- **THEN** o arquivo salvo não contém `span` com `id` de prefixo `_tc` nem `SequenciaComentario` cujo `refIdElementoComentado` tenha prefixo `_tc`
+
+### Requirement: Trecho comentado em vários fragmentos
+
+Um trecho comentado pode ocupar mais de um elemento no texto, por atravessar parágrafos ou por conter marcas de revisão ou formatação que o dividem. O sistema SHALL gravar um `span` por fragmento, com `id` `_tc<id da sequência>_<n>`, em que `n` é a posição do fragmento entre os da mesma sequência, a partir de 1, na ordem do documento; um trecho de um só fragmento também recebe o sufixo `_1`. O `refIdElementoComentado` da sequência SHALL ser o `id` do primeiro fragmento. Todo `id` gravado SHALL ser único no documento.
+
+#### Scenario: Trecho em dois parágrafos
+
+- **WHEN** o usuário salva uma justificação com um trecho comentado que começa num parágrafo e termina no seguinte
+- **THEN** cada parágrafo contém um `span` do trecho, com `id` terminados em `_1` e `_2` e a mesma parte central
+- **AND** o `refIdElementoComentado` da sequência é o `id` terminado em `_1`
+
+#### Scenario: Trecho dividido por marca de revisão
+
+- **WHEN** o usuário salva um trecho comentado que contém, no meio, um texto incluído em revisão
+- **THEN** os `id` de todos os `span` e de todos os `ins` e `del` gravados são diferentes entre si
+
+### Requirement: Pendência de comentários
+
+Enquanto houver ao menos uma sequência de comentários gravada, o sistema SHALL incluir na lista de pendências dos metadados do LexEdit o item "Remover comentários.". Ao abrir um documento, o item gravado SHALL NOT ser usado para reconstruir o estado do editor.
+
+#### Scenario: Pendência presente com comentário
+
+- **WHEN** o usuário salva um documento com ao menos um trecho comentado na justificação
+- **THEN** a lista de pendências contém "Remover comentários."
+
+#### Scenario: Pendência ausente depois de excluir os comentários
+
+- **WHEN** o usuário exclui todas as sequências de comentários e salva
+- **THEN** a lista de pendências não contém "Remover comentários."
+
+### Requirement: Comentários na articulação gravados
+
+Ao salvar, o sistema SHALL gravar cada sequência de comentários de um dispositivo como um `SequenciaComentario` nos metadados do LexEdit, no mesmo grupo `Comentarios` das sequências da justificação, com `refIdElementoComentado` igual ao `id` gravado do dispositivo e os comentários no mesmo formato da justificação. Para um artigo, o `refIdElementoComentado` SHALL ser o `id` do caput. Para um dispositivo excluído em revisão, SHALL ser o `id` com que o dispositivo é gravado na revisão de exclusão. As sequências da articulação SHALL vir antes das da justificação, na ordem dos dispositivos no texto. Os autores SHALL entrar em `Usuarios` e a pendência "Remover comentários." SHALL ser gravada como para a justificação. No modo anexo de parecer, as sequências da articulação também SHALL ser gravadas.
+
+#### Scenario: Comentário num inciso
+
+- **WHEN** o usuário salva um documento com uma sequência no inciso I do art. 3º, cujo `id` é `art3_cpt_inc1`
+- **THEN** `Comentarios` contém um `SequenciaComentario` com `refIdElementoComentado` igual a `art3_cpt_inc1`
+- **AND** a lista de pendências contém "Remover comentários."
+
+#### Scenario: Comentário num artigo
+
+- **WHEN** o usuário salva um documento com uma sequência no art. 2º
+- **THEN** o `refIdElementoComentado` da sequência é `art2_cpt`
+
+#### Scenario: Id depois da renumeração
+
+- **WHEN** o usuário comenta o art. 3º, inclui um artigo antes dele e salva
+- **THEN** o `refIdElementoComentado` da sequência é `art4_cpt`
+
+#### Scenario: Ementa
+
+- **WHEN** o usuário salva um documento com uma sequência na ementa
+- **THEN** o `refIdElementoComentado` da sequência é `ementa`
+
+#### Scenario: Dispositivo excluído em revisão
+
+- **WHEN** o usuário salva um documento com um parágrafo comentado excluído em revisão
+- **THEN** o `refIdElementoComentado` da sequência é igual ao `id` do parágrafo gravado na revisão de exclusão
+
+#### Scenario: Articulação e justificação
+
+- **WHEN** o usuário salva um documento com uma sequência na justificação e, criada depois, uma sequência no art. 2º
+- **THEN** `Comentarios` contém primeiro a sequência do art. 2º e depois a da justificação
+
+#### Scenario: Anexo de parecer
+
+- **WHEN** o usuário salva no modo anexo de parecer um documento com uma sequência no art. 1º
+- **THEN** o arquivo salvo contém `Comentarios` com a sequência do art. 1º e a pendência "Remover comentários."

@@ -31,6 +31,18 @@ describe('DadosBasicosComponent', () => {
     expect(texto(el, '#dados-basicos-parecer')).to.contain('Sim');
   });
 
+  it('Plenário: sem comissão mostra só "Plenário" e com comissão mostra "Plenário (SIGLA)"', async () => {
+    const sem = await fixture<DadosBasicosComponent>(
+      html`<lexml-eta-dados-basicos .urn=${URN_PL} .colegiadoApreciador=${{ tipoColegiado: 'Plenário' }}></lexml-eta-dados-basicos>`
+    );
+    expect(texto(sem, '#dados-basicos-colegiado')).to.contain('Plenário');
+    expect(texto(sem, '#dados-basicos-colegiado')).to.not.contain('(');
+    const com = await fixture<DadosBasicosComponent>(
+      html`<lexml-eta-dados-basicos .urn=${URN_PL} .colegiadoApreciador=${{ tipoColegiado: 'Plenário', siglaComissao: 'CCJC' }}></lexml-eta-dados-basicos>`
+    );
+    expect(texto(com, '#dados-basicos-colegiado')).to.contain('Plenário (CCJC)');
+  });
+
   it('o clique emite o evento interno, que não borbulha', async () => {
     const pai = await fixture<HTMLDivElement>(html`<div><lexml-eta-dados-basicos .urn=${URN_PL}></lexml-eta-dados-basicos></div>`);
     const el = pai.querySelector('lexml-eta-dados-basicos')!;

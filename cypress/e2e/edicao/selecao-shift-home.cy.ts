@@ -1,6 +1,17 @@
-// #1070: a seleção que alcança o rótulo começa no início do texto, em vez de ser desfeita.
+// #1069, #1070 e #1071: a seleção que alcança o rótulo começa no início do texto, em vez de ser desfeita.
 // Eventos nativos (CDP): com eventos sintéticos o navegador não estende a seleção.
-import { SHIFT, TECLA_END, TECLA_HOME, TECLA_SETA_DIREITA, arrastoNativo, cliqueNativo, teclaNativa } from '../../support/eventos-nativos';
+import {
+  CTRL,
+  SHIFT,
+  TECLA_END,
+  TECLA_HOME,
+  TECLA_SETA_DIREITA,
+  TECLA_SETA_ESQUERDA,
+  arrastoNativo,
+  cliqueNativo,
+  duploCliqueNativo,
+  teclaNativa,
+} from '../../support/eventos-nativos';
 
 const getQuill = (win: any): any => win.document.querySelector('lexml-eta-proposicao-editor').quill;
 
@@ -85,6 +96,21 @@ describe('Seleção até o rótulo (#1070)', () => {
     conferirSelecao(0, tamanho);
   });
 
+  it('Ctrl+Shift+← palavra a palavra até o início seleciona todo o texto e não perde a seleção (#1071)', () => {
+    cy.then(() => teclaNativa(TECLA_END));
+    cy.wait(200);
+    // Uma tecla por palavra e mais algumas além do início do texto, com pausa para o selectionchange de cada uma.
+    cy.then(async () => {
+      const palavras = (alvo.textContent || '').trim().split(/\s+/).length;
+      for (let i = 0; i < palavras + 3; i++) {
+        await teclaNativa(TECLA_SETA_ESQUERDA, CTRL | SHIFT);
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+    });
+    cy.wait(300);
+    conferirSelecao(0, tamanho);
+  });
+
   it('arrastar do meio do texto até o rótulo seleciona do início do texto ao ponto inicial', () => {
     let pontoInicial = 0;
     cy.window().then(win => {
@@ -103,5 +129,38 @@ describe('Seleção até o rótulo (#1070)', () => {
       expect(pontoInicial > 0 && pontoInicial < tamanho, 'ponto inicial no meio do texto').to.be.true;
     });
     cy.then(() => conferirSelecao(0, pontoInicial));
+  });
+  it('duplo clique na primeira palavra seleciona a palavra (#1069)', () => {
+    let p: HTMLElement;
+    const primeira = (): string => (p.textContent || '').trim().split(/\s+/)[0];
+    cy.window().then(win => {
+      // Artigo: o "º" do rótulo junta-se à palavra, e o navegador estende a seleção até ele.
+      // Palavra longa: numa de uma letra o clique cai fácil na borda e o navegador seleciona o espaço.
+      const quill = getQuill(win);
+      for (let linha = quill.getPrimeiraLinha(); linha && !p; linha = linha.next) {
+        const el = linha.blotConteudo?.domNode as HTMLElement;
+        if (linha.tipo === 'Artigo' && /^[A-Za-zÀ-ú]{5,}\s/.test(el?.textContent || '')) p = el;
+      }
+      expect(!!p, 'artigo com a primeira palavra longa').to.be.true;
+      p.scrollIntoView({ block: 'center' });
+    });
+    cy.wait(300);
+    cy.window().then(win => {
+      // Meio da primeira palavra: o navegador estende a seleção da palavra até o rótulo.
+      const no = win.document.createTreeWalker(p, NodeFilter.SHOW_TEXT).nextNode()!;
+      const palavra = win.document.createRange();
+      palavra.setStart(no, 0);
+      palavra.setEnd(no, primeira().length);
+      const r = palavra.getBoundingClientRect();
+      return duploCliqueNativo(win, r.left + r.width / 2, r.top + r.height / 2);
+    });
+    cy.wait(300);
+    cy.window().then(win => {
+      const quill = getQuill(win);
+      expect(quill.linhaAtual.blotConteudo.domNode === p, 'linha atual é a do dispositivo clicado').to.be.true;
+      expect(quill.getSelection().index, 'seleção começa no início do texto').to.equal(quill.getIndex(quill.linhaAtual.blotConteudo));
+      // O Windows inclui o espaço seguinte na palavra do duplo clique.
+      expect(win.document.getSelection()!.toString().trim(), 'texto selecionado').to.equal(primeira());
+    });
   });
 });

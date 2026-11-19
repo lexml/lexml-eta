@@ -23,27 +23,27 @@ describe('ETA — abas de apoio e botões de telas estreitas', () => {
     await Promise.all(Array.from(component.querySelectorAll('sl-tab-group')).map((grupo: any) => grupo.updateComplete));
   });
 
-  it('fora do anexo de parecer, o painel da direita tem só as abas Notas e Atalhos', async () => {
+  it('fora do anexo de parecer, o painel da direita tem só as abas Comentários, Notas e Atalhos', async () => {
     await abrir(false);
 
-    expect(abasDaDireita()).to.deep.equal(['notas', 'atalhos']);
-    expect(paineisDaDireita()).to.deep.equal(['notas', 'atalhos']);
+    expect(abasDaDireita()).to.deep.equal(['comentarios', 'notas', 'atalhos']);
+    expect(paineisDaDireita()).to.deep.equal(['comentarios', 'notas', 'atalhos']);
   });
 
-  it('no anexo de parecer, o painel da direita tem só a aba Atalhos', async () => {
+  it('no anexo de parecer, o painel da direita tem só as abas Comentários e Atalhos', async () => {
     await abrir(true);
 
-    expect(abasDaDireita()).to.deep.equal(['atalhos']);
-    expect(paineisDaDireita()).to.deep.equal(['atalhos']);
+    expect(abasDaDireita()).to.deep.equal(['comentarios', 'atalhos']);
+    expect(paineisDaDireita()).to.deep.equal(['comentarios', 'atalhos']);
   });
 
-  it('não há conteúdo de Comando nem de Dicas, e a barra de telas estreitas tem só o botão Atalhos', async () => {
+  it('não há conteúdo de Comando nem de Dicas, e a barra de telas estreitas tem só os botões Comentários e Atalhos', async () => {
     await abrir(false);
 
     expect(!!component.querySelector('lexml-eta-ajuda')).to.be.false;
     expect(!!component.querySelector('lexml-eta-ajuda-modal')).to.be.false;
     expect(!!component.querySelector('[panel="comando"], [panel="dicas"], [name="dicas"]')).to.be.false;
-    expect(Array.from(component.querySelectorAll('.mobile-buttons .mobile-button')).map(botao => botao.getAttribute('title'))).to.deep.equal(['Atalhos']);
+    expect(Array.from(component.querySelectorAll('.mobile-buttons .mobile-button')).map(botao => botao.getAttribute('title'))).to.deep.equal(['Comentários', 'Atalhos']);
     expect('exibirAjuda' in component).to.be.false;
   });
 });

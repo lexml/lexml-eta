@@ -88,8 +88,63 @@ test('importação: outro tipo devolve 400 e GET não é tratado como importaç�
   assert.equal(tratarRequisicaoDemo('/demo-api/importacao').status, 404);
 });
 
+test('importação: a query string com o contexto não altera a decisão pelo Content-Type', () => {
+  const query = '?casa=SF&especie=substitutivo&urn=urn%3Alex%3Abr%3Asenado.federal%3Aprojeto.lei%3Bpl%3A2026%3B12%40apresentacao.substitutivo&siglaReferenciada=';
+  assert.equal(tratarRequisicaoDemo(`/demo-api/importacao${query}`, 'POST', 'application/xml').status, 200);
+  assert.equal(tratarRequisicaoDemo(`/demo-api/importacao${query}`, 'POST', 'application/pdf').status, 500);
+});
+
 test('rota desconhecida da demo devolve 404', () => {
   assert.equal(tratarRequisicaoDemo('/demo-api/outra').status, 404);
+});
+
+test('documentos da matéria: PL 4/2025 devolve a lista no contrato, sem expor o arquivo interno', () => {
+  const r = tratarRequisicaoDemo('/demo-api/materias/PL/4/2025/documentos');
+  assert.equal(r.status, 200);
+  const lista = corpo(r);
+  assert.equal(lista.length, 6);
+  for (const d of lista) {
+    assert.ok(d.id && d.titulo && d.sigla && d.numero && d.nomeAutor && d.papelAutor && d.indSexoAutor);
+    assert.match(d.dataApresentacao, /^\d{4}-\d{2}-\d{2}$/);
+    assert.equal('arquivo' in d, false);
+    assert.equal('urlInteiroTeor' in d, false);
+  }
+  assert.equal(lista.filter(d => d.textoEstruturadoDisponivel === false).length, 1);
+});
+
+test('documentos da matéria: PL 4/2025 exercita os campos opcionais (urlDocumento, ementa e tooltipDocumento)', () => {
+  const lista = corpo(tratarRequisicaoDemo('/demo-api/materias/PL/4/2025/documentos'));
+  assert.equal(lista.filter(d => !d.urlDocumento).length, 1, 'um documento sem urlDocumento');
+  assert.equal(lista.filter(d => !d.ementa).length, 1, 'um documento sem ementa');
+  assert.equal(lista.filter(d => d.tooltipDocumento).length, 1, 'um documento com tooltipDocumento');
+  assert.ok(lista.filter(d => d.urlDocumento).every(d => /^https:\/\//.test(d.urlDocumento)));
+});
+
+test('documentos da matéria: sigla em minúsculas e zeros à esquerda; lista vazia; matéria sem mock devolve 404', () => {
+  assert.equal(tratarRequisicaoDemo('/demo-api/materias/pl/0004/2025/documentos').status, 200);
+  const vazia = tratarRequisicaoDemo('/demo-api/materias/PL/4687/2023/documentos');
+  assert.equal(vazia.status, 200);
+  assert.deepEqual(corpo(vazia), []);
+  assert.equal(tratarRequisicaoDemo('/demo-api/materias/PL/1/1999/documentos').status, 404);
+});
+
+test('documentos da matéria: a subemenda substitutiva omite os documentos PL; substitutivo e sem parâmetro trazem a lista completa', () => {
+  const siglas = url => corpo(tratarRequisicaoDemo(url)).map(d => d.sigla);
+  const base = '/demo-api/materias/PL/4/2025/documentos';
+  assert.equal(siglas(`${base}?especie=substitutivo`).length, 6);
+  assert.equal(siglas(base).length, 6);
+  const subemenda = siglas(`${base}?especie=subemenda`);
+  assert.equal(subemenda.length, 3);
+  assert.equal(subemenda.includes('PL'), false);
+  assert.equal(tratarRequisicaoDemo('/demo-api/materias/PL/1/1999/documentos?especie=subemenda').status, 404);
+});
+
+test('texto do documento: devolve o JSONIX; documento sem texto ou inexistente devolve 404', () => {
+  const r = tratarRequisicaoDemo('/demo-api/documentos/prl-1-csaude-substitutivo/texto');
+  assert.equal(r.status, 200);
+  assert.ok(corpo(r).value.metadado.identificacao.urn.startsWith('urn:lex:br:'));
+  assert.equal(tratarRequisicaoDemo('/demo-api/documentos/pl-480-2025-apensado/texto').status, 404);
+  assert.equal(tratarRequisicaoDemo('/demo-api/documentos/nao-existe/texto').status, 404);
 });
 
 test('identificação por URN: tipo define a sigla, número sem zeros', () => {

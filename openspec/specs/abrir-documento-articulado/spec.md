@@ -517,3 +517,101 @@ Ao abrir um documento com uma revisão `alterado` de uma pena cujo estado anteri
 #### Scenario: Pena excluída em revisão reaberta
 - **WHEN** o usuário abre um documento com uma revisão `excluido` cujo dispositivo excluído é uma `Pena`, e rejeita a revisão
 - **THEN** a pena volta como último filho do dono, com o rótulo e o texto gravados
+
+### Requirement: Recuperação dos comentários da justificação ao abrir
+
+Ao abrir um documento, o sistema SHALL recriar no editor da justificação cada `span` de `id` com prefixo `_tc` que pertença a uma sequência gravada como trecho comentado, no mesmo ponto do texto e com o mesmo conteúdo, e SHALL exibir na aba "Comentários" cada sequência, com os comentários na ordem gravada, o autor identificado pelo registro `Usuarios` e a data no horário local. Os fragmentos `_tc<id>_<n>` com a mesma parte `<id>` SHALL voltar como um único trecho da mesma sequência; um `id` `_tc<id>` sem sufixo SHALL ser lido como trecho de um só fragmento. O alerta e a pendência de comentários SHALL refletir o documento aberto.
+
+#### Scenario: Documento com comentário
+
+- **WHEN** o usuário abre um documento cuja justificação tem um `span` `_tc` referenciado por um `SequenciaComentario` com dois `Comentario` de `refIdUsuario` igual a `sf:fulano`, registrado em `Usuarios` com nome "Fulano de Tal"
+- **THEN** o trecho é exibido destacado como comentado
+- **AND** a aba "Comentários" exibe a sequência com os dois comentários, com "Fulano de Tal" como autor e a data no horário local
+- **AND** a aba Avisos exibe o alerta de comentários
+
+#### Scenario: Trecho em vários fragmentos
+
+- **WHEN** o usuário abre um documento com um trecho comentado gravado em dois `span`, `_tc<id>_1` e `_tc<id>_2`, em parágrafos diferentes
+- **THEN** a aba "Comentários" exibe uma única sequência
+- **AND** excluir essa sequência retira o destaque dos dois fragmentos
+
+#### Scenario: Comentário do usuário atual
+
+- **WHEN** o usuário abre um documento com um comentário cujo `refIdUsuario` é o identificador do usuário atual do editor
+- **THEN** esse comentário exibe o botão "Editar"
+
+#### Scenario: Comentário em vários parágrafos
+
+- **WHEN** o usuário abre um documento com um `Comentario` de dois `p`
+- **THEN** a aba exibe o comentário em duas linhas
+
+#### Scenario: Autor não registrado
+
+- **WHEN** o usuário abre um documento com um `Comentario` de `refIdUsuario` igual a `sf:fulano` sem registro correspondente em `Usuarios`
+- **THEN** o comentário é exibido com `sf:fulano` como autor, sem impedir a abertura
+
+#### Scenario: Salvar e reabrir preserva os comentários
+
+- **WHEN** o usuário salva um documento com comentários na justificação, abre o arquivo salvo e o salva novamente sem alterações
+- **THEN** o segundo arquivo tem a mesma `Justificacao` e os mesmos `Comentarios` e `Usuarios` do primeiro
+
+### Requirement: Tolerância a comentários inconsistentes ao abrir
+
+A abertura SHALL NOT falhar por causa de comentários inconsistentes. Um `span` `_tc` sem `SequenciaComentario` correspondente SHALL virar texto comum. Um `SequenciaComentario` SHALL ser descartado quando não tiver nenhum `Comentario` ou quando o `refIdElementoComentado` não corresponder nem a um trecho comentado da justificação nem a um dispositivo do documento, inclusive os gravados em revisões de exclusão. Quando mais de um `SequenciaComentario` se referir ao mesmo dispositivo, SHALL valer o primeiro. Um `Comentario` com data inválida SHALL usar a data e a hora da abertura.
+
+#### Scenario: Trecho sem sequência
+
+- **WHEN** o usuário abre um documento cuja justificação tem um `span` `_tc` sem `SequenciaComentario`
+- **THEN** o texto do `span` é exibido sem destaque e a aba "Comentários" não exibe sequência para ele
+
+#### Scenario: Sequência sem trecho
+
+- **WHEN** o usuário abre um documento com um `SequenciaComentario` cujo `refIdElementoComentado` tem prefixo `_tc` e não existe na justificação
+- **THEN** a sequência não é exibida e o documento é aberto normalmente
+
+#### Scenario: Sequência sobre dispositivo da articulação
+
+- **WHEN** o usuário abre um documento com um `SequenciaComentario` cujo `refIdElementoComentado` é `art99` e o documento não tem esse dispositivo
+- **THEN** a sequência não é exibida e o documento é aberto normalmente
+
+#### Scenario: Duas sequências no mesmo dispositivo
+
+- **WHEN** o usuário abre um documento com dois `SequenciaComentario` de `refIdElementoComentado` igual a `art1_cpt`
+- **THEN** a aba exibe só a primeira sequência para o art. 1º
+
+### Requirement: Recuperação dos comentários da articulação ao abrir
+
+Ao abrir um documento, o sistema SHALL ligar cada `SequenciaComentario` cujo `refIdElementoComentado` seja o `id` de um dispositivo ao dispositivo correspondente, exibindo o ícone de comentário na linha e a sequência na aba "Comentários", com o local "No texto", a identificação do dispositivo e os comentários na ordem gravada, com autor e data como na justificação. Um `refIdElementoComentado` igual ao `id` do caput de um artigo SHALL ser ligado ao artigo; o `id` do próprio artigo também SHALL ser aceito. Um `refIdElementoComentado` igual ao `id` de um dispositivo gravado numa revisão de exclusão SHALL ser ligado ao dispositivo excluído reaberto. O alerta e a pendência de comentários SHALL refletir o documento aberto, também no modo anexo de parecer.
+
+#### Scenario: Documento com comentário num dispositivo
+
+- **WHEN** o usuário abre um documento com um `SequenciaComentario` de `refIdElementoComentado` igual a `art3_cpt_inc1`
+- **THEN** o inciso I do art. 3º exibe o ícone de comentário
+- **AND** a aba "Comentários" exibe a sequência com o local "No texto" e a identificação "inciso I do art. 3º"
+- **AND** a aba Avisos exibe o alerta de comentários
+
+#### Scenario: Caput de artigo
+
+- **WHEN** o usuário abre um documento com um `SequenciaComentario` de `refIdElementoComentado` igual a `art2_cpt`
+- **THEN** o art. 2º exibe o ícone de comentário e a sequência é identificada como "art. 2º"
+
+#### Scenario: Id do artigo
+
+- **WHEN** o usuário abre um documento com um `SequenciaComentario` de `refIdElementoComentado` igual a `art2`
+- **THEN** o art. 2º exibe o ícone de comentário
+
+#### Scenario: Dispositivo excluído em revisão
+
+- **WHEN** o usuário abre um documento com um parágrafo excluído em revisão cuja sequência foi gravada com o `id` do parágrafo na revisão
+- **THEN** o parágrafo é exibido como excluído, com o ícone de comentário, e a sequência é exibida na aba
+- **AND** rejeitar a revisão mantém a sequência, e aceitá-la remove a sequência
+
+#### Scenario: Comentário acompanha a renumeração depois de abrir
+
+- **WHEN** o usuário abre um documento com um comentário no art. 3º e inclui um artigo antes dele
+- **THEN** a sequência continua na aba, identificada como "art. 4º"
+
+#### Scenario: Salvar e reabrir preserva os comentários da articulação
+
+- **WHEN** o usuário salva um documento com comentários na articulação e na justificação, abre o arquivo salvo e o salva novamente sem alterações
+- **THEN** o segundo arquivo tem os mesmos `Comentarios` e `Usuarios` do primeiro

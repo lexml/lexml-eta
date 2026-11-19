@@ -4,6 +4,7 @@ export const TECLA_HOME = { key: 'Home', code: 'Home', windowsVirtualKeyCode: 36
 export const TECLA_END = { key: 'End', code: 'End', windowsVirtualKeyCode: 35, nativeVirtualKeyCode: 35 };
 export const TECLA_SETA_DIREITA = { key: 'ArrowRight', code: 'ArrowRight', windowsVirtualKeyCode: 39, nativeVirtualKeyCode: 39 };
 export const TECLA_SETA_ESQUERDA = { key: 'ArrowLeft', code: 'ArrowLeft', windowsVirtualKeyCode: 37, nativeVirtualKeyCode: 37 };
+export const TECLA_SETA_ABAIXO = { key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40, nativeVirtualKeyCode: 40 };
 export const TECLA_SETA_ACIMA = { key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38, nativeVirtualKeyCode: 38 };
 // Tecla que digita um caractere: o campo text faz o navegador inserir o texto.
 export const TECLA_X = { key: 'x', code: 'KeyX', text: 'x', windowsVirtualKeyCode: 88, nativeVirtualKeyCode: 88 };
@@ -30,6 +31,15 @@ export const cliqueNativo = async (win: Window, x: number, y: number): Promise<v
   const params = { ...paraJanelaDoRunner(win, x, y), button: 'left', clickCount: 1 };
   await cdp('Input.dispatchMouseEvent', { type: 'mousePressed', ...params });
   await cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', ...params });
+};
+
+// Duplo clique: o segundo mousePressed com clickCount 2 faz o navegador selecionar a palavra.
+export const duploCliqueNativo = async (win: Window, x: number, y: number): Promise<void> => {
+  const ponto = paraJanelaDoRunner(win, x, y);
+  for (const clickCount of [1, 2]) {
+    await cdp('Input.dispatchMouseEvent', { type: 'mousePressed', ...ponto, button: 'left', clickCount });
+    await cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', ...ponto, button: 'left', clickCount });
+  }
 };
 
 // Arrasto com o botão esquerdo pressionado, em passos, de (x1, y1) até (x2, y2), em coordenadas da aplicação.

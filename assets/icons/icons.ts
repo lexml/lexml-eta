@@ -60,3 +60,68 @@ export const iconeEditar = `
 export const iconeRemissaoInterna = `
 <svg viewBox="0 0 18 18"><line class="ql-stroke" x1="7" x2="11" y1="7" y2="11"></line><path class="ql-even ql-stroke" d="M8.9,4.577a3.476,3.476,0,0,1,.36,4.679A3.476,3.476,0,0,1,4.577,8.9C3.185,7.5,2.035,6.4,4.217,4.217S7.5,3.185,8.9,4.577Z"></path><path class="ql-even ql-stroke" d="M13.423,9.1a3.476,3.476,0,0,0-4.679-.36,3.476,3.476,0,0,0,.36,4.679c1.392,1.392,2.5,2.542,4.679.36S14.815,10.5,13.423,9.1Z"></path></svg>
 `;
+
+export const iconeComentario = `
+<svg class="icon-comentario-plus" id="comentario-plus" width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+  <path
+    class="ql-fill"
+    fill-rule="evenodd"
+    d="M 0.58 1.00
+       L 0.00 2.31
+       L 0.00 15.50
+       L 0.27 15.88
+       L 0.96 15.85
+       L 3.31 13.50
+       L 13.65 13.50
+       L 14.69 13.12
+       L 15.38 12.50
+       L 15.96 11.19
+       L 15.96 2.31
+       L 15.58 1.27
+       L 14.96 0.58
+       L 13.65 0.00
+       L 2.31 0.00
+       L 1.27 0.38
+       Z
+
+       M 1.58 1.69
+       L 2.69 1.19
+       L 13.27 1.19
+       L 14.27 1.58
+       L 14.77 2.69
+       L 14.77 10.81
+       L 14.38 11.81
+       L 13.27 12.31
+       L 2.92 12.31
+       L 1.23 13.88
+       L 1.19 2.69
+       Z"
+  />
+
+  <path
+    class="ql-fill"
+    transform="translate(-0.25 -0.25) scale(1.06)"
+    d="M 7.85 3.69
+       L 7.38 4.15
+       L 7.38 6.12
+       L 5.38 6.15
+       L 5.00 6.42
+       L 4.92 6.88
+       L 5.38 7.35
+       L 7.35 7.35
+       L 7.38 9.35
+       L 7.65 9.73
+       L 8.12 9.81
+       L 8.58 9.35
+       L 8.58 7.38
+       L 10.58 7.35
+       L 10.96 7.08
+       L 11.04 6.62
+       L 10.58 6.15
+       L 8.62 6.15
+       L 8.58 4.15
+       L 8.31 3.77
+       Z"
+  />
+</svg>
+`;

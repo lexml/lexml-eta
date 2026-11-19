@@ -1,0 +1,674 @@
+{
+  "name": {
+    "namespaceURI": "http://www.lexml.gov.br/1.0",
+    "localPart": "LexML",
+    "prefix": "",
+    "key": "{http://www.lexml.gov.br/1.0}LexML",
+    "string": "{http://www.lexml.gov.br/1.0}LexML"
+  },
+  "value": {
+    "TYPE_NAME": "br_gov_lexml__1.LexML",
+    "metadado": {
+      "TYPE_NAME": "br_gov_lexml__1.Metadado",
+      "identificacao": {
+        "TYPE_NAME": "br_gov_lexml__1.Identificacao",
+        "urn": "urn:lex:br:senado.federal:projeto.lei;pls:9999;999999"
+      },
+      "metadadoProprietario": [
+        {
+          "TYPE_NAME": "br_gov_lexml__1.MetadadoProprietario",
+          "fonte": "http://www.lexml.gov.br/lexedit/1.0",
+          "any": [
+            {
+              "name": {
+                "namespaceURI": "http://www.lexml.gov.br/lexedit/1.0",
+                "localPart": "Metadado",
+                "prefix": "lexedit",
+                "key": "{http://www.lexml.gov.br/lexedit/1.0}Metadado",
+                "string": "{http://www.lexml.gov.br/lexedit/1.0}lexedit:Metadado"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml_lexedit__1.Metadado",
+                "anexoParecer": false,
+                "dataUltimaModificacao": "2026-11-16T16:18:55-03:00",
+                "local": "Sala das sessões",
+                "opcoesImpressao": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.OpcoesImpressao",
+                  "imprimirBrasao": true,
+                  "textoCabecalho": "",
+                  "reduzirEspacoEntreLinhas": false,
+                  "tamanhoFonte": 14
+                },
+                "colegiadoApreciador": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.ColegiadoApreciador",
+                  "siglaCasaLegislativa": "SF",
+                  "tipoColegiado": "Plenário"
+                },
+                "comentarios": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.Comentarios",
+                  "sequenciaComentario": [
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.SequenciaComentario",
+                      "refIdElementoComentado": "art1_cpt",
+                      "comentario": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml_lexedit__1.Comentario",
+                          "refIdUsuario": "sf:fulano",
+                          "data": "2026-11-16T16:18:54-03:00",
+                          "p": [
+                            {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                              "content": [
+                                "Comentário no artigo"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.SequenciaComentario",
+                      "refIdElementoComentado": "art1_cpt_inc1",
+                      "comentario": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml_lexedit__1.Comentario",
+                          "refIdUsuario": "sf:fulano",
+                          "data": "2026-11-16T16:18:54-03:00",
+                          "p": [
+                            {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                              "content": [
+                                "Comentário no inciso"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.SequenciaComentario",
+                      "refIdElementoComentado": "_art1_par1u-exc1",
+                      "comentario": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml_lexedit__1.Comentario",
+                          "refIdUsuario": "sf:fulano",
+                          "data": "2026-11-16T16:18:54-03:00",
+                          "p": [
+                            {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                              "content": [
+                                "Comentário no parágrafo"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.SequenciaComentario",
+                      "refIdElementoComentado": "_tc08d1f9c3-1561-4c14-b48f-8758fbc4c5c5_1",
+                      "comentario": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml_lexedit__1.Comentario",
+                          "refIdUsuario": "sf:fulano",
+                          "data": "2026-11-16T16:18:54-03:00",
+                          "p": [
+                            {
+                              "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                              "content": [
+                                "Comentário na justificação"
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                "revisoesArticulacao": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisoesArticulacao",
+                  "revisaoArticulacao": [
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.RevisaoArticulacao",
+                      "revisao": "excluido",
+                      "refIdUsuario": "sf:fulano",
+                      "data": "2026-11-16T16:18:55-03:00",
+                      "paragrafo": {
+                        "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                        "id": "_art1_par1u-exc1",
+                        "rotulo": "Parágrafo único.",
+                        "p": [
+                          {
+                            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                            "content": [
+                              "Aplica-se em todo o território nacional."
+                            ]
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                },
+                "usuarios": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.Usuarios",
+                  "usuario": [
+                    {
+                      "TYPE_NAME": "br_gov_lexml_lexedit__1.Usuario",
+                      "idUsuario": "sf:fulano",
+                      "nome": "Fulano de Tal",
+                      "sigla": "FT"
+                    }
+                  ]
+                },
+                "pendencias": {
+                  "TYPE_NAME": "br_gov_lexml_lexedit__1.Pendencias",
+                  "pendencia": [
+                    "Remover comentários.",
+                    "Resolver marcas de revisão na articulação."
+                  ]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "projetoNorma": {
+      "TYPE_NAME": "br_gov_lexml__1.ProjetoNorma",
+      "norma": {
+        "TYPE_NAME": "br_gov_lexml__1.HierarchicalStructure",
+        "parteInicial": {
+          "TYPE_NAME": "br_gov_lexml__1.ParteInicial",
+          "epigrafe": {
+            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+            "id": "epigrafe",
+            "content": [
+              "PROJETO ",
+              {
+                "name": {
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "localPart": "b",
+                  "prefix": "",
+                  "key": "{http://www.lexml.gov.br/1.0}b",
+                  "string": "{http://www.lexml.gov.br/1.0}b"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "DE LEI"
+                  ]
+                }
+              }
+            ]
+          },
+          "ementa": {
+            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+            "id": "ementa",
+            "content": [
+              {
+                "name": {
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "localPart": "b",
+                  "prefix": "",
+                  "key": "{http://www.lexml.gov.br/1.0}b",
+                  "string": "{http://www.lexml.gov.br/1.0}b"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "Dispõe "
+                  ]
+                }
+              },
+              {
+                "name": {
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "localPart": "i",
+                  "prefix": "",
+                  "key": "{http://www.lexml.gov.br/1.0}i",
+                  "string": "{http://www.lexml.gov.br/1.0}i"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "sobre"
+                  ]
+                }
+              },
+              " educação e saúde."
+            ]
+          },
+          "preambulo": {
+            "TYPE_NAME": "br_gov_lexml__1.TextoType",
+            "id": "preambulo",
+            "p": [
+              {
+                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                "content": [
+                  "O Congresso Nacional ",
+                  {
+                    "name": {
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "localPart": "b",
+                      "prefix": "",
+                      "key": "{http://www.lexml.gov.br/1.0}b",
+                      "string": "{http://www.lexml.gov.br/1.0}b"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "content": [
+                        "decreta"
+                      ]
+                    }
+                  },
+                  ":"
+                ]
+              },
+              {
+                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                "content": [
+                  "Segundo parágrafo ",
+                  {
+                    "name": {
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "localPart": "i",
+                      "prefix": "",
+                      "key": "{http://www.lexml.gov.br/1.0}i",
+                      "string": "{http://www.lexml.gov.br/1.0}i"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                      "content": [
+                        "do preâmbulo"
+                      ]
+                    }
+                  },
+                  "."
+                ]
+              }
+            ]
+          }
+        },
+        "articulacao": {
+          "TYPE_NAME": "br_gov_lexml__1.Articulacao",
+          "lXhier": [
+            {
+              "name": {
+                "namespaceURI": "http://www.lexml.gov.br/1.0",
+                "localPart": "Artigo",
+                "prefix": "",
+                "key": "{http://www.lexml.gov.br/1.0}Artigo",
+                "string": "{http://www.lexml.gov.br/1.0}Artigo"
+              },
+              "value": {
+                "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                "id": "art1",
+                "rotulo": "Art. 1º",
+                "lXcontainersOmissis": [
+                  {
+                    "name": {
+                      "namespaceURI": "http://www.lexml.gov.br/1.0",
+                      "localPart": "Caput",
+                      "prefix": "",
+                      "key": "{http://www.lexml.gov.br/1.0}Caput",
+                      "string": "{http://www.lexml.gov.br/1.0}Caput"
+                    },
+                    "value": {
+                      "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                      "id": "art1_cpt",
+                      "p": [
+                        {
+                          "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                          "content": [
+                            "Esta lei dispõe sobre educação e saúde."
+                          ]
+                        }
+                      ],
+                      "lXcontainersOmissis": [
+                        {
+                          "name": {
+                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                            "localPart": "Inciso",
+                            "prefix": "",
+                            "key": "{http://www.lexml.gov.br/1.0}Inciso",
+                            "string": "{http://www.lexml.gov.br/1.0}Inciso"
+                          },
+                          "value": {
+                            "TYPE_NAME": "br_gov_lexml__1.DispositivoType",
+                            "id": "art1_cpt_inc1",
+                            "rotulo": "I –",
+                            "p": [
+                              {
+                                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                "content": [
+                                  "inciso de teste;"
+                                ]
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "parteFinal": {
+          "TYPE_NAME": "br_gov_lexml__1.ParteFinal",
+          "localDataFecho": {
+            "TYPE_NAME": "br_gov_lexml__1.ParsType",
+            "p": [
+              {
+                "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                "content": [
+                  "Sala das sessões,"
+                ]
+              }
+            ]
+          }
+        }
+      },
+      "justificacao": [
+        {
+          "TYPE_NAME": "br_gov_lexml__1.OpenStructure",
+          "partePrincipal": {
+            "TYPE_NAME": "br_gov_lexml__1.PartePrincipal",
+            "agrupamentoHierarquicoOrDivOrAgrupamento": [
+              {
+                "name": {
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "localPart": "p",
+                  "prefix": "",
+                  "key": "{http://www.lexml.gov.br/1.0}p",
+                  "string": "{http://www.lexml.gov.br/1.0}p"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "clazz": "align-justify",
+                  "content": [
+                    {
+                      "name": {
+                        "namespaceURI": "http://www.lexml.gov.br/1.0",
+                        "localPart": "span",
+                        "prefix": "",
+                        "key": "{http://www.lexml.gov.br/1.0}span",
+                        "string": "{http://www.lexml.gov.br/1.0}span"
+                      },
+                      "value": {
+                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                        "id": "_tc08d1f9c3-1561-4c14-b48f-8758fbc4c5c5_1",
+                        "content": [
+                          "A propo"
+                        ]
+                      }
+                    },
+                    "sição trata de ",
+                    {
+                      "name": {
+                        "namespaceURI": "http://www.lexml.gov.br/1.0",
+                        "localPart": "b",
+                        "prefix": "",
+                        "key": "{http://www.lexml.gov.br/1.0}b",
+                        "string": "{http://www.lexml.gov.br/1.0}b"
+                      },
+                      "value": {
+                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                        "content": [
+                          "Ciência & Tecnologia"
+                        ]
+                      }
+                    },
+                    ", com ênfase em ",
+                    {
+                      "name": {
+                        "namespaceURI": "http://www.lexml.gov.br/1.0",
+                        "localPart": "i",
+                        "prefix": "",
+                        "key": "{http://www.lexml.gov.br/1.0}i",
+                        "string": "{http://www.lexml.gov.br/1.0}i"
+                      },
+                      "value": {
+                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                        "content": [
+                          "inovação"
+                        ]
+                      }
+                    },
+                    " e ",
+                    {
+                      "name": {
+                        "namespaceURI": "http://www.lexml.gov.br/1.0",
+                        "localPart": "u",
+                        "prefix": "",
+                        "key": "{http://www.lexml.gov.br/1.0}u",
+                        "string": "{http://www.lexml.gov.br/1.0}u"
+                      },
+                      "value": {
+                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                        "content": [
+                          "pesquisa"
+                        ]
+                      }
+                    },
+                    ", conforme o ",
+                    {
+                      "name": {
+                        "namespaceURI": "http://www.lexml.gov.br/1.0",
+                        "localPart": "a",
+                        "prefix": "",
+                        "key": "{http://www.lexml.gov.br/1.0}a",
+                        "string": "{http://www.lexml.gov.br/1.0}a"
+                      },
+                      "value": {
+                        "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                        "href": "https://www.congressonacional.leg.br",
+                        "target": "_blank",
+                        "content": [
+                          "portal do Congresso Nacional"
+                        ]
+                      }
+                    },
+                    "."
+                  ]
+                }
+              },
+              {
+                "name": {
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "localPart": "ul",
+                  "prefix": "",
+                  "key": "{http://www.lexml.gov.br/1.0}ul",
+                  "string": "{http://www.lexml.gov.br/1.0}ul"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.HTMLlist",
+                  "li": [
+                    {
+                      "TYPE_NAME": "br_gov_lexml__1.Li",
+                      "content": [
+                        "Primeiro motivo."
+                      ]
+                    },
+                    {
+                      "TYPE_NAME": "br_gov_lexml__1.Li",
+                      "content": [
+                        "Segundo motivo."
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "name": {
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "localPart": "table",
+                  "prefix": "",
+                  "key": "{http://www.lexml.gov.br/1.0}table",
+                  "string": "{http://www.lexml.gov.br/1.0}table"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.Table",
+                  "id": "_tabela1",
+                  "border": 1,
+                  "tr": [
+                    {
+                      "TYPE_NAME": "br_gov_lexml__1.Tr",
+                      "tableCellElement": [
+                        {
+                          "name": {
+                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                            "localPart": "td",
+                            "prefix": "",
+                            "key": "{http://www.lexml.gov.br/1.0}td",
+                            "string": "{http://www.lexml.gov.br/1.0}td"
+                          },
+                          "value": {
+                            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                            "clazz": "td-q",
+                            "content": [
+                              {
+                                "name": {
+                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                  "localPart": "span",
+                                  "prefix": "",
+                                  "key": "{http://www.lexml.gov.br/1.0}span",
+                                  "string": "{http://www.lexml.gov.br/1.0}span"
+                                },
+                                "value": {
+                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                  "clazz": "p align-center",
+                                  "content": [
+                                    "Ano"
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "name": {
+                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                            "localPart": "td",
+                            "prefix": "",
+                            "key": "{http://www.lexml.gov.br/1.0}td",
+                            "string": "{http://www.lexml.gov.br/1.0}td"
+                          },
+                          "value": {
+                            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                            "clazz": "td-q",
+                            "content": [
+                              {
+                                "name": {
+                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                  "localPart": "span",
+                                  "prefix": "",
+                                  "key": "{http://www.lexml.gov.br/1.0}span",
+                                  "string": "{http://www.lexml.gov.br/1.0}span"
+                                },
+                                "value": {
+                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                  "clazz": "p align-center",
+                                  "content": [
+                                    "Investimento"
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "TYPE_NAME": "br_gov_lexml__1.Tr",
+                      "tableCellElement": [
+                        {
+                          "name": {
+                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                            "localPart": "td",
+                            "prefix": "",
+                            "key": "{http://www.lexml.gov.br/1.0}td",
+                            "string": "{http://www.lexml.gov.br/1.0}td"
+                          },
+                          "value": {
+                            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                            "clazz": "td-q",
+                            "content": [
+                              {
+                                "name": {
+                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                  "localPart": "span",
+                                  "prefix": "",
+                                  "key": "{http://www.lexml.gov.br/1.0}span",
+                                  "string": "{http://www.lexml.gov.br/1.0}span"
+                                },
+                                "value": {
+                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                  "clazz": "p",
+                                  "content": [
+                                    "2025"
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        },
+                        {
+                          "name": {
+                            "namespaceURI": "http://www.lexml.gov.br/1.0",
+                            "localPart": "td",
+                            "prefix": "",
+                            "key": "{http://www.lexml.gov.br/1.0}td",
+                            "string": "{http://www.lexml.gov.br/1.0}td"
+                          },
+                          "value": {
+                            "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                            "clazz": "td-q",
+                            "content": [
+                              {
+                                "name": {
+                                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                                  "localPart": "span",
+                                  "prefix": "",
+                                  "key": "{http://www.lexml.gov.br/1.0}span",
+                                  "string": "{http://www.lexml.gov.br/1.0}span"
+                                },
+                                "value": {
+                                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                                  "clazz": "p",
+                                  "content": [
+                                    "R$ 1.000.000,00"
+                                  ]
+                                }
+                              }
+                            ]
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "name": {
+                  "namespaceURI": "http://www.lexml.gov.br/1.0",
+                  "localPart": "p",
+                  "prefix": "",
+                  "key": "{http://www.lexml.gov.br/1.0}p",
+                  "string": "{http://www.lexml.gov.br/1.0}p"
+                },
+                "value": {
+                  "TYPE_NAME": "br_gov_lexml__1.GenInline",
+                  "content": [
+                    "São essas as razões que justificam a proposição."
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

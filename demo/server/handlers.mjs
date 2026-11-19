@@ -43,6 +43,19 @@ const tratarImportacao = contentType => {
 
 const semZeros = valor => String(valor).replace(/^0+(?=\d)/, '');
 
+// Documentos associados a uma matéria (Tela 2b da CD). `arquivo` é interno: nulo = sem texto estruturado, e não vai na resposta.
+const buscarMateria = (sigla, numero, ano) => {
+  const chave = [sigla.toUpperCase(), semZeros(numero), ano].join('/');
+  return lerJson('documentos-materia.json').find(m => [m.sigla, m.numero, m.ano].join('/') === chave);
+};
+
+const buscarDocumento = id =>
+  lerJson('documentos-materia.json')
+    .flatMap(m => m.documentos)
+    .find(d => d.id === id);
+
+const paraResposta = ({ arquivo, ...documento }) => ({ ...documento, textoEstruturadoDisponivel: !!arquivo });
+
 const buscarProposicao = (sigla, numero, ano) => {
   const chave = [sigla.toUpperCase(), semZeros(numero), ano].join('/');
   return [...lerJson('proposicoes.json'), PROPOSICAO_SEM_TEXTO, ...PROPOSICOES_PLS].find(p => [p.sigla, p.numero, p.ano].join('/') === chave);
@@ -61,6 +74,20 @@ export const tratarRequisicaoDemo = (url, metodo = 'GET', contentType = '') => {
       200,
       lerJson('comissoes.json').filter(c => c.siglaCasaLegislativa === partes[1].toUpperCase())
     );
+  }
+
+  if (partes[0] === 'materias' && partes.length === 5 && partes[4] === 'documentos') {
+    const materia = buscarMateria(partes[1], partes[2], partes[3]);
+    if (!materia) return naoEncontrado();
+    // Exercita o contexto: a subemenda substitutiva não parte de um projeto, então os documentos PL ficam de fora.
+    const subemenda = new URL(url, 'http://localhost').searchParams.get('especie') === 'subemenda';
+    return json(200, materia.documentos.filter(d => !(subemenda && d.sigla === 'PL')).map(paraResposta));
+  }
+
+  if (partes[0] === 'documentos' && partes.length === 3 && partes[2] === 'texto') {
+    const documento = buscarDocumento(partes[1]);
+    if (!documento?.arquivo) return naoEncontrado();
+    return { status: 200, tipo: 'application/json', corpo: fs.readFileSync(path.join(pastaDocs, documento.arquivo), 'utf8') };
   }
 
   if (partes[0] === 'proposicoes' && (partes.length === 4 || (partes.length === 5 && partes[4] === 'texto'))) {

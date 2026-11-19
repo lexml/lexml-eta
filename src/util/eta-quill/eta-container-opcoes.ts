@@ -1,6 +1,7 @@
 import { Elemento } from '../../model/elemento';
 import { EtaContainer } from './eta-container';
 import { EtaBlotOpcoesDiff } from './eta-blot-opcoes-diff';
+import { EtaBlotOpcoesComentario } from './eta-blot-opcoes-comentario';
 
 export class EtaContainerOpcoes extends EtaContainer {
   static blotName = 'EtaContainerOpcoes';
@@ -33,6 +34,7 @@ export class EtaContainerOpcoes extends EtaContainer {
 
   atualizarBlots(elemento: Elemento): void {
     this.blotBotaoExibirDiferencas?.atualizarElemento(elemento);
+    this.blotBotaoComentario?.atualizarElemento(elemento);
   }
 
   static atualizarAtributos(elemento: Elemento, node: HTMLElement): void {
@@ -41,5 +43,13 @@ export class EtaContainerOpcoes extends EtaContainer {
 
   get blotBotaoExibirDiferencas(): EtaBlotOpcoesDiff | undefined {
     return this.findBlot(EtaBlotOpcoesDiff.blotName) as EtaBlotOpcoesDiff;
+  }
+
+  get blotBotaoComentario(): EtaBlotOpcoesComentario | undefined {
+    return this.findBlot(EtaBlotOpcoesComentario.blotName) as EtaBlotOpcoesComentario;
+  }
+
+  get vazio(): boolean {
+    return !this.blotBotaoExibirDiferencas && !this.blotBotaoComentario;
   }
 }
