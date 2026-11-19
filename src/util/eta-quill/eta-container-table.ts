@@ -12,6 +12,7 @@ import { EtaBlotMenu } from './eta-blot-menu';
 import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
 import { EtaBlotTituloDispositivo } from './eta-blot-titulo-dispositivo';
+import { EtaContainerOpcoes } from './eta-container-opcoes';
 import { EtaContainerTdDireito } from './eta-container-td-direito';
 import { RevisaoElemento } from '../../model/revisao/revisao';
 import { EtaContainerRevisao } from './eta-container-revisao';
@@ -122,6 +123,10 @@ export class EtaContainerTable extends EtaContainer {
 
   get containerRevisao(): EtaContainerRevisao | undefined {
     return this.findBlotByBlotName(this.children, EtaContainerRevisao.blotName);
+  }
+
+  get containerOpcoes(): EtaContainerOpcoes | undefined {
+    return this.findBlotByBlotName(this.children, EtaContainerOpcoes.blotName);
   }
 
   get containerDireito(): EtaContainerTdDireito {

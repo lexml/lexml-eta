@@ -441,3 +441,91 @@ describe('Justificação — abrir notas de rodapé (especificação 07)', () =>
     expect(resalvo.value.projetoNorma.justificacao).to.deep.equal(salvo.value.projetoNorma.justificacao);
   });
 });
+
+describe('Justificação — salvar trechos comentados (task 2.1)', () => {
+  const ID = 'a1b2c3d4000040008000000000000001';
+  const com = (conteudo: string, id = ID): string => `<comentario id-sequencia-comentario="${id}">${conteudo}</comentario>`;
+  const ins = (conteudo: string, idRevisao = 'r1'): string => `<ins usuario="Fulano" date="2026-05-11 15:51:00 " id-revisao="${idRevisao}">${conteudo}</ins>`;
+  const del = (conteudo: string, idRevisao = 'r2'): string => `<del usuario="Fulano" date="2026-05-11 15:51:00 " id-revisao="${idRevisao}">${conteudo}</del>`;
+
+  const idsDe = (valor: any): string[] => {
+    if (Array.isArray(valor)) return valor.flatMap(idsDe);
+    if (!valor || typeof valor !== 'object') return [];
+    const proprio = typeof valor.id === 'string' ? [valor.id] : [];
+    return [...proprio, ...Object.values(valor).flatMap(idsDe)];
+  };
+  const montar = (html: string): ReturnType<typeof montaJustificacao> => montaJustificacao(html);
+
+  it('um fragmento recebe o sufixo _1 e o span guarda o conteúdo', () => {
+    const { justificacao, trechosComentados } = montar(`<p>Antes ${com('trecho <strong>forte</strong>')} depois.</p>`);
+    expect(trechosComentados).to.deep.equal([{ idSequencia: ID, id: `_tc${ID}_1` }]);
+    expect(simplificar(justificacao.partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento)).to.deep.equal([
+      {
+        p: {
+          TYPE_NAME: 'br_gov_lexml__1.GenInline',
+          content: [
+            'Antes ',
+            { span: { TYPE_NAME: 'br_gov_lexml__1.GenInline', id: `_tc${ID}_1`, content: ['trecho ', { b: { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: ['forte'] } }] } },
+            ' depois.',
+          ],
+        },
+      },
+    ]);
+  });
+
+  it('trecho em dois parágrafos gera dois fragmentos numerados na ordem do documento', () => {
+    const { trechosComentados } = montar(`<p>${com('um')}</p><p>${com('dois')}</p>`);
+    expect(trechosComentados.map(t => t.id)).to.deep.equal([`_tc${ID}_1`, `_tc${ID}_2`]);
+  });
+
+  it('sequências diferentes têm contadores independentes', () => {
+    const { trechosComentados } = montar(`<p>${com('a', 'x1')}${com('b', 'y1')}${com('c', 'x1')}</p>`);
+    expect(trechosComentados.map(t => t.id)).to.deep.equal(['_tcx1_1', '_tcy1_1', '_tcx1_2']);
+  });
+
+  it('mantém o ins dentro do trecho e os ids de span e ins são todos diferentes', () => {
+    const { justificacao, revisoes, trechosComentados } = montar(`<p>${com(`a ${ins('novo')} b`)}</p><p>${com('c')}</p>`);
+    expect(trechosComentados).to.have.length(2);
+    expect(revisoes.map(r => r.id)).to.deep.equal(['_rtr1_1']);
+    const ids = idsDe(justificacao);
+    expect(ids).to.have.members([`_tc${ID}_1`, `_tc${ID}_2`, '_rtr1_1']);
+    expect(new Set(ids).size).to.equal(ids.length);
+  });
+
+  it('aceita o ins por fora do comentário e o comentário dentro de del', () => {
+    const { justificacao, trechosComentados } = montar(`<p>${ins(com('fora'))}${del(com('excluído', ID), 'r2')}</p>`);
+    expect(trechosComentados.map(t => t.id)).to.deep.equal([`_tc${ID}_1`, `_tc${ID}_2`]);
+    const ids = idsDe(justificacao);
+    expect(ids).to.have.members(['_rtr1_1', `_tc${ID}_1`, '_rtr2_1', `_tc${ID}_2`]);
+  });
+
+  it('o comentário dentro de célula de tabela convive com o span de parágrafo da célula', () => {
+    const { justificacao, trechosComentados } = montar(
+      `<table table_id="t" border="1"><tbody><tr row_id="r"><td class="td-q" table_id="t" row_id="r" cell_id="c"><p>${com('na célula')}</p></td></tr></tbody></table>`
+    );
+    expect(trechosComentados.map(t => t.id)).to.deep.equal([`_tc${ID}_1`]);
+    const celula = simplificar(justificacao.partePrincipal.agrupamentoHierarquicoOrDivOrAgrupamento)[0].table.tr[0].tableCellElement[0].td;
+    const paragrafo = celula.content[0].span;
+    expect(paragrafo.clazz).to.equal('p');
+    expect(paragrafo.content[0].span.id).to.equal(`_tc${ID}_1`);
+  });
+
+  it('id fora do padrão recebe um substituto estável, igual no span e no trecho devolvido', () => {
+    const { trechosComentados } = montar(`<p>${com('a', 'id inválido!')}</p><p>${com('b', 'id inválido!')}</p>`);
+    expect(trechosComentados.map(t => t.idSequencia)).to.deep.equal(['id inválido!', 'id inválido!']);
+    const [primeiro, segundo] = trechosComentados.map(t => t.id);
+    expect(primeiro).to.match(/^_tc[A-Za-z0-9_.-]+_1$/);
+    expect(segundo).to.equal(primeiro.replace(/_1$/, '_2'));
+  });
+
+  it('marca vazia (só o caractere de cursor) ou sem id não gera span', () => {
+    const { justificacao, trechosComentados } = montar(`<p>texto${com('﻿')}<comentario>sem id</comentario></p>`);
+    expect(trechosComentados).to.deep.equal([]);
+    expect(idsDe(justificacao)).to.deep.equal([]);
+  });
+
+  it('sem comentários não devolve trechos', () => {
+    expect(montar('<p>x</p>').trechosComentados).to.deep.equal([]);
+    expect(montar('').trechosComentados).to.deep.equal([]);
+  });
+});

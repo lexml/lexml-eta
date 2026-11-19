@@ -247,6 +247,27 @@ describe('reconstroiRevisoes — situação na norma vigente do bloco de altera�
   });
 });
 
+describe('reconstroiRevisoes — id gravado do excluído → revisão reconstruída (comentários, c02)', () => {
+  it('informa, para o excluído e cada descendente, a revisão que o representa', () => {
+    a = abre1234();
+    a = elementoReducer(a, { type: REMOVER_ELEMENTO, atual: elemento(a, 'art1') });
+    const gravadas = montaRevisoesArticulacao(a)!;
+    const documento = criarDocumentoArticulado(a.articulacao!.projetoNorma!, URN, {}, {}, { revisoes: gravadas });
+    const projetoNorma = buildProjetoNormaFromJsonix(documento, true);
+    const aberto = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
+    const mapa = new Map<string, string>();
+    const reconstruidas = reconstroiRevisoes(aberto.articulacao!, lerRevisoesArticulacao(gravadas), undefined, mapa);
+    const idsGravados = Object.values(gravadas.idsGravadosDosExcluidos!);
+
+    expect(mapa.size).to.be.greaterThan(1);
+    expect(mapa.get('_art1-exc1')).to.equal(reconstruidas[0].id);
+    // Todo ref gravado num excluído (o caput vale o artigo) tem uma revisão reconstruída correspondente.
+    idsGravados.forEach(id => expect(mapa.get(id) ?? mapa.get(id.replace(/_cpt$/, '')), id).to.be.a('string'));
+    const ids = new Set(reconstruidas.map(r => r.id));
+    Array.from(mapa.values()).forEach(id => expect(ids.has(id)).to.equal(true));
+  });
+});
+
 describe('reconstroiRevisoes — alteracaoRotulo: valores reconstruídos (MPV 1234/2024)', () => {
   beforeEach(() => {
     a = abre1234();

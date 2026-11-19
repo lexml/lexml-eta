@@ -30,5 +30,7 @@
 # Downloads gerados pelos testes E2E do Cypress
 cypress/downloads/
 docs/sessao/
+/bin/
+/.classpath
 
 .github/

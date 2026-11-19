@@ -286,6 +286,46 @@ export class EtaKeyboard extends Keyboard {
     if (linha) this.quill.setIndex(this.quill.getIndex(linha.blotConteudo) + linha.blotConteudo.tamanho, PrivateQuill.sources.USER);
   }
 
+  // Na última (↓) ou primeira (↑) linha visual do texto, o navegador pularia vizinhos vazios (#1072): vai ao vizinho na mesma coluna.
+  private irParaVizinhoNaMesmaColuna(indice: number, linha: EtaContainerTable, direcao: 'prev' | 'next'): boolean {
+    const inicio = this.quill.getIndex(linha.blotConteudo);
+    const extremo = direcao === 'next' ? inicio + linha.blotConteudo.tamanho : inicio;
+    const cursor = this.quill.getBounds(indice);
+    if (!this.mesmaLinhaVisual(cursor, this.quill.getBounds(extremo))) {
+      return false;
+    }
+    const vizinho = this.linhaEditavel(linha, direcao);
+    if (vizinho) {
+      this.quill.setIndex(this.indiceNaColuna(vizinho, direcao, cursor.left), PrivateQuill.sources.USER);
+    }
+    return true;
+  }
+
+  private mesmaLinhaVisual(a: { top: number; height: number }, b: { top: number; height: number }): boolean {
+    return Math.abs(a.top - b.top) < Math.max(a.height, b.height) / 2;
+  }
+
+  // Índice da primeira (↓) ou última (↑) linha visual do texto do vizinho mais próximo de "esquerda".
+  private indiceNaColuna(vizinho: EtaContainerTable, direcao: 'prev' | 'next', esquerda: number): number {
+    const inicio = this.quill.getIndex(vizinho.blotConteudo);
+    const fim = inicio + vizinho.blotConteudo.tamanho;
+    const passo = direcao === 'next' ? 1 : -1;
+    const primeiro = direcao === 'next' ? inicio : fim;
+    const linhaVisual = this.quill.getBounds(primeiro);
+    let melhor = primeiro;
+    let menorDistancia = Math.abs(linhaVisual.left - esquerda);
+    for (let i = primeiro + passo; i >= inicio && i <= fim; i += passo) {
+      const bounds = this.quill.getBounds(i);
+      if (!this.mesmaLinhaVisual(bounds, linhaVisual)) break;
+      const distancia = Math.abs(bounds.left - esquerda);
+      if (distancia < menorDistancia) {
+        melhor = i;
+        menorDistancia = distancia;
+      }
+    }
+    return melhor;
+  }
+
   private onTeclaArrowRight(ev: KeyboardEvent): void {
     const range: QuillRange = this.quill.getSelection(true);
     const [blotCursor, offset] = this.quill.getLine(range.index);
@@ -313,6 +353,8 @@ export class EtaKeyboard extends Keyboard {
     if (offset === 0 || this.quill.cursorDeTextoEstaSobreOmissis()) {
       this.irParaFim(this.linhaEditavel(blotCursor.linha, 'prev'));
       cancelarPropagacaoDoEvento(ev);
+    } else if (!ev.shiftKey && !this.quill.isProcessandoMudancaLinha && this.irParaVizinhoNaMesmaColuna(range.index, blotCursor.linha, 'prev')) {
+      cancelarPropagacaoDoEvento(ev);
     }
 
     if (this.quill.isProcessandoMudancaLinha) {
@@ -326,6 +368,8 @@ export class EtaKeyboard extends Keyboard {
 
     if (offset === blotCursor.tamanho || this.quill.cursorDeTextoEstaSobreOmissis()) {
       this.irParaInicio(this.linhaEditavel(blotCursor.linha, 'next'));
+      cancelarPropagacaoDoEvento(ev);
+    } else if (!ev.shiftKey && !this.quill.isProcessandoMudancaLinha && this.irParaVizinhoNaMesmaColuna(range.index, blotCursor.linha, 'next')) {
       cancelarPropagacaoDoEvento(ev);
     }
 

@@ -291,6 +291,39 @@ describe('montaRevisoesArticulacao (MPV 905/2019)', () => {
       expect(r.capitulo.rotulo).to.equal('CAPÍTULO I');
     });
 
+    describe('mapa uuid2 → id gravado (comentários, c02)', () => {
+      const uuid2 = (id: string): string => buscaDispositivoById(state.articulacao!, id)!.uuid2!;
+      const mapa = (): Record<string, string> => montaRevisoesArticulacao(state)!.idsGravadosDosExcluidos ?? {};
+
+      it('artigo excluído com filhos: o artigo aponta para o caput, e cada descendente para o próprio id gravado', () => {
+        const [art, inc, par] = [uuid2('art6'), uuid2('art6_cpt_inc1'), uuid2('art6_par1')];
+        exclui('art6');
+        expect(mapa()[art]).to.equal('_art6-exc1_cpt');
+        expect(mapa()[inc]).to.equal('_art6-exc1_cpt_inc1');
+        expect(mapa()[par]).to.equal('_art6-exc1_par1');
+        expect(coletaIds(revisoes()[0].artigo)).to.include.members([mapa()[art], mapa()[inc], mapa()[par]]);
+      });
+
+      it('inciso excluído', () => {
+        const inc = uuid2('art6_cpt_inc1');
+        exclui('art6_cpt_inc1');
+        expect(mapa()[inc]).to.equal('_art6_cpt_inc1-exc1');
+      });
+
+      it('duas exclusões no mesmo pai: cada uma com o próprio id', () => {
+        const primeiro = uuid2('art2');
+        exclui('art2');
+        const segundo = uuid2('art2');
+        exclui('art2');
+        expect([mapa()[primeiro], mapa()[segundo]]).to.deep.equal(['_art2-exc1_cpt', '_art2-exc2_cpt']);
+      });
+
+      it('sem exclusão não há mapa', () => {
+        alteraTexto('art1_par1u_inc1', 'primeiro alterado;');
+        expect(montaRevisoesArticulacao(state)!.idsGravadosDosExcluidos).to.be.undefined;
+      });
+    });
+
     it('revisões não excluídas vêm antes das exclusões', () => {
       exclui('art2');
       alteraTexto('art1_par1u_inc1', 'primeiro alterado;');

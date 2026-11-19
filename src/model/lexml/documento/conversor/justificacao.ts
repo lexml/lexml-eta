@@ -4,7 +4,9 @@ import { decodeHtml, encodeHtml } from '../../../../util/string-util';
 import { formatDateTime, formatDateTimeToIso } from '../../../../util/date-util';
 import { generateUUID } from '../../../../util/uuid';
 import { Usuario } from '../../../revisao/usuario';
+import { COMENTARIO_ID_ATTRIBUTE, COMENTARIO_TAG } from '../../../../components/editor-texto-rico/texto-rico-util';
 import type { RevisaoTextualLida } from '../documentoArticulado';
+import type { SequenciaComentario } from '../../../comentario/comentario';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -50,14 +52,29 @@ export interface RevisaoTextualMontada {
   data: string;
 }
 
-// Estado da varredura que gera os `id` das marcas (design D1/D2).
+/** Fragmento de trecho comentado gravado: sequência de origem e `id` do `span` (`_tc<id>_<n>`). */
+export interface TrechoComentadoMontado {
+  idSequencia: string;
+  id: string;
+}
+
+// Estado da varredura que gera os `id` das marcas e dos trechos comentados (design D1/D2).
 interface VarreduraRevisoes {
   revisoes: RevisaoTextualMontada[];
   porIdRevisao: Map<string, number>;
   idsSubstitutos: Map<string, string>;
+  trechosComentados: TrechoComentadoMontado[];
+  porSequencia: Map<string, number>;
 }
 
 export const PREFIXO_ID_REVISAO_TEXTUAL = '_rt';
+export const PREFIXO_ID_TRECHO_COMENTADO = '_tc';
+
+// `_tc<id>_<n>` → `<id>`; sem sufixo, o resto é o id (exemplo da especificação 08). Outro prefixo (dispositivo da articulação) não é trecho.
+export const idSequenciaDoRef = (ref: unknown): string | undefined => {
+  if (typeof ref !== 'string' || !ref.startsWith(PREFIXO_ID_TRECHO_COMENTADO)) return undefined;
+  return ref.slice(PREFIXO_ID_TRECHO_COMENTADO.length).replace(/_\d+$/, '') || undefined;
+};
 
 // O id gravado é `_rt<id-revisao>_<n>`; o id-revisao precisa caber num NCName.
 const ID_REVISAO_VALIDO = /^[A-Za-z0-9_.-]+$/;
@@ -92,6 +109,16 @@ const montaMarcaRevisao = (el: Element, varredura: VarreduraRevisoes): any => {
   return elemento(el.tagName.toLowerCase(), comConteudo({ TYPE_NAME: 'br_gov_lexml__1.GenInline', id }, montaInline(el.childNodes, varredura)));
 };
 
+// Um `span` por fragmento, numerado por sequência na ordem do documento; o id substituto vale também para o refIdElementoComentado.
+const montaTrechoComentado = (el: Element, idSequencia: string, varredura: VarreduraRevisoes): any => {
+  const idEfetivo = idRevisaoEfetivo(varredura, idSequencia);
+  const n = (varredura.porSequencia.get(idEfetivo) ?? 0) + 1;
+  varredura.porSequencia.set(idEfetivo, n);
+  const id = `${PREFIXO_ID_TRECHO_COMENTADO}${idEfetivo}_${n}`;
+  varredura.trechosComentados.push({ idSequencia, id });
+  return elemento('span', comConteudo({ TYPE_NAME: 'br_gov_lexml__1.GenInline', id }, montaInline(el.childNodes, varredura)));
+};
+
 // Sem varredura (texto da nota de rodapé), `ins`/`del` ficam só com o conteúdo.
 const montaInline = (nos: NodeListOf<ChildNode> | ChildNode[], varredura?: VarreduraRevisoes): any[] =>
   Array.from(nos).flatMap((no): any[] => {
@@ -102,6 +129,8 @@ const montaInline = (nos: NodeListOf<ChildNode> | ChildNode[], varredura?: Varre
     if (el.tagName === 'IMG') return [montaImagem(el as HTMLElement)];
     if (el.tagName === 'LEXML-ETA-NOTA-RODAPE') return [montaNotaRodape(el)];
     if ((el.tagName === 'INS' || el.tagName === 'DEL') && varredura && !ehMarcaVazia(el)) return [montaMarcaRevisao(el, varredura)];
+    const idSequencia = el.tagName.toLowerCase() === COMENTARIO_TAG ? el.getAttribute(COMENTARIO_ID_ATTRIBUTE) : null;
+    if (idSequencia && varredura && !ehMarcaVazia(el)) return [montaTrechoComentado(el, idSequencia, varredura)];
     const tag = INLINE[el.tagName];
     if (!tag) return montaInline(el.childNodes, varredura);
     const value: any = { TYPE_NAME: 'br_gov_lexml__1.GenInline', ...classe(el) };
@@ -189,6 +218,8 @@ export interface JustificacaoMontada {
   /** undefined se não houver conteúdo. */
   justificacao?: any;
   revisoes: RevisaoTextualMontada[];
+  /** Fragmentos dos trechos comentados, na ordem do documento. */
+  trechosComentados: TrechoComentadoMontado[];
 }
 
 export const montaJustificacao = (html: string | undefined): JustificacaoMontada => {
@@ -196,9 +227,9 @@ export const montaJustificacao = (html: string | undefined): JustificacaoMontada
   template.innerHTML = html ?? '';
   const container = document.createElement('div');
   container.append(template.content);
-  if (!temConteudo(container)) return { revisoes: [] };
+  if (!temConteudo(container)) return { revisoes: [], trechosComentados: [] };
 
-  const varredura: VarreduraRevisoes = { revisoes: [], porIdRevisao: new Map(), idsSubstitutos: new Map() };
+  const varredura: VarreduraRevisoes = { revisoes: [], porIdRevisao: new Map(), idsSubstitutos: new Map(), trechosComentados: [], porSequencia: new Map() };
   let tabelas = 0;
   const blocos = Array.from(container.childNodes).flatMap((no): any[] => {
     if (no.nodeType === Node.TEXT_NODE) return no.textContent?.trim() ? [elemento('p', { TYPE_NAME: 'br_gov_lexml__1.GenInline', content: [escapar(no.textContent)] })] : [];
@@ -217,6 +248,7 @@ export const montaJustificacao = (html: string | undefined): JustificacaoMontada
       partePrincipal: { TYPE_NAME: 'br_gov_lexml__1.PartePrincipal', agrupamentoHierarquicoOrDivOrAgrupamento: blocos },
     },
     revisoes: varredura.revisoes,
+    trechosComentados: varredura.trechosComentados,
   };
 };
 
@@ -277,7 +309,8 @@ const criaNotaRodape = (value: any): HTMLElement => {
   return el;
 };
 
-// `ins`/`del` levam o `id` gravado até lerJustificacao aplicar os atributos do editor.
+// `ins`/`del` levam o `id` gravado até lerJustificacao aplicar os atributos do editor; todo `span` `_tc` vira
+// `comentario`, e lerJustificacao desembrulha os que não têm sequência.
 const criaInline = (content: any[] | undefined, comRevisoes = true): Node[] =>
   (content ?? []).flatMap((item): Node[] => {
     if (typeof item === 'string') return [document.createTextNode(item)];
@@ -290,7 +323,15 @@ const criaInline = (content: any[] | undefined, comRevisoes = true): Node[] =>
       marca.append(...criaInline(item.value?.content));
       return [marca];
     }
-    // Inline desconhecido (Remissao...): só o texto.
+    const idSequencia = tag === 'span' && comRevisoes ? idSequenciaDoRef(item.value?.id) : undefined;
+    if (idSequencia) {
+      const trecho = document.createElement(COMENTARIO_TAG);
+      trecho.setAttribute(COMENTARIO_ID_ATTRIBUTE, idSequencia);
+      trecho.append(...criaInline(item.value?.content, comRevisoes));
+      return [trecho];
+    }
+    // Inline desconhecido (Remissao...), `span` `_tc` sem id de sequência: só o texto.
+    if (tag === 'span' && item.value?.id?.startsWith?.(PREFIXO_ID_TRECHO_COMENTADO)) return criaInline(item.value?.content, comRevisoes);
     if (!tag || !TAGS_INLINE.has(tag)) return criaInline(item?.value?.content, comRevisoes);
     const el = document.createElement(tag);
     aplicaAtributos(el, item.value);
@@ -393,9 +434,9 @@ const criaBloco = (item: any): Node[] => {
 
 /**
  * HTML para o editor da justificação a partir de todas as `Justificacao` do documento; '' quando não há. Nunca lança erro.
- * `revisoesTextuais` (de lerMetadadoLexEdit) dá autor e data aos `ins`/`del`.
+ * `revisoesTextuais` (de lerMetadadoLexEdit) dá autor e data aos `ins`/`del`; `comentariosLidos`, as sequências que viram trecho comentado.
  */
-export const lerJustificacao = (documento: any, revisoesTextuais: Record<string, RevisaoTextualLida> = {}): string => {
+export const lerJustificacao = (documento: any, revisoesTextuais: Record<string, RevisaoTextualLida> = {}, comentariosLidos: Record<string, SequenciaComentario> = {}): string => {
   const justificacoes = documento?.value?.projetoNorma?.justificacao;
   const container = document.createElement('div');
   for (const justificacao of Array.isArray(justificacoes) ? justificacoes : []) {
@@ -416,5 +457,10 @@ export const lerJustificacao = (documento: any, revisoesTextuais: Record<string,
     nota.textContent = String(i + 1);
   });
   container.querySelectorAll(`ins[${ATRIBUTO_ID_GRAVADO}], del[${ATRIBUTO_ID_GRAVADO}]`).forEach(marca => aplicaAtributosRevisao(marca, revisoesTextuais));
+  // Trecho sem sequência no arquivo volta como texto comum.
+  const sequencias = new Set(Object.keys(comentariosLidos));
+  container.querySelectorAll(COMENTARIO_TAG).forEach(trecho => {
+    if (!sequencias.has(trecho.getAttribute(COMENTARIO_ID_ATTRIBUTE) ?? '')) trecho.replaceWith(...Array.from(trecho.childNodes));
+  });
   return container.innerHTML;
 };

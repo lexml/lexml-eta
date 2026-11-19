@@ -58,3 +58,4 @@ operations:
         edited files into semantically correct commits; give each one a concise description
         (no file listing, no "AI-sounding" tone); never commit directly — present the commit
         plan for the user's approval first; never list yourself as a co-author.
+skillsScope: project

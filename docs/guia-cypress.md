@@ -24,6 +24,7 @@
 12. [Diagnóstico de Falhas Comuns](#12-diagnóstico-de-falhas-comuns)
 13. [Técnicas de Diagnóstico Avançado](#13-técnicas-de-diagnóstico-avançado)
 14. [Comportamentos do Editor que Afetam Qualquer E2E](#14-comportamentos-do-editor-que-afetam-qualquer-e2e)
+15. [Eventos Nativos de Teclado e Mouse (CDP)](#15-eventos-nativos-de-teclado-e-mouse-cdp)
 
 ---
 
@@ -377,6 +378,34 @@ Quando vários `setTimeout` competem, capturar `new Error().stack` no momento do
 - **14.4 (Playwright/colaboração) Instrumentar a camada de sync:** `console.log` temporário em `src/collab/*` + captura por página (`page.on('console', ...)`, prefixos `A>`/`B>`) localiza em qual lado e passo o fluxo de convergência quebra.
 
 **Arquivos relacionados:** `cypress/e2e/transformacao/tab-artigo-em-paragrafo.cy.ts`, `cypress/e2e/revisao/revisao.cy.ts`, `src/components/editor/editor.component.ts` (`processarStateEvents`).
+
+---
+
+## 15. Eventos Nativos de Teclado e Mouse (CDP)
+
+**Cenário:** o comportamento depende do que o **navegador** faz com a tecla ou o clique: mover o cursor nativo (Home, End, setas), posicionar a seleção pelo clique, rolar a tela. `cy.type()`/`trigger()` geram eventos sintéticos (`isTrusted` falso): os handlers rodam, mas a ação padrão do navegador não acontece. Exemplos: o bug da #1077 (Home rolando ao topo) só aparece com Home e clique nativos; o da #1070 (End + Shift+Home desmarcando a seleção), só com a seleção estendida pelo navegador.
+
+**Quando não usar:** se o teste só precisa que os handlers do editor rodem, os eventos sintéticos bastam e são mais rápidos. CDP só funciona em navegadores Chromium (Electron e Chrome do Cypress).
+
+Os helpers ficam em `cypress/support/eventos-nativos.ts`: `teclaNativa(tecla, modifiers)`, `cliqueNativo(win, x, y)`, `arrastoNativo(win, x1, y1, x2, y2)` (botão pressionado, com `mouseMoved` em passos), as teclas `TECLA_HOME`/`TECLA_END` e as setas (`TECLA_SETA_DIREITA`, `TECLA_SETA_ESQUERDA`, `TECLA_SETA_ABAIXO`, `TECLA_SETA_ACIMA`) e os modificadores `ALT`/`CTRL`/`SHIFT`. As coordenadas recebidas são as da aplicação (`getBoundingClientRect` dentro do iframe).
+
+```typescript
+import { SHIFT, TECLA_END, TECLA_HOME, cliqueNativo, teclaNativa } from '../../support/eventos-nativos';
+
+cy.window().then(win => {
+  const r = alvo.getBoundingClientRect();
+  return cliqueNativo(win, r.left + 50, r.top + 5);
+});
+cy.then(() => teclaNativa(TECLA_END));
+cy.then(() => teclaNativa(TECLA_HOME, SHIFT));
+```
+
+- **Sempre dentro de `cy.then`** (devolvendo a Promise): `Cypress.automation` não é um comando enfileirado. Chamado direto no corpo do teste, roda na montagem da fila, antes de qualquer `cy.visit`/`cy.get`, e o evento se perde sem erro.
+- **Coordenadas** (já tratadas no módulo): o CDP usa coordenadas da janela do runner, não do iframe da aplicação. Some a posição de `iframe.aut-iframe` (obtido por `win.top.document`; `win.frameElement` vem `null`) e multiplique pela escala (`frame.width / win.innerWidth`), porque o runner reduz o iframe para caber no painel.
+- **Teclas:** `type: 'keyDown'` (não `rawKeyDown`) com `key`, `code` e `windowsVirtualKeyCode`; modificadores pelo bitmask `modifiers` (Alt=1, Ctrl=2, Meta=4, Shift=8).
+- O evento vai para o elemento com foco no navegador: clique (nativo) no editor antes de teclar.
+
+**Arquivos relacionados:** `cypress/support/eventos-nativos.ts`, `cypress/e2e/edicao/home-sem-rolagem.cy.ts`, `cypress/e2e/edicao/selecao-shift-home.cy.ts` (seleção com Shift e arrasto do mouse), `cypress/e2e/edicao/setas-dispositivo-vizinho.cy.ts` (↓/↑ e documento montado a partir de uma fixture com `selectFile({ contents })`).
 
 ---
 

@@ -117,12 +117,18 @@ export class EtaQuill extends PrivateQuill {
       e.preventDefault();
     });
     this.root.addEventListener('click', this.customClickHandler);
+    this.focarRootSemRolagem();
+  }
+
+  // Com o foco no <p> do dispositivo, o Quill chama root.focus() a cada setSelection, e o Chrome rolava ao topo (#1077).
+  private focarRootSemRolagem(): void {
+    this.root.focus = (opcoes?: FocusOptions): void => HTMLElement.prototype.focus.call(this.root, opcoes ?? { preventScroll: true });
   }
 
   customClickHandler = (ev: MouseEvent): void => {
     try {
       let blot = EtaQuill.find(ev.target as HTMLElement);
-      if (['EtaBlotOpcoesDiff'].includes(blot.instanceBlotName)) {
+      if (['EtaBlotOpcoesDiff', 'EtaBlotOpcoesComentario'].includes(blot.instanceBlotName)) {
         return;
       }
       while (blot && blot.instanceBlotName !== 'EtaContainerTable') {
@@ -305,7 +311,9 @@ export class EtaQuill extends PrivateQuill {
         blotCursor.tagName === EtaBlotTipoOmissis.tagName ||
         blotCursor.tagName === EtaBlotExistencia.tagName
       ) {
-        if (blotCursor.linha.blotConteudo) this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, PrivateQuill.sources.SILENT);
+        if (blotCursor.linha.blotConteudo && !this.recortarSelecaoNoInicioDoTexto(range, blotCursor.linha)) {
+          this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, PrivateQuill.sources.SILENT);
+        }
       } else if (blotCursor.tagName === EtaBlotFechaAspas.tagName || blotCursor.tagName === EtaBlotNotaAlteracao.tagName) {
         this.setSelection(this.getIndex(blotCursor.linha.blotFechaAspas) - 1, 0, PrivateQuill.sources.SILENT);
       }
@@ -327,6 +335,26 @@ export class EtaQuill extends PrivateQuill {
       return true;
     }
     return false;
+  }
+
+  // Seleção que alcança o rótulo (End + Shift+Home, arrasto) começa no início do texto, no mesmo sentido (#1070).
+  private recortarSelecaoNoInicioDoTexto(range: QuillRange, linha: EtaContainerTable): boolean {
+    const inicio = this.getIndex(linha.blotConteudo);
+    const fim = range.index + range.length;
+    const nativa = document.getSelection();
+    if (range.length === 0 || fim <= inicio || !nativa?.rangeCount) {
+      return false;
+    }
+    const paraTras = nativa.focusNode !== nativa.getRangeAt(0).endContainer || nativa.focusOffset !== nativa.getRangeAt(0).endOffset;
+    const selecao = (this as any).selection;
+    const [noInicio, offsetInicio, noFim, offsetFim] = selecao.rangeToNative({ index: inicio, length: fim - inicio });
+    if (paraTras) {
+      nativa.setBaseAndExtent(noFim, offsetFim, noInicio, offsetInicio);
+    } else {
+      nativa.setBaseAndExtent(noInicio, offsetInicio, noFim, offsetFim);
+    }
+    selecao.update(PrivateQuill.sources.SILENT);
+    return true;
   }
 
   observableSelectionChange = new Observable<EtaContainerTable>();

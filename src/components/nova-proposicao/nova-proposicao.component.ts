@@ -805,7 +805,7 @@ export class NovaProposicaoComponent extends LitElement {
     this.avisoImportacao = undefined;
     if (!arquivo) return;
     if (!EXTENSOES_ARQUIVO.includes(extensaoDe(arquivo.name))) {
-      this.erroArquivo = 'Formato não aceito. Selecione um arquivo PDF, DOCX, TXT ou LexML (XML ou JSON).';
+      this.erroArquivo = 'Formato não aceito. Selecione um arquivo DOCX, TXT ou PDF do Editor.';
     } else if (arquivo.size > LIMITE_ARQUIVO_BYTES) {
       this.erroArquivo = 'O arquivo excede o limite de 5 MB.';
     }
@@ -1171,7 +1171,7 @@ export class NovaProposicaoComponent extends LitElement {
       <p>Como você quer iniciar?</p>
       ${this.renderAlertasImportacao()}
       <sl-radio-group>
-        ${this.opcao('vazio', 'Texto vazio')} ${this.opcao('importar', 'Importar documento (PDF, DOCX, TXT ou LexML)')}
+        ${this.opcao('vazio', 'Texto vazio')} ${this.opcao('importar', 'Importar documento (DOCX, TXT ou PDF do Editor)')}
         ${this.opcaoTexto === 'importar'
           ? html`<div class="np-subopcao">
               <label>Arquivo <input type="file" id="np-arquivo" accept=".pdf,.docx,.txt,.xml,.json" @change=${(e: Event): void => this.onArquivo(e)} /></label>

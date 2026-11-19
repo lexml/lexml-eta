@@ -3,6 +3,7 @@ import { EtaBlotRevisaoAceitar } from './eta-blot-revisao-aceitar';
 import { Elemento } from '../../model/elemento';
 import { EtaContainer } from './eta-container';
 import { EtaBlotRevisao } from './eta-blot-revisao';
+import { EtaBlotOpcoesComentario } from './eta-blot-opcoes-comentario';
 
 export class EtaContainerRevisao extends EtaContainer {
   static blotName = 'EtaContainerRevisao';
@@ -37,6 +38,7 @@ export class EtaContainerRevisao extends EtaContainer {
     this.blotBotaoAceitarRevisao?.atualizarElemento(elemento);
     this.blotBotaoRejeitarRevisao?.atualizarElemento(elemento);
     this.blotInfoRevisao?.atualizarElemento(elemento);
+    this.blotBotaoComentario?.atualizarElemento(elemento);
   }
 
   static atualizarAtributos(elemento: Elemento, node: HTMLElement): void {
@@ -53,5 +55,9 @@ export class EtaContainerRevisao extends EtaContainer {
 
   get blotInfoRevisao(): EtaBlotRevisao | undefined {
     return this.findBlot(EtaBlotRevisao.blotName) as EtaBlotRevisao;
+  }
+
+  get blotBotaoComentario(): EtaBlotOpcoesComentario | undefined {
+    return this.findBlot(EtaBlotOpcoesComentario.blotName) as EtaBlotOpcoesComentario;
   }
 }
