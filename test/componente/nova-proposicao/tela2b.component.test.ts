@@ -517,7 +517,6 @@ describe('lexml-nova-proposicao — Tela 2b (documento de origem na CD)', () => 
       expect(chamadasDe('textoDocumento')).to.deep.equal([{ id: 'd2' }]);
       expect(chamadasDe('texto')).to.deep.equal([]);
       expect(r.detail.texto).to.equal(TEXTO);
-      expect(r.detail.documentoImportado).to.equal(undefined);
       expect(r.detail.urn).to.match(/^urn:lex:br:camara\.deputados:subemenda\.substitutiva;ssp:\d{4};999999$/);
       expect(r.detail.urnDocumentoReferenciado).to.equal('urn:lex:br:camara.deputados:projeto.lei;pl:2026;12');
     });

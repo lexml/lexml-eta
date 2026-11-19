@@ -93,7 +93,7 @@ interface AvisoImportacao {
   linhas: string[];
 }
 
-type ConteudoInicial = Pick<ResultadoNovaProposicao, 'texto' | 'documentoImportado'>;
+type ConteudoInicial = Pick<ResultadoNovaProposicao, 'texto'>;
 
 type DesfechoImportacao = { documento: unknown } | { erros: string[] } | { aviso: AvisoImportacao } | 'falha';
 
@@ -895,7 +895,7 @@ export class NovaProposicaoComponent extends LitElement {
         this.errosConversao = desfecho.erros;
         this.tela = 3;
       } else {
-        this.concluir({ documentoImportado: desfecho.documento });
+        this.concluir({ texto: desfecho.documento });
       }
       return;
     }
@@ -923,7 +923,7 @@ export class NovaProposicaoComponent extends LitElement {
     this.dispatchEvent(new CustomEvent(EVENTO_CONCLUIDA, { detail: this.montarResultado(conteudo), bubbles: true, composed: true }));
   }
 
-  private montarResultado({ texto, documentoImportado }: ConteudoInicial = {}): ResultadoNovaProposicao {
+  private montarResultado({ texto }: ConteudoInicial = {}): ResultadoNovaProposicao {
     const { urn, urnDocumentoReferenciado } = montaUrnNovaProposicao(this.dados, this.numeroOriginal);
     const colegiadoDestino = this.colegiadoDestino;
     const detail: ResultadoNovaProposicao = {
@@ -933,7 +933,6 @@ export class NovaProposicaoComponent extends LitElement {
       preambulo: getPreambuloNovaProposicao(urn),
       colegiadoDestino,
       ...(texto !== undefined && { texto }),
-      ...(documentoImportado !== undefined && { documentoImportado }),
       anexoParecer: this.anexoParecer,
     };
     return detail;
