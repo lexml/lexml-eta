@@ -11,7 +11,7 @@ O componente SHALL receber um objeto de configuração com a casa legislativa do
 
 #### Scenario: Conclusão do fluxo
 - **WHEN** o usuário aciona **Continuar** na última tela aplicável
-- **THEN** o componente emite um evento cujo `detail` contém: `urn`, `urnDocumentoReferenciado` (quando houver), `epigrafe`, `preambulo`, `colegiadoDestino`, `texto` (quando parte do documento referenciado ou de outra proposição), `documentoImportado` (quando parte de arquivo importado) e `anexoParecer`
+- **THEN** o componente emite um evento cujo `detail` contém: `urn`, `urnDocumentoReferenciado` (quando houver), `epigrafe`, `preambulo`, `colegiadoDestino`, `texto` (quando parte do documento referenciado, de outra proposição ou de arquivo importado) e `anexoParecer`
 
 #### Scenario: Vocabulário inicializado pelo componente
 - **WHEN** o componente é criado ou recebe uma nova configuração
@@ -23,7 +23,7 @@ O componente SHALL receber um objeto de configuração com a casa legislativa do
 
 #### Scenario: Campos condicionais ausentes
 - **WHEN** o documento não é substitutivo, subemenda substitutiva nem PLV, e o texto inicial é vazio
-- **THEN** o `detail` não contém `urnDocumentoReferenciado`, `texto` nem `documentoImportado`
+- **THEN** o `detail` não contém `urnDocumentoReferenciado` nem `texto`
 
 #### Scenario: Cancelamento
 - **WHEN** o usuário aciona **Cancelar** em qualquer tela
@@ -54,7 +54,7 @@ O componente SHALL receber um objeto de configuração com a casa legislativa do
 - **THEN** a configuração é aceita para essa origem e as telas são exibidas
 
 ### Requirement: Conteúdo do resultado
-O `detail` do evento de conclusão SHALL conter: `urn` (URN do novo documento); `urnDocumentoReferenciado` (URN do documento referenciado, em substitutivo, subemenda substitutiva e PLV; no substitutivo do `SF` é a URN do documento referenciado sem o sufixo de versão do substitutivo); `epigrafe`, montada pelo serviço do vocabulário a partir de `urn` e `urnDocumentoReferenciado`; `preambulo`, obtido do vocabulário; `colegiadoDestino` (tipo e, em Comissão, a sigla da comissão), sempre presente; `texto`, o documento articulado, apenas quando o texto inicial vem do documento referenciado ou de outra proposição; `documentoImportado`, o documento articulado, apenas quando o texto inicial vem de arquivo importado; e `anexoParecer`, booleano. `texto` e `documentoImportado` MUST NOT estar presentes ao mesmo tempo.
+O `detail` do evento de conclusão SHALL conter: `urn` (URN do novo documento); `urnDocumentoReferenciado` (URN do documento referenciado, em substitutivo, subemenda substitutiva e PLV; no substitutivo do `SF` é a URN do documento referenciado sem o sufixo de versão do substitutivo); `epigrafe`, montada pelo serviço do vocabulário a partir de `urn` e `urnDocumentoReferenciado`; `preambulo`, obtido do vocabulário; `colegiadoDestino` (tipo e, em Comissão, a sigla da comissão), sempre presente; `texto`, o documento articulado, apenas quando o texto inicial vem do documento referenciado, de outra proposição ou de arquivo importado (nos três casos o host o repassa como documento de modelo, do qual o `lexml-eta` aproveita apenas a ementa e a articulação); e `anexoParecer`, booleano.
 
 #### Scenario: Substitutivo da CD a partir do texto referenciado
 - **WHEN** o usuário conclui um substitutivo da `CD` com a opção do documento referenciado
@@ -62,7 +62,7 @@ O `detail` do evento de conclusão SHALL conter: `urn` (URN do novo documento); 
 
 #### Scenario: Texto importado
 - **WHEN** o usuário conclui com a opção de importação e a conversão tem sucesso
-- **THEN** `documentoImportado` contém o documento articulado resultante, e o `detail` não contém `texto`
+- **THEN** `texto` contém o documento articulado resultante
 
 ### Requirement: Epígrafe e preâmbulo obtidos do vocabulário
 O componente SHALL obter `preambulo` do vocabulário (texto padrão por tipo e autoridade) e `epigrafe` do serviço de epígrafe do vocabulário (`montaEpigrafe`), a partir de `urn`, `urnDocumentoReferenciado` e um sufixo opcional, e MUST depender apenas dessa interface. No `SF`, o componente SHALL informar o sufixo `- PLEN` quando o destino é Plenário e `- <sigla da comissão>` quando é Comissão; na `CD`, MUST NOT informar sufixo. Quando o tipo não tiver texto padrão, o próprio componente SHALL aplicar o fallback do preâmbulo, sem alterar a função de obtenção do texto padrão nem a abertura de documentos.
@@ -600,11 +600,11 @@ A configuração SHALL aceitar os callbacks opcionais `onObterComissoes`, `onVer
 - **THEN** a lista de comissões vem do callback
 
 ### Requirement: Callback de importação de arquivo
-`onImportarArquivo` SHALL receber o arquivo selecionado, já validado quanto a extensão e tamanho (o callback MUST NOT ser chamado para arquivo recusado nem para arquivo `.json`), e o contexto do documento (requisito "Contexto do documento") como segundo parâmetro, e devolver `{ texto?, erros }`, com `texto` o documento articulado e `erros` lista de mensagens. Com `erros` não vazio, o componente SHALL levar à Tela 3; com `erros` vazio, SHALL concluir com `texto` como documento importado. Promise rejeitada ou exceção SHALL ter o efeito da falha do serviço de conversão (requisito "Conversão por URL").
+`onImportarArquivo` SHALL receber o arquivo selecionado, já validado quanto a extensão e tamanho (o callback MUST NOT ser chamado para arquivo recusado nem para arquivo `.json`), e o contexto do documento (requisito "Contexto do documento") como segundo parâmetro, e devolver `{ texto?, erros }`, com `texto` o documento articulado e `erros` lista de mensagens. Com `erros` não vazio, o componente SHALL levar à Tela 3; com `erros` vazio, SHALL concluir com o `texto` devolvido como texto inicial. Promise rejeitada ou exceção SHALL ter o efeito da falha do serviço de conversão (requisito "Conversão por URL").
 
 #### Scenario: Importação com sucesso
 - **WHEN** `onImportarArquivo` devolve `{ texto, erros: [] }`
-- **THEN** o fluxo é concluído e o `detail` contém o `texto` devolvido em `documentoImportado`
+- **THEN** o fluxo é concluído e o `detail` contém o `texto` devolvido
 
 #### Scenario: Importação com erros
 - **WHEN** `onImportarArquivo` devolve `erros` não vazio
@@ -631,7 +631,7 @@ A configuração SHALL aceitar os callbacks opcionais `onObterComissoes`, `onVer
 - **THEN** a importação funciona como antes
 
 ### Requirement: Conversão por URL
-Sem o callback `onImportarArquivo`, o componente SHALL enviar o arquivo à URL de importação (`urlImportacaoArquivo`) por `POST`, com o conteúdo do arquivo no corpo (não multipart) e o cabeçalho `Content-Type` determinado pela extensão: `application/pdf` (`.pdf`), `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (`.docx`), `text/plain` (`.txt`) e `application/xml` (`.xml`). A URL SHALL aceitar os placeholders do requisito "Entrega do contexto do documento ao host". A resposta `200` SHALL trazer no corpo o documento articulado em JSONIX, que conclui o fluxo como documento importado. A resposta `400` SHALL exibir na Tela 2 um alerta de aviso com o título "O arquivo não pôde ser importado", o corpo da resposta como texto puro (ou "O serviço de conversão recusou o arquivo.", se vazio) e a orientação "Selecione outro arquivo ou escolha outra forma de iniciar o texto.". Qualquer outra resposta, corpo `200` que não seja JSON ou falha de rede SHALL exibir na Tela 2 um alerta de erro "Não foi possível converter o arquivo "<nome do arquivo>": o serviço de conversão apresentou uma falha. Tente novamente em alguns instantes.", sem exibir o corpo da resposta. Nos dois alertas, o usuário SHALL permanecer na Tela 2, podendo trocar o arquivo ou acionar **Continuar** novamente, e o alerta SHALL sair ao trocar o arquivo ou a opção de texto inicial.
+Sem o callback `onImportarArquivo`, o componente SHALL enviar o arquivo à URL de importação (`urlImportacaoArquivo`) por `POST`, com o conteúdo do arquivo no corpo (não multipart) e o cabeçalho `Content-Type` determinado pela extensão: `application/pdf` (`.pdf`), `application/vnd.openxmlformats-officedocument.wordprocessingml.document` (`.docx`), `text/plain` (`.txt`) e `application/xml` (`.xml`). A URL SHALL aceitar os placeholders do requisito "Entrega do contexto do documento ao host". A resposta `200` SHALL trazer no corpo o documento articulado em JSONIX, que conclui o fluxo como texto inicial. A resposta `400` SHALL exibir na Tela 2 um alerta de aviso com o título "O arquivo não pôde ser importado", o corpo da resposta como texto puro (ou "O serviço de conversão recusou o arquivo.", se vazio) e a orientação "Selecione outro arquivo ou escolha outra forma de iniciar o texto.". Qualquer outra resposta, corpo `200` que não seja JSON ou falha de rede SHALL exibir na Tela 2 um alerta de erro "Não foi possível converter o arquivo "<nome do arquivo>": o serviço de conversão apresentou uma falha. Tente novamente em alguns instantes.", sem exibir o corpo da resposta. Nos dois alertas, o usuário SHALL permanecer na Tela 2, podendo trocar o arquivo ou acionar **Continuar** novamente, e o alerta SHALL sair ao trocar o arquivo ou a opção de texto inicial.
 
 #### Scenario: Envio do arquivo
 - **WHEN** o usuário importa `proposicao.pdf` sem o callback `onImportarArquivo`
@@ -639,7 +639,7 @@ Sem o callback `onImportarArquivo`, o componente SHALL enviar o arquivo à URL d
 
 #### Scenario: Conversão com sucesso
 - **WHEN** a URL de importação responde `200` com um documento articulado em JSONIX
-- **THEN** o fluxo é concluído e o `detail` contém esse documento em `documentoImportado`
+- **THEN** o fluxo é concluído e o `detail` contém esse documento em `texto`
 
 #### Scenario: Arquivo recusado pelo serviço
 - **WHEN** a URL de importação responde `400` com o corpo "Conversão de DOCX ou TXT não implementada."
@@ -749,11 +749,11 @@ Enquanto o componente aguarda o host (importação de arquivo ou obtenção de t
 - **THEN** **Voltar** e **Cancelar** ficam desabilitados até a resposta
 
 ### Requirement: Importação de JSON
-O arquivo `.json` SHALL ser lido pelo próprio componente como documento articulado em JSONIX, sem chamar a URL de importação nem o callback `onImportarArquivo`, e o conteúdo SHALL concluir o fluxo como documento importado. Conteúdo que não seja um JSON válido SHALL exibir na Tela 2 um alerta de aviso "O arquivo JSON não pôde ser lido: o conteúdo não é um JSON válido.", mantendo o usuário na Tela 2. O componente MUST NOT validar a estrutura do documento além de ser um JSON; essa validação é do `lexml-eta`.
+O arquivo `.json` SHALL ser lido pelo próprio componente como documento articulado em JSONIX, sem chamar a URL de importação nem o callback `onImportarArquivo`, e o conteúdo SHALL concluir o fluxo como texto inicial. Conteúdo que não seja um JSON válido SHALL exibir na Tela 2 um alerta de aviso "O arquivo JSON não pôde ser lido: o conteúdo não é um JSON válido.", mantendo o usuário na Tela 2. O componente MUST NOT validar a estrutura do documento além de ser um JSON; essa validação é do `lexml-eta`.
 
 #### Scenario: JSON lido direto
 - **WHEN** o usuário importa um arquivo `.json` com um documento articulado
-- **THEN** nenhuma requisição é feita, nenhum callback é chamado, e o `detail` contém o documento em `documentoImportado`
+- **THEN** nenhuma requisição é feita, nenhum callback é chamado, e o `detail` contém o documento em `texto`
 
 #### Scenario: JSON inválido
 - **WHEN** o usuário importa um arquivo `.json` cujo conteúdo não é um JSON válido
