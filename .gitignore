@@ -32,3 +32,5 @@ cypress/downloads/
 docs/sessao/
 /bin/
 /.classpath
+
+.github/
