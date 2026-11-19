@@ -387,7 +387,7 @@ Quando vários `setTimeout` competem, capturar `new Error().stack` no momento do
 
 **Quando não usar:** se o teste só precisa que os handlers do editor rodem, os eventos sintéticos bastam e são mais rápidos. CDP só funciona em navegadores Chromium (Electron e Chrome do Cypress).
 
-Os helpers ficam em `cypress/support/eventos-nativos.ts`: `teclaNativa(tecla, modifiers)`, `cliqueNativo(win, x, y)`, `arrastoNativo(win, x1, y1, x2, y2)` (botão pressionado, com `mouseMoved` em passos), as teclas `TECLA_HOME`/`TECLA_END` e as setas (`TECLA_SETA_DIREITA`, `TECLA_SETA_ESQUERDA`, `TECLA_SETA_ABAIXO`, `TECLA_SETA_ACIMA`) e os modificadores `ALT`/`CTRL`/`SHIFT`. As coordenadas recebidas são as da aplicação (`getBoundingClientRect` dentro do iframe).
+Os helpers ficam em `cypress/support/eventos-nativos.ts`: `teclaNativa(tecla, modifiers)`, `cliqueNativo(win, x, y)`, `duploCliqueNativo(win, x, y)` (seleciona a palavra), `arrastoNativo(win, x1, y1, x2, y2)` (botão pressionado, com `mouseMoved` em passos), as teclas `TECLA_HOME`/`TECLA_END` e as setas (`TECLA_SETA_DIREITA`, `TECLA_SETA_ESQUERDA`, `TECLA_SETA_ABAIXO`, `TECLA_SETA_ACIMA`) e os modificadores `ALT`/`CTRL`/`SHIFT`. As coordenadas recebidas são as da aplicação (`getBoundingClientRect` dentro do iframe).
 
 ```typescript
 import { SHIFT, TECLA_END, TECLA_HOME, cliqueNativo, teclaNativa } from '../../support/eventos-nativos';
@@ -405,7 +405,7 @@ cy.then(() => teclaNativa(TECLA_HOME, SHIFT));
 - **Teclas:** `type: 'keyDown'` (não `rawKeyDown`) com `key`, `code` e `windowsVirtualKeyCode`; modificadores pelo bitmask `modifiers` (Alt=1, Ctrl=2, Meta=4, Shift=8).
 - O evento vai para o elemento com foco no navegador: clique (nativo) no editor antes de teclar.
 
-**Arquivos relacionados:** `cypress/support/eventos-nativos.ts`, `cypress/e2e/edicao/home-sem-rolagem.cy.ts`, `cypress/e2e/edicao/selecao-shift-home.cy.ts` (seleção com Shift e arrasto do mouse), `cypress/e2e/edicao/setas-dispositivo-vizinho.cy.ts` (↓/↑ e documento montado a partir de uma fixture com `selectFile({ contents })`).
+**Arquivos relacionados:** `cypress/support/eventos-nativos.ts`, `cypress/e2e/edicao/home-sem-rolagem.cy.ts`, `cypress/e2e/edicao/selecao-shift-home.cy.ts` (seleção com Shift, arrasto e duplo clique; no artigo, o "º" do rótulo se junta à primeira palavra e o duplo clique alcança o rótulo), `cypress/e2e/edicao/setas-dispositivo-vizinho.cy.ts` (↓/↑ e documento montado a partir de uma fixture com `selectFile({ contents })`).
 
 ---
 

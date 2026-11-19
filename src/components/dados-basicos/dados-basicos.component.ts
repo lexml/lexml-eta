@@ -19,8 +19,8 @@ export class DadosBasicosComponent extends LitElement {
 
   private get colegiadoDescricao(): string {
     const colegiado = this.colegiadoApreciador;
-    if (colegiado?.tipoColegiado === 'Comissão') return colegiado.siglaComissao ? `Comissão (${colegiado.siglaComissao})` : 'Comissão';
-    return colegiado?.tipoColegiado ?? 'Plenário';
+    const tipo = colegiado?.tipoColegiado ?? 'Plenário';
+    return colegiado?.siglaComissao ? `${tipo} (${colegiado.siglaComissao})` : tipo;
   }
 
   // O substitutivo do Senado não tem ano próprio: o da URN é o da proposição substituída.

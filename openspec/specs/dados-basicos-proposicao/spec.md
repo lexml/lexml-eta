@@ -7,7 +7,7 @@ Define como o `lexml-eta` exibe os dados básicos do documento em edição (tipo
 ## Requirements
 
 ### Requirement: Grupo de dados básicos
-A aba "Dados da proposição" SHALL exibir, antes dos demais grupos, o grupo "Dados básicos" com: a descrição do documento, sem rótulo; o ano do documento, exceto no substitutivo do Senado; o colegiado apreciador; "Apresentado em parecer" (Sim ou Não); e o botão "Alterar dados básicos".
+A aba "Dados da proposição" SHALL exibir, antes dos demais grupos, o grupo "Dados básicos" com: a descrição do documento, sem rótulo; o ano do documento, exceto no substitutivo do Senado; o colegiado apreciador, com a sigla da comissão entre parênteses quando houver, inclusive no Plenário; "Apresentado em parecer" (Sim ou Não); e o botão "Alterar dados básicos".
 
 #### Scenario: Proposição em Plenário
 - **WHEN** o documento em edição é um PL do Senado de 2026, com colegiado Plenário e sem anexo de parecer
@@ -16,6 +16,10 @@ A aba "Dados da proposição" SHALL exibir, antes dos demais grupos, o grupo "Da
 #### Scenario: Colegiado em comissão
 - **WHEN** o colegiado apreciador é Comissão com sigla `CCJ`
 - **THEN** o grupo exibe o colegiado como "Comissão (CCJ)"
+
+#### Scenario: Plenário com comissão
+- **WHEN** o colegiado apreciador é Plenário com sigla de comissão `CCJC`
+- **THEN** o grupo exibe o colegiado como "Plenário (CCJC)"
 
 #### Scenario: Substitutivo do Senado sem ano
 - **WHEN** o documento em edição é substitutivo do Senado

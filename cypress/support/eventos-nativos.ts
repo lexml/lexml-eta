@@ -31,6 +31,15 @@ export const cliqueNativo = async (win: Window, x: number, y: number): Promise<v
   await cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', ...params });
 };
 
+// Duplo clique: o segundo mousePressed com clickCount 2 faz o navegador selecionar a palavra.
+export const duploCliqueNativo = async (win: Window, x: number, y: number): Promise<void> => {
+  const ponto = paraJanelaDoRunner(win, x, y);
+  for (const clickCount of [1, 2]) {
+    await cdp('Input.dispatchMouseEvent', { type: 'mousePressed', ...ponto, button: 'left', clickCount });
+    await cdp('Input.dispatchMouseEvent', { type: 'mouseReleased', ...ponto, button: 'left', clickCount });
+  }
+};
+
 // Arrasto com o botão esquerdo pressionado, em passos, de (x1, y1) até (x2, y2), em coordenadas da aplicação.
 export const arrastoNativo = async (win: Window, x1: number, y1: number, x2: number, y2: number, passos = 5): Promise<void> => {
   await cdp('Input.dispatchMouseEvent', { type: 'mousePressed', ...paraJanelaDoRunner(win, x1, y1), button: 'left', clickCount: 1 });
