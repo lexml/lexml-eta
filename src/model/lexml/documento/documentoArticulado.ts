@@ -96,7 +96,7 @@ export interface MetadadoLexEditProvisorio {
 export interface DadosLexEdit {
   anexoParecer?: boolean;
   urnDocumentoReferenciado?: string;
-  // Ao salvar, o instante informado pelo editor; ao abrir, o valor lido como gravado.
+  // Só na escrita: instante da exportação que será gravado no arquivo.
   dataUltimaModificacao?: string;
   local?: string;
   // 'AAAA-MM-DD'; ausente ou vazia significa data não informada.
@@ -122,6 +122,9 @@ export interface DadosLexEdit {
   // Só na leitura: autor e data de cada `ins`/`del` da justificação, por `refIdRevisao`.
   revisoesTextuais?: Record<string, RevisaoTextualLida>;
 }
+
+/** Grupos recuperados do arquivo; o instante de salvamento não integra os dados de edição. */
+export type DadosLexEditLidos = Omit<DadosLexEdit, 'dataUltimaModificacao'>;
 
 /** `lexedit:RevisaoTextual` lida do arquivo; `dataHora` no formato interno (`AAAA-MM-DD HH:mm:ss`, horário local). */
 export interface RevisaoTextualLida {

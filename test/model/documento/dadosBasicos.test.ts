@@ -44,7 +44,6 @@ const dadosBasicos = (parcial: Partial<DadosBasicos> = {}): DadosBasicos => ({
 const contexto = (parcial: Partial<ContextoDadosBasicos> = {}): ContextoDadosBasicos => ({
   urnAtual: URN_PL_SF,
   anexoParecerAtual: false,
-  dataUltimaModificacao: ULTIMA_MODIFICACAO,
   ...parcial,
 });
 
@@ -105,17 +104,12 @@ describe('Aplicação dos dados básicos ao documento serializado', () => {
     expect(lexedit).not.to.have.property('outrosMetadados');
   });
 
-  it('descarta o local do fecho, mantendo a data, e preserva a data da última modificação original', () => {
-    const novo = aplicarDadosBasicos(salvarCompleto(), dadosBasicos(), contexto({ dataUltimaModificacao: '2026-01-01T00:00:00-03:00' }));
+  it('descarta o local do fecho, mantendo a data, e remove o instante de salvamento do documento intermediário', () => {
+    const novo = aplicarDadosBasicos(salvarCompleto(), dadosBasicos(), contexto());
     const lexedit = lexeditSalvo(novo);
     expect(lexedit).not.to.have.property('local');
     expect(lexedit.data).to.equal('2026-10-01');
     expect(norma(novo).parteFinal.localDataFecho).to.be.undefined;
-    expect(lexedit.dataUltimaModificacao).to.equal('2026-01-01T00:00:00-03:00');
-  });
-
-  it('sem data original, remove a data da última modificação', () => {
-    const lexedit = lexeditSalvo(aplicarDadosBasicos(salvarCompleto(), dadosBasicos(), contexto({ dataUltimaModificacao: undefined })));
     expect(lexedit).not.to.have.property('dataUltimaModificacao');
   });
 
@@ -173,7 +167,7 @@ describe('Aplicação dos dados básicos ao documento serializado', () => {
 
   it('cria o metadado do LexEdit quando o documento não o tem', () => {
     const documento = novoDocumentoArticulado();
-    const novo = aplicarDadosBasicos(documento, dadosBasicos({ colegiadoApreciador: new ColegiadoApreciador() }), contexto({ dataUltimaModificacao: undefined }));
+    const novo = aplicarDadosBasicos(documento, dadosBasicos({ colegiadoApreciador: new ColegiadoApreciador() }), contexto());
     expect(lexeditSalvo(novo).anexoParecer).to.be.false;
   });
 });

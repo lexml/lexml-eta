@@ -145,13 +145,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   @state()
   private urnDocumentoReferenciado?: string;
 
-  private _dataUltimaModificacaoDocumento?: string;
-
-  /** `dataUltimaModificacao` do documento aberto, como gravada; salvar não a altera. Não é o campo "Data" do fecho. */
-  get dataUltimaModificacaoDocumento(): string | undefined {
-    return this._dataUltimaModificacaoDocumento;
-  }
-
   // Documento que não é proposição suportada (ex.: MPV, norma): sem colegiado e autoria, com erro na aba de avisos.
   @state()
   private tipoNaoSuportado = false;
@@ -368,7 +361,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.sequenciasComentario = [...this.ligarComentariosDaArticulacao(dados.comentariosArticulacaoLidos, revisaoPorIdNoArquivo), ...daJustificacao];
     this.outrosMetadados = dados.outrosMetadados ?? {};
     this.urnDocumentoReferenciado = dados.urnDocumentoReferenciado;
-    this._dataUltimaModificacaoDocumento = dados.dataUltimaModificacao;
     this.aplicarAnexos(dados.anexos);
   }
 
@@ -394,7 +386,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         aplicarDadosBasicos(serializado, dados, {
           urnAtual: this.urn,
           anexoParecerAtual: this.anexoParecer,
-          dataUltimaModificacao: this._dataUltimaModificacaoDocumento,
         })
       );
     } catch (err) {
@@ -587,7 +578,6 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     this.localDoArquivo = undefined;
     this.colegiadoApreciador = undefined;
     this.outrosMetadados = {};
-    this._dataUltimaModificacaoDocumento = undefined;
     this.notasRodape = [];
     this.sequenciasComentario = [];
     this.idSequenciaComentarioAtual = undefined;

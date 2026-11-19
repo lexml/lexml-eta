@@ -12,7 +12,7 @@ import PrivateQuill from '../../../../internal/quill/private-quill';
 import { ANO_PROVISORIO, getAno, getPreambuloPadrao, getTipo, getTipoDocumentoUrn } from '../urnUtil';
 import { Anexo, Autoria, ColegiadoApreciador, MimeType, OpcoesImpressao, Parlamentar, SIGLAS_CASA_COLEGIADO, TIPOS_COLEGIADO } from '../../../proposicao/proposicao';
 import { TIPO_ANEXO_NAO_INFORMADO } from '../../../proposicao/tipoAnexo';
-import { ComentarioArticulacaoLido, DadosLexEdit, RevisaoArticulacaoLida, RevisaoTextualLida } from '../documentoArticulado';
+import { ComentarioArticulacaoLido, DadosLexEdit, DadosLexEditLidos, RevisaoArticulacaoLida, RevisaoTextualLida } from '../documentoArticulado';
 import { SituacaoNaNormaVigente } from './situacaoNaNormaVigente';
 import { NAMESPACE_LEXEDIT } from './buildJsonixFromProjetoNorma';
 import { idSequenciaDoRef, PREFIXO_ID_TRECHO_COMENTADO } from './justificacao';
@@ -237,7 +237,7 @@ export const lerAnexos = (lido: any): Anexo[] | undefined => {
 };
 
 /** Lê os grupos de formulário de `MetadadoProprietario/lexedit:Metadado`, ignorando grupos desconhecidos. */
-export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
+export const lerMetadadoLexEdit = (documento: any): DadosLexEditLidos => {
   const lexedit = lerConteudoLexEdit(documento);
   const opcoesImpressao = lerOpcoesImpressao(lexedit?.opcoesImpressao);
   const autoria = lerAutoria(lexedit?.autoria);
@@ -248,11 +248,9 @@ export const lerMetadadoLexEdit = (documento: any): DadosLexEdit => {
   const comentariosArticulacaoLidos = lerComentariosArticulacao(lexedit);
   const outrosMetadados = lerOutrosMetadados(lexedit?.outrosMetadados);
   const anexos = lerAnexos(lexedit?.anexos);
-  const dataUltimaModificacao = lerDataUltimaModificacao(lexedit?.dataUltimaModificacao);
   return {
     ...(lexedit?.anexoParecer === true && { anexoParecer: true }),
     ...(textoNaoVazio(lexedit?.urnDocumentoReferenciado) && { urnDocumentoReferenciado: lexedit.urnDocumentoReferenciado.trim() }),
-    ...(dataUltimaModificacao && { dataUltimaModificacao }),
     ...lerFecho(lexedit),
     ...(opcoesImpressao && { opcoesImpressao }),
     ...(autoria && { autoria }),

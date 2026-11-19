@@ -79,7 +79,8 @@ Ao converter em XML um documento salvo pelo editor e convertê-lo de volta em JS
 #### Scenario: Data da última modificação na ida e volta
 - **WHEN** um documento salvo com `dataUltimaModificacao` é convertido em XML, convertido de volta em JSON e aberto
 - **THEN** o XML contém o atributo `dataUltimaModificacao` em `lexedit:Metadado` e é válido pelo `schemas/lexedit.xsd`
-- **AND** a propriedade `dataUltimaModificacaoDocumento` do componente contém o mesmo valor gravado
+- **AND** abrir o documento não expõe nem conserva o valor lido no estado de edição
+- **AND** o próximo documento exportado contém o instante dessa nova exportação
 
 #### Scenario: Salvar de novo difere só na data da última modificação
 - **WHEN** um documento salvo pelo editor é aberto e salvo de novo, sem alterações, num instante posterior
@@ -417,7 +418,7 @@ Ao salvar um documento de tipo "não suportado" (URN que não é de proposição
 - **THEN** nenhum alerta de documento não suportado é exibido
 
 ### Requirement: Data da última modificação no arquivo
-Ao salvar, o sistema SHALL gravar em `lexedit:Metadado` o atributo `dataUltimaModificacao` com o instante do salvamento, no formato `xsd:dateTime` com o fuso horário local (ISO 8601, precisão de segundos). Cada salvamento SHALL gravar o seu próprio instante, sem reaproveitar a data lida do arquivo aberto. Os atributos `aplicacao` e `versaoAplicacao` SHALL NOT ser gravados e SHALL ser ignorados ao abrir.
+Ao exportar um documento para salvamento, o sistema SHALL gravar em `lexedit:Metadado` `dataUltimaModificacao` com o instante da exportação, no formato `xsd:dateTime` com fuso horário local (ISO 8601, precisão de segundos). A abertura SHALL ignorar esse atributo e não o manter no estado de edição. Os atributos `aplicacao` e `versaoAplicacao` SHALL NOT ser gravados e SHALL ser ignorados ao abrir.
 
 #### Scenario: Salvar grava o instante do salvamento
 - **WHEN** o usuário salva um documento em 29/10/2026, às 10:15:30 no horário local, com fuso de -03:00
@@ -427,6 +428,10 @@ Ao salvar, o sistema SHALL gravar em `lexedit:Metadado` o atributo `dataUltimaMo
 - **WHEN** o usuário abre um arquivo com `dataUltimaModificacao="2026-05-12T10:15:00-03:00"` e o salva
 - **THEN** o arquivo salvo traz o instante do novo salvamento em `dataUltimaModificacao`, e não a data lida
 
+#### Scenario: Data inválida é ignorada ao abrir
+- **WHEN** o usuário abre um arquivo com `dataUltimaModificacao="ontem"` e outros metadados válidos
+- **THEN** o documento abre normalmente e os demais metadados válidos são aplicados
+
 #### Scenario: Aplicação e versão não gravadas
 - **WHEN** o usuário salva um documento
 - **THEN** o `lexedit:Metadado` do arquivo salvo não contém `aplicacao` nem `versaoAplicacao`
@@ -434,33 +439,6 @@ Ao salvar, o sistema SHALL gravar em `lexedit:Metadado` o atributo `dataUltimaMo
 #### Scenario: Arquivo com aplicação e versão é aberto
 - **WHEN** o usuário abre um arquivo cujo `lexedit:Metadado` traz `aplicacao="LexEdit"` e `versaoAplicacao="1.0.0"`
 - **THEN** o documento abre normalmente, sem erro, e os dois atributos são ignorados
-
-### Requirement: Propriedade pública da data da última modificação
-O componente `LexmlEtaComponent` SHALL expor a propriedade pública somente leitura `dataUltimaModificacaoDocumento`, com o valor de `dataUltimaModificacao` lido do documento aberto, como gravado no arquivo. A propriedade SHALL ficar indefinida quando o atributo estiver ausente ou não for uma data e hora válida, numa nova proposição e depois de `fecharDocumento()`. Valor ausente ou inválido SHALL NOT impedir a abertura do documento. Obter o documento para salvar SHALL NOT alterar a propriedade.
-
-#### Scenario: Abrir arquivo com a data
-- **WHEN** o usuário abre um arquivo com `dataUltimaModificacao="2026-05-12T10:15:00-03:00"`
-- **THEN** a propriedade `dataUltimaModificacaoDocumento` do componente contém `2026-05-12T10:15:00-03:00`
-
-#### Scenario: Abrir arquivo sem a data
-- **WHEN** o usuário abre um arquivo sem `dataUltimaModificacao`, depois de ter aberto outro que a tinha
-- **THEN** a propriedade `dataUltimaModificacaoDocumento` fica indefinida
-
-#### Scenario: Data inválida no arquivo
-- **WHEN** o usuário abre um arquivo com `dataUltimaModificacao="ontem"`
-- **THEN** o documento abre normalmente, a propriedade fica indefinida e os demais metadados válidos são aplicados
-
-#### Scenario: Nova proposição
-- **WHEN** o host cria uma nova proposição depois de ter aberto um arquivo com `dataUltimaModificacao`
-- **THEN** a propriedade `dataUltimaModificacaoDocumento` fica indefinida
-
-#### Scenario: Documento fechado
-- **WHEN** o host chama `fecharDocumento()` com um documento aberto que tinha `dataUltimaModificacao`
-- **THEN** a propriedade `dataUltimaModificacaoDocumento` fica indefinida
-
-#### Scenario: Salvar não altera a propriedade
-- **WHEN** o usuário abre um arquivo com `dataUltimaModificacao="2026-05-12T10:15:00-03:00"` e obtém o documento para salvar
-- **THEN** a propriedade `dataUltimaModificacaoDocumento` continua com `2026-05-12T10:15:00-03:00`
 
 ### Requirement: Comentários compatíveis com o conversor LexML
 

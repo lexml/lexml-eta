@@ -141,7 +141,7 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
   });
 
-  it('modo de anexo de parecer, documento referenciado e data da última modificação vão e voltam pelo CLI', async () => {
+  it('o CLI preserva a data no arquivo, mas a leitura para edição a ignora', async () => {
     const modelo = buildProjetoNormaFromJsonix(novoDocumentoArticulado(), true);
     const urnDocumentoReferenciado = 'urn:lex:br:senado.federal:projeto.lei;pl:2025;10';
     const dataUltimaModificacao = '2026-10-29T10:15:30-03:00';
@@ -155,9 +155,12 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(retorno.xml).not.to.match(/aplicacao=|versaoAplicacao=/);
     expect(retorno.jsonix.value.metadado.metadadoProprietario).to.deep.equal(salvo.value.metadado.metadadoProprietario);
     const dados = lerMetadadoLexEdit(retorno.jsonix);
-    expect(dados).to.deep.equal({ anexoParecer: true, urnDocumentoReferenciado, dataUltimaModificacao });
+    expect(dados).to.deep.equal({ anexoParecer: true, urnDocumentoReferenciado });
     const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix), true);
-    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados)).to.deep.equal(salvo);
+    const reexportado = criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados);
+    const lexeditReexportado = reexportado.value.metadado.metadadoProprietario?.[0].any[0].value;
+    expect(lexeditReexportado).not.to.have.property('dataUltimaModificacao');
+    expect(lexeditReexportado).to.include({ anexoParecer: true, urnDocumentoReferenciado });
   });
 
   it('documento de tipo não suportado grava a pendência de documento não suportado', async () => {

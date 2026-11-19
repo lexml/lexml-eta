@@ -40,8 +40,11 @@ describe('Data da última modificação — salvar (especificação 13)', () => 
 
 describe('Data da última modificação — abrir', () => {
   ['2026-05-12T10:15:00-03:00', '2026-05-12T13:15:00Z', '2026-05-12T10:15:00.123-03:00', '2026-05-12T10:15:00'].forEach(valor => {
-    it(`lê o valor como gravado (${valor})`, () => {
-      expect(lerMetadadoLexEdit(documentoCom({ dataUltimaModificacao: valor })).dataUltimaModificacao).to.equal(valor);
+    it(`ignora o valor do arquivo (${valor}) sem afetar outros metadados`, () => {
+      const dados = lerMetadadoLexEdit(documentoCom({ dataUltimaModificacao: valor, opcoesImpressao }));
+
+      expect(dados).to.not.have.property('dataUltimaModificacao');
+      expect(dados.opcoesImpressao?.tamanhoFonte).to.equal(16);
     });
   });
 
@@ -59,14 +62,18 @@ describe('Data da última modificação — abrir', () => {
 
     expect(dados).to.not.have.property('aplicacao');
     expect(dados).to.not.have.property('versaoAplicacao');
-    expect(dados.dataUltimaModificacao).to.equal(DATA);
+    expect(dados).to.not.have.property('dataUltimaModificacao');
   });
 
-  it('salvar o documento reaberto com os dados lidos gera o mesmo arquivo', () => {
-    const salvo = salvar({ dataUltimaModificacao: DATA });
+  it('salvar o documento reaberto com os dados lidos não reaproveita o timestamp', () => {
+    const salvo = salvar({ dataUltimaModificacao: DATA, opcoesImpressao });
     const documento = lerDocumentoArticulado(salvo);
     const reaberto = buildProjetoNormaFromJsonix(documento, true);
+    const dados = lerMetadadoLexEdit(documento);
+    const salvoDeNovo = criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, dados);
 
-    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, lerMetadadoLexEdit(documento))).to.deep.equal(salvo);
+    expect(dados).to.not.have.property('dataUltimaModificacao');
+    expect(lexeditSalvo(salvoDeNovo)).not.to.have.property('dataUltimaModificacao');
+    expect(lexeditSalvo(salvoDeNovo).opcoesImpressao.tamanhoFonte).to.equal(16);
   });
 });

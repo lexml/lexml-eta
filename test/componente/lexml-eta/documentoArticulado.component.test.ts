@@ -297,39 +297,39 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(Date.parse(segundo) - Date.parse(primeiro)).to.equal(65_000);
     });
 
-    it('abrir um arquivo com a data preenche a propriedade, e obter o documento não a altera', async () => {
+    it('abrir ignora a data do arquivo e exportar grava um instante novo', async () => {
       await component.abrirDocumentoArticulado(salvoCom(DATA_ARQUIVO));
-      expect(component.dataUltimaModificacaoDocumento).to.equal(DATA_ARQUIVO);
+      expect(component).not.to.have.property('dataUltimaModificacaoDocumento');
 
       const salvo = component.getDocumentoArticulado();
 
       expect(lexeditSalvo(salvo).dataUltimaModificacao).to.not.equal(DATA_ARQUIVO);
-      expect(component.dataUltimaModificacaoDocumento).to.equal(DATA_ARQUIVO);
+      expect(component).not.to.have.property('dataUltimaModificacaoDocumento');
     });
 
-    it('abrir um arquivo sem a data, depois de outro que a tinha, deixa a propriedade indefinida', async () => {
+    it('abrir arquivo sem a data não altera os demais metadados nem expõe propriedade', async () => {
       await component.abrirDocumentoArticulado(salvoCom(DATA_ARQUIVO));
       await component.abrirDocumentoArticulado(salvoCom(undefined));
 
-      expect(component.dataUltimaModificacaoDocumento).to.be.undefined;
+      expect(component).not.to.have.property('dataUltimaModificacaoDocumento');
       expect(opcoesImpressao().tamanhoFonte).to.equal(18);
     });
 
-    it('data inválida no arquivo deixa a propriedade indefinida e aplica os demais metadados', async () => {
+    it('ignora data inválida e aplica os demais metadados', async () => {
       await component.abrirDocumentoArticulado(salvoCom('ontem'));
 
-      expect(component.dataUltimaModificacaoDocumento).to.be.undefined;
+      expect(component).not.to.have.property('dataUltimaModificacaoDocumento');
       expect(opcoesImpressao().tamanhoFonte).to.equal(18);
     });
 
-    it('nova proposição e documento fechado deixam a propriedade indefinida', async () => {
+    it('a propriedade não existe em nova proposição nem após fechar documento', async () => {
       await component.abrirDocumentoArticulado(salvoCom(DATA_ARQUIVO));
       await component.novaProposicao({ urn: 'urn:lex:br:senado.federal:projeto.lei;pl:9999;999999', epigrafe: 'PROJETO DE LEI', preambulo: '' });
-      expect(component.dataUltimaModificacaoDocumento).to.be.undefined;
+      expect(component).not.to.have.property('dataUltimaModificacaoDocumento');
 
       await component.abrirDocumentoArticulado(salvoCom(DATA_ARQUIVO));
       component.fecharDocumento();
-      expect(component.dataUltimaModificacaoDocumento).to.be.undefined;
+      expect(component).not.to.have.property('dataUltimaModificacaoDocumento');
     });
   });
 

@@ -55,7 +55,7 @@ describe('LexmlEtaComponent — alterarDadosBasicos', () => {
     if (rootStore.getState().elementoReducer.emRevisao) rootStore.dispatch({ type: ATIVAR_DESATIVAR_REVISAO });
   });
 
-  it('altera os dados básicos e mantém o texto, a autoria, a justificação e a data da última modificação', async () => {
+  it('altera os dados básicos, mantém o texto e demais dados e não preserva a data de entrada', async () => {
     campoAutoria().autoria = { ...new Autoria(), parlamentares: [davi] };
     campoJustificativa().setContent('<p>Justifica.</p>');
     const textoAntes = textoArtigo(salvo());
@@ -69,7 +69,9 @@ describe('LexmlEtaComponent — alterarDadosBasicos', () => {
     expect(textoArtigo(depois)).to.equal(textoAntes);
     expect(lexedit.autoria.parlamentares.parlamentar.map((p: any) => p.identificacao)).to.deep.equal(['1111']);
     expect(depois.value.projetoNorma.justificacao).to.not.be.undefined;
-    expect(component.dataUltimaModificacaoDocumento).to.equal(ULTIMA_MODIFICACAO);
+    expect(lexedit.dataUltimaModificacao).not.to.equal(ULTIMA_MODIFICACAO);
+    expect(Date.parse(lexedit.dataUltimaModificacao)).not.to.be.NaN;
+    expect(component).not.to.have.property('dataUltimaModificacaoDocumento');
     expect(erros).to.have.length(0);
   });
 

@@ -17,8 +17,6 @@ export interface DadosBasicos {
 export interface ContextoDadosBasicos {
   urnAtual: string;
   anexoParecerAtual: boolean;
-  // Mantida no documento no lugar da data do instante da serialização.
-  dataUltimaModificacao?: string;
 }
 
 const getLexEdit = (documento: DocumentoArticulado): MetadadoLexEdit => {
@@ -80,8 +78,7 @@ export const aplicarDadosBasicos = (original: DocumentoArticulado, dados: DadosB
   if (norma.parteFinal) delete norma.parteFinal.localDataFecho;
   if (norma.parteFinal && !norma.parteFinal.localDataFecho && !norma.parteFinal.assinaturaTexto) delete norma.parteFinal;
 
-  if (contexto.dataUltimaModificacao) lexedit.dataUltimaModificacao = contexto.dataUltimaModificacao;
-  else delete lexedit.dataUltimaModificacao;
+  delete lexedit.dataUltimaModificacao;
 
   removerLexEditVazio(documento);
   return documento;
