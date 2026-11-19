@@ -1396,6 +1396,25 @@ export class NovaProposicaoComponent extends LitElement {
     if (!this._config) return html``;
     return html`
       <style>
+        /* O componente se desenha no DOM do hospedeiro: fixa espaçamento, fonte, título e rótulos para não depender do CSS global dele. */
+        lexml-nova-proposicao {
+          display: block;
+          padding: var(--sl-spacing-large, 1.25rem);
+          font-family: var(--sl-font-sans, system-ui, sans-serif);
+          font-size: var(--sl-font-size-medium, 1rem);
+          line-height: var(--sl-line-height-normal, 1.5);
+          color: var(--sl-color-neutral-700, #333);
+          --sl-input-label-font-weight: var(--sl-font-weight-semibold, 600);
+          --sl-input-label-color: var(--sl-color-neutral-700, #333);
+        }
+        lexml-nova-proposicao h3 {
+          margin: 0 0 16px;
+          font-family: inherit;
+          font-size: var(--sl-font-size-large, 1.125rem);
+          font-weight: var(--sl-font-weight-semibold, 600);
+          line-height: 1.3;
+          color: var(--sl-color-neutral-900, #111);
+        }
         lexml-nova-proposicao fieldset {
           border: 1px solid var(--sl-color-gray-300, #ccc);
           border-radius: 4px;

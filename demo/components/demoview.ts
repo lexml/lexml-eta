@@ -586,7 +586,7 @@ export class DemoView extends LitElement {
             id="dialogNovaProposicao"
             open
             label=${this.dadosBasicosEmEdicao ? 'Alterar dados básicos' : 'Nova proposição'}
-            style="--width: 46rem"
+            style="--width: 46rem; --body-spacing: 0"
             no-header
             @sl-hide=${(e: Event): void => {
               if (e.target === e.currentTarget) this.modalNovaProposicao = false;

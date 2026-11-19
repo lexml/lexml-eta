@@ -537,6 +537,7 @@ nova.addEventListener('nova-proposicao-cancelada', () => fecharModal());
     fecharModal();
   });
   ```
+- **Espaçamento.** O componente tem padding interno próprio (`--sl-spacing-large`, cerca de 20px) e pode ir direto num contêiner sem padding (ex.: `q-card`). Num `sl-dialog`, zere o do diálogo (`--body-spacing: 0`) para não dobrar o espaçamento.
 - **Seleção de sigla e de comissão.** Usam o componente genérico `<lexml-eta-autocomplete-lista>` (`items: { value, label, inativo? }[]`, `value`, `placeholder`, `label`, `alturaMaxima` em px, `disabled`; evento `autocomplete-change` com `detail.value`, vazio quando a seleção é desfeita). A lista é flutuante, tem rolagem só vertical e omite o texto excedente; texto digitado que não é um item é apagado ao perder o foco (ou selecionado, se igual a exatamente um item).
 - **Importação de arquivo.** O componente aceita `.pdf`, `.docx`, `.txt`, `.xml` e `.json` de até 5 MB. O `.json` é lido pelo próprio componente como JSONIX, sem URL nem callback (JSON inválido: alerta de aviso na Tela 2). Os demais vão a `onImportarArquivo`, se informado, ou por `POST` a `urlImportacaoArquivo`, com o conteúdo do arquivo no corpo (não multipart) e o `Content-Type` pela extensão: `application/pdf`, `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, `text/plain` ou `application/xml`. Respostas da URL:
   - `200`: o corpo é o documento articulado em JSONIX, devolvido em `documentoImportado`;
