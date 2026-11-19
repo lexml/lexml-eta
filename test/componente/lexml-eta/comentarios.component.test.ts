@@ -99,7 +99,9 @@ describe('ETA — comentários na justificação', () => {
     });
 
     it('o modal fica visível mesmo com outra aba ativa no painel da direita', async () => {
-      expect(abaAtiva('tabs-direita')).to.not.equal('comentarios');
+      (component as any)._tabsDireita.show('notas');
+      await component.updateComplete;
+      expect(abaAtiva('tabs-direita')).to.equal('notas');
       editor().emitirAbrirModalComentario({ index: 0, length: 8 });
       await aba().updateComplete;
       const painel = (): Element | null | undefined => aba().containerModais.querySelector('#dlg-comentario')?.shadowRoot?.querySelector('[part~="panel"]');
