@@ -11,6 +11,7 @@ import { EtaBlotFechaAspas } from './eta-blot-fecha-aspas';
 import { EtaBlotMensagens } from './eta-blot-mensagens';
 import { EtaBlotMenu } from './eta-blot-menu';
 import { EtaBlotNotaAlteracao } from './eta-blot-nota-alteracao';
+import { EtaBlotQuebraLinha } from './eta-blot-quebra-linha';
 import { EtaBlotRotulo } from './eta-blot-rotulo';
 import { EtaBlotTipoOmissis } from './eta-blot-tipo-omissis';
 import { EtaClipboard } from './eta-clipboard';
@@ -309,7 +310,9 @@ export class EtaQuill extends PrivateQuill {
         blotCursor.tagName === EtaBlotMensagens.tagName ||
         blotCursor.tagName === EtaBlotAbreAspas.tagName ||
         blotCursor.tagName === EtaBlotTipoOmissis.tagName ||
-        blotCursor.tagName === EtaBlotExistencia.tagName
+        blotCursor.tagName === EtaBlotExistencia.tagName ||
+        // Quebra entre o rótulo e o nome do agrupador: o ↑ a partir do nome parava nela (#1073).
+        blotCursor.tagName === EtaBlotQuebraLinha.tagName
       ) {
         if (blotCursor.linha.blotConteudo && !this.recortarSelecaoNoInicioDoTexto(range, blotCursor.linha)) {
           this.setSelection(this.getIndex(blotCursor.linha.blotConteudo), 0, PrivateQuill.sources.SILENT);

@@ -727,14 +727,14 @@ describe('lexml-nova-proposicao', () => {
         });
       });
 
-      it('200: conclui com o documento em documentoImportado, sem texto', async () => {
+      it('200: conclui com o documento em texto', async () => {
         rotas['/importacao'] = { status: 200, corpo: TEXTO };
         const r = concluida();
         await prepararImportacao();
         await selecionarArquivo(new File(['x'], 'minuta.xml'));
         await clicar('np-continuar');
-        expect(r.detail.documentoImportado).to.deep.equal(TEXTO);
-        expect('texto' in r.detail).to.be.false;
+        expect(r.detail.texto).to.deep.equal(TEXTO);
+        expect('documentoImportado' in r.detail).to.be.false;
       });
 
       it('400: alerta de aviso com o título, a mensagem do serviço e a orientação, sem concluir', async () => {
@@ -772,7 +772,7 @@ describe('lexml-nova-proposicao', () => {
         rotas['/importacao'] = { status: 200, corpo: TEXTO };
         const r = concluida();
         await clicar('np-continuar');
-        expect(r.detail.documentoImportado).to.deep.equal(TEXTO);
+        expect(r.detail.texto).to.deep.equal(TEXTO);
       });
 
       it('falha de rede ou 200 sem JSON têm o efeito do 500', async () => {
@@ -802,14 +802,14 @@ describe('lexml-nova-proposicao', () => {
         expect(existe('np-erro-texto')).to.be.false;
       });
 
-      it('.json: lido direto, sem requisição, e concluído em documentoImportado', async () => {
+      it('.json: lido direto, sem requisição, e concluído em texto', async () => {
         const r = concluida();
         await prepararImportacao();
         await selecionarArquivo(new File(['\uFEFF' + JSON.stringify(TEXTO)], 'proposicao.json'));
         const antes = chamadas.length;
         await clicar('np-continuar');
         expect(chamadas.length).to.equal(antes);
-        expect(r.detail.documentoImportado).to.deep.equal(TEXTO);
+        expect(r.detail.texto).to.deep.equal(TEXTO);
       });
 
       it('.json inválido: alerta de aviso, sem requisição e sem concluir', async () => {

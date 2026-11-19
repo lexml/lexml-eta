@@ -362,14 +362,14 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
       expect(botaoHabilitado('np-voltar') && botaoHabilitado('np-cancelar')).to.be.true;
     });
 
-    it('sucesso: recebe o arquivo e conclui com o texto devolvido em documentoImportado', async () => {
+    it('sucesso: recebe o arquivo e conclui com o texto devolvido', async () => {
       await prepararImportacao(registrando(() => ({ texto: TEXTO, erros: [] })));
       const r = concluida();
       await selecionarArquivo(new File(['x'], 'minuta.docx'));
       await clicar('np-continuar');
       expect(arquivosRecebidos.map(a => a.name)).to.deep.equal(['minuta.docx']);
-      expect(r.detail.documentoImportado).to.deep.equal(TEXTO);
-      expect('texto' in r.detail).to.be.false;
+      expect(r.detail.texto).to.deep.equal(TEXTO);
+      expect('documentoImportado' in r.detail).to.be.false;
       expect(r.detail.urn).to.contain('projeto.lei;pl:');
       expect(urlsChamadas).to.deep.equal([]);
     });
@@ -414,7 +414,7 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
         expect(botaoHabilitado('np-continuar')).to.be.true;
         await clicar('np-continuar');
         expect(tentativas).to.equal(2);
-        expect(r.detail.documentoImportado).to.deep.equal(TEXTO);
+        expect(r.detail.texto).to.deep.equal(TEXTO);
       }
     });
 
@@ -437,7 +437,7 @@ describe('lexml-nova-proposicao — callbacks opcionais na configuração', () =
       await selecionarArquivo(new File([JSON.stringify({ value: 'do arquivo' })], 'proposicao.json'));
       await clicar('np-continuar');
       expect(arquivosRecebidos).to.have.length(0);
-      expect(r.detail.documentoImportado).to.deep.equal({ value: 'do arquivo' });
+      expect(r.detail.texto).to.deep.equal({ value: 'do arquivo' });
     });
 
     it('com o callback e a URL de importação, a URL não é chamada', async () => {

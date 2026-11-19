@@ -42,12 +42,11 @@ export interface ResultadoNovaProposicao extends UrnNovaProposicao {
   preambulo: string;
   colegiadoDestino: ColegiadoDestino;
   texto?: unknown;
-  documentoImportado?: unknown;
   anexoParecer: boolean;
 }
 
 /** Resultado do modo de edição: os dados da nova proposição, sem o texto. */
-export type ResultadoAlteracaoDadosBasicos = Omit<ResultadoNovaProposicao, 'texto' | 'documentoImportado'>;
+export type ResultadoAlteracaoDadosBasicos = Omit<ResultadoNovaProposicao, 'texto'>;
 
 export const NUMERO_NAO_NUMERADO = '999999';
 export const SUFIXO_SUBSTITUTIVO_SF = '@apresentacao.substitutivo';

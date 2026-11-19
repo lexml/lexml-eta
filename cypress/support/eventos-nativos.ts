@@ -7,6 +7,8 @@ export const TECLA_SETA_ESQUERDA = { key: 'ArrowLeft', code: 'ArrowLeft', window
 export const TECLA_SETA_ABAIXO = { key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40, nativeVirtualKeyCode: 40 };
 export const TECLA_SETA_ACIMA = { key: 'ArrowUp', code: 'ArrowUp', windowsVirtualKeyCode: 38, nativeVirtualKeyCode: 38 };
 export const TECLA_D = { key: 'd', code: 'KeyD', windowsVirtualKeyCode: 68, nativeVirtualKeyCode: 68 };
+// Tecla que digita um caractere: o campo text faz o navegador inserir o texto.
+export const TECLA_X = { key: 'x', code: 'KeyX', text: 'x', windowsVirtualKeyCode: 88, nativeVirtualKeyCode: 88 };
 
 export const ALT = 1;
 export const CTRL = 2;

@@ -1,7 +1,8 @@
 /**
- * Importação de documento pela Tela 2 da nova proposição (issue #1059).
+ * Importação de documento pela Tela 2 da nova proposição (issues #1059 e #1102).
  *
- * Cobre, pela UI real, a change 2026-11-13-c01-importar-documento-nova-proposicao contra o fake de conversão
+ * Cobre, pela UI real, as changes 2026-11-13-c01-importar-documento-nova-proposicao e
+ * 2026-11-19-c01-modelo-somente-ementa-articulacao contra o fake de conversão
  * da demo (POST /demo-api/importacao, demo/server/handlers.mjs), sem cy.intercept: XML devolve 200 com um
  * documento da demo, PDF devolve 500 e DOCX/TXT devolvem 400. O caso .json usa demo/doc/teste_justificacao.json,
  * gerado por getDocumentoArticulado(), com um anexo acrescentado em tempo de teste no formato do montador.
@@ -12,7 +13,7 @@ const BOTAO_NOVA = 'div.lexml-eta-main-header--actions input[type="button"][valu
 const MODAL = '#dialogNovaProposicao';
 const FIXTURE_JSON = 'demo/doc/teste_justificacao.json';
 const SEL_EDITOR_JUSTIFICACAO = '#lexml-eta-editor-texto-rico-justificativa-inner > .ql-editor';
-const MENSAGEM_ANEXOS = 'Não foi possível recuperar os anexos do documento importado.';
+const MENSAGEM_JUSTIFICACAO_NAO_INFORMADA = 'Não foi informado um texto de justificação.';
 
 // Lê o shadow root inteiro: sem alertas não há nenhum sl-alert para o find.
 const textoDosAlertas = ($el: JQuery<HTMLElement>): string => $el[0].shadowRoot?.textContent || '';
@@ -79,7 +80,7 @@ describe('Nova proposição — importação de documento', () => {
     cy.get(`${MODAL}[open]`).should('exist');
   });
 
-  it('JSON: lido direto, cria o documento com a justificação do arquivo e avisa que os anexos não foram recuperados', () => {
+  it('JSON: lido direto, cria o documento só com a ementa e a articulação, sem justificação, anexos nem aviso', () => {
     cy.readFile(FIXTURE_JSON).then(arquivo => {
       arquivo.value.metadado.metadadoProprietario[0].any[0].value.anexos = {
         TYPE_NAME: 'br_gov_lexml_lexedit__1.Anexos',
@@ -100,15 +101,20 @@ describe('Nova proposição — importação de documento', () => {
     });
 
     cy.get(`${MODAL}[open]`).should('not.exist');
-    cy.getContainerArtigoByNumero(1).should('exist');
-    // Notificação passageira no canto superior, além do item na aba Avisos.
-    cy.get('.sl-toast-stack sl-alert').should('have.attr', 'variant', 'warning').and('contain.text', MENSAGEM_ANEXOS);
-    cy.get('lexml-eta-alertas').should($el => expect(textoDosAlertas($el)).to.include(MENSAGEM_ANEXOS));
+    cy.getContainerArtigoByNumero(1).should('contain.text', 'Esta lei dispõe sobre educação e saúde.');
+    // A justificação do arquivo não vem: vale o alerta de justificação não informada, e não há aviso de anexos.
+    cy.get('lexml-eta-alertas').should($el => {
+      expect(textoDosAlertas($el)).to.include(MENSAGEM_JUSTIFICACAO_NAO_INFORMADA);
+      expect(textoDosAlertas($el)).not.to.include('anexos');
+    });
+    cy.get('.sl-toast-stack sl-alert').should('not.exist');
     cy.get('sl-tab[panel="justificativa"]').click();
-    cy.get(SEL_EDITOR_JUSTIFICACAO).should('contain.text', 'Ciência & Tecnologia');
+    cy.get(SEL_EDITOR_JUSTIFICACAO).should('not.contain.text', 'Ciência & Tecnologia');
     documentoEmEdicao(documento => {
+      const lexedit = documento.value.metadado.metadadoProprietario?.[0]?.any?.[0]?.value ?? {};
       expect(documento.value.metadado.identificacao.urn).to.match(/projeto\.lei;pl:/);
-      expect(documento.value.metadado.metadadoProprietario[0].any[0].value).not.to.have.property('anexos');
+      expect(lexedit).not.to.have.property('anexos');
+      expect(documento.value.projetoNorma).not.to.have.property('justificacao');
     });
   });
 });
