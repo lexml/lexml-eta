@@ -317,7 +317,19 @@ export const elementoReducer = (state = {}, action: any): any => {
   tempState = atualizaRevisao(tempState, actionType);
   tempState = sincronizarRemissoesPosAcao(tempState, actionType);
   tempState = adicionaDiffMenuOpcoes(tempState);
-  return atualizaPaginacao(tempState, action);
+  return marcaCursorNaLinhaSeguinte(atualizaPaginacao(tempState, action), action);
+};
+
+// Só a exclusão pedida pelo usuário; desfazer, refazer e rejeitar revisão mantêm o cursor como antes.
+const isExclusaoPeloUsuario = (action: any): boolean => action.type === REMOVER_ELEMENTO || (action.type === REMOVER_ELEMENTO_SEM_TEXTO && action.key === 'Delete');
+
+// Marca uma cópia do evento, para a marca não entrar no histórico (past/present guardam o original).
+const marcaCursorNaLinhaSeguinte = (state: State, action: any): State => {
+  if (!isExclusaoPeloUsuario(action) || !state.ui?.events?.some(ev => ev.stateType === StateType.ElementoRemovido)) {
+    return state;
+  }
+  const events = state.ui.events.map(ev => (ev.stateType === StateType.ElementoRemovido ? { ...ev, cursorNaLinhaSeguinte: true } : ev));
+  return { ...state, ui: { ...state.ui, events } };
 };
 
 const isRedoDeRevisaoAceita = (actionType: string | undefined, state: State): boolean => {

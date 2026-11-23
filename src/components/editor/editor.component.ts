@@ -1372,6 +1372,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private removerLinhaQuill(event: StateEvent, uuidsParaIgnorar?: Set<number | undefined>): void {
     const elementos: Elemento[] = event.elementos ?? [];
     let linha: EtaContainerTable | undefined;
+    const linhaSeguinte = event.cursorNaLinhaSeguinte ? this.getLinhaDepoisDosElementos(elementos) : undefined;
 
     elementos.forEach((elemento: Elemento, index) => {
       // uuid reaproveitado por uma transformação de tipo (TAB/SHIFT_TAB) na mesma ação: a linha já
@@ -1393,7 +1394,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     });
 
     const range = this.quill.getSelection();
-    if (range) {
+    let editavelSeguinte = linhaSeguinte;
+    while (editavelSeguinte && !editavelSeguinte.editavel) editavelSeguinte = editavelSeguinte.next as EtaContainerTable | undefined;
+    if (range && editavelSeguinte?.domNode.isConnected) {
+      this.quill.setSelection(this.quill.getIndex(editavelSeguinte.blotConteudo), 0, PrivateQuill.sources.SILENT);
+      this.quill.marcarLinhaAtual(editavelSeguinte);
+    } else if (range) {
       let linhaCursor: EtaContainerTable = this.quill.getLine(range.index - 1)[0].linha;
 
       // Linha anterior não editável (preâmbulo, epígrafe) não recebe cursor: vai à próxima editável.
@@ -1406,6 +1412,14 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.quill.setSelection(index, 0, PrivateQuill.sources.SILENT);
       this.quill.marcarLinhaAtual(linhaCursor);
     }
+  }
+
+  // Primeira linha depois do excluído e dos descendentes, que vêm em sequência no lote; em revisão elas ficam na tela.
+  private getLinhaDepoisDosElementos(elementos: Elemento[]): EtaContainerTable | undefined {
+    const uuids = new Set(elementos.map(e => e.uuid));
+    let linha: EtaContainerTable | undefined = this.quill.getLinha(elementos[0]?.uuid ?? 0);
+    while (linha && uuids.has(linha.uuid)) linha = linha.next as EtaContainerTable | undefined;
+    return linha;
   }
 
   private renumerarQuill(event: StateEvent): void {

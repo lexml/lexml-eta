@@ -40,6 +40,8 @@ export interface StateEvent {
   referencia?: Elemento;
   pai?: Elemento;
   moverParaFimLinha?: boolean;
+  // Exclusão feita pelo usuário: o cursor vai para a linha que toma o lugar do excluído (#1075).
+  cursorNaLinhaSeguinte?: boolean;
   elementos?: Elemento[];
   remissaoRenumeracao?: { lexmlIdAntigo: string; lexmlIdNovo: string; novoUuid: number };
   remissaoInvalidacao?: { lexmlId: string; uuid: number };
