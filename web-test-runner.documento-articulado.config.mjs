@@ -50,6 +50,21 @@ export default {
           const { stdout } = await executar(resolve(cli), ['-V'], { timeout: 30000 });
           return stdout.trim();
         }
+        if (command === 'converter-documento-lexml') {
+          // Sem XSD: documentos com ids de dispositivo repetidos (modo flexível) não validam, mas devem ir e voltar pelo CLI.
+          const diretorio = await mkdtemp(join(tmpdir(), 'eta-documento-'));
+          try {
+            const json = join(diretorio, 'documento-articulado.json');
+            const xml = join(diretorio, 'documento-articulado.xml');
+            const retorno = join(diretorio, 'retorno.json');
+            await writeFile(json, JSON.stringify(payload), 'utf8');
+            await converter('toxml', json, xml);
+            await converter('tojson', xml, retorno);
+            return { xml: await readFile(xml, 'utf8'), jsonix: JSON.parse(await readFile(retorno, 'utf8')) };
+          } finally {
+            await rm(diretorio, { recursive: true, force: true });
+          }
+        }
         if (command === 'validar-documento-lexml') {
           const diretorio = await mkdtemp(join(tmpdir(), 'eta-documento-'));
           try {
