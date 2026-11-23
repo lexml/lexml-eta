@@ -171,6 +171,8 @@ export class EtaKeyboard extends Keyboard {
         this.onTeclaArrowDown(ev);
       } else if (ev.key === 'ArrowUp') {
         this.onTeclaArrowUp(ev);
+      } else if (ev.key === 'End') {
+        this.onTeclaEndNoTexto(ev);
       } else if (ev.key === 'Enter') {
         this.onTeclaEnter(ev);
       } else if (ev.key === 'Escape') {
@@ -454,6 +456,24 @@ export class EtaKeyboard extends Keyboard {
     this.quill.setIndex(index, PrivateQuill.sources.USER);
     this.quill.scroll.domNode.scrollTo(0, this.quill.scroll.domNode.scrollHeight);
     cancelarPropagacaoDoEvento(ev);
+  }
+
+  // O navegador passaria do fecho de aspas e da nota, que não são editáveis, e iria ao dispositivo seguinte (#1103).
+  private onTeclaEndNoTexto(ev: KeyboardEvent): void {
+    const nativa = document.getSelection();
+    const texto = this.quill.linhaAtual?.blotConteudo?.domNode;
+    if (ev.metaKey || !nativa?.focusNode || !texto?.contains(nativa.focusNode) || typeof nativa.modify !== 'function') {
+      return;
+    }
+    cancelarPropagacaoDoEvento(ev);
+    nativa.modify(ev.shiftKey ? 'extend' : 'move', 'forward', 'lineboundary');
+    const selecao = (this.quill as any).selection;
+    if (!texto.contains(nativa.focusNode)) {
+      const [no, offset] = selecao.rangeToNative({ index: this.quill.fimConteudoAtual, length: 0 });
+      if (ev.shiftKey) nativa.extend(no, offset);
+      else nativa.collapse(no, offset);
+    }
+    selecao.update(PrivateQuill.sources.USER);
   }
 
   private onTeclaCtrlD(ev: KeyboardEvent): void {

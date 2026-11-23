@@ -1,0 +1,12 @@
+## 1. End e Shift+End no texto
+
+- [x] 1.1 Criar `test/componente/lexml-eta/teclaEnd.component.test.ts`, abrindo `MPV_1234_2024` (`test/doc/mpv_1234_2024.ts`, menor que a `MPV_905_2019` e com linha em que o texto e o `(NR)` terminam na mesma linha visual) por `abrirDocumentoArticulado`, como `documentoArticulado.component.test.ts` faz. Com o `keydown` sintético de End no `quill.root` (o handler roda; o navegador não move o cursor sozinho): numa linha com `”` e `(NR)` cujo texto termina na mesma linha visual que eles, End no início da última linha visual leva o cursor ao fim do texto e mantém a linha atual; Shift+End seleciona do ponto até o fim do texto, sem o `”` nem a nota, e com seleção feita de trás para frente mantém a âncora; End na primeira linha visual de um texto de várias linhas para no fim dela, dentro do texto; End na última linha visual de uma linha sem fecho de aspas leva ao fim do texto. Verificar que os casos falham antes da 1.2 (todos falham: sem o tratamento novo, o `keydown` sintético não move o cursor; o "como antes" com teclas nativas fica com o E2E da 2.1).
+- [x] 1.2 Em `eta-keyboard.ts`, tratar End sem Ctrl, Alt e Meta no `keydown`: com o foco da seleção nativa dentro do texto da linha atual e `Selection.modify` disponível, cancelar o evento, aplicar `modify('move' | 'extend', 'forward', 'lineboundary')` e, se o foco sair do texto, levá-lo ao fim do texto (`setSelection` sem Shift; `Selection.extend` com Shift); depois, atualizar a seleção do Quill. Sem essas condições, deixar o evento seguir para o navegador. Ctrl+End continua em `onTeclaEnd`. Comentário de uma linha, só com o porquê. Verificar com o teste da 1.1 e `npm test` completo passando.
+
+## 2. E2E
+
+- [x] 2.1 Criar `cypress/e2e/edicao/end-nota-alteracao.cy.ts`, com clique e teclas nativos (`cliqueNativo`, `teclaNativa(TECLA_END)` e `teclaNativa(TECLA_END, SHIFT)`) na `mpv_905_2019` (`cy.novaProposicao`, como `selecao-shift-home.cy.ts`): numa linha com `(NR)` em que o texto e a nota terminam na mesma linha visual, End deixa o cursor no fim do texto, com a mesma linha atual, e Shift+End seleciona até o fim do texto; num texto de várias linhas, End na primeira linha visual fica dentro do texto. Verificar com o spec passando, os casos da linha com nota falhando sem a 1.2 e `selecao-shift-home.cy.ts` e `home-sem-rolagem.cy.ts` continuando a passar.
+
+## 3. Registro
+
+- [x] 3.1 Registrar a #1103 em `docs/sessao/TODO.md`. Verificar com `openspec validate 2026-11-23-c02-end-em-linha-com-nota-alteracao` sem erros.
