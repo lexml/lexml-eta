@@ -34,9 +34,17 @@ describe('ETA — comentários na justificação', () => {
 
   const comentar = async (index: number, length: number, texto: string): Promise<string> => {
     editor().quill.setSelection(index, length, 'silent');
+    // Espera o modal abrir e fechar de todo: confirmar antes leva o foco ao textarea e anula a seleção,
+    // e o fim do fechamento de um modal descarta o próximo, se já aberto.
+    const dialogo = aba().containerModais.querySelector('#dlg-comentario') as HTMLElement;
+    const evento = (nome: string): Promise<unknown> => new Promise(resolve => dialogo.addEventListener(nome, resolve, { once: true }));
+    const aberto = evento('sl-after-show');
     editor().emitirAbrirModalComentario({ index, length });
     await preencherModal(texto);
+    await aberto;
+    const fechado = evento('sl-after-hide');
     clicar(aba().containerModais.querySelector('#btn-confirmar-comentario'));
+    await fechado;
     // Depois de criar, a seleção do trecho é refeita após 80ms.
     await aguardar(120);
     await component.updateComplete;
