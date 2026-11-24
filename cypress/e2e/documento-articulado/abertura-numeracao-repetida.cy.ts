@@ -18,7 +18,7 @@ const SEL_ARTIGO = 'div.container__elemento.elemento-tipo-artigo';
 const artigo = (indice: number): Cypress.Chainable<JQuery<HTMLElement>> => cy.get(SEL_ARTIGO).eq(indice);
 // Conta com retry (e aceita zero): cy.get('div.mensagem') exigiria ao menos uma mensagem na tela.
 const esperarMensagensDeNumeracao = (quantidade: number): Cypress.Chainable<JQuery<HTMLElement>> =>
-  cy.get('body').should($body => {
+  cy.get<HTMLElement>('body').should($body => {
     const mensagens = $body.find('div.mensagem').filter((_, el) => (el.textContent ?? '').includes(ERRO));
     expect(mensagens).to.have.length(quantidade);
   });
