@@ -78,13 +78,13 @@ O erro de numeração repetida SHALL oferecer "Corrigir agora" quando o editor p
 
 #### Scenario: Corrigir artigo repetido
 
-- **WHEN** o usuário aciona "Corrigir agora" no segundo de dois "Art. 5º" do texto principal, seguidos de um "Art. 6º"
-- **THEN** os artigos passam a ser "Art. 5º", "Art. 6º" e "Art. 7º", os incisos do antigo segundo "Art. 5º" passam a ter o identificador do "Art. 6º", e nenhum erro de numeração repetida permanece
+- **WHEN** o usuário aciona "Corrigir agora" no segundo de dois "Art. 1º" do texto principal, seguidos de um "Art. 2º"
+- **THEN** os artigos passam a ser "Art. 1º", "Art. 2º" e "Art. 3º" (o editor numera os artigos do texto principal pela posição), os incisos do antigo segundo "Art. 1º" passam a ter o identificador do "Art. 2º", e nenhum erro de numeração repetida permanece
 
 #### Scenario: Remissão acompanha a correção
 
-- **WHEN** o texto de um dispositivo tem uma remissão interna para o "Art. 6º" e o usuário corrige dois "Art. 5º" anteriores a ele
-- **THEN** a remissão passa a referir o "Art. 7º"
+- **WHEN** o texto de um dispositivo tem uma remissão interna para o "Art. 2º" e o usuário corrige dois "Art. 1º" anteriores a ele
+- **THEN** a remissão passa a referir o "Art. 3º"
 
 #### Scenario: Desfazer a correção
 

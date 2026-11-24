@@ -42,13 +42,13 @@
 
 ## 4. Correção automática
 
-- [ ] 4.1 Implementar o caso `AutoFix.NUMERACAO_REPETIDA` em `autoFixElemento` (D7): renumerar o grupo com `renumeraArtigos`/`renumeraFilhos`, gerar eventos e `past` no formato de `renumeraElemento.ts` e incluir `AUTO_FIX` em `ACOES_ESTRUTURAIS`. Verificar com teste de reducer:
-  - os artigos 5, 5 e 6 passam a 5, 6 e 7;
+- [x] 4.1 Implementar o caso `AutoFix.NUMERACAO_REPETIDA` em `autoFixElemento` (D7): renumerar o grupo com `renumeraArtigos`/`renumeraFilhos`, gerar eventos e `past` no formato de `renumeraElemento.ts` e incluir `AUTO_FIX` em `ACOES_ESTRUTURAIS`. Verificar com teste de reducer:
+  - os artigos 1, 1 e 2 passam a 1, 2 e 3;
   - os ids dos descendentes são recalculados;
-  - uma remissão para o antigo "Art. 6º" passa a "art. 7º";
+  - uma remissão para o antigo "Art. 2º" passa a "art. 3º";
   - desfazer devolve os dois "Art. 5º" com os ids e o erro;
   - refazer corrige de novo.
-- [ ] 4.2 Correção em modo de revisão: verificar com teste de reducer que a correção não gera revisão `alterado` nem `alteracaoRotulo` nos dispositivos renumerados. Se gerar, aplicar a mitigação do design (renumerados em `SituacaoElementoModificada`) e manter o teste.
+- [x] 4.2 Correção em modo de revisão: verificar com teste de reducer que a correção não gera revisão `alterado` nem `alteracaoRotulo` nos dispositivos renumerados. Se gerar, aplicar a mitigação do design (renumerados em `SituacaoElementoModificada`) e manter o teste.
 
 ## 5. Componente e configuração
 
@@ -58,7 +58,11 @@
   - o modelo da nova proposição com artigos repetidos é aceito no flexível;
   - uma abertura recusada não muda o modo do documento em edição;
   - salvar no rígido com dois artigos de alteração renumerados para o mesmo número propaga o erro.
-- [ ] 5.2 Documentar em `docs/api-componente-lexml-eta.md`:
+- [ ] 5.2 Teste de reducer do "Corrigir agora" em dispositivo que não é artigo (`test/redux/elemento/reducer/autoFixNumeracaoRepetida.test.ts`), cobrindo o `renumeraFilhos` do pai:
+  - três incisos "II" no mesmo caput do texto principal: a correção no segundo renumera para I, II e III, recalcula os ids dos alíneas/itens descendentes, retira o erro e o alerta, e desfazer devolve os três "II";
+  - parágrafos repetidos de artigo "Novo" em bloco de alteração: a correção renumera os irmãos e desfazer restaura a repetição;
+  - em modo de revisão, nenhum desses casos gera revisão.
+- [ ] 5.3 Documentar em `docs/api-componente-lexml-eta.md`:
   - na tabela de configuração, `validacaoNumeracao`;
   - em `abrirDocumentoArticulado` e no salvamento, o comportamento do modo flexível, o XML inválido pelo esquema e a limitação das referências.
 

@@ -95,7 +95,7 @@ Novo caso em `autoFixElemento` para `AutoFix.NUMERACAO_REPETIDA`. Para artigo, c
 - `buildUpdateEvent(dispositivo, original)` para cada dispositivo do grupo cujo número mudou;
 - `SituacaoElementoModificada` para os descendentes deles.
 
-O `past` guarda o par antes/depois, e `processarModificados` restaura número, rótulo e ids ao desfazer. Isso é necessário porque a renumeração automática não sabe recriar dois números iguais. `AUTO_FIX` entra em `ACOES_ESTRUTURAIS` para as remissões acompanharem a renumeração. As outras correções automáticas não mudam números, e a sincronização é idempotente.
+O `past` guarda o par antes/depois, e `processarModificados` restaura número, rótulo e ids ao desfazer. Isso é necessário porque a renumeração automática não sabe recriar dois números iguais. O evento do histórico leva a marca `renumeracaoAutomatica`: `undo` e `redo` o reemitem como `ElementoRenumerado` em vez de `ElementoModificado`, para que desfazer e refazer a correção não gerem revisão `alterado` em modo de revisão (a correção em si já emite `ElementoRenumerado`). `AUTO_FIX` entra em `ACOES_ESTRUTURAIS` para as remissões acompanharem a renumeração. As outras correções automáticas não mudam números, e a sincronização é idempotente. No texto principal a numeração é pela posição (1, 2, 3...), então a correção não preserva um número original como "Art. 5º".
 
 ### D8. Referências resolvem para a 1ª ocorrência, sem código novo
 
@@ -107,7 +107,7 @@ O `past` guarda o par antes/depois, e `processarModificados` restaura número, r
 - [Algum ponto não mapeado usa o id como chave única e sobrescreve um valor sem erro] → Na busca da exploração só apareceram `find` (1ª ocorrência). Mitigação: um teste de reducer abre o documento com artigos repetidos e exercita incluir, remover, mover, desfazer e salvar.
 - [A 2ª ocorrência de bloco de alteração perde o selo Existente/Novo na ida e volta, porque a situação é reaplicada por id] → Limitação documentada (D8), sem correção nesta change.
 - [Id do arquivo diferente do `buildId`, por exemplo um arquivo legado com ids quebrados] → A validação de abertura olha os ids do arquivo, e a detecção e o salvamento olham o `buildId`. No modo rígido, um arquivo com rótulos repetidos e ids distintos abre, mas não salva. Esse comportamento já existe hoje e fica registrado, fora do escopo.
-- [Em modo de revisão, o `ElementoModificado` da correção gera uma revisão `alterado` indevida] → `atualizaRevisao` gera `alteracaoRotulo` só para `RENUMERAR_ELEMENTO`. Uma task testa a correção em modo de revisão. Se houver revisão indevida, os dispositivos renumerados vão em `SituacaoElementoModificada`, como os descendentes, e o histórico guarda o estado anterior por outro evento.
+- [Em modo de revisão, o `ElementoModificado` da correção gera uma revisão `alterado` indevida] → Confirmado pelo teste: desfazer e refazer geravam duas marcas. Mitigado com a marca `renumeracaoAutomatica` no evento do histórico, que `undo` e `redo` reemitem como `ElementoRenumerado`. Observado e não tratado: em modo de revisão, desfazer até esvaziar o histórico lança exceção em `getElementoAntesModificacao` (já existe, independe desta change).
 - [Custo da passagem central em documentos grandes] → O cálculo é linear e só roda no modo flexível (D3).
 - [Estado de módulo compartilhado entre testes] → Os testes restauram `'rigida'` no `afterEach`, como no vocabulário.
 
