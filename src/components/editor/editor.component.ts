@@ -289,7 +289,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         lexml-eta-proposicao-editor .btn-remissao-interna:disabled,
         lexml-eta-proposicao-editor .btn-remover-remissao:disabled {
           opacity: 0.35;
-          cursor: not-allowed;
         }
 
         lexml-eta-proposicao-editor .btn-remissao-interna:disabled:hover,

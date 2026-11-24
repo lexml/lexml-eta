@@ -50,6 +50,11 @@ export const editorStyles = html`
       width: 28px;
     }
 
+    /* Desabilitado não sugere clique (#1098); precisa do id para vencer a regra da mão acima. */
+    #lx-eta-box .ql-snow.ql-toolbar button:disabled {
+      cursor: default;
+    }
+
     #lx-eta-barra-ferramenta button:focus {
       outline: 0;
       border: 0px solid #f1f1f1;
@@ -79,7 +84,6 @@ export const editorStyles = html`
     #lx-eta-barra-ferramenta .button-comentario-articulacao:disabled,
     #lx-eta-barra-ferramenta .button-comentario-articulacao:disabled:hover {
       color: #b9b9b9;
-      cursor: default;
       opacity: 0.65;
     }
 
