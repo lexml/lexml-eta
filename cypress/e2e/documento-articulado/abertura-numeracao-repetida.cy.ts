@@ -3,8 +3,8 @@
  *
  * Fixture: demo/doc/teste_numeracao_repetida.json, gerada por criarDocumentoArticulado() (mesmo código de produção
  * usado ao salvar), não escrita à mão: "Art. 5º", "Art. 5º" (com dois incisos) e "Art. 6º".
- * O modo flexível é ligado no objeto de configuração da demo antes de abrir o arquivo (o `#fileUpload` da demo lê o
- * arquivo com o mesmo modo do componente).
+ * O modo flexível é escolhido no seletor `#validacaoNumeracao` da demo antes de abrir o arquivo (o `#fileUpload` da demo
+ * lê o arquivo com o mesmo modo do componente).
  */
 
 // Módulo, não script: evita colisão de constantes entre specs.
@@ -25,9 +25,7 @@ const esperarMensagensDeNumeracao = (quantidade: number): Cypress.Chainable<JQue
 const textoDosAlertas = (): Cypress.Chainable<string> => cy.get('lexml-eta-alertas').then($el => $el[0].shadowRoot?.textContent ?? '');
 
 const ligarModoFlexivel = (): void => {
-  cy.get('demo-view').then($el => {
-    ($el[0] as any).etaConfig.validacaoNumeracao = 'flexivel';
-  });
+  cy.get('#validacaoNumeracao').select('flexivel');
 };
 
 describe('Abertura de documento com numeração repetida', () => {
@@ -79,6 +77,20 @@ describe('Abertura de documento com numeração repetida', () => {
       });
       esperarMensagensDeNumeracao(1);
       cy.get('lexml-eta-alertas').should($el => expect($el[0].shadowRoot?.textContent ?? '').to.include(ALERTA));
+    });
+  });
+
+  describe('seletor de modo', () => {
+    it('começa em rígido e trocar o modo não encerra o documento aberto', () => {
+      cy.get('#validacaoNumeracao').should('have.value', 'rigida');
+      ligarModoFlexivel();
+      cy.get('#fileUpload').selectFile(FIXTURE, { force: true });
+      cy.get(SEL_ARTIGO).should('have.length', 3);
+
+      cy.get('#validacaoNumeracao').select('rigida');
+
+      cy.get(SEL_ARTIGO).should('have.length', 3);
+      esperarMensagensDeNumeracao(1);
     });
   });
 

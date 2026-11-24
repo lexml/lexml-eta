@@ -161,6 +161,8 @@ export class DemoView extends LitElement {
   // Os outros metadados são do host: o componente de edição não os recebe nem os devolve.
   private outrosMetadadosEmEdicao: Record<string, string> = {};
   @state() casa: 'SF' | 'CD' = 'SF';
+  // Vale para a próxima abertura de proposição; o documento já aberto mantém o modo com que foi aberto.
+  @state() validacaoNumeracao: ValidacaoNumeracao = 'rigida';
   @state() projetoNorma: any = {};
   @state() proposicaoCorrente = new RefProposicaoReduzida();
 
@@ -377,6 +379,12 @@ export class DemoView extends LitElement {
     this.elDocumento.value = '';
   }
 
+  // O componente lê o modo ao começar cada documento: trocar aqui não encerra nem altera o documento aberto.
+  onChangeValidacaoNumeracao(event: Event): void {
+    this.validacaoNumeracao = (event.target as HTMLSelectElement).value as ValidacaoNumeracao;
+    this.etaConfig.validacaoNumeracao = this.validacaoNumeracao;
+  }
+
   // O modo de validação de numeração vale também para a leitura e a gravação de arquivos feitas pelo host.
   private opcoesValidacaoDocumento(): { validacaoNumeracao?: ValidacaoNumeracao } {
     return { validacaoNumeracao: this.etaConfig.validacaoNumeracao };
@@ -557,6 +565,15 @@ export class DemoView extends LitElement {
           <select id="casaEditor" title="Casa legislativa do editor" .value=${this.casa} @change=${this.onChangeCasa}>
             <option value="SF">SF</option>
             <option value="CD">CD</option>
+          </select>
+          <select
+            id="validacaoNumeracao"
+            title="Validação de numeração na próxima abertura de proposição (não altera a que já está aberta)"
+            .value=${this.validacaoNumeracao}
+            @change=${this.onChangeValidacaoNumeracao}
+          >
+            <option value="rigida">Numeração rígida</option>
+            <option value="flexivel">Numeração flexível</option>
           </select>
           <input type="button" value="Nova proposição" @click=${this.novaProposicao} />
           <input type="button" value="Salvar" @click=${this.salvar} />
