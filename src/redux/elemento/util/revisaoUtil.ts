@@ -336,6 +336,21 @@ const getRevisoesDeExclusaoOrdenadasPorUuid = (revisoes: Revisao[] = []): Revisa
 
 export const isRevisaoDeExclusao = (revisao: RevisaoElemento): boolean => revisao.stateType === StateType.ElementoRemovido;
 
+// O anterior pode ser um descendente do excluído (o último filho): a revisão que importa é a da principal do grupo.
+export const principalDoExcluido = (uuid: number | undefined, exclusoes: RevisaoElemento[], atual: RevisaoElemento): RevisaoElemento | undefined => {
+  const encontrada = uuid === undefined ? undefined : exclusoes.find(r => r !== atual && r.elementoAposRevisao.uuid === uuid);
+  return encontrada?.idRevisaoElementoPrincipal ? exclusoes.find(r => r.id === encontrada.idRevisaoElementoPrincipal) : encontrada;
+};
+
+// Em documento reaberto o encadeamento não tem uuid: o anterior é o excluído que o precede no mesmo lugar.
+export const excluidoImediatamenteAntes = (revisao: RevisaoElemento, principais: RevisaoElemento[]): RevisaoElemento | undefined => {
+  const h = revisao.elementoAposRevisao.hierarquia;
+  return principais
+    .slice(0, principais.indexOf(revisao))
+    .reverse()
+    .find(p => p.elementoAposRevisao.hierarquia?.posicao === h?.posicao && p.elementoAposRevisao.hierarquia?.pai?.lexmlId === h?.pai?.lexmlId);
+};
+
 export const removeAtributosDoElemento = (elemento: Partial<Elemento> | undefined): void => {
   if (!elemento) {
     return;
