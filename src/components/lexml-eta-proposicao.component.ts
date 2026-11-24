@@ -14,6 +14,7 @@ import { LexmlEtaConfig } from '../model/lexmlEtaConfig';
 import { Revisao } from '../model/revisao/revisao';
 import type { ConfiguracaoPaginacao } from '../model/paginacao/paginacao';
 import { EditorComponent } from './editor/editor.component';
+import { getValidacaoNumeracao } from '../model/lexml/numeracao/validacaoNumeracao';
 import { criarDocumentoArticulado, DadosLexEdit, DocumentoArticulado, RevisaoArticulacaoLida } from '../model/lexml/documento/documentoArticulado';
 import { montaRevisoesArticulacao } from '../model/lexml/documento/conversor/revisaoArticulacao';
 import { reconstroiRevisoes } from '../model/lexml/documento/conversor/reconstroiRevisoes';
@@ -101,7 +102,9 @@ export class LexmlEtaProposicaoComponent extends connect(rootStore)(LitElement) 
     const externas = state.remissoesExternas ?? {};
     const remissoes = completarRegistroRemissoes(state.articulacao, state.remissoes ?? {}, externas);
     const revisoes = montaRevisoesArticulacao(state);
-    return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas, revisoes ? { ...dados, revisoes } : dados);
+    return criarDocumentoArticulado(state.articulacao.projetoNorma, this.urn, remissoes, externas, revisoes ? { ...dados, revisoes } : dados, {
+      validacaoNumeracao: getValidacaoNumeracao(),
+    });
   }
 
   private loadProjetoNorma(configuracaoPaginacao?: ConfiguracaoPaginacao, preservarTextoDocumento = false): void {

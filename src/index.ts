@@ -78,6 +78,7 @@ export type { TipoAnexo } from './model/proposicao/tipoAnexo';
 
 configurePrivateQuill();
 
-export type { DocumentoArticulado } from './model/lexml/documento/documentoArticulado';
+export type { DocumentoArticulado, OpcoesValidacaoDocumento } from './model/lexml/documento/documentoArticulado';
+export type { ValidacaoNumeracao } from './model/lexml/numeracao/validacaoNumeracao';
 export { lerDocumentoArticulado, nomeArquivoDocumentoArticulado, serializarDocumentoArticulado } from './model/lexml/documento/documentoArticulado';
 export { abrirArquivoDocumentoArticulado, lerArquivoDocumentoArticulado, salvarArquivoDocumentoArticulado } from './util/arquivoDocumentoArticulado';

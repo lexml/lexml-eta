@@ -1,5 +1,5 @@
 import { Dispositivo } from '../../dispositivo/dispositivo';
-import { isAgrupador, isOmissis, isParagrafo } from '../../dispositivo/tipo';
+import { isAgrupador, isArtigo, isOmissis, isParagrafo } from '../../dispositivo/tipo';
 import {
   getDispositivoAnterior,
   getDispositivoAnteriorMesmoTipo,
@@ -13,10 +13,13 @@ import {
   isDispositivoCabecaAlteracao,
   isPrimeiroMesmoTipo,
   isUnicoMesmoTipo,
+  podeRenumerarFilhosAutomaticamente,
   validaOrdemDispositivo,
 } from '../hierarquia/hierarquiaUtil';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import { comparaNumeracao, hasRotuloPendente, podeRenumerarDispositivo } from './numeracaoUtil';
+import { isNumeracaoRepetida } from './numeracaoRepetida';
+import { isValidacaoNumeracaoFlexivel } from './validacaoNumeracao';
 
 export const getDispositivoAnteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
   const d = getDispositivoAnteriorMesmoTipo(dispositivo);
@@ -170,5 +173,11 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
 };
 
 export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
-  return isDispositivoAlteracao(dispositivo) ? validaNumeracaoDispositivoAlteracao(dispositivo) : validaNumeracaoDispositivo(dispositivo);
+  const mensagens = isDispositivoAlteracao(dispositivo) ? validaNumeracaoDispositivoAlteracao(dispositivo) : validaNumeracaoDispositivo(dispositivo);
+  if (isValidacaoNumeracaoFlexivel() && isNumeracaoRepetida(dispositivo)) {
+    // Só onde a renumeração automática existe: artigo de alteração e filhos de pai "Existente" são numerados à mão.
+    const fix = isArtigo(dispositivo) ? !isDispositivoAlteracao(dispositivo) : podeRenumerarFilhosAutomaticamente(dispositivo.pai!);
+    mensagens.push({ tipo: TipoMensagem.ERROR, descricao: AutoFix.NUMERACAO_REPETIDA, fix });
+  }
+  return mensagens;
 };

@@ -13,6 +13,7 @@ export enum AutoFix {
   OMISSIS_SEQUENCIAIS = `Não pode haver mais de uma linha pontilhada sequencialmente`,
   RENUMERAR_DISPOSITIVO = 'Numere o dispositivo',
   NORMA_ALTERADA_DIVERGENTE = 'A norma alterada difere da norma citada no artigo',
+  NUMERACAO_REPETIDA = 'Dispositivo com numeração repetida',
 }
 
 export interface Mensagem {
