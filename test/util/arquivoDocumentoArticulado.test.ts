@@ -67,6 +67,32 @@ describe('Arquivos de documento articulado', () => {
     expect(mensagem).to.include('JSON válido');
   });
 
+  it('recusa arquivo com ids de dispositivo repetidos, a menos que o modo flexível seja informado', async () => {
+    const entrada = novoDocumentoArticulado();
+    const lXhier = entrada.value.projetoNorma.norma.articulacao.lXhier;
+    lXhier.push(JSON.parse(JSON.stringify(lXhier[0])));
+    const arquivo = new Blob([JSON.stringify(entrada)]);
+    let mensagem = '';
+    await lerArquivoDocumentoArticulado(arquivo).catch(erro => (mensagem = (erro as Error).message));
+
+    expect(mensagem).to.include('repetidos');
+    expect((await lerArquivoDocumentoArticulado(arquivo, { validacaoNumeracao: 'flexivel' })).value.projetoNorma.norma.articulacao.lXhier).to.have.length(2);
+
+    const clickOriginal = HTMLAnchorElement.prototype.click;
+    let cliques = 0;
+    HTMLAnchorElement.prototype.click = function (): void {
+      cliques++;
+    };
+    try {
+      await salvarArquivoDocumentoArticulado(entrada, { validacaoNumeracao: 'flexivel' });
+      await salvarArquivoDocumentoArticulado(entrada).catch(erro => (mensagem = (erro as Error).message));
+    } finally {
+      HTMLAnchorElement.prototype.click = clickOriginal;
+    }
+    expect(cliques).to.equal(1);
+    expect(mensagem).to.include('repetidos');
+  });
+
   it('encerra e remove o seletor alternativo ao cancelar', async () => {
     configurar('showOpenFilePicker', undefined);
     const resultado = abrirArquivoDocumentoArticulado();

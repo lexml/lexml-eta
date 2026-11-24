@@ -1,6 +1,5 @@
 import { expect, fixture } from '@open-wc/testing';
-import '../../../src';
-import type { LexmlEtaComponent } from '../../../src';
+import { LexmlEtaConfig, type LexmlEtaComponent } from '../../../src';
 import { DOCUMENTO_PADRAO } from '../../../src/model/lexml/documento/modelo/documentoPadrao';
 import { rootStore } from '../../../src/redux/store';
 import { encodeHtml } from '../../../src/util/string-util';
@@ -696,8 +695,8 @@ describe('ETA — salvar e abrir documento articulado', () => {
           ],
         },
       });
+      component.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), { validacaoNumeracao: 'flexivel' });
       await component.abrirDocumentoArticulado(entrada);
-      registraValidacaoNumeracao('flexivel');
     });
 
     afterEach(() => registraValidacaoNumeracao(undefined));
@@ -726,6 +725,114 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       expect(alertaGlobal()).to.equal(false);
       expect(pendenciasDaProposicao()).to.not.include(MSG);
+    });
+  });
+
+  describe('modo de validação de numeração (configuração)', () => {
+    const flexivel = (): LexmlEtaConfig => Object.assign(new LexmlEtaConfig(), { validacaoNumeracao: 'flexivel' });
+    const alertaGlobal = (): boolean => !!rootStore.getState().elementoReducer.ui?.alertas?.some((a: any) => a.id === 'alerta-global-numeracao-repetida');
+    const comArtigosRepetidos = (): any => {
+      const entrada = novoDocumentoArticulado();
+      const lXhier = entrada.value.projetoNorma.norma.articulacao.lXhier;
+      lXhier.push(JSON.parse(JSON.stringify(lXhier[0])));
+      return entrada;
+    };
+    const idsDosArtigos = (documento: any): string[] => documento.value.projetoNorma.norma.articulacao.lXhier.map((a: any) => a.value.id);
+
+    afterEach(() => registraValidacaoNumeracao(undefined));
+
+    it('sem configuração, a abertura de documento com artigos repetidos é recusada e o documento em edição fica intacto', async () => {
+      const antes = component.getDocumentoArticulado();
+      let erro: Error | undefined;
+
+      await component.abrirDocumentoArticulado(comArtigosRepetidos()).catch(e => (erro = e));
+
+      expect(erro?.message).to.include('repetidos');
+      expect(component.getDocumentoArticulado()).to.deep.equal(antes);
+    });
+
+    it('com "flexivel", abre, mantém os ids ao salvar e grava a pendência na ordem do arquivo', async () => {
+      component.lexmlEtaConfig = flexivel();
+
+      await component.abrirDocumentoArticulado(comArtigosRepetidos());
+      const salvo = component.getDocumentoArticulado();
+
+      expect(idsDosArtigos(salvo)).to.deep.equal(['art1', 'art1']);
+      expect(alertaGlobal()).to.equal(true);
+      expect(lexeditSalvo(salvo).pendencias.pendencia).to.deep.equal([JUSTIFICACAO, 'Existem dispositivos com numeração repetida.']);
+    });
+
+    it('o arquivo salvo no modo flexível reabre no modo flexível e é recusado no rígido', async () => {
+      component.lexmlEtaConfig = flexivel();
+      await component.abrirDocumentoArticulado(comArtigosRepetidos());
+      congelarRelogio();
+      const salvo = component.getDocumentoArticulado();
+
+      await component.abrirDocumentoArticulado(salvo);
+      expect(component.getDocumentoArticulado()).to.deep.equal(salvo);
+
+      component.lexmlEtaConfig = new LexmlEtaConfig();
+      let erro: Error | undefined;
+      await component.abrirDocumentoArticulado(salvo).catch(e => (erro = e));
+      expect(erro?.message).to.include('repetidos');
+    });
+
+    it('o modelo da nova proposição com artigos repetidos é aceito no modo flexível', async () => {
+      component.lexmlEtaConfig = flexivel();
+
+      await component.novaProposicao({
+        urn: 'urn:lex:br:senado.federal:projeto.lei;pl:9999;999999',
+        epigrafe: 'PROJETO DE LEI',
+        preambulo: '',
+        documentoModelo: comArtigosRepetidos(),
+      });
+
+      expect(idsDosArtigos(component.getDocumentoArticulado())).to.deep.equal(['art1', 'art1']);
+      expect(alertaGlobal()).to.equal(true);
+    });
+
+    it('o modelo da nova proposição com artigos repetidos é recusado no modo rígido', async () => {
+      let erro: Error | undefined;
+
+      await component
+        .novaProposicao({ urn: 'urn:lex:br:senado.federal:projeto.lei;pl:9999;999999', epigrafe: 'PROJETO DE LEI', preambulo: '', documentoModelo: comArtigosRepetidos() })
+        .catch(e => (erro = e));
+
+      expect(erro?.message).to.include('repetidos');
+    });
+
+    it('uma abertura recusada não muda o modo do documento em edição', async () => {
+      component.lexmlEtaConfig = flexivel();
+      await component.abrirDocumentoArticulado(comArtigosRepetidos());
+
+      component.lexmlEtaConfig = new LexmlEtaConfig();
+      let erro: Error | undefined;
+      await component.abrirDocumentoArticulado('{').catch(e => (erro = e));
+
+      expect(erro).to.not.equal(undefined);
+      expect(() => component.getDocumentoArticulado()).not.to.throw();
+      expect(alertaGlobal()).to.equal(true);
+    });
+
+    it('alterar os dados básicos mantém o modo flexível e os artigos repetidos', async () => {
+      component.lexmlEtaConfig = flexivel();
+      await component.abrirDocumentoArticulado(comArtigosRepetidos());
+
+      await component.alterarDadosBasicos({ urn: 'urn:lex:br:senado.federal:projeto.lei;pl:9999;999999', epigrafe: 'PROJETO DE LEI', preambulo: '' });
+
+      expect(idsDosArtigos(component.getDocumentoArticulado())).to.deep.equal(['art1', 'art1']);
+    });
+
+    it('no modo rígido, salvar com identificadores repetidos propaga o erro', async () => {
+      const entrada = comArtigosRepetidos();
+      entrada.value.projetoNorma.norma.articulacao.lXhier[1].value.id = 'art2';
+      entrada.value.projetoNorma.norma.articulacao.lXhier[1].value.rotulo = 'Art. 2º';
+      entrada.value.projetoNorma.norma.articulacao.lXhier[1].value.lXcontainersOmissis = [entrada.value.projetoNorma.norma.articulacao.lXhier[1].value.lXcontainersOmissis[0]];
+      entrada.value.projetoNorma.norma.articulacao.lXhier[1].value.lXcontainersOmissis[0].value.id = 'art2_cpt';
+      await component.abrirDocumentoArticulado(entrada);
+      rootStore.getState().elementoReducer.articulacao.artigos[1].numero = '1';
+
+      expect(() => component.getDocumentoArticulado()).to.throw('repetidos');
     });
   });
 

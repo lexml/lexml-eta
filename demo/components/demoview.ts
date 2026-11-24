@@ -4,7 +4,7 @@ import { PL_5008_2023 } from '../doc/pl_5008_2023';
 import { html, LitElement, TemplateResult } from 'lit';
 import { customElement, query, state } from 'lit/decorators.js';
 import { LexmlEtaConfig, LexmlEtaComponent, NovaProposicaoComponent, Usuario } from '../../src';
-import type { Anexo, DadosBasicos, DadosIniciaisEdicao, ObterAnexoBlobResult, ResultadoAlteracaoDadosBasicos, ResultadoNovaProposicao } from '../../src';
+import type { Anexo, DadosBasicos, DadosIniciaisEdicao, ObterAnexoBlobResult, ResultadoAlteracaoDadosBasicos, ResultadoNovaProposicao, ValidacaoNumeracao } from '../../src';
 import { RefProposicaoReduzida } from '../../src/model/proposicao/proposicao';
 import { COD_CIVIL_COMPLETO } from '../doc/codigocivil_completo';
 import { COD_CIVIL_PARCIAL1 } from '../doc/codigocivil_parcial1';
@@ -377,9 +377,14 @@ export class DemoView extends LitElement {
     this.elDocumento.value = '';
   }
 
+  // O modo de validação de numeração vale também para a leitura e a gravação de arquivos feitas pelo host.
+  private opcoesValidacaoDocumento(): { validacaoNumeracao?: ValidacaoNumeracao } {
+    return { validacaoNumeracao: this.etaConfig.validacaoNumeracao };
+  }
+
   async salvar(): Promise<void> {
     try {
-      await salvarArquivoDocumentoArticulado(this.elLexmlEta.getDocumentoArticulado());
+      await salvarArquivoDocumentoArticulado(this.elLexmlEta.getDocumentoArticulado(), this.opcoesValidacaoDocumento());
     } catch (erro) {
       window.alert((erro as Error).message || 'Não foi possível salvar o documento.');
     }
@@ -387,7 +392,7 @@ export class DemoView extends LitElement {
 
   async abrir(): Promise<void> {
     try {
-      const documento = await abrirArquivoDocumentoArticulado();
+      const documento = await abrirArquivoDocumentoArticulado(this.opcoesValidacaoDocumento());
       if (documento) await this.carregarDocumentoArticulado(documento);
     } catch (erro) {
       window.alert((erro as Error).message || 'Não foi possível abrir o documento.');
@@ -448,7 +453,7 @@ export class DemoView extends LitElement {
     const arquivo = input.files?.[0];
     if (!arquivo) return;
     try {
-      await this.carregarDocumentoArticulado(await lerArquivoDocumentoArticulado(arquivo));
+      await this.carregarDocumentoArticulado(await lerArquivoDocumentoArticulado(arquivo, this.opcoesValidacaoDocumento()));
     } catch (erro) {
       window.alert((erro as Error).message || 'Não foi possível abrir o documento.');
     } finally {
