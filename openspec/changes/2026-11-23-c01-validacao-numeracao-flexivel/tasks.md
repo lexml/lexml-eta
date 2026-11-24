@@ -52,17 +52,17 @@
 
 ## 5. Componente e configuração
 
-- [ ] 5.1 Em `novaProposicao`, `abrirDocumentoArticulado` e `alterarDadosBasicos`, ler `lexmlEtaConfig.validacaoNumeracao` ao começar, passá-lo a `lerDocumentoArticulado` e registrar o modo só depois de a leitura dar certo, antes de `inicializarEdicao` (D1). `lexml-eta-proposicao.component.ts#getDocumentoArticulado` passa o modo registrado a `criarDocumentoArticulado`. Verificar em `test/componente/lexml-eta/documentoArticulado.component.test.ts`:
+- [x] 5.1 Em `novaProposicao`, `abrirDocumentoArticulado` e `alterarDadosBasicos`, ler `lexmlEtaConfig.validacaoNumeracao` ao começar, passá-lo a `lerDocumentoArticulado` e registrar o modo só depois de a leitura dar certo, antes de `inicializarEdicao` (D1). `lexml-eta-proposicao.component.ts#getDocumentoArticulado` passa o modo registrado a `criarDocumentoArticulado`. Verificar em `test/componente/lexml-eta/documentoArticulado.component.test.ts`:
   - sem configuração, a abertura de documento repetido é recusada e o documento em edição fica intacto;
   - com `'flexivel'`, a abertura e o salvamento funcionam e o arquivo mantém os ids;
   - o modelo da nova proposição com artigos repetidos é aceito no flexível;
   - uma abertura recusada não muda o modo do documento em edição;
   - salvar no rígido com dois artigos de alteração renumerados para o mesmo número propaga o erro.
-- [ ] 5.2 Teste de reducer do "Corrigir agora" em dispositivo que não é artigo (`test/redux/elemento/reducer/autoFixNumeracaoRepetida.test.ts`), cobrindo o `renumeraFilhos` do pai:
+- [x] 5.2 Teste de reducer do "Corrigir agora" em dispositivo que não é artigo (`test/redux/elemento/reducer/autoFixNumeracaoRepetida.test.ts`), cobrindo o `renumeraFilhos` do pai:
   - três incisos "II" no mesmo caput do texto principal: a correção no segundo renumera para I, II e III, recalcula os ids dos alíneas/itens descendentes, retira o erro e o alerta, e desfazer devolve os três "II";
   - parágrafos repetidos de artigo "Novo" em bloco de alteração: a correção renumera os irmãos e desfazer restaura a repetição;
   - em modo de revisão, nenhum desses casos gera revisão.
-- [ ] 5.3 Documentar em `docs/api-componente-lexml-eta.md`:
+- [x] 5.3 Documentar em `docs/api-componente-lexml-eta.md`:
   - na tabela de configuração, `validacaoNumeracao`;
   - em `abrirDocumentoArticulado` e no salvamento, o comportamento do modo flexível, o XML inválido pelo esquema e a limitação das referências.
 
