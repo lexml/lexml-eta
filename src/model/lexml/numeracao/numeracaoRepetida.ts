@@ -3,6 +3,8 @@ import { isArticulacao, isArtigo, isCaput, isOmissis, isPena } from '../../dispo
 import { getArticulacao, percorreHierarquiaDispositivos } from '../hierarquia/hierarquiaUtil';
 import { buildHref } from '../util/idUtil';
 
+export const MENSAGEM_NUMERACAO_REPETIDA = 'Existem dispositivos com numeração repetida.';
+
 const participa = (d: Dispositivo): boolean => !isArticulacao(d) && !isCaput(d) && !isOmissis(d) && !isPena(d);
 
 // O artigo se compara com todos os artigos da articulação (o id dele não inclui agrupadores); os demais, com os irmãos.

@@ -26,6 +26,7 @@ import {
   verificarUrnParaNovaProposicao,
 } from '../model/lexml/documento/urnUtil';
 import { inicializarVocabulario } from '../model/lexml/documento/vocabulario';
+import { MENSAGEM_NUMERACAO_REPETIDA } from '../model/lexml/numeracao/numeracaoRepetida';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
 import { LexmlEtaProposicaoComponent } from './lexml-eta-proposicao.component';
@@ -247,6 +248,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   getDocumentoArticulado(): DocumentoArticulado {
     if (!this.urn) throw new Error('Inicialize um documento antes de salvar.');
     const pendencias = this.isJustificacaoNaoInformada(this._lexmlJustificativa.texto) ? [MENSAGEM_JUSTIFICACAO_NAO_INFORMADA] : [];
+    this.temNumeracaoRepetida() && pendencias.push(MENSAGEM_NUMERACAO_REPETIDA);
     // A justificação não é gravada no anexo de parecer (spec salvar-documento-articulado).
     return this._lexmlEta!.getDocumentoArticulado({
       anexoParecer: this.anexoParecer,
@@ -464,12 +466,21 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return epigrafe;
   }
 
+  // Mesma condição do alerta global: o conjunto é recalculado pelo reducer a cada ação.
+  private temNumeracaoRepetida(): boolean {
+    return !!rootStore.getState().elementoReducer.numeracaoRepetida?.length;
+  }
+
   private getPendenciasPreenchimento(proposicao: Proposicao): string[] {
     const pendenciasPreenchimento: Array<string> = [];
 
     // Verifica preenchimento da justificação
     if (this.isJustificacaoNaoInformada(proposicao.justificativa)) {
       pendenciasPreenchimento.push(MENSAGEM_JUSTIFICACAO_NAO_INFORMADA);
+    }
+
+    if (this.temNumeracaoRepetida()) {
+      pendenciasPreenchimento.push(MENSAGEM_NUMERACAO_REPETIDA);
     }
 
     if (this.sequenciasComentario.length) {

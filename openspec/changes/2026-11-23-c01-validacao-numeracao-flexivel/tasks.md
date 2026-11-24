@@ -27,18 +27,18 @@
 
 ## 3. Passagem central, alerta e pendência
 
-- [ ] 3.1 Implementar `sincronizarNumeracaoRepetida` (D5): capturar o conjunto anterior no início de `elementoReducer`, chamar a passagem depois de `atualizaMensagemCritical`, emitir `ElementoValidado` para os dispositivos que entraram ou saíram do conjunto e incluir ou retirar o alerta crítico sem fechar, sem duplicar. Em `RESETAR_DOCUMENTO`, zerar o conjunto. Verificar com teste de reducer em `test/redux/elemento/reducer/`:
+- [x] 3.1 Implementar `sincronizarNumeracaoRepetida` (D5): capturar o conjunto anterior no início de `elementoReducer`, chamar a passagem depois de `atualizaMensagemCritical`, emitir `ElementoValidado` para os dispositivos que entraram ou saíram do conjunto e incluir ou retirar o alerta crítico sem fechar, sem duplicar. Em `RESETAR_DOCUMENTO`, zerar o conjunto. Verificar com teste de reducer em `test/redux/elemento/reducer/`:
   - abrir com repetição produz o alerta e o conjunto;
   - incluir artigo (renumeração) retira o alerta e emite `ElementoValidado` para o antigo segundo "Art. 5º";
   - desfazer restaura o alerta;
   - várias ações sem correção mantêm um único alerta;
   - correção parcial mantém o alerta;
   - no modo rígido não há alerta nem conjunto.
-- [ ] 3.2 Incluir a pendência "Existem dispositivos com numeração repetida." em `getDocumentoArticulado` (logo depois da de justificação) e em `getPendenciasPreenchimento`, a partir do mesmo conjunto (D6). Verificar:
+- [x] 3.2 Incluir a pendência "Existem dispositivos com numeração repetida." em `getDocumentoArticulado` (logo depois da de justificação) e em `getPendenciasPreenchimento`, a partir do mesmo conjunto (D6). Verificar:
   - em `test/model/documento/pendencias.test.ts`, a ordem no arquivo (justificação, numeração repetida, remissões);
   - em teste de componente, a pendência coincide com o alerta e some depois da correção;
   - a pendência gravada não gera alerta ao abrir um documento sem repetição.
-- [ ] 3.3 Teste de reducer de robustez (risco do design): abrir, no modo flexível, um documento com artigos repetidos, com remissão interna para `art5` e situação na norma vigente, e exercitar incluir, remover, mover, desfazer, refazer e salvar. Verificar que não há exceção e que a remissão e a situação resolvem para a 1ª ocorrência (D8).
+- [x] 3.3 Teste de reducer de robustez (risco do design): abrir, no modo flexível, um documento com artigos repetidos, com remissão interna para `art5` e situação na norma vigente, e exercitar incluir, remover, mover, desfazer, refazer e salvar. Verificar que não há exceção e que a remissão e a situação resolvem para a 1ª ocorrência (D8).
 
 ## 4. Correção automática
 

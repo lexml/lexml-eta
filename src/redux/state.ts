@@ -72,6 +72,8 @@ export interface State {
   mensagensCritical?: Array<string>;
   remissoes?: Record<number, RemissaoInternaValue[]>;
   remissoesExternas?: Record<string, RemissaoExternaValue>;
+  // Uuids dos dispositivos com numeração repetida (só no modo flexível); recalculado a cada ação.
+  numeracaoRepetida?: number[];
 }
 
 export const createState = (state: any, events: StateEvent[], past: StateEvent[], present: StateEvent[], future: StateEvent[]): State => {

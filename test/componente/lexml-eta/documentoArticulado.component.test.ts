@@ -15,6 +15,8 @@ import { buscaDispositivoById } from '../../../src/model/lexml/hierarquia/hierar
 import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { removerAlerta } from '../../../src/model/alerta/acao/removerAlerta';
+import { validarArticulacaAction } from '../../../src/model/lexml/acao/validarArticulacaoAction';
+import { registraValidacaoNumeracao } from '../../../src/model/lexml/numeracao/validacaoNumeracao';
 import {
   congelarRelogio,
   DATA_ULTIMA_MODIFICACAO_CONGELADA,
@@ -666,6 +668,64 @@ describe('ETA — salvar e abrir documento articulado', () => {
       (component as any)._lexmlJustificativa.setContent('<p>Justificação.</p>');
 
       expect(lexeditSalvo(component.getDocumentoArticulado())).to.not.have.property('pendencias');
+    });
+  });
+
+  describe('pendência de numeração repetida', () => {
+    const MSG = 'Existem dispositivos com numeração repetida.';
+    const NS = 'http://www.lexml.gov.br/1.0';
+    const alertaGlobal = (): boolean => !!rootStore.getState().elementoReducer.ui?.alertas?.some((a: any) => a.id === 'alerta-global-numeracao-repetida');
+    const pendenciasDaProposicao = (): string[] => component.getProposicao().pendenciasPreenchimento;
+    const artigos = (): any[] => rootStore.getState().elementoReducer.articulacao.artigos;
+    const revalida = (): void => void rootStore.dispatch(validarArticulacaAction.execute());
+
+    beforeEach(async () => {
+      const entrada = novoDocumentoArticulado();
+      const lXhier = entrada.value.projetoNorma.norma.articulacao.lXhier;
+      lXhier.push({
+        name: { namespaceURI: NS, localPart: 'Artigo' },
+        value: {
+          TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
+          id: 'art2',
+          rotulo: 'Art. 2º',
+          lXcontainersOmissis: [
+            {
+              name: { namespaceURI: NS, localPart: 'Caput' },
+              value: { TYPE_NAME: 'br_gov_lexml__1.DispositivoType', id: 'art2_cpt', p: [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: ['Segundo.'] }] },
+            },
+          ],
+        },
+      });
+      await component.abrirDocumentoArticulado(entrada);
+      registraValidacaoNumeracao('flexivel');
+    });
+
+    afterEach(() => registraValidacaoNumeracao(undefined));
+
+    it('alerta e pendência coincidem e somem depois da correção', () => {
+      revalida();
+      expect(alertaGlobal()).to.equal(false);
+      expect(pendenciasDaProposicao()).to.not.include(MSG);
+
+      artigos()[1].numero = '1';
+      revalida();
+      expect(alertaGlobal()).to.equal(true);
+      expect(pendenciasDaProposicao()).to.include(MSG);
+
+      artigos()[1].numero = '2';
+      revalida();
+      expect(alertaGlobal()).to.equal(false);
+      expect(pendenciasDaProposicao()).to.not.include(MSG);
+    });
+
+    it('a pendência gravada no arquivo não gera alerta ao abrir um documento sem repetição', async () => {
+      const salvo = component.getDocumentoArticulado();
+      lexeditSalvo(salvo).pendencias.pendencia.push(MSG);
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(alertaGlobal()).to.equal(false);
+      expect(pendenciasDaProposicao()).to.not.include(MSG);
     });
   });
 
