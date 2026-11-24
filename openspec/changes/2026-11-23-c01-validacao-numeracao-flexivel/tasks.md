@@ -12,12 +12,12 @@
 
 ## 2. Detecção e erro contextualizado
 
-- [ ] 2.1 Implementar `isNumeracaoRepetida` (D3) e o cálculo linear do conjunto de dispositivos com numeração repetida em `model/lexml/numeracao/`. Verificar com testes unitários dos cenários da spec `numeracao-repetida`:
+- [x] 2.1 Implementar `isNumeracaoRepetida` (D3) e o cálculo linear do conjunto de dispositivos com numeração repetida em `model/lexml/numeracao/`. Verificar com testes unitários dos cenários da spec `numeracao-repetida`:
   - artigos repetidos em capítulos diferentes (só o segundo);
   - incisos do artigo repetido não marcados;
   - três incisos "II" no mesmo caput (segundo e terceiro);
   - artigos repetidos em bloco de alteração herdado não marcados.
-- [ ] 2.2 Acrescentar `AutoFix.NUMERACAO_REPETIDA` e a mensagem ERROR em `validaNumeracaoDispositivo` e em `validaNumeracaoDispositivoAlteracao`, só no modo flexível, com `fix` conforme D4. Verificar em `test/model/numeracao/numeracao.test.ts`:
+- [x] 2.2 Acrescentar `AutoFix.NUMERACAO_REPETIDA` e a mensagem ERROR em `validaNumeracaoDispositivo` e em `validaNumeracaoDispositivoAlteracao`, só no modo flexível, com `fix` conforme D4. Verificar em `test/model/numeracao/numeracao.test.ts`:
   - sem mensagem no modo rígido;
   - mensagem só na 2ª ocorrência;
   - `fix` falso para artigo de alteração e para pai "Existente";
