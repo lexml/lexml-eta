@@ -3,14 +3,15 @@
  *
  * Fixture: demo/doc/teste_numeracao_repetida.json, gerada por criarDocumentoArticulado() (mesmo código de produção
  * usado ao salvar), não escrita à mão: "Art. 5º", "Art. 5º" (com dois incisos) e "Art. 6º".
+ * demo/doc/teste_numeracao_repetida_ultimo.json é a mesma fixture sem os incisos e o "Art. 6º" (o repetido fica na última linha).
  * O modo flexível é escolhido no seletor `#validacaoNumeracao` da demo antes de abrir o arquivo (o `#fileUpload` da demo
  * lê o arquivo com o mesmo modo do componente).
  */
 
-// Módulo, não script: evita colisão de constantes entre specs.
-export {};
+import { TECLA_ENTER, cliqueNativo, teclaNativa } from '../../support/eventos-nativos';
 
 const FIXTURE = 'demo/doc/teste_numeracao_repetida.json';
+const FIXTURE_ULTIMO = 'demo/doc/teste_numeracao_repetida_ultimo.json';
 const ERRO = 'Dispositivo com numeração repetida';
 const ALERTA = 'Existem dispositivos com numeração repetida.';
 
@@ -26,6 +27,40 @@ const textoDosAlertas = (): Cypress.Chainable<string> => cy.get('lexml-eta-alert
 
 const ligarModoFlexivel = (): void => {
   cy.get('#validacaoNumeracao').select('flexivel');
+};
+
+const getQuill = (win: Window): any => (win.document.querySelector('lexml-eta-proposicao-editor') as any).quill;
+const segundoArtigo = (quill: any): any => {
+  const artigos: any[] = [];
+  for (let linha = quill.getPrimeiraLinha(); linha; linha = linha.next) linha.tipo === 'Artigo' && artigos.push(linha);
+  return artigos[1];
+};
+const clicarNoSegundoArtigo = (alvo: (linha: any) => Element, dx?: number): void => {
+  cy.window().then(win => {
+    const r = alvo(segundoArtigo(getQuill(win))).getBoundingClientRect();
+    return cliqueNativo(win, dx === undefined ? r.left + r.width / 2 : r.left + dx, r.top + r.height / 2);
+  });
+};
+// Clique nativo: o sintético não move o cursor, e é o cursor deixado no painel removido que quebrava o Enter (como no #1074).
+// A espera deixa o foco inicial (ementa) terminar: depois dele, o clique não é mais desfeito.
+const corrigirSegundoArtigoPorCliqueNativo = (): void => {
+  cy.wait(1000);
+  clicarNoSegundoArtigo(linha => linha.blotConteudo.domNode, 20);
+  cy.window().should(win => expect(getQuill(win).linhaAtual === segundoArtigo(getQuill(win)), 'cursor no segundo artigo').to.be.true);
+  clicarNoSegundoArtigo(linha => linha.domNode.querySelector('.mensagem__fix'));
+};
+const esperarCursorNoInicioDoArt2 = (): void => {
+  cy.get('lexml-eta-proposicao-editor').should($editor => {
+    const quill = ($editor[0] as any).quill;
+    expect(quill.linhaAtual.blotRotulo.domNode.textContent).to.equal('Art. 2º');
+    expect(quill.getSelection()?.index).to.equal(quill.inicioConteudoAtual);
+  });
+};
+const esperarArtigos = (esperados: { rotulo: string; texto: string }[]): void => {
+  cy.get(SEL_ARTIGO).should($artigos => {
+    const linhas = $artigos.toArray().map(a => ({ rotulo: a.querySelector('label')?.textContent?.trim(), texto: a.querySelector('p.texto__dispositivo')?.textContent?.trim() }));
+    expect(linhas).to.deep.equal(esperados);
+  });
 };
 
 describe('Abertura de documento com numeração repetida', () => {
@@ -77,6 +112,45 @@ describe('Abertura de documento com numeração repetida', () => {
       });
       esperarMensagensDeNumeracao(1);
       cy.get('lexml-eta-alertas').should($el => expect($el[0].shadowRoot?.textContent ?? '').to.include(ALERTA));
+    });
+
+    it('depois do clique em "Corrigir agora", o cursor fica no início do texto e o Enter cria um artigo antes', () => {
+      corrigirSegundoArtigoPorCliqueNativo();
+      cy.get(SEL_ARTIGO).eq(2).find('label').should('contain.text', 'Art. 3º');
+      esperarCursorNoInicioDoArt2();
+
+      cy.then(() => teclaNativa(TECLA_ENTER));
+
+      esperarArtigos([
+        { rotulo: 'Art. 1º', texto: 'Primeiro artigo.' },
+        { rotulo: 'Art. 2º', texto: '' },
+        { rotulo: 'Art. 3º', texto: 'Segundo artigo, com numeração repetida:' },
+        { rotulo: 'Art. 4º', texto: 'Terceiro artigo.' },
+      ]);
+      cy.get('div.container__elemento.elemento-tipo-inciso').should('have.length', 2);
+    });
+  });
+
+  // Com a mensagem abaixo da última linha, o clique deixava a seleção salva no menu vazio do fim do documento.
+  describe('modo flexível, com o artigo repetido na última linha', () => {
+    beforeEach(() => {
+      ligarModoFlexivel();
+      cy.get('#fileUpload').selectFile(FIXTURE_ULTIMO, { force: true });
+      cy.get(SEL_ARTIGO).should('have.length', 2);
+    });
+
+    it('depois do clique em "Corrigir agora", o cursor fica no início do texto e o Enter cria um artigo antes', () => {
+      corrigirSegundoArtigoPorCliqueNativo();
+      cy.get(SEL_ARTIGO).eq(1).find('label').should('contain.text', 'Art. 2º');
+      esperarCursorNoInicioDoArt2();
+
+      cy.then(() => teclaNativa(TECLA_ENTER));
+
+      esperarArtigos([
+        { rotulo: 'Art. 1º', texto: 'Primeiro artigo.' },
+        { rotulo: 'Art. 2º', texto: '' },
+        { rotulo: 'Art. 3º', texto: 'Segundo artigo, com numeração repetida.' },
+      ]);
     });
   });
 
