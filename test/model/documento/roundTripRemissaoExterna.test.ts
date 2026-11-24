@@ -75,4 +75,42 @@ describe('Round-trip save→load de remissão externa auto-detectada', () => {
     expect(caputCarregado?.texto).to.include(`data-ref-id="${entradaCarregada.refId}"`);
     expect(caputCarregado?.texto).to.include('class="lexml-remissao-externa"');
   });
+
+  // #1085: a ementa fica fora da árvore da articulação, e o link dela não chegava ao arquivo.
+  it('o link da ementa sobrevive ao ciclo completo', () => {
+    const articulacao = createArticulacao();
+    const artigo = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    configurarNumero(artigo, 1);
+    configurarRotulo(artigo, 'Art. 1º');
+    (criaDispositivo(artigo, TipoDispositivo.caput.tipo) as any).texto = 'Texto do artigo.';
+
+    // Como buildDispositivoEmenta, na abertura do documento.
+    const ementa = criaDispositivo(createArticulacao(), 'Ementa');
+    ementa.pai = undefined;
+    ementa.id = 'ementa';
+    const textoRef = 'Lei nº 12.965, de 23 de abril de 2014';
+    ementa.texto = `Altera a ${textoRef}, para blá blá blá.`;
+
+    const remissao: RemissaoExternaValue = {
+      refId: 'ref_da_ementa',
+      targetUrn: 'urn:lex:br:federal:lei:2014-04-23;12965',
+      targetNomeNorma: '',
+      textoRef,
+      sourceUuid: ementa.uuid,
+      inicio: ementa.texto.indexOf(textoRef),
+      fim: ementa.texto.indexOf(textoRef) + textoRef.length,
+    };
+
+    const projetoNorma = { classificacao: 'projeto', epigrafe: { texto: '' }, ementa, preambulo: { texto: '' } as any, articulacao };
+    const salvo = buildJsonixFromProjetoNorma(projetoNorma as any, 'urn:lex:br:federal:projeto.lei:2026;1', undefined, { [remissao.refId]: remissao });
+
+    const projetoCarregado = buildProjetoNormaFromJsonix(salvo);
+    const remissoesCarregadas = Object.values(inicializaRemissoesExternasAoAbrir(projetoCarregado.articulacao!)) as RemissaoExternaValue[];
+    const ementaCarregada = projetoCarregado.articulacao!.projetoNorma!.ementa!;
+
+    expect(remissoesCarregadas).to.have.length(1);
+    expect(remissoesCarregadas[0]).to.include({ targetUrn: remissao.targetUrn, textoRef, sourceUuid: ementaCarregada.uuid });
+    expect(ementaCarregada.texto).to.include('data-urn="urn:lex:br:federal:lei:2014-04-23;12965"');
+    expect(ementaCarregada.texto).to.include('class="lexml-remissao-externa"');
+  });
 });
