@@ -70,8 +70,8 @@
 
 ## 6. E2E (Cypress)
 
-- [ ] 6.1 Gerar a fixture `demo/doc/teste_numeracao_repetida.json` com `criarDocumentoArticulado(..., { validacaoNumeracao: 'flexivel' })`, a partir de uma articulação com dois "Art. 5º" (o segundo com incisos) seguidos de um "Art. 6º", sem escrever o JSON à mão. Verificar que `lerDocumentoArticulado` recusa a fixture no modo rígido e aceita no flexível.
-- [ ] 6.2 Criar `cypress/e2e/documento-articulado/abertura-numeracao-repetida.cy.ts`, seguindo `docs/guia-cypress.md`: atribuir uma nova configuração com `validacaoNumeracao: 'flexivel'` ao `lexml-eta` antes de abrir por `#fileUpload` e cobrir três casos:
+- [x] 6.1 Gerar a fixture `demo/doc/teste_numeracao_repetida.json` com `criarDocumentoArticulado(..., { validacaoNumeracao: 'flexivel' })`, a partir de uma articulação com dois "Art. 5º" (o segundo com incisos) seguidos de um "Art. 6º", sem escrever o JSON à mão. Verificar que `lerDocumentoArticulado` recusa a fixture no modo rígido e aceita no flexível.
+- [x] 6.2 Criar `cypress/e2e/documento-articulado/abertura-numeracao-repetida.cy.ts`, seguindo `docs/guia-cypress.md`: atribuir uma nova configuração com `validacaoNumeracao: 'flexivel'` ao `lexml-eta` antes de abrir por `#fileUpload` e cobrir três casos:
   - no flexível, o alerta da aba Avisos (no shadow root de `lexml-eta-alertas`) aparece, o erro aparece só no segundo "Art. 5º" e os incisos dele não têm erro;
   - "Corrigir agora" no segundo artigo renumera para 5, 6 e 7 e retira o alerta e o erro;
   - no rígido, o mesmo arquivo é recusado.
