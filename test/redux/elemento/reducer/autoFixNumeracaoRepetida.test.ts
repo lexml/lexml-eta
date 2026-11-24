@@ -1,5 +1,5 @@
 ﻿import { expect } from '@open-wc/testing';
-import { Artigo } from '../../../../src/model/dispositivo/dispositivo';
+import { Artigo, Dispositivo } from '../../../../src/model/dispositivo/dispositivo';
 import { createElemento, createElementoValidado } from '../../../../src/model/elemento/elementoUtil';
 import { ClassificacaoDocumento } from '../../../../src/model/documento/classificacao';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
@@ -11,6 +11,10 @@ import { redoAction } from '../../../../src/model/lexml/acao/redoAction';
 import { UndoAction } from '../../../../src/model/lexml/acao/undoAction';
 import { buildProjetoNormaFromJsonix } from '../../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { lerDocumentoArticulado } from '../../../../src/model/lexml/documento/documentoArticulado';
+import { createAlteracao, createArticulacao, criaDispositivo, criaDispositivoCabecaAlteracao } from '../../../../src/model/lexml/dispositivo/dispositivoLexmlFactory';
+import { TipoDispositivo } from '../../../../src/model/lexml/tipo/tipoDispositivo';
+import { buildId } from '../../../../src/model/lexml/util/idUtil';
+import { validarArticulacaAction } from '../../../../src/model/lexml/acao/validarArticulacaoAction';
 import { registraValidacaoNumeracao } from '../../../../src/model/lexml/numeracao/validacaoNumeracao';
 import { AutoFix, TipoMensagem } from '../../../../src/model/lexml/util/mensagem';
 import { elementoReducer } from '../../../../src/redux/elemento/reducer/elementoReducer';
@@ -167,6 +171,111 @@ describe('Corrigir numeração repetida (autofix)', () => {
       despacha(redoAction());
       expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º']);
       expect(revisoesDe().map(r => r.revisao)).to.deep.equal([]);
+    });
+  });
+});
+
+describe('Corrigir numeração repetida (autofix) em dispositivo que não é artigo', () => {
+  const USUARIO = { nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' };
+  const alinea = (id: string): any => ({ name: { namespaceURI: NS, localPart: 'Alinea' }, value: { TYPE_NAME: TIPO, id, rotulo: 'a)', p: [inline(['alínea.'])] } });
+  const incisoII = (alineas: any[] = []): any => ({
+    name: { namespaceURI: NS, localPart: 'Inciso' },
+    value: { TYPE_NAME: TIPO, id: 'art1_cpt_inc2', rotulo: 'II –', p: [inline(['inciso;'])], ...(alineas.length && { lXcontainersOmissis: alineas }) },
+  });
+
+  // Um artigo com três incisos "II" no caput; só o terceiro tem alínea.
+  const abreComIncisos = (): void => {
+    const entrada = novoDocumentoArticulado();
+    const art = artigoJson(1, ['Caput:']);
+    art.value.lXcontainersOmissis[0].value.lXcontainersOmissis = [incisoII(), incisoII(), incisoII([alinea('art1_cpt_inc2_ali1')])];
+    entrada.value.projetoNorma.norma.articulacao.lXhier = [art];
+    const modelo = buildProjetoNormaFromJsonix(lerDocumentoArticulado(entrada, { validacaoNumeracao: 'flexivel' }), true);
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: modelo.articulacao!, classificacao: ClassificacaoDocumento.NORMA });
+  };
+  const incisos = (): Dispositivo[] => artigo(0).caput!.filhos;
+  const corrigeDispositivo = (d: Dispositivo): void => despacha(autofixAction.execute(createElemento(d), MENSAGEM));
+
+  // Artigo "Novo" num bloco de alteração, com dois parágrafos de mesmo número.
+  const abreComParagrafosEmAlteracao = (): { cabeca: Artigo; paragrafos: Dispositivo[] } => {
+    const articulacao = createArticulacao();
+    const hospedeiro = criaDispositivo(articulacao, TipoDispositivo.artigo.tipo);
+    createAlteracao(hospedeiro);
+    const cabeca = criaDispositivoCabecaAlteracao(TipoDispositivo.artigo.tipo, hospedeiro.alteracoes!, undefined, 0) as Artigo;
+    cabeca.existeNaNormaAlterada = false;
+    const paragrafos = [criaDispositivo(cabeca, TipoDispositivo.paragrafo.tipo), criaDispositivo(cabeca, TipoDispositivo.paragrafo.tipo)];
+    paragrafos.forEach(p => {
+      p.numero = '1';
+      p.createRotulo(p);
+      p.id = buildId(p);
+    });
+    state = { articulacao, past: [], present: [], future: [], ui: { events: [] } } as any;
+    despacha(validarArticulacaAction.execute());
+    return { cabeca, paragrafos };
+  };
+
+  beforeEach(() => registraValidacaoNumeracao('flexivel'));
+  afterEach(() => registraValidacaoNumeracao(undefined));
+
+  it('incisos repetidos: renumera I, II e III, recalcula a alínea descendente e desfazer devolve os três "II"', () => {
+    abreComIncisos();
+    expect(incisos().map(i => i.rotulo)).to.deep.equal(['II –', 'II –', 'II –']);
+    expect(state.numeracaoRepetida).to.have.length(2);
+
+    corrigeDispositivo(incisos()[1]);
+
+    expect(incisos().map(i => i.rotulo)).to.deep.equal(['I –', 'II –', 'III –']);
+    expect(incisos()[2].filhos[0].id).to.equal('art1_cpt_inc3_ali1');
+    expect(state.numeracaoRepetida).to.deep.equal([]);
+    expect(alerta()).to.equal(false);
+
+    despacha(UndoAction());
+
+    expect(incisos().map(i => i.rotulo)).to.deep.equal(['II –', 'II –', 'II –']);
+    expect(incisos()[2].filhos[0].id).to.equal('art1_cpt_inc2_ali1');
+    expect(state.numeracaoRepetida).to.have.length(2);
+    expect(alerta()).to.equal(true);
+  });
+
+  it('parágrafos repetidos de artigo "Novo" em bloco de alteração: renumera os irmãos e desfazer restaura a repetição', () => {
+    const { paragrafos } = abreComParagrafosEmAlteracao();
+    expect(paragrafos.map(p => p.rotulo)).to.deep.equal(['§ 1º', '§ 1º']);
+    expect(alerta()).to.equal(true);
+
+    corrigeDispositivo(paragrafos[1]);
+
+    expect(paragrafos.map(p => p.rotulo)).to.deep.equal(['§ 1º', '§ 2º']);
+    expect(paragrafos.map(p => p.id?.slice(-4))).to.deep.equal(['par1', 'par2']);
+    expect(state.numeracaoRepetida).to.deep.equal([]);
+    expect(alerta()).to.equal(false);
+
+    despacha(UndoAction());
+
+    expect(paragrafos.map(p => p.rotulo)).to.deep.equal(['§ 1º', '§ 1º']);
+    expect(state.numeracaoRepetida).to.have.length(1);
+    expect(alerta()).to.equal(true);
+  });
+
+  describe('em modo de revisão', () => {
+    const ativaRevisao = (): void => {
+      despacha(atualizarTextoElementoAction.execute({ ...createElemento(artigo(0)), conteudo: { texto: 'Editado.' } } as any));
+      despacha({ type: ATUALIZAR_USUARIO, usuario: USUARIO });
+      despacha({ type: ATIVAR_DESATIVAR_REVISAO });
+    };
+    const marcas = (): any[] => (state.revisoes ?? []).map((r: any) => r.revisao);
+
+    it('a correção de incisos, o desfazer e o refazer não geram revisão', () => {
+      abreComIncisos();
+      ativaRevisao();
+      expect(state.emRevisao).to.equal(true);
+
+      corrigeDispositivo(incisos()[1]);
+      expect(marcas()).to.deep.equal([]);
+
+      despacha(UndoAction());
+      expect(marcas()).to.deep.equal([]);
+      despacha(redoAction());
+      expect(incisos().map(i => i.rotulo)).to.deep.equal(['I –', 'II –', 'III –']);
+      expect(marcas()).to.deep.equal([]);
     });
   });
 });
