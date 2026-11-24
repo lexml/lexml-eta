@@ -1,10 +1,13 @@
 import { Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isArtigo, isIncisoCaput, isOmissis } from '../../../model/dispositivo/tipo';
+import { isAgrupador, isArtigo, isIncisoCaput, isOmissis, isPena } from '../../../model/dispositivo/tipo';
+import { Elemento } from '../../../model/elemento';
 import { createElemento, createElementoValidado, getDispositivoFromElemento } from '../../../model/elemento/elementoUtil';
 import { criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
 import {
   buscaProximoOmissis as buscaProximoOmissisSequencial,
+  getArticulacao,
+  getDispositivoAndFilhosAsLista,
   getDispositivoAnterior,
   getDispositivoPosterior,
   getUltimoFilho,
@@ -13,7 +16,7 @@ import {
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { RemissaoExternaValue } from '../../../model/remissao';
 import { AutoFix } from '../../../model/lexml/util/mensagem';
-import { State, StateType } from '../../state';
+import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
 import { buildPast } from '../util/stateReducerUtil';
@@ -22,6 +25,76 @@ import { solicitaNorma } from './solicitaNorma';
 
 const hasFix = (dispositivo: Dispositivo): boolean => {
   return (dispositivo.mensagens?.filter(m => m.fix) ?? []).length > 0;
+};
+
+// O que a renumeração automática pode alterar: o grupo do dispositivo (e, em agrupador, todos os artigos).
+const getEscopoDaRenumeracao = (atual: Dispositivo): Dispositivo[] => {
+  if (isArtigo(atual)) {
+    return getArticulacao(atual).artigos;
+  }
+  const irmaos = atual.pai!.filhos.filter(f => !isPena(f));
+  return isAgrupador(atual) ? [...irmaos.filter(isAgrupador), ...getArticulacao(atual).artigos] : irmaos;
+};
+
+const snapshot = (dispositivo: Dispositivo): { dispositivo: Dispositivo; original: Elemento; descendentes: Elemento[] } => ({
+  dispositivo,
+  original: createElemento(dispositivo),
+  descendentes: getDispositivoAndFilhosAsLista(dispositivo)
+    .slice(1)
+    .map(d => createElemento(d)),
+});
+
+// Renumera o grupo e guarda no histórico o estado anterior (par antes/depois), como a renumeração manual: desfazer restaura a repetição.
+const corrigeNumeracaoRepetida = (state: any, atual: Dispositivo | undefined): State => {
+  const oferecida = atual && validaDispositivo(atual).some(m => m.descricao === AutoFix.NUMERACAO_REPETIDA && m.fix);
+  if (!atual || !oferecida) {
+    state.ui.events = [];
+    return state;
+  }
+
+  const antes = getEscopoDaRenumeracao(atual).map(snapshot);
+  if (isArtigo(atual)) {
+    getArticulacao(atual).renumeraArtigos();
+  } else {
+    atual.pai!.renumeraFilhos();
+  }
+
+  const modificados: Elemento[] = [];
+  const renumerados: Elemento[] = [];
+  const descendentes: Elemento[] = [];
+  antes.forEach(({ dispositivo, original, descendentes: descendentesAntes }) => {
+    dispositivo.mensagens = validaDispositivo(dispositivo);
+    const depois = createElemento(dispositivo);
+    const filhosDepois = getDispositivoAndFilhosAsLista(dispositivo).slice(1);
+    const mudaramFilhos = filhosDepois.map(d => createElemento(d)).filter((d, i) => d.lexmlId !== descendentesAntes[i]?.lexmlId);
+    if (original.numero !== depois.numero || original.rotulo !== depois.rotulo) {
+      modificados.push(original, depois);
+      renumerados.push(depois);
+    }
+    descendentes.push(...mudaramFilhos);
+  });
+
+  if (!modificados.length) {
+    state.ui.events = [];
+    return state;
+  }
+
+  const eventosPast: StateEvent[] = [{ stateType: StateType.ElementoModificado, elementos: modificados, renumeracaoAutomatica: true }];
+  const eventos = new Eventos();
+  eventos.add(StateType.ElementoRenumerado, renumerados);
+  if (descendentes.length) {
+    eventosPast.push({ stateType: StateType.SituacaoElementoModificada, elementos: descendentes });
+    eventos.add(StateType.SituacaoElementoModificada, descendentes);
+  }
+
+  return {
+    articulacao: state.articulacao,
+    modo: state.modo,
+    past: buildPast(state, eventosPast),
+    present: eventos.build(),
+    future: [],
+    ui: { events: eventos.build(), alertas: state.ui?.alertas },
+  };
 };
 
 // A mensagem existe só na tela (não está em dispositivo.mensagens), por isso não passa pela guarda hasFix; a URN alvo precisa constar no registro do artigo.
@@ -55,6 +128,11 @@ export const autoFixElemento = (state: any, action: any): State => {
   if (action.mensagem?.detalhe?.autoFix === AutoFix.NORMA_ALTERADA_DIVERGENTE) {
     const { uuid, urn } = action.mensagem.detalhe;
     return corrigeNormaAlteradaDivergente(state, uuid === undefined ? atual : getDispositivoFromElemento(state.articulacao, { uuid }, true), urn);
+  }
+
+  if (action.mensagem?.descricao === AutoFix.NUMERACAO_REPETIDA) {
+    // Mensagem só calculada na validação: não está em dispositivo.mensagens, então não passa pela guarda hasFix.
+    return corrigeNumeracaoRepetida(state, atual);
   }
 
   if (atual === undefined || !hasFix(atual)) {

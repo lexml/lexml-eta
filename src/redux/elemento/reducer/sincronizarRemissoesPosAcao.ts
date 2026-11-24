@@ -15,6 +15,7 @@ import { REDO } from '../../../model/lexml/acao/redoAction';
 import { MOVER_ELEMENTO_ACIMA } from '../../../model/lexml/acao/moverElementoAcimaAction';
 import { MOVER_ELEMENTO_ABAIXO } from '../../../model/lexml/acao/moverElementoAbaixoAction';
 import { REJEITAR_REVISAO } from '../../../model/lexml/acao/rejeitarRevisaoAction';
+import { AUTO_FIX } from '../../../model/lexml/acao/autoFixAction';
 
 // Fase 5 do plano de simplificação (docs/PLANO_SIMPLIFICACAO_ATUALIZACAO_REMISSAO.md): plugado na
 // cadeia de pós-processamento genérico de elementoReducer.ts. Restrito a ações estruturais (D2) —
@@ -32,6 +33,8 @@ const ACOES_ESTRUTURAIS = new Set([
   MOVER_ELEMENTO_ACIMA,
   MOVER_ELEMENTO_ABAIXO,
   REJEITAR_REVISAO,
+  // A correção automática de numeração repetida renumera dispositivos.
+  AUTO_FIX,
   UNDO,
   REDO,
 ]);

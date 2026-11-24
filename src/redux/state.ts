@@ -42,6 +42,8 @@ export interface StateEvent {
   moverParaFimLinha?: boolean;
   // Exclusão feita pelo usuário: o cursor vai para a linha que toma o lugar do excluído (#1075).
   cursorNaLinhaSeguinte?: boolean;
+  // Correção automática de numeração: desfazer e refazer restauram os números, mas não geram revisão.
+  renumeracaoAutomatica?: boolean;
   elementos?: Elemento[];
   remissaoRenumeracao?: { lexmlIdAntigo: string; lexmlIdNovo: string; novoUuid: number };
   remissaoInvalidacao?: { lexmlId: string; uuid: number };

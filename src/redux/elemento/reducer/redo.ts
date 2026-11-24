@@ -100,7 +100,12 @@ export const redo = (state: any): State => {
 
   eventos
     .filter((ev: StateEvent) => ev.stateType === StateType.ElementoModificado)
-    .forEach((ev: StateEvent) => events.eventos.push({ stateType: StateType.ElementoModificado, elementos: processarModificados(state, ev, 'REDO') }));
+    .forEach((ev: StateEvent) =>
+      events.eventos.push({
+        stateType: ev.renumeracaoAutomatica ? StateType.ElementoRenumerado : StateType.ElementoModificado,
+        elementos: processarModificados(state, ev, 'REDO'),
+      })
+    );
 
   events.add(StateType.ElementoRenumerado, processaRenumerados(state, getEvento(eventos, StateType.ElementoRenumerado)));
   events.add(StateType.ElementoValidado, processaValidados(state, eventos));
