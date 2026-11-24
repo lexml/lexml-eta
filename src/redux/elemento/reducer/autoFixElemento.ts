@@ -86,6 +86,9 @@ const corrigeNumeracaoRepetida = (state: any, atual: Dispositivo | undefined): S
     eventosPast.push({ stateType: StateType.SituacaoElementoModificada, elementos: descendentes });
     eventos.add(StateType.SituacaoElementoModificada, descendentes);
   }
+  // O clique em "Corrigir agora" deixa o cursor no painel da mensagem, que é removido: devolve-o ao conteúdo do dispositivo.
+  eventos.add(StateType.ElementoMarcado, [createElemento(atual)]);
+  eventos.add(StateType.ElementoSelecionado, [createElemento(atual)]);
 
   return {
     articulacao: state.articulacao,

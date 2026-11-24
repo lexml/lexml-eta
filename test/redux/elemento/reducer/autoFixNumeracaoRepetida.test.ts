@@ -19,7 +19,7 @@ import { registraValidacaoNumeracao } from '../../../../src/model/lexml/numeraca
 import { AutoFix, TipoMensagem } from '../../../../src/model/lexml/util/mensagem';
 import { elementoReducer } from '../../../../src/redux/elemento/reducer/elementoReducer';
 import { ALERTA_NUMERACAO_REPETIDA } from '../../../../src/redux/elemento/reducer/sincronizarNumeracaoRepetida';
-import { State } from '../../../../src/redux/state';
+import { State, StateEvent, StateType } from '../../../../src/redux/state';
 import { novoDocumentoArticulado } from '../../../doc/documentoArticulado';
 
 const NS = 'http://www.lexml.gov.br/1.0';
@@ -104,6 +104,19 @@ describe('Corrigir numeração repetida (autofix)', () => {
     expect(artigo(2).id).to.equal('art3');
     expect(state.numeracaoRepetida).to.deep.equal([]);
     expect(alerta()).to.equal(false);
+  });
+
+  it('devolve o cursor ao dispositivo corrigido (marca e seleciona a linha), sem guardar isso no histórico', () => {
+    abre();
+    const uuid = artigo(1).uuid;
+
+    corrige(1);
+
+    const uuidsDo = (tipo: StateType): (number | undefined)[] => state.ui!.events.filter(e => e.stateType === tipo).flatMap(e => e.elementos!.map(el => el.uuid));
+    expect(uuidsDo(StateType.ElementoMarcado)).to.deep.equal([uuid]);
+    expect(uuidsDo(StateType.ElementoSelecionado)).to.deep.equal([uuid]);
+    const ultimoDoHistorico = state.past![state.past!.length - 1] as any as StateEvent[];
+    expect(ultimoDoHistorico.map(e => e.stateType)).to.not.include.members([StateType.ElementoMarcado, StateType.ElementoSelecionado]);
   });
 
   it('a remissão para o antigo "Art. 2º" passa a referir o "Art. 3º"', () => {
