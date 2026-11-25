@@ -7,7 +7,7 @@ import { buildProjetoNormaFromJsonix } from '../../../src/model/lexml/documento/
 import { MPV_905_2019 } from '../../doc/mpv_905_2019';
 import { ATIVAR_DESATIVAR_REVISAO } from '../../../src/model/lexml/acao/ativarDesativarRevisaoAction';
 import { atualizarUsuarioAction } from '../../../src/model/lexml/acao/atualizarUsuarioAction';
-import { adicionarArtigoAntes } from '../../../src/model/lexml/acao/adicionarElementoAction';
+import { adicionarArtigoAntes, adicionarArtigoDepois } from '../../../src/model/lexml/acao/adicionarElementoAction';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualizarTextoElementoAction';
 import { RENUMERAR_ELEMENTO } from '../../../src/model/lexml/acao/renumerarElementoAction';
 import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
@@ -134,6 +134,30 @@ describe('Revisão coerente com o histórico de desfazer (MPV 905/2019)', () => 
 
       const semAntes = revisoes().filter(r => r.stateType === 'ElementoModificado' && !r.elementoAntesRevisao);
       expect(semAntes).to.have.length(0);
+    });
+  });
+
+  describe('Adicionar dispositivo com o cursor num dispositivo que só tem a marcação de remissão desenhada', () => {
+    it('não cria revisão de texto alterado no dispositivo atual', () => {
+      ativaRevisao();
+      const atual = createElemento(dispositivo(ART2)!);
+      atual.conteudo!.texto = comLinkDeRemissao(dispositivo(ART2)!.texto);
+
+      state = elementoReducer(state, adicionarArtigoDepois.execute(atual));
+
+      expect(state.revisoes).to.have.length(1);
+      expect(revisoes()[0].stateType).to.equal('ElementoIncluido');
+      expect(revisaoDe(ART2)).to.be.undefined;
+    });
+
+    it('com o texto realmente alterado, continua criando a revisão do dispositivo atual', () => {
+      ativaRevisao();
+      const atual = createElemento(dispositivo(ART2)!);
+      atual.conteudo!.texto = `${dispositivo(ART2)!.texto} Texto acrescentado.`;
+
+      state = elementoReducer(state, adicionarArtigoDepois.execute(atual));
+
+      expect(revisaoDe(ART2)?.revisao).to.equal('alterado');
     });
   });
 

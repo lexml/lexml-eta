@@ -421,8 +421,11 @@ const atualizarLexmlIdAposRenumeracao = (state: State): void => {
     });
 };
 
+// A ementa e o preâmbulo têm id fixo e não ficam na articulação: não há id nem posição a recalcular.
+const isDaParteInicial = (elemento: Partial<Elemento>): boolean => [TipoDispositivo.ementa.tipo, TipoDispositivo.preambulo.tipo].includes(elemento.tipo as string);
+
 const atualizarLexmlIdEmElementosDeRevisoes = (state: State): void => {
-  let revisoes = getRevisoesElemento(state.revisoes || []).filter(r => !isRevisaoDeExclusao(r));
+  let revisoes = getRevisoesElemento(state.revisoes || []).filter(r => !isRevisaoDeExclusao(r) && !isDaParteInicial(r.elementoAposRevisao));
 
   revisoes.forEach(r => {
     const d = getDispositivoFromElemento(state.articulacao!, r.elementoAposRevisao);

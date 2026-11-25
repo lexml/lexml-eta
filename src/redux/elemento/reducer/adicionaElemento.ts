@@ -22,6 +22,7 @@ import { State, StateType } from '../../state';
 import { adicionaAposPena } from './adicionaAposPena';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
 import { isNovoDispositivoDesmembrandoAtual, MENSAGEM_ARTIGO_ALTERACAO_SEM_FILHOS_PROPRIOS, naoPodeCriarFilho, textoFoiModificado } from '../util/reducerUtil';
+import { removerMarcacaoRemissao } from '../../../util/html-util';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
 import { getDispositivoAnteriorNaSequenciaDeLeitura, getArtigo } from './../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoArtigo } from '../../../model/lexml/tipo/tipoArtigo';
@@ -36,6 +37,7 @@ const calculaPosicao = (atual: Dispositivo, posicao: string): number | undefined
 
 export const adicionaElemento = (state: any, action: any): State => {
   let textoModificado = false;
+  let somenteMarcacaoRemissao = false;
 
   const refAtual = getDispositivoFromElemento(state.articulacao, action.atual, true);
   const atualCaputPosicaoFilho = refAtual && isArtigo(refAtual) && action.novo.tipo === TipoDispositivo.inciso.tipo ? (refAtual as TipoArtigo).caput : undefined;
@@ -76,8 +78,10 @@ export const adicionaElemento = (state: any, action: any): State => {
   createElementos(elementosRemovidos, atual);
 
   if (textoFoiModificado(atual, action, state)) {
+    const textoAnterior = atual.texto;
     atual.texto = !isDispositivoAlteracao(atual) ? action.atual.conteudo?.texto : normalizaSeForOmissis(action.atual.conteudo?.texto ?? '');
     textoModificado = true;
+    somenteMarcacaoRemissao = removerMarcacaoRemissao(textoAnterior ?? '') === removerMarcacaoRemissao(atual.texto ?? '');
   }
 
   if (naoPodeCriarFilho(atual)) {
@@ -160,6 +164,11 @@ export const adicionaElemento = (state: any, action: any): State => {
 
   if (textoModificado || isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto)) {
     eventos.add(StateType.ElementoModificado, [elementoAtualOriginal, elementoAtualAtualizado]);
+    // Só vale quando o evento traz apenas o dispositivo atual: a marca é do evento, não de cada elemento.
+    const eventoModificado = eventos.get(StateType.ElementoModificado);
+    if (somenteMarcacaoRemissao && !isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) && eventoModificado.elementos?.every(e => e.uuid === atual.uuid)) {
+      eventoModificado.somenteMarcacaoRemissao = true;
+    }
   }
 
   if (textoModificado || isNovoDispositivoDesmembrandoAtual(action.novo?.conteudo?.texto) || isOmissis(atual)) {

@@ -25,6 +25,14 @@ Quando o texto de um dispositivo muda só na marcação das remissões, como qua
 - **WHEN** um artigo já tem revisão de texto alterado e o editor só redesenha o link de uma remissão nele
 - **THEN** a revisão continua com as mesmas operações e a mesma descrição
 
+#### Scenario: Adicionar um dispositivo com o cursor num artigo que tem link de remissão
+- **WHEN** a revisão está ativa, o cursor está num artigo cujo texto tem um link de remissão desenhado pelo editor e o usuário adiciona um artigo depois dele pelo menu
+- **THEN** só o artigo adicionado tem marca de revisão, e o artigo onde estava o cursor continua sem marca
+
+#### Scenario: Adicionar um dispositivo depois de alterar de fato o texto do atual
+- **WHEN** a revisão está ativa, o usuário acrescenta texto a um artigo e adiciona um artigo depois dele
+- **THEN** o artigo alterado também tem marca de revisão de texto alterado
+
 ### Requirement: Revisão de modificação guarda o estado anterior
 Toda revisão de texto alterado SHALL guardar o estado do dispositivo antes da alteração. O sistema SHALL NOT criar uma revisão de modificação sem esse estado, para que recusá-la sempre devolva o dispositivo ao que era.
 
