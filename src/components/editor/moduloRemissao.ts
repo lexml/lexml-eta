@@ -16,6 +16,13 @@ const DataRefIdAttribute = new Parchment.Attributor.Attribute('data-ref-id', 'da
 
 export const REMISSAO_INTERNA_REMOVE_EVENT = 'remover-remissao-interna';
 
+// Texto lido do blot, na contagem de offset/formatText: com o menu de contexto acima, getText diverge (#1084).
+const textoDoBlot = (blot: any): string =>
+  blot
+    .delta()
+    .ops.map((op: any) => (typeof op.insert === 'string' ? op.insert : ' '))
+    .join('');
+
 class ModuloRemissao extends Module {
   quill: any;
   options: any;
@@ -690,9 +697,8 @@ class ModuloRemissao extends Module {
       if (!blot) continue;
 
       const blotStart = blot.offset(this.quill.scroll);
-      const blotLength = blot.length();
 
-      const texto = this.quill.getText(blotStart, blotLength);
+      const texto = textoDoBlot(blot);
       const textOffset = texto.indexOf(textoRef);
       if (textOffset === -1) continue;
 
@@ -736,13 +742,12 @@ class ModuloRemissao extends Module {
 
     // Escopa a busca ao blot do dispositivo — evita achar textoRef em outro dispositivo.
     let blotStart = -1;
-    let blotLength = -1;
+    let blotDispositivo: any;
     const domEl = this.quill.root.querySelector(`#texto__dispositivo${uuidDispositivoAtual}`);
     if (domEl) {
-      const blot = PrivateQuill.find(domEl);
-      if (blot) {
-        blotStart = blot.offset(this.quill.scroll);
-        blotLength = blot.length();
+      blotDispositivo = PrivateQuill.find(domEl);
+      if (blotDispositivo) {
+        blotStart = blotDispositivo.offset(this.quill.scroll);
       }
     }
 
@@ -764,7 +769,8 @@ class ModuloRemissao extends Module {
             const blotIdx = blot.offset(this.quill.scroll);
             const blotLen = blot.length();
             const sufixo = textoNovo.slice(textoBlot.length);
-            const textoPosBlot = this.quill.getText(blotIdx + blotLen, sufixo.length);
+            const posPosBlot = blotIdx + blotLen - blotStart;
+            const textoPosBlot = blotStart >= 0 ? textoDoBlot(blotDispositivo).slice(posPosBlot, posPosBlot + sufixo.length) : this.quill.getText(blotIdx + blotLen, sufixo.length);
             const deleteLen = textoPosBlot === sufixo ? blotLen + sufixo.length : blotLen;
             const delta = new Delta().retain(blotIdx).delete(deleteLen).insert(textoNovo, { 'remissao-interna': remissao });
             this.quill.updateContents(delta, 'silent');
@@ -799,7 +805,7 @@ class ModuloRemissao extends Module {
       }
 
       // Usa blot para evitar regex no texto global, para evitar erro de remissao aleatória
-      const texto = blotStart >= 0 ? this.quill.getText(blotStart, blotLength) : this.quill.getText();
+      const texto = blotStart >= 0 ? textoDoBlot(blotDispositivo) : this.quill.getText();
       const indexOffset = blotStart >= 0 ? blotStart : 0;
 
       // Com posição conhecida, aplica só naquela ocorrência; senão percorre todas (remissão manual).
