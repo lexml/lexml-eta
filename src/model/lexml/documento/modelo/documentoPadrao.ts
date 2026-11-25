@@ -56,7 +56,8 @@ export const DOCUMENTO_PADRAO = {
               value: {
                 TYPE_NAME: 'br_gov_lexml__1.DispositivoType',
                 id: 'art1',
-                rotulo: 'Art. 1º',
+                // Com um só artigo a numeração dá "Artigo único."; o rótulo do documento é copiado ao abrir (#1104).
+                rotulo: 'Artigo único.',
                 lXcontainersOmissis: [
                   {
                     name: {

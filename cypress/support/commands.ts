@@ -48,7 +48,8 @@ Cypress.Commands.add('abrirProposicao', (fixtureJson: string): Cypress.Chainable
 
 Cypress.Commands.add('getContainerArtigoByNumero', (numero: number): Cypress.Chainable<JQuery<HTMLElement>> => {
   return cy.get('div.container__elemento.elemento-tipo-artigo div.container__texto--nivel0 label').then($labels => {
-    const regex = new RegExp(`^Art\\. ${numero}(\\.|º)$`);
+    // Com um só artigo, inclusive na proposição nova (#1104), o artigo 1 é rotulado "Artigo único.".
+    const regex = new RegExp(numero === 1 ? '^(Art\\. 1(\\.|º)|Artigo único\\.)$' : `^Art\\. ${numero}(\\.|º)$`);
     const $matchingLabel = $labels.filter((index, label) => regex.test(label.textContent || '')); // Filtra os labels que correspondem ao número do artigo
     if ($matchingLabel.length) {
       return cy.wrap($matchingLabel).closest('div.container__elemento.elemento-tipo-artigo');
