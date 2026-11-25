@@ -82,7 +82,9 @@ export const editorStyles = html`
     }
 
     #lx-eta-barra-ferramenta .button-comentario-articulacao:disabled,
-    #lx-eta-barra-ferramenta .button-comentario-articulacao:disabled:hover {
+    #lx-eta-barra-ferramenta .button-comentario-articulacao:disabled:hover,
+    #lx-eta-barra-ferramenta .button-navegacao-marca:disabled,
+    #lx-eta-barra-ferramenta .button-navegacao-marca:disabled:hover {
       color: #b9b9b9;
       opacity: 0.65;
     }
@@ -647,6 +649,13 @@ export const editorStyles = html`
 
     .mobile-button span {
       vertical-align: 4px;
+    }
+
+    /* Navegação entre revisados ao lado da chave de revisão (#1097). */
+    .grupo-navegacao-revisao {
+      display: flex;
+      align-items: center;
+      margin-left: auto;
     }
 
     .button-navegacao-marca {

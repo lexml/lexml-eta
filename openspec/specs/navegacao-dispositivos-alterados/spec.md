@@ -1,12 +1,12 @@
 # navegacao-dispositivos-alterados Specification
 
 ## Purpose
-Definir para onde levam os botões "Ir para o próximo dispositivo alterado" e "Ir para o dispositivo alterado anterior" do editor da articulação, em que ordem as marcas de revisão são percorridas e como os dispositivos excluídos em revisão entram nessa ordem.
+Definir os botões "Ir para o próximo dispositivo revisado" e "Ir para o dispositivo revisado anterior" do editor da articulação: onde ficam, quando estão habilitados, para onde levam, em que ordem as marcas de revisão são percorridas e como os dispositivos excluídos em revisão entram nessa ordem.
 
 ## Requirements
 
 ### Requirement: Navegação pelas marcas na ordem de leitura
-Os botões de navegação entre dispositivos alterados SHALL levar o cursor à marca de revisão seguinte ou anterior à linha atual, na ordem de leitura da tela: ementa, preâmbulo e articulação. Cada dispositivo excluído em revisão SHALL ocupar o lugar logo depois do dispositivo acima dele, ou do excluído acima dele quando há excluídos seguidos. Quando não há marca na direção pedida, o cursor SHALL ficar onde está.
+Os botões de navegação entre dispositivos revisados SHALL levar o cursor à marca de revisão seguinte ou anterior à linha atual, na ordem de leitura da tela: ementa, preâmbulo e articulação. Cada dispositivo excluído em revisão SHALL ocupar o lugar logo depois do dispositivo acima dele, ou do excluído acima dele quando há excluídos seguidos. Quando não há marca na direção pedida, o cursor SHALL ficar onde está.
 
 #### Scenario: Descer e subir passam pelas mesmas marcas
 - **WHEN** o documento tem marcas de revisão, incluindo um dispositivo excluído, e o usuário desce de marca em marca a partir da ementa e depois sobe
@@ -31,3 +31,22 @@ Os botões de navegação entre dispositivos alterados SHALL levar o cursor à m
 #### Scenario: Sem marca na direção pedida
 - **WHEN** o cursor está na última marca do documento e o usuário usa o botão de descer
 - **THEN** o cursor fica onde está
+
+### Requirement: Botões de navegação entre dispositivos revisados
+O editor da articulação SHALL oferecer os botões "Ir para o próximo dispositivo revisado" e "Ir para o dispositivo revisado anterior" no lado direito da barra de ferramentas, logo à esquerda da chave "Marcas de revisão". Com o modo de revisão desligado, os dois botões SHALL ficar desabilitados, em cinza e com o cursor de seta; com o modo ligado, SHALL ficar habilitados.
+
+#### Scenario: Modo de revisão desligado
+- **WHEN** o modo de revisão está desligado
+- **THEN** os dois botões estão desabilitados, em cinza e com o cursor de seta
+
+#### Scenario: Modo de revisão ligado
+- **WHEN** o usuário liga o modo de revisão, ou abre um documento com marcas de revisão
+- **THEN** os dois botões ficam habilitados
+
+#### Scenario: Nomes dos botões
+- **WHEN** o usuário passa o mouse sobre os botões
+- **THEN** os tooltips são "Ir para o próximo dispositivo revisado" e "Ir para o dispositivo revisado anterior"
+
+#### Scenario: Posição junto à chave
+- **WHEN** a barra de ferramentas do texto articulado é exibida
+- **THEN** os dois botões ficam no lado direito, logo à esquerda da chave "Marcas de revisão"

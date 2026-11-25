@@ -183,6 +183,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   }
 
   stateChanged(state: any): void {
+    // A abertura com revisões liga o modo sem evento próprio, por isso ele é lido a cada atualização (#1097).
+    this._emRevisao = !!state.elementoReducer.emRevisao;
     if (!this.quill) {
       this.quillNaoInicializado(state);
       return;
@@ -211,6 +213,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   exibirBotoesParaTratarTodas = false;
 
   @state() private _temSelecao = false;
+
+  @state() private _emRevisao = false;
 
   // uuid2 dos dispositivos com comentário, informado pelo componente raiz.
   @property({ attribute: false }) uuid2DispositivosComentados: string[] = [];
@@ -334,16 +338,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             </svg>
           </button>
 
-          <button type="button" class="button-navegacao-marca" title="Ir para o próximo dispositivo alterado" @click=${(): void => this.navegarEntreElementosAlterados('proximo')}>
-            <sl-icon name="arrow-down-circle"></sl-icon>
-          </button>
-
-          <button type="button" class="button-navegacao-marca" title="Ir para o dispositivo alterado anterior" @click=${(): void =>
-            this.navegarEntreElementosAlterados('anterior')}>
-
-            <sl-icon name="arrow-up-circle"></sl-icon>
-          </button>
-
           <button type="button" class="btn-remissao-interna" title="Adicionar remissão" ?disabled=${!this._temSelecao} @click=${this.abrirDialogoRemissao}>
             ${unsafeHTML(iconeRemissaoInterna)}
           </button>
@@ -361,14 +355,34 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
           <span id="pos-select-paginacao"></span>
 
-          <lexml-eta-switch-revisao
-          class="revisao-container"
-          .nomeSwitch="${this._idSwitchRevisao}"
-          .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
-          .contaRevisoesArticulacao=${true}
-          modo="${this.modo}"
-          >
-          </lexml-eta-switch-revisao>
+          <div class="grupo-navegacao-revisao">
+            <button
+              type="button"
+              class="button-navegacao-marca"
+              title="Ir para o próximo dispositivo revisado"
+              ?disabled=${!this._emRevisao}
+              @click=${(): void => this.navegarEntreElementosAlterados('proximo')}
+            >
+              <sl-icon name="arrow-down-circle"></sl-icon>
+            </button>
+            <button
+              type="button"
+              class="button-navegacao-marca"
+              title="Ir para o dispositivo revisado anterior"
+              ?disabled=${!this._emRevisao}
+              @click=${(): void => this.navegarEntreElementosAlterados('anterior')}
+            >
+              <sl-icon name="arrow-up-circle"></sl-icon>
+            </button>
+            <lexml-eta-switch-revisao
+              class="revisao-container"
+              .nomeSwitch="${this._idSwitchRevisao}"
+              .nomeBadgeQuantidadeRevisao="${this._idBadgeQuantidadeRevisao}"
+              .contaRevisoesArticulacao=${true}
+              modo="${this.modo}"
+            >
+            </lexml-eta-switch-revisao>
+          </div>
 
           ${this.exibirBotoesParaTratarTodas ? this.renderBotoesParaTratarTodasRevisoes() : ''}
 
