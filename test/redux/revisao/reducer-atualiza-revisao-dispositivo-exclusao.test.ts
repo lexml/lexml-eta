@@ -13,7 +13,9 @@ import { REDO } from '../../../src/model/lexml/acao/redoAction';
 import { RevisaoElemento } from '../../../src/model/revisao/revisao';
 import { ATUALIZAR_TEXTO_ELEMENTO } from '../../../src/model/lexml/acao/atualizarTextoElementoAction';
 import { ADICIONAR_ELEMENTO } from '../../../src/model/lexml/acao/adicionarElementoAction';
-import { REMOVER_ELEMENTO } from '../../../src/model/lexml/acao/removerElementoAction';
+import { REMOVER_ELEMENTO, removerElementoAction } from '../../../src/model/lexml/acao/removerElementoAction';
+import { ELEMENTO_SELECIONADO } from '../../../src/model/lexml/acao/elementoSelecionadoAction';
+import { REJEITAR_REVISAO } from '../../../src/model/lexml/acao/rejeitarRevisaoAction';
 import { ACEITAR_REVISAO } from '../../../src/model/lexml/acao/aceitarRevisaoAction';
 import { isRevisaoPrincipal } from '../../../src/redux/elemento/util/revisaoUtil';
 import { adicionaElementosNaProposicaoFromClipboard } from '../../../src/redux/elemento/reducer/adicionaElementosNaProposicaoFromClipboard';
@@ -21,6 +23,70 @@ import { ADICIONAR_ELEMENTOS_FROM_CLIPBOARD } from '../../../src/model/lexml/aca
 import { TEXTO_013 } from '../../doc/textos-colar/texto_013';
 
 let state: State;
+
+describe('Remoção impedida para dispositivo com subordinado revisado (MPV 905/2019)', () => {
+  const MENSAGEM = 'Não é possível remover dispositivo que possua dispositivo subordinado já removido ou alterado em modo de revisão.';
+  const PAI = 'art1_par1u';
+  const SUBORDINADO = 'art1_par1u_inc2';
+  const SEM_SUBORDINADO_REVISADO = 'art3';
+
+  const remove = (id: string): void => {
+    state = elementoReducer(state, { type: REMOVER_ELEMENTO, atual: createElemento(buscaDispositivoById(state.articulacao!, id)!) });
+  };
+
+  const acoesDoMenu = (id: string): unknown[] => {
+    state = elementoReducer(state, { type: ELEMENTO_SELECIONADO, atual: createElemento(buscaDispositivoById(state.articulacao!, id)!) });
+    return state.ui!.events.find(ev => ev.stateType === StateType.ElementoSelecionado)!.elementos![0].acoesPossiveis ?? [];
+  };
+
+  beforeEach(() => {
+    const projetoNorma = buildProjetoNormaFromJsonix(MPV_905_2019);
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: projetoNorma.articulacao!, classificacao: ClassificacaoDocumento.PROJETO });
+    state = elementoReducer(state, { type: ATIVAR_DESATIVAR_REVISAO });
+  });
+
+  it('recusa remover o dispositivo que tem inciso removido em revisão', () => {
+    remove(SUBORDINADO);
+    const revisoes = state.revisoes!.length;
+
+    remove(PAI);
+
+    expect(state.ui!.message?.descricao).to.equal(MENSAGEM);
+    expect(buscaDispositivoById(state.articulacao!, PAI)).not.to.be.undefined;
+    expect(state.revisoes).to.have.length(revisoes);
+  });
+
+  it('o menu do dispositivo deixa de oferecer "Remover" e volta a oferecer depois de recusar a revisão do inciso', () => {
+    expect(acoesDoMenu(PAI)).to.include(removerElementoAction);
+    remove(SUBORDINADO);
+
+    expect(acoesDoMenu(PAI)).not.to.include(removerElementoAction);
+
+    state = elementoReducer(state, { type: REJEITAR_REVISAO, revisao: state.revisoes!.find(isRevisaoPrincipal) });
+
+    expect(acoesDoMenu(PAI)).to.include(removerElementoAction);
+  });
+
+  it('o menu volta a oferecer "Remover" depois de aceitar a revisão do inciso', () => {
+    remove(SUBORDINADO);
+    expect(acoesDoMenu(PAI)).not.to.include(removerElementoAction);
+
+    state = elementoReducer(state, { type: ACEITAR_REVISAO, revisao: state.revisoes!.find(isRevisaoPrincipal) });
+
+    expect(acoesDoMenu(PAI)).to.include(removerElementoAction);
+  });
+
+  it('dispositivo sem subordinado revisado continua podendo ser removido', () => {
+    const uuid = buscaDispositivoById(state.articulacao!, SEM_SUBORDINADO_REVISADO)!.uuid;
+    remove(SUBORDINADO);
+    expect(acoesDoMenu(SEM_SUBORDINADO_REVISADO)).to.include(removerElementoAction);
+
+    remove(SEM_SUBORDINADO_REVISADO);
+
+    // O artigo seguinte é renumerado e herda o id: compara-se por uuid.
+    expect(state.articulacao!.artigos.some(a => a.uuid === uuid)).to.be.false;
+  });
+});
 
 describe('Carregando texto da MPV 905/2019', () => {
   beforeEach(function () {
