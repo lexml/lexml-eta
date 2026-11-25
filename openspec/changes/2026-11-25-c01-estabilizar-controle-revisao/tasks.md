@@ -29,8 +29,8 @@
 
 ## 5. Verificação integrada
 
-- [ ] 5.1 Rodar `npm test` e as specs Cypress tocadas (`cypress/e2e/revisao/`, `cypress/e2e/edicao/cursor-apos-remover.cy.ts`, `cypress/e2e/remissao-externa/`) e conferir que passam. Rodar o lint só nos arquivos alterados.
-- [ ] 5.2 Refazer na demo, à mão, o roteiro das quatro issues (MPV 885 e MPV 905) e conferir que o console não tem erro.
+- [x] 5.1 Rodar `npm test` e as specs Cypress tocadas (`cypress/e2e/revisao/`, `cypress/e2e/edicao/cursor-apos-remover.cy.ts`, `cypress/e2e/remissao-externa/`) e conferir que passam. Rodar o lint só nos arquivos alterados. (`npm test` passou. No Cypress passaram todos os specs de `revisao/` e `cursor-apos-remover` (os casos `menu` são instáveis, ver `CLAUDE.md`). Em `remissao-externa/grupo-a-deteccao-automatica.cy.ts` falham 2 testes, que também falham em `origin/develop`, sem relação com esta change.)
+- [x] 5.2 Refazer na demo, à mão, o roteiro das quatro issues (MPV 885 e MPV 905) e conferir que o console não tem erro.
 
 ## Workflow follow-up
 
