@@ -103,6 +103,7 @@ import { marcarRemissaoPendenteRevisao, marcarRemissaoRevisada } from './marcarR
 import { EXCLUIR_REMISSAO_MANUAL } from '../../../model/lexml/acao/excluirRemissaoManualAction';
 import { excluirRemissaoManual } from './excluirRemissaoManual';
 import { sincronizarNumeracaoRepetida } from './sincronizarNumeracaoRepetida';
+import { retiraRemoverDoMenuQuandoImpedido } from './retiraRemoverDoMenuQuandoImpedido';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -320,6 +321,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   tempState = atualizaRevisao(tempState, actionType);
   tempState = sincronizarRemissoesPosAcao(tempState, actionType);
   tempState = adicionaDiffMenuOpcoes(tempState);
+  tempState = retiraRemoverDoMenuQuandoImpedido(tempState);
   return marcaCursorNaLinhaSeguinte(atualizaPaginacao(tempState, action), action);
 };
 

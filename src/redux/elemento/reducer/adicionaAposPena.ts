@@ -9,6 +9,7 @@ import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { State, StateType } from '../../state';
 import { buildEventoAdicionarElemento } from '../evento/eventosUtil';
 import { textoFoiModificado } from '../util/reducerUtil';
+import { removerMarcacaoRemissao } from '../../../util/html-util';
 import { buildPast } from '../util/stateReducerUtil';
 
 // Enter no fim da pena: cria um irmão do dono logo depois dele (na pena do caput, o primeiro parágrafo do artigo).
@@ -21,8 +22,11 @@ export const adicionaAposPena = (state: any, action: any, pena: Dispositivo): St
 
   const elementoPenaOriginal = createElementoValidado(pena);
   const textoModificado = textoFoiModificado(pena, action, state);
+  let somenteMarcacaoRemissao = false;
   if (textoModificado) {
+    const textoAnterior = pena.texto;
     pena.texto = action.atual.conteudo?.texto ?? pena.texto;
+    somenteMarcacaoRemissao = removerMarcacaoRemissao(textoAnterior ?? '') === removerMarcacaoRemissao(pena.texto ?? '');
   }
 
   const dono = isCaput(pena.pai!) ? pena.pai!.pai! : pena.pai!;
@@ -46,6 +50,9 @@ export const adicionaAposPena = (state: any, action: any, pena: Dispositivo): St
   if (textoModificado) {
     const elementoPenaAtualizado = createElementoValidado(pena);
     eventos.add(StateType.ElementoModificado, [elementoPenaOriginal, elementoPenaAtualizado]);
+    if (somenteMarcacaoRemissao) {
+      eventos.get(StateType.ElementoModificado).somenteMarcacaoRemissao = true;
+    }
     eventos.add(StateType.ElementoValidado, [elementoPenaAtualizado]);
   }
   eventos.add(StateType.ElementoMarcado, [createElemento(novo), createElemento(pena)]);
