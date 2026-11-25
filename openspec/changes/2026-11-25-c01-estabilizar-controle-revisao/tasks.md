@@ -1,0 +1,36 @@
+# Tasks
+
+## 1. Revisão coerente com o histórico (#1108 ampliada)
+
+- [ ] 1.1 Criar `test/redux/revisao/reducer-revisao-historico.test.ts` com os cenários de "Sincronizar a marcação de remissão não gera revisão", "Revisão de modificação guarda o estado anterior" e "Desfazer a primeira ação feita em revisão". Para a sincronização só de marcação, despachar `ATUALIZAR_TEXTO_ELEMENTO` com o mesmo texto sem os `<a ... class="lexml-remissao-externa">` (como na exploração): com o `past` vazio e depois de adicionar um artigo. Para desfazer, ativar a revisão sem ação anterior, editar o texto e desfazer, e renumerar e desfazer. Verificar que esses casos falham antes da 1.2 (exceção ou revisão sem `elementoAntesRevisao`).
+- [ ] 1.2 Implementar D1 e D2: campo opcional no `StateEvent` (`src/redux/state.ts`), marca no `ElementoModificado` de `atualizaTextoElemento.ts` quando `somenteMarcacaoRemissao`, `processaEventosDeModificacao` ignorando a marca (só atualiza `elementoAposRevisao` de revisão existente) e `getElementoAntesModificacao` devolvendo `undefined` sem item no `past`, sem criar revisão nesse caso. Verificar que a 1.1 passa e que `test/redux/revisao/` e `test/redux/remissao/reducer-*revisao*` continuam passando.
+- [ ] 1.3 E2E em `cypress/e2e/revisao/revisao-sincronizacao-remissao.cy.ts`, no molde de `cypress/e2e/remissao-externa/grupo-a-deteccao-automatica.cy.ts` (o *linker* WASM roda no Cypress): ativar a revisão, entrar e sair, sem digitar, de um artigo que cita uma lei, primeiro com o histórico vazio e depois de adicionar um artigo. Verificar que o artigo visitado não recebe marca de revisão e que o console não tem erro.
+
+## 2. Revisão da ementa (#1107)
+
+- [ ] 2.1 Ampliar `test/redux/revisao/reducer-revisao.test.ts` (ou criar `reducer-revisao-ementa.test.ts`) com os quatro cenários de "Revisão da ementa não impede as demais ações em revisão": adicionar um artigo antes do Art. 1º, alterar a ementa e recusar/aceitar o artigo; adicionar e remover com a ementa alterada; aceitar a ementa e depois recusar o artigo. Incluir aceitar e recusar todas (`aceitarRevisaoAction`/`rejeitarRevisaoAction` sem elemento) com a revisão da ementa no lote. Verificar que os casos falham antes da 2.2 (`"undefined" is not valid JSON`).
+- [ ] 2.2 Implementar D3 em `atualizarLexmlIdEmElementosDeRevisoes`: pular as revisões de dispositivos da parte inicial (ementa e preâmbulo) pelo tipo. Verificar que a 2.1 passa e que a suíte de `test/redux/revisao/` continua passando.
+- [ ] 2.3 E2E em `cypress/e2e/revisao/revisao.cy.ts` (ou spec novo em `cypress/e2e/revisao/`) com o roteiro da issue na MPV 885: ativar a revisão, adicionar um artigo antes do Art. 1º, alterar o texto da ementa digitando, recusar o artigo pelo botão da marca e conferir que ele sai da tela e que a ementa continua marcada. Depois, de novo, aceitar o artigo e conferir que a marca dele some. Rolar o botão para dentro da tela antes de clicar (fora dela o clique cai fora do editor).
+- [ ] 2.4 Registrar no CLAUDE.md (item 17 ou novo) as invariantes de D1 a D3: a sincronização só de marcação é sinalizada no evento e não gera revisão; não se cria revisão de modificação sem estado anterior; e os dispositivos da parte inicial ficam fora da atualização de id e posição das revisões. Verificar que o texto aponta os arquivos e a change.
+
+## 3. Remoção impedida em revisão (#1106)
+
+- [ ] 3.1 Ampliar `test/redux/revisao/reducer-revisao-bloco-alteracao.test.ts` e `reducer-atualiza-revisao-dispositivo-exclusao.test.ts` com os cenários de "Remoção impedida para dispositivo com subordinado revisado" e "Comandos de remoção indisponíveis quando a remoção é impedida". O caso do bloco de alteração usa o primeiro nível do bloco: remover e depois remover o artigo hospedeiro, como na MPV 885. O menu é verificado em `acoesPossiveis` do elemento do `ElementoSelecionado` do artigo, antes e depois de aceitar ou recusar a revisão do subordinado. Verificar que o caso do bloco falha antes da 3.2.
+- [ ] 3.2 Implementar D4: `existeFilhoExcluidoOuAlteradoDuranteRevisao` com `getUuidPaiEfetivoDoElemento`, e um passo no `elementoReducer`, depois de `atualizaRevisao` e no molde de `adicionaDiffMenuOpcoes`, que retira `removerElementoAction` dos elementos dos eventos quando a revisão está ativa e a regra impede a remoção. Manter a guarda de `removeElemento.ts` como a regra que o menu consulta. Verificar que a 3.1 passa e que o Ctrl+D (despacho de `REMOVER_ELEMENTO`) devolve a mensagem de erro sem remover (D5).
+- [ ] 3.3 E2E em `cypress/e2e/revisao/`: na MPV 885 com a revisão ativa, remover o Art. 1º da norma alterada no bloco do Art. 1º, abrir o menu do Art. 1º da proposição e conferir que não há "Remover"; teclar Ctrl+D e conferir que o artigo continua e que a mensagem aparece; recusar a revisão do dispositivo da norma alterada e conferir que "Remover" volta.
+
+## 4. Cursor depois de excluir em revisão (#1105)
+
+- [ ] 4.1 Ampliar `test/componente/lexml-eta/cursorAposRemover.component.test.ts` com os cenários do requisito "Cursor depois de excluir em modo de revisão": artigo, parágrafo único, artigo com parágrafos, Delete em linha vazia, agrupador, menu da linha excluída e uma única linha atual. Incluir o cenário "Excluir em revisão um dispositivo adicionado na própria revisão" do requisito modificado e mudar a expectativa do caso de revisão já existente (agora o cursor fica no Art. 2º). Verificar que os casos novos falham antes da 4.2 e que os demais passam.
+- [ ] 4.2 Implementar D6 em `removerLinhaQuill` (`editor.component.ts`): quando a linha do primeiro elemento do lote é mantida, levar o cursor ao início do texto dela, marcá-la como a única linha atual e montar o menu dela; usar `cursorNaLinhaSeguinte` só quando a linha sai da tela; ignorar, no mesmo lote, o `ElementoMarcado` que levaria o cursor a outro dispositivo quando a linha do excluído ficou. Verificar que a 4.1 passa.
+- [ ] 4.3 Atualizar `cypress/e2e/edicao/cursor-apos-remover.cy.ts`: o caso de revisão passa a esperar o cursor no excluído. Acrescentar o roteiro da #1105 (MPV 905, excluir o parágrafo único do Art. 1º em revisão: a linha excluída é a linha atual e o dispositivo seguinte não fica marcado) e o do dispositivo adicionado e excluído na própria revisão (cursor no seguinte). Verificar que o spec passa.
+
+## 5. Verificação integrada
+
+- [ ] 5.1 Rodar `npm test` e as specs Cypress tocadas (`cypress/e2e/revisao/`, `cypress/e2e/edicao/cursor-apos-remover.cy.ts`, `cypress/e2e/remissao-externa/`) e conferir que passam. Rodar o lint só nos arquivos alterados.
+- [ ] 5.2 Refazer na demo, à mão, o roteiro das quatro issues (MPV 885 e MPV 905) e conferir que o console não tem erro.
+
+## Workflow follow-up
+
+- Fechar as issues #1105, #1106, #1107 e #1108 pelos commits de cada grupo (`Closes #…`).
+- Arquivar a change depois da revisão.
