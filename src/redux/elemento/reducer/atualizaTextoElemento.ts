@@ -40,6 +40,9 @@ export const atualizaTextoElemento = (state: any, action: any): State => {
   }
 
   eventosUi.add(StateType.ElementoModificado, [elemento]);
+  if (somenteMarcacaoRemissao) {
+    eventosUi.get(StateType.ElementoModificado).somenteMarcacaoRemissao = true;
+  }
 
   // Executa ANTES de criaListaElementosAfinsValidados para garantir que a mensagem de remissão inválida
   // tenha prioridade e não seja descartada pelo dedup.

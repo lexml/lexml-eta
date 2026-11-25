@@ -289,11 +289,13 @@ export class EtaKeyboard extends Keyboard {
   }
 
   // Na última (↓) ou primeira (↑) linha visual do texto, o navegador pularia vizinhos vazios (#1072): vai ao vizinho na mesma coluna.
+  // Texto não editável (dispositivo excluído em revisão): o navegador não move o cursor entre as linhas dele, então ↓/↑ vai ao vizinho de qualquer linha (#1105).
   private irParaVizinhoNaMesmaColuna(indice: number, linha: EtaContainerTable, direcao: 'prev' | 'next'): boolean {
     const inicio = this.quill.getIndex(linha.blotConteudo);
     const extremo = direcao === 'next' ? inicio + linha.blotConteudo.tamanho : inicio;
     const cursor = this.quill.getBounds(indice);
-    if (!this.mesmaLinhaVisual(cursor, this.quill.getBounds(extremo))) {
+    const textoNaoEditavel = !linha.blotConteudo.domNode.isContentEditable;
+    if (!textoNaoEditavel && !this.mesmaLinhaVisual(cursor, this.quill.getBounds(extremo))) {
       return false;
     }
     const vizinho = this.linhaEditavel(linha, direcao);

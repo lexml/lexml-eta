@@ -44,6 +44,8 @@ export interface StateEvent {
   cursorNaLinhaSeguinte?: boolean;
   // Correção automática de numeração: desfazer e refazer restauram os números, mas não geram revisão.
   renumeracaoAutomatica?: boolean;
+  // Só a marcação das remissões mudou (links desenhados ou retirados): não é edição do usuário e não gera revisão.
+  somenteMarcacaoRemissao?: boolean;
   elementos?: Elemento[];
   remissaoRenumeracao?: { lexmlIdAntigo: string; lexmlIdNovo: string; novoUuid: number };
   remissaoInvalidacao?: { lexmlId: string; uuid: number };

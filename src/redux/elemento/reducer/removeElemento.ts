@@ -19,7 +19,7 @@ import { RemoverElemento } from '../../../model/lexml/acao/removerElementoAction
 import { TipoMensagem } from '../../../model/lexml/util/mensagem';
 import { removeAgrupadorAndBuildEvents, removeAndBuildEvents } from '../evento/eventosUtil';
 import { buildPast, retornaEstadoAtualComMensagem } from '../util/stateReducerUtil';
-import { existeFilhoExcluidoOuAlteradoDuranteRevisao, findRevisaoByElementoUuid2, isRevisaoDeMovimentacao, isRevisaoPrincipal } from '../util/revisaoUtil';
+import { findRevisaoByElementoUuid2, isRemocaoImpedidaPorSubordinadoRevisado, isRevisaoDeMovimentacao, isRevisaoPrincipal } from '../util/revisaoUtil';
 
 export const removeElemento = (state: any, action: any): State => {
   const dispositivo = getDispositivoFromElemento(state.articulacao, action.atual, true);
@@ -99,7 +99,7 @@ const validarRemocaoElemento = (state: any, dispositivo: Dispositivo, action: an
     return retornaEstadoAtualComMensagem(state, { tipo: TipoMensagem.ERROR, descricao: 'Não é possível excluir o único dispositivo disponível.' });
   }
 
-  if (state.emRevisao && existeFilhoExcluidoOuAlteradoDuranteRevisao(state, dispositivo) && !action.isRejeitandoRevisao) {
+  if (isRemocaoImpedidaPorSubordinadoRevisado(state, dispositivo) && !action.isRejeitandoRevisao) {
     return retornaEstadoAtualComMensagem(state, {
       tipo: TipoMensagem.ERROR,
       descricao: 'Não é possível remover dispositivo que possua dispositivo subordinado já removido ou alterado em modo de revisão.',
