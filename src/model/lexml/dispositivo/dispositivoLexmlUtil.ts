@@ -49,6 +49,7 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
   const paiAtual = atual.pai;
   let novo: Dispositivo;
   let paiNovo: Dispositivo;
+  let antigoJaRemovido = false;
 
   switch (action.subType) {
     case 'transformarAlineaEmItem':
@@ -72,10 +73,15 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     case 'transformarParagrafoEmOmissisParagrafo':
     case 'transformarArtigoEmOmissisArtigo':
     case 'transformarIncisoCaputEmOmissisIncisoCaput':
-    case 'transformarIncisoParagrafoEmOmissisIncisoParagrafo':
+    case 'transformarIncisoParagrafoEmOmissisIncisoParagrafo': {
       paiNovo = paiAtual!;
-      novo = criaDispositivo(paiAtual!, action.novo.tipo, undefined, paiAtual?.indexOf(atual), atual.uuid);
+      // O novo herda o uuid do antigo, e removeFilho filtra por uuid: remover o antigo depois levaria os dois (#1087).
+      const posicao = paiAtual!.indexOf(atual);
+      paiAtual!.removeFilho(atual);
+      antigoJaRemovido = true;
+      novo = criaDispositivo(paiAtual!, action.novo.tipo, undefined, posicao, atual.uuid);
       break;
+    }
     case 'transformarParagrafoEmInciso':
       if (isParagrafo(atual) && (isPrimeiroMesmoTipo(atual) || isUnicoMesmoTipo(atual))) {
         paiNovo = paiAtual!;
@@ -104,7 +110,9 @@ export const converteDispositivo = (atual: Dispositivo, action: any): Dispositiv
     novo.notaAlteracao = 'NR';
   }
   novo.mensagens = validaDispositivo(novo);
-  paiAtual?.removeFilho(atual);
+  if (!antigoJaRemovido) {
+    paiAtual?.removeFilho(atual);
+  }
   paiAtual?.renumeraFilhos();
   paiNovo?.renumeraFilhos();
   converteFilhos(atual, novo!);

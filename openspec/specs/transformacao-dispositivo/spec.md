@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Define o comportamento do cursor e da linha ativa do editor quando o usuário transforma o tipo de um dispositivo pelo teclado (Tab e Shift+Tab), inclusive em transformações encadeadas.
+Define o comportamento da transformação do tipo de um dispositivo: o cursor e a linha ativa do editor quando a transformação é feita pelo teclado (Tab e Shift+Tab), inclusive em transformações encadeadas, e o lugar do dispositivo resultante nas transformações que o mantêm no mesmo pai, como as omissões.
 
 ## Requirements
 
@@ -27,3 +27,22 @@ O sistema SHALL manter o cursor no dispositivo transformado quando uma transform
 #### Scenario: Transformação com emissão de alteração pendente
 - **WHEN** existe uma emissão de alteração de texto agendada e o usuário transforma o dispositivo ativo com Tab
 - **THEN** o cursor permanece no dispositivo transformado, e a emissão de alteração ocorre depois da transformação
+
+### Requirement: Transformação no mesmo pai mantém o dispositivo no lugar
+Nas transformações em que o dispositivo continua no mesmo pai (omitir incisos, alíneas, itens, parágrafos ou artigos; transformar omissis em dispositivo; transformar dispositivo genérico em inciso, alínea ou item), o dispositivo resultante SHALL ocupar a posição do dispositivo transformado, SHALL fazer parte do documento (inclusive ao salvar) e SHALL manter o identificador interno do dispositivo transformado.
+
+#### Scenario: Omitir o primeiro inciso
+- **WHEN** em alteração de norma o usuário usa "Omitir Incisos" no primeiro inciso de um artigo com outros incisos
+- **THEN** o omissis fica logo depois do artigo, antes dos demais incisos, e faz parte do documento
+
+#### Scenario: Omitir um inciso do meio
+- **WHEN** o usuário usa "Omitir Incisos" num inciso que tem incisos antes e depois dele
+- **THEN** o omissis fica entre esses incisos
+
+#### Scenario: Transformar omissis em inciso
+- **WHEN** o usuário transforma em inciso um omissis do caput
+- **THEN** o inciso fica no lugar do omissis e faz parte do documento
+
+#### Scenario: Desfazer e refazer a omissão
+- **WHEN** o usuário desfaz e depois refaz a omissão de um inciso
+- **THEN** o inciso volta ao seu lugar e, ao refazer, o omissis volta ao lugar do inciso
