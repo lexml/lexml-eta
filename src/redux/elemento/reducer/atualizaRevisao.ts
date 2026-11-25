@@ -129,13 +129,17 @@ const isAcaoDeRevisaoRejeitada = (state: State): boolean => !!state.ui?.events.s
 
 const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] => {
   const eventos = getEventos(state, StateType.ElementoModificado);
+  const uuidsSoMarcacao = new Set(eventos.filter(ev => ev.somenteMarcacaoRemissao).flatMap(ev => (ev.elementos ?? []).map(e => e.uuid)));
 
   const result: Revisao[] = [];
   const revisoesParaRemover: Revisao[] = [];
 
   getElementosFromEventos(eventos).forEach(e => {
     const revisao = findRevisaoByElementoUuid(state.revisoes, e.uuid);
-    if (revisao) {
+    if (revisao && uuidsSoMarcacao.has(e.uuid)) {
+      // Mantém operações, descrição, usuário e data: o usuário não alterou o texto.
+      revisao.elementoAposRevisao = JSON.parse(JSON.stringify(e));
+    } else if (revisao) {
       if (isRevisaoDeModificacao(revisao) && revisaoDeElementoComMesmoUuid2RotuloEConteudo(revisao, e)) {
         revisoesParaRemover.push(revisao);
       }
@@ -154,10 +158,10 @@ const processaEventosDeModificacao = (state: State, actionType: any): Revisao[] 
           revisoesParaRemover.push(...getRevisoesElementoAssociadas(state.revisoes, revisao));
         }
       }
-    } else {
+    } else if (!uuidsSoMarcacao.has(e.uuid)) {
       const eAux = getElementoAntesModificacao(state, e);
-      // result.push(new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e))));
-      if (!isAjusteTextoOmitido(eAux, e)) {
+      // Sem estado anterior, recusar a revisão não teria o que restaurar.
+      if (eAux && !isAjusteTextoOmitido(eAux, e)) {
         const nova = new RevisaoElemento(actionType, StateType.ElementoModificado, '', state.usuario!, formatDateTime(new Date()), eAux, JSON.parse(JSON.stringify(e)));
         nova.revisao = getOperacoesDeNovaModificacao(state, actionType, e, eAux);
         result.push(nova);
@@ -380,7 +384,7 @@ const isAcaoMoverOuTransformar = (state: State): boolean => {
 };
 
 const getElementoAntesModificacao = (state: State, elemento: Elemento): Elemento | undefined => {
-  const eventos = [...state.past!].pop() as any as StateEvent[];
+  const eventos = ([...(state.past ?? [])].pop() ?? []) as any as StateEvent[];
   const modificacoes = eventos.filter(se => se.stateType === StateType.ElementoModificado && se.elementos?.some(e => e.uuid === elemento.uuid));
   const modificacao = modificacoes.pop();
   return modificacao ? JSON.parse(JSON.stringify(modificacao.elementos![0])) : undefined;
