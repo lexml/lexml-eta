@@ -1,4 +1,10 @@
-import { DocumentoArticulado, lerDocumentoArticulado, nomeArquivoDocumentoArticulado, serializarDocumentoArticulado } from '../model/lexml/documento/documentoArticulado';
+import {
+  DocumentoArticulado,
+  lerDocumentoArticulado,
+  nomeArquivoDocumentoArticulado,
+  OpcoesValidacaoDocumento,
+  serializarDocumentoArticulado,
+} from '../model/lexml/documento/documentoArticulado';
 
 interface ArquivoSelecionado {
   getFile(): Promise<File>;
@@ -10,12 +16,13 @@ interface SeletoresArquivo {
 const tiposArquivo = [{ description: 'Documento articulado', accept: { 'application/json': ['.json'] } }];
 const foiCancelado = (erro: unknown): boolean => (erro as Error)?.name === 'AbortError';
 
-export const lerArquivoDocumentoArticulado = async (arquivo: Blob): Promise<DocumentoArticulado> => lerDocumentoArticulado(await arquivo.text());
+export const lerArquivoDocumentoArticulado = async (arquivo: Blob, opcoes?: OpcoesValidacaoDocumento): Promise<DocumentoArticulado> =>
+  lerDocumentoArticulado(await arquivo.text(), opcoes);
 
 /** Sempre baixa pelo navegador (nunca usa o seletor nativo de salvamento): a deduplicação de nomes do
  * próprio navegador evita sobrescrever, sem aviso, um arquivo salvo anteriormente com o mesmo nome. */
-export const salvarArquivoDocumentoArticulado = async (documento: DocumentoArticulado): Promise<void> => {
-  const blob = new Blob([serializarDocumentoArticulado(documento)], { type: 'application/json;charset=utf-8' });
+export const salvarArquivoDocumentoArticulado = async (documento: DocumentoArticulado, opcoes?: OpcoesValidacaoDocumento): Promise<void> => {
+  const blob = new Blob([serializarDocumentoArticulado(documento, opcoes)], { type: 'application/json;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
@@ -29,12 +36,12 @@ export const salvarArquivoDocumentoArticulado = async (documento: DocumentoArtic
   }
 };
 
-export const abrirArquivoDocumentoArticulado = async (): Promise<DocumentoArticulado | undefined> => {
+export const abrirArquivoDocumentoArticulado = async (opcoes?: OpcoesValidacaoDocumento): Promise<DocumentoArticulado | undefined> => {
   const seletores = window as unknown as SeletoresArquivo;
   try {
     if (seletores.showOpenFilePicker) {
       const [arquivo] = await seletores.showOpenFilePicker({ types: tiposArquivo, multiple: false });
-      return arquivo ? lerArquivoDocumentoArticulado(await arquivo.getFile()) : undefined;
+      return arquivo ? lerArquivoDocumentoArticulado(await arquivo.getFile(), opcoes) : undefined;
     }
     const arquivo = await new Promise<File | undefined>(resolve => {
       const input = document.createElement('input');
@@ -51,7 +58,7 @@ export const abrirArquivoDocumentoArticulado = async (): Promise<DocumentoArticu
       document.body.appendChild(input);
       input.click();
     });
-    return arquivo ? lerArquivoDocumentoArticulado(arquivo) : undefined;
+    return arquivo ? lerArquivoDocumentoArticulado(arquivo, opcoes) : undefined;
   } catch (erro) {
     if (foiCancelado(erro)) return undefined;
     throw erro;

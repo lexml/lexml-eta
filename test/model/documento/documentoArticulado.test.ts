@@ -120,6 +120,53 @@ describe('Documento articulado — especificações 00 e 01', () => {
     expect(() => validarDocumentoArticulado(entrada)).to.throw('repetidos');
   });
 
+  describe('validação de numeração flexível (ids de dispositivo repetidos)', () => {
+    const FLEXIVEL = { validacaoNumeracao: 'flexivel' as const };
+
+    // Segundo "Art. 1º" idêntico ao primeiro, com caput, parágrafo, pena e alteração repetidos por herança.
+    const comArtigoRepetido = (comExtras = true): any => {
+      const entrada = novoDocumentoArticulado();
+      const lXhier = entrada.value.projetoNorma.norma.articulacao.lXhier;
+      if (comExtras) {
+        const caput = lXhier[0].value.lXcontainersOmissis[0].value;
+        caput.pena = { TYPE_NAME: 'br_gov_lexml__1.PenaType', id: 'art1_cpt_pena', rotulo: 'Pena –', p: [{ content: ['detenção.'] }] };
+        caput.alteracao = { TYPE_NAME: 'br_gov_lexml__1.AlteracaoType', id: 'art1_cpt_alt1', content: [] };
+      }
+      lXhier.push(JSON.parse(JSON.stringify(lXhier[0])));
+      return entrada;
+    };
+
+    it('no modo rígido, recusa artigos repetidos com a mensagem de sempre', () => {
+      expect(() => lerDocumentoArticulado(comArtigoRepetido())).to.throw('identificadores de elementos inválidos ou repetidos');
+      expect(() => lerDocumentoArticulado(comArtigoRepetido(), { validacaoNumeracao: 'rigida' })).to.throw('repetidos');
+    });
+
+    it('no modo flexível, aceita ids de dispositivo, caput, pena e alteração repetidos', () => {
+      expect(() => lerDocumentoArticulado(comArtigoRepetido(), FLEXIVEL)).not.to.throw();
+      expect(() => validarDocumentoArticulado(comArtigoRepetido(), FLEXIVEL)).not.to.throw();
+    });
+
+    it('no modo flexível, recusa id repetido fora da hierarquia', () => {
+      const entrada = comArtigoRepetido();
+      entrada.value.projetoNorma.norma.parteInicial.ementa.id = 'epigrafe';
+      expect(() => lerDocumentoArticulado(entrada, FLEXIVEL)).to.throw('repetidos');
+    });
+
+    it('no modo flexível, recusa id de hierarquia igual ao de outro elemento', () => {
+      const entrada = comArtigoRepetido();
+      entrada.value.projetoNorma.norma.parteInicial.ementa.id = 'art1';
+      expect(() => lerDocumentoArticulado(entrada, FLEXIVEL)).to.throw('repetidos');
+    });
+
+    it('no modo flexível, o documento repetido sobrevive a salvar e reabrir', () => {
+      const projetoNorma = buildProjetoNormaFromJsonix(lerDocumentoArticulado(comArtigoRepetido(false), FLEXIVEL), true);
+      const salvo = criarDocumentoArticulado(projetoNorma, 'urn:lex:br:senado.federal:projeto.lei;pls:9999;999999', undefined, undefined, undefined, FLEXIVEL);
+      const ids = salvo.value.projetoNorma.norma.articulacao.lXhier.map((a: any) => a.value.id);
+      expect(ids).to.deep.equal(['art1', 'art1']);
+      expect(() => criarDocumentoArticulado(projetoNorma, 'urn:lex:br:senado.federal:projeto.lei;pls:9999;999999')).to.throw('repetidos');
+    });
+  });
+
   it('rejeita uma árvore incompatível antes de abrir o documento', () => {
     const entrada = novoDocumentoArticulado();
     entrada.value.projetoNorma.norma.articulacao.lXhier = {};

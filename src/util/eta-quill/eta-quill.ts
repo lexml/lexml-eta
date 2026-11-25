@@ -188,8 +188,14 @@ export class EtaQuill extends PrivateQuill {
   }
 
   setIndex(index: number, source: QuillSource = PrivateQuill.sources.USER): void {
-    const range: QuillRange = this.getSelection(true) ?? { index: 0, length: 0 };
-    if (index !== range.index || range.length !== 0) {
+    let range: QuillRange | null;
+    try {
+      range = this.getSelection(true) ?? { index: 0, length: 0 };
+    } catch (error) {
+      // O foco rola até a seleção salva, que pode cair num blot sem posição (menu vazio no fim do documento).
+      range = null;
+    }
+    if (!range || index !== range.index || range.length !== 0) {
       try {
         this.setSelection(index, 0, source);
       } catch (error) {
