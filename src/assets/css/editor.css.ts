@@ -715,6 +715,25 @@ export const editorStyles = html`
       /* background-color: #d3d3d3; */
     }
 
+    /* Mesmas cores da situação do dispositivo no lexml-emenda (#1095); rótulo e título têm cor própria. */
+    [tipo-revisao='inclusao'],
+    [tipo-revisao='inclusao'] .texto__rotulo,
+    [tipo-revisao='inclusao'] .titulo-dispositivo {
+      color: green;
+    }
+
+    [tipo-revisao='alteracao'],
+    [tipo-revisao='alteracao'] .texto__rotulo,
+    [tipo-revisao='alteracao'] .titulo-dispositivo {
+      color: blue;
+    }
+
+    [tipo-revisao='exclusao'],
+    [tipo-revisao='exclusao'] .texto__rotulo,
+    [tipo-revisao='exclusao'] .titulo-dispositivo {
+      color: red;
+    }
+
     .blot__revisao {
       padding: 3px 7px;
       border: 1px solid white;

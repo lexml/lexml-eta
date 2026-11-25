@@ -15,6 +15,7 @@ import { EtaBlotTituloDispositivo } from './eta-blot-titulo-dispositivo';
 import { EtaContainerOpcoes } from './eta-container-opcoes';
 import { EtaContainerTdDireito } from './eta-container-td-direito';
 import { RevisaoElemento } from '../../model/revisao/revisao';
+import { getTipoRevisaoElemento } from '../../redux/elemento/util/revisaoUtil';
 import { EtaContainerRevisao } from './eta-container-revisao';
 import { EtaContainer } from './eta-container';
 
@@ -257,6 +258,7 @@ export class EtaContainerTable extends EtaContainer {
   static atualizarAtributoRevisao(elemento: Elemento, node: HTMLElement): void {
     if (elemento.revisao) {
       node.setAttribute('em-revisao', 'true');
+      node.setAttribute('tipo-revisao', getTipoRevisaoElemento(elemento.revisao as RevisaoElemento));
       if ((elemento.revisao as RevisaoElemento).stateType === 'ElementoRemovido') {
         node.setAttribute('excluido', 'true');
       } else {
@@ -264,6 +266,7 @@ export class EtaContainerTable extends EtaContainer {
       }
     } else {
       node.removeAttribute('em-revisao');
+      node.removeAttribute('tipo-revisao');
       node.removeAttribute('excluido');
     }
   }

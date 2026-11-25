@@ -651,6 +651,17 @@ export const getOperacoesRevisao = (revisao?: string): OperacaoRevisao[] =>
       return sep < 0 ? { nome: o } : { nome: o.substring(0, sep), argumento: o.substring(sep + 1) };
     });
 
+export type TipoRevisaoElemento = 'inclusao' | 'alteracao' | 'exclusao';
+
+// Mesma precedência de buildDescricaoPorOperacoes, para a cor da linha não contradizer a descrição da marca (#1095).
+export const getTipoRevisaoElemento = (revisao: Pick<RevisaoElemento, 'revisao' | 'stateType'>): TipoRevisaoElemento => {
+  const nomes = getOperacoesRevisao(revisao.revisao).map(o => o.nome);
+  if (nomes.length === 0) {
+    return revisao.stateType === StateType.ElementoRemovido ? 'exclusao' : revisao.stateType === StateType.ElementoIncluido ? 'inclusao' : 'alteracao';
+  }
+  return nomes.includes(OPERACAO_EXCLUIDO) ? 'exclusao' : nomes.includes(OPERACAO_ADICIONADO) ? 'inclusao' : 'alteracao';
+};
+
 export const formatarOperacoesRevisao = (operacoes: OperacaoRevisao[]): string => operacoes.map(o => (o.argumento === undefined ? o.nome : `${o.nome};${o.argumento}`)).join(',');
 
 // Operação já presente não se repete: o argumento fica o da primeira ocorrência.
