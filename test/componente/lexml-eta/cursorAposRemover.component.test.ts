@@ -102,13 +102,56 @@ describe('ETA — cursor depois de excluir um dispositivo', () => {
       cursorNoInicioDe(artigos[1], 'o Art. 2º');
     });
 
-    it('em revisão, excluir o Art. 2º mantém a linha e leva o cursor ao Art. 3º', async () => {
-      rootStore.dispatch(ativarDesativarRevisaoAction.execute());
-      await aguarda();
-      await posicionar(artigos[1]);
-      await remover('art2');
-      expect(artigos[1].domNode.isConnected, 'a linha do Art. 2º continua na tela').to.be.true;
-      cursorNoInicioDe(artigos[2], 'o Art. 3º');
+    describe('em modo de revisão', () => {
+      const menuDaLinha = (linha: any): string[] => Array.from(linha.domNode.querySelectorAll('sl-menu-item')).map((item: any) => item.textContent.trim());
+      const linhasAtivas = (): Element[] => Array.from(component.querySelectorAll('.container__elemento--ativo'));
+
+      beforeEach(async () => {
+        rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+        await aguarda();
+      });
+
+      it('excluir o Art. 2º mantém a linha e deixa o cursor nela', async () => {
+        await posicionar(artigos[1]);
+        await remover('art2');
+        expect(artigos[1].domNode.isConnected, 'a linha do Art. 2º continua na tela').to.be.true;
+        cursorNoInicioDe(artigos[1], 'o Art. 2º excluído');
+      });
+
+      it('a linha excluída é a única marcada como linha atual', async () => {
+        await posicionar(artigos[1]);
+        await remover('art2');
+        expect(linhasAtivas()).to.deep.equal([artigos[1].domNode]);
+      });
+
+      it('excluir o Art. 3º, o último, mantém a linha e deixa o cursor nela', async () => {
+        await posicionar(artigos[2]);
+        await remover('art3');
+        expect(artigos[2].domNode.isConnected, 'a linha do Art. 3º continua na tela').to.be.true;
+        cursorNoInicioDe(artigos[2], 'o Art. 3º excluído');
+        expect(linhasAtivas()).to.deep.equal([artigos[2].domNode]);
+      });
+
+      it('o menu da linha excluída oferece aceitar e recusar a revisão', async () => {
+        await posicionar(artigos[1]);
+        await remover('art2');
+        const itens = menuDaLinha(artigos[1]);
+        expect(itens).to.include('Aceitar revisão');
+        expect(itens).to.include('Rejeitar revisão');
+      });
+
+      it('excluir um artigo adicionado na própria revisão tira a linha e leva o cursor ao seguinte', async () => {
+        await posicionar(artigos[1]);
+        rootStore.dispatch(adicionarArtigoDepois.execute(createElemento(dispositivo('art2')), ''));
+        await aguarda();
+        const linhaNova = quill.linhaAtual;
+        expect(linhaNova === artigos[1], 'cursor no artigo incluído').to.be.false;
+
+        await remover('art3');
+
+        expect(linhaNova.domNode.isConnected, 'a linha do artigo adicionado saiu da tela').to.be.false;
+        cursorNoInicioDe(artigos[2], 'o Art. 3º original');
+      });
     });
 
     it('desfazer a inclusão de um artigo leva o cursor ao artigo anterior, como antes', async () => {
@@ -137,6 +180,15 @@ describe('ETA — cursor depois de excluir um dispositivo', () => {
       expect(quill.linhaAtual === artigos[0], 'linha atual é o Art. 1º').to.be.true;
       expect(quill.getSelection().index).to.equal(inicio(artigos[0]) + artigos[0].blotConteudo.length() - 1);
     });
+
+    it('em revisão, Delete no Art. 2º vazio mantém a linha excluída e deixa o cursor nela', async () => {
+      rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      await aguarda();
+      await posicionar(artigos[1]);
+      await removerSemTexto('art2', 'Delete');
+      expect(artigos[1].domNode.isConnected, 'a linha do Art. 2º continua na tela').to.be.true;
+      cursorNoInicioDe(artigos[1], 'o Art. 2º excluído');
+    });
   });
 
   describe('com parágrafo no Art. 2º', () => {
@@ -147,6 +199,17 @@ describe('ETA — cursor depois de excluir um dispositivo', () => {
       await posicionar(artigos[1]);
       await remover('art2');
       cursorNoInicioDe(artigos[2], 'o novo Art. 2º');
+    });
+
+    it('em revisão, excluir o Art. 2º mantém as linhas do artigo e do parágrafo e deixa o cursor no artigo', async () => {
+      rootStore.dispatch(ativarDesativarRevisaoAction.execute());
+      await aguarda();
+      const paragrafo = artigos[1].next;
+      await posicionar(artigos[1]);
+      await remover('art2');
+      expect(artigos[1].domNode.isConnected, 'a linha do Art. 2º continua na tela').to.be.true;
+      expect(paragrafo.domNode.isConnected, 'a linha do parágrafo continua na tela').to.be.true;
+      cursorNoInicioDe(artigos[1], 'o Art. 2º excluído');
     });
   });
 });

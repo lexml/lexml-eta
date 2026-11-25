@@ -61,9 +61,15 @@ Alternativa descartada: *ignorar o Ctrl+D em silêncio quando o menu não tem "R
 
 ### D6. O editor decide o cursor depois da exclusão, porque só ele sabe se a linha ficou
 
-Em `removerLinhaQuill`, quando a linha do primeiro elemento do lote é mantida (revisão de exclusão), o cursor vai para o início do texto dela, que passa a ser a linha atual (`desmarcarLinhaAtual` + `marcarLinhaAtual`), e o menu montado é o dela. `cursorNaLinhaSeguinte` só vale quando essa linha sai da tela. Assim um dispositivo adicionado na própria revisão e depois excluído segue a regra da #1075. Um `ElementoMarcado` do mesmo lote que levaria o cursor a outro dispositivo, como o primeiro filho de um agrupador excluído (`removeElemento`), é ignorado quando a linha do excluído ficou na tela.
+Em `removerLinhaQuill`, quando a linha do primeiro elemento do lote é mantida (revisão de exclusão), o cursor vai para o início do texto dela, que passa a ser a linha atual (`desmarcarLinhaAtual` + `marcarLinhaAtual`), e o menu montado é o dela. `cursorNaLinhaSeguinte` só vale quando essa linha sai da tela. Assim um dispositivo adicionado na própria revisão e depois excluído segue a regra da #1075. Um `ElementoMarcado` do mesmo lote que levaria o cursor a outro dispositivo, como o primeiro filho de um agrupador excluído (`removeElemento`), é ignorado (`cursorPosicionadoPelaExclusao`).
+
+Histórico: a issue define que o foco permanece no excluído. Uma versão intermediária desta change levou o cursor ao dispositivo seguinte (ao anterior, se último), por pedido do usuário depois de testar na interface; ele voltou à definição da issue e essa versão foi descartada.
 
 Alternativa descartada: *o reducer não marcar `cursorNaLinhaSeguinte` em revisão.* O reducer não sabe, no ponto em que marca o evento, se a linha vai ficar, porque isso depende da revisão de inclusão desfeita por `atualizaRevisao`. E a regra da #1075 deixaria de valer para o dispositivo adicionado na própria revisão.
+
+### D7. Setas a partir de texto não editável vão direto ao vizinho
+
+`eta-keyboard.ts` só assume ↓/↑ na última/primeira linha visual do texto e deixa o resto para o navegador, que não move o cursor em texto `contenteditable=false` (dispositivo excluído em revisão). Em `irParaVizinhoNaMesmaColuna`, texto não editável dispensa a checagem de linha visual.
 
 ## Risks / Trade-offs
 

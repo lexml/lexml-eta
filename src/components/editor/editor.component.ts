@@ -149,6 +149,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private inscricoes: Subscription[] = [];
   private timerOnChange?: any;
+  // Em revisão, a exclusão pelo usuário deixa o cursor na linha excluída (vale só durante o lote de eventos).
+  private cursorPosicionadoPelaExclusao = false;
 
   // Uuids já varridos pelo linker externo nesta sessão — libera a 1ª visita mesmo sem edição (ver detectarRemissoesAoSairDaLinha).
   // Opcional (não inicializado no campo) pois testes constroem EditorComponent via Object.create, sem passar pelo construtor.
@@ -971,6 +973,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private processarStateEvents(ui: any): void {
     const events: StateEvent[] = ui.events;
+    this.cursorPosicionadoPelaExclusao = false;
     const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
     // Transformações (TAB) preservam o UUID, gerando inclusão e remoção no mesmo lote.
     // Ignora a remoção no DOM para não apagar a linha recém-atualizada, mas o UUID segue no evento para o undo/redo.
@@ -1035,9 +1038,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarMensagemQuill(event);
           break;
 
-        case StateType.ElementoMarcado:
-          setTimeout(() => this.marcarLinha(event), 0);
+        case StateType.ElementoMarcado: {
+          // O ElementoMarcado de uma exclusão em revisão (primeiro filho do agrupador) desfaria o cursor já posicionado.
+          const cursorPosicionadoPelaExclusao = this.cursorPosicionadoPelaExclusao;
+          setTimeout(() => !cursorPosicionadoPelaExclusao && this.marcarLinha(event), 0);
           break;
+        }
 
         case StateType.SituacaoElementoModificada: {
           const eventoSemLinhasARecriar = this.semLinhasARecriar(event, uuidsIncluidosNoLote);
@@ -1372,6 +1378,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private removerLinhaQuill(event: StateEvent, uuidsParaIgnorar?: Set<number | undefined>): void {
     const elementos: Elemento[] = event.elementos ?? [];
     let linha: EtaContainerTable | undefined;
+    let linhaExcluidaMantida: EtaContainerTable | undefined;
     const linhaSeguinte = event.cursorNaLinhaSeguinte ? this.getLinhaDepoisDosElementos(elementos) : undefined;
 
     elementos.forEach((elemento: Elemento, index) => {
@@ -1387,6 +1394,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         if (elemento.revisao && (!linha.elemento.revisao || !isRevisaoDeExclusaoOuTransformacao)) {
           linha.atualizarElemento(elemento);
           index === 0 && this.montarMenuContexto(event);
+          if (index === 0 && isRevisaoDeExclusao(elemento.revisao as RevisaoElemento)) {
+            linhaExcluidaMantida = linha;
+          }
         } else {
           linha.remove();
         }
@@ -1396,7 +1406,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const range = this.quill.getSelection();
     let editavelSeguinte = linhaSeguinte;
     while (editavelSeguinte && !editavelSeguinte.editavel) editavelSeguinte = editavelSeguinte.next as EtaContainerTable | undefined;
-    if (range && editavelSeguinte?.domNode.isConnected) {
+    if (event.cursorNaLinhaSeguinte && linhaExcluidaMantida?.domNode.isConnected && range) {
+      // Em revisão a linha excluída continua na tela, marcada: o foco permanece nela (#1105).
+      this.cursorPosicionadoPelaExclusao = true;
+      this.quill.setSelection(this.quill.getIndex(linhaExcluidaMantida.blotConteudo), 0, PrivateQuill.sources.SILENT);
+      this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+      this.quill.marcarLinhaAtual(linhaExcluidaMantida);
+    } else if (range && editavelSeguinte?.domNode.isConnected) {
       this.quill.setSelection(this.quill.getIndex(editavelSeguinte.blotConteudo), 0, PrivateQuill.sources.SILENT);
       this.quill.marcarLinhaAtual(editavelSeguinte);
     } else if (range) {

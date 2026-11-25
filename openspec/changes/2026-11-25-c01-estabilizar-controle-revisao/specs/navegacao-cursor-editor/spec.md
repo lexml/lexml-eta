@@ -3,7 +3,7 @@
 ## MODIFIED Requirements
 
 ### Requirement: Cursor depois de excluir um dispositivo
-Depois de excluir um dispositivo pelo comando de exclusão ou pela tecla Delete numa linha vazia, quando a linha dele sai da tela, o cursor SHALL ir para o início do texto da primeira linha editável abaixo do excluído e dos seus descendentes, que passa a ser a linha atual. Sem linha editável abaixo, o cursor SHALL ir para o início do texto do dispositivo acima; quando essa linha não é editável, como o preâmbulo, SHALL ir para a primeira linha editável abaixo dela. Backspace numa linha vazia SHALL levar o cursor ao fim da linha de cima.
+Depois de excluir um dispositivo pelo comando de exclusão ou pela tecla Delete numa linha vazia, quando a linha dele sai da tela, o cursor SHALL ir para o início do texto da primeira linha editável abaixo do excluído e dos seus descendentes, que passa a ser a linha atual. Sem linha editável abaixo, o cursor SHALL ir para o início do texto do dispositivo acima; quando essa linha não é editável, como o preâmbulo, SHALL ir para a primeira linha editável abaixo dela. Backspace numa linha vazia SHALL levar o cursor ao fim da linha de cima. Em modo de revisão, quando a linha do excluído continua na tela, vale "Cursor depois de excluir em modo de revisão".
 
 #### Scenario: Excluir um artigo do meio
 - **WHEN** o documento tem os Arts. 10 a 12 e o usuário exclui o Art. 11
@@ -46,6 +46,10 @@ Em modo de revisão, depois de excluir um dispositivo pelo comando de exclusão 
 - **WHEN** a revisão está ativa, o documento tem os Arts. 1º a 3º e o usuário exclui o Art. 2º
 - **THEN** a linha do Art. 2º continua na tela marcada como excluída, o cursor fica no início do texto dela e ela é a única linha atual
 
+#### Scenario: Excluir em revisão o último artigo
+- **WHEN** a revisão está ativa, o documento tem os Arts. 1º a 3º e o usuário exclui o Art. 3º
+- **THEN** a linha do Art. 3º continua na tela marcada como excluída e o cursor fica nela
+
 #### Scenario: Excluir em revisão um parágrafo único
 - **WHEN** a revisão está ativa e o usuário exclui o parágrafo único do Art. 1º da MPV 905
 - **THEN** a linha do parágrafo continua na tela marcada como excluída, é a linha atual, e o dispositivo seguinte não fica marcado como linha atual
@@ -56,7 +60,7 @@ Em modo de revisão, depois de excluir um dispositivo pelo comando de exclusão 
 
 #### Scenario: Menu da linha excluída
 - **WHEN** a revisão está ativa, o usuário exclui o Art. 2º e abre o menu da linha atual
-- **THEN** o menu oferece aceitar e recusar a revisão da exclusão do Art. 2º
+- **THEN** o menu oferece aceitar e rejeitar a revisão da exclusão do Art. 2º
 
 #### Scenario: Excluir pela tecla Delete em revisão
 - **WHEN** a revisão está ativa, o cursor está num artigo sem texto que já existia no documento e o usuário tecla Delete
@@ -65,3 +69,14 @@ Em modo de revisão, depois de excluir um dispositivo pelo comando de exclusão 
 #### Scenario: Excluir um agrupador em revisão
 - **WHEN** a revisão está ativa e o usuário exclui um capítulo que já existia no documento
 - **THEN** a linha do capítulo continua na tela marcada como excluída e o cursor fica nela, e não no primeiro dispositivo do capítulo
+
+### Requirement: Setas em dispositivo excluído em revisão com o texto em mais de uma linha
+O editor SHALL mover o cursor ao dispositivo vizinho com as setas para cima e para baixo a partir de um dispositivo excluído em revisão (texto não editável), qualquer que seja o número de linhas visuais do texto dele, sem rolar a tela.
+
+#### Scenario: Seta para baixo no dispositivo excluído de duas linhas
+- **WHEN** a revisão está ativa, o cursor está num dispositivo excluído cujo texto ocupa duas linhas e o usuário tecla a seta para baixo
+- **THEN** o cursor vai ao dispositivo seguinte, e não fica parado nem rola a tela
+
+#### Scenario: Seta para cima no dispositivo excluído de duas linhas
+- **WHEN** a revisão está ativa, o cursor está num dispositivo excluído cujo texto ocupa duas linhas e o usuário tecla a seta para cima
+- **THEN** o cursor vai ao dispositivo anterior, e não fica parado nem rola a tela

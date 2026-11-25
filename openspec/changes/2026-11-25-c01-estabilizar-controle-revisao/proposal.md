@@ -7,7 +7,8 @@ O controle de revisão da articulação quebra em situações comuns de uso, e o
 - **Alterar a ementa em revisão deixa de travar o editor (#1107).** Hoje, com uma revisão da ementa no estado, toda ação com inclusão ou exclusão lança `"undefined" is not valid JSON` em `atualizarLexmlIdEmElementosDeRevisoes`, porque a ementa não tem elemento anterior na sequência de leitura. Recusar um artigo incluído chega a tirá-lo da articulação antes do erro, e a revisão dele fica órfã: depois disso, nem aceitar nem recusar funciona mais, mesmo após aceitar a revisão da ementa.
 - **Desfazer em revisão e sincronizar só a marcação das remissões deixam de lançar ou de criar revisão fantasma (#1108, ampliada).** O caso da issue (desfazer a primeira ação feita em revisão, com o `past` vazio) é um sintoma. A mesma falha aparece quando o Quill só desenha os links de remissão externa (o *linker* roda na primeira visita a cada linha) e, ao sair da linha, o texto é sincronizado. `atualizaTextoElemento` não grava essa sincronização no `past`, mas emite `ElementoModificado`. Com o `past` vazio, a revisão lança. Com o `past` preenchido, ela lê a ação anterior e cria uma revisão "Texto do dispositivo foi alterado" **sem estado anterior** num dispositivo que o usuário só visitou. Recusar essa revisão lança.
 - **Não é mais possível remover, em revisão, o dispositivo que tem subordinado removido ou alterado em revisão, também dentro de bloco de alteração (#1106).** A regra já existe no reducer, mas não alcança o primeiro nível de um bloco de alteração, cujo pai registrado é a articulação de alteração e não o artigo hospedeiro. Quando a regra impede a remoção, a opção "Remover" deixa de aparecer no menu e o Ctrl+D não remove.
-- **Em revisão, o cursor fica no dispositivo excluído (#1105).** Como a linha continua na tela, marcada como excluída, ela passa a ser a linha atual depois da exclusão, sem a alternância de hoje (às vezes o seguinte é selecionado, às vezes a marca de selecionado fica no excluído). Fora da revisão continua valendo a regra da #1075 (o cursor vai para o dispositivo seguinte). **Altera um cenário definido pela change `2026-11-23-c01-cursor-apos-remover-vai-ao-seguinte`.**
+- **Em revisão, o foco permanece no dispositivo excluído (#1105).** Como a linha continua na tela, marcada como excluída, ela passa a ser a única linha atual depois da exclusão, sem a alternância de hoje (às vezes o seguinte é selecionado, às vezes a marca de selecionado fica no excluído). É o comportamento definido na issue. Fora da revisão continua valendo a regra da #1075 (o cursor vai para o dispositivo seguinte). **Altera um cenário definido pela change `2026-11-23-c01-cursor-apos-remover-vai-ao-seguinte`.**
+- **Setas a partir de um dispositivo excluído de mais de uma linha (#1105, efeito colateral).** O texto excluído não é editável e o navegador não move o cursor dentro dele, então ↓/↑ travavam e rolavam a tela. Passam a ir direto ao vizinho.
 
 Fora do escopo:
 
@@ -22,7 +23,7 @@ Fora do escopo:
 
 ### Modified Capabilities
 
-- `navegacao-cursor-editor`: o requisito "Cursor depois de excluir um dispositivo" passa a manter o cursor no dispositivo excluído quando a revisão está ativa e a linha continua na tela.
+- `navegacao-cursor-editor`: o requisito "Cursor depois de excluir um dispositivo" passa a manter o cursor no dispositivo excluído quando a revisão está ativa e a linha continua na tela; acrescenta a navegação por setas a partir de dispositivo excluído de mais de uma linha.
 
 ## Impact
 
