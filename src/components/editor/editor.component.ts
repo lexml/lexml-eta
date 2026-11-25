@@ -86,6 +86,7 @@ import { EtaContainerRevisao } from '../../util/eta-quill/eta-container-revisao'
 import { isCaput, isPena } from '../../model/dispositivo/tipo';
 import { EtaContainerOpcoes } from '../../util/eta-quill/eta-container-opcoes';
 import { findDispositivoByUuid, getDispositivoAndFilhosAsLista } from '../../model/lexml/hierarquia/hierarquiaUtil';
+import { Articulacao, Dispositivo } from '../../model/dispositivo/dispositivo';
 import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAction';
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
@@ -115,6 +116,12 @@ import { QuillOptions, QuillRange, QuillSelectionChangeHandler, QuillSource } fr
 
 // A busca da linha dessas partes não parte da linha anterior (não pertencem à articulação).
 const ehParteInicial = (elemento: Elemento): boolean => elemento.tipo === 'Ementa' || elemento.tipo === 'Preambulo';
+
+// A ementa fica fora da árvore da articulação (#1085); o preâmbulo fica de fora de propósito, sem remissão.
+const findDispositivoOuEmentaByUuid = (articulacao: Articulacao, uuid: number): Dispositivo | null => {
+  const ementa = articulacao?.projetoNorma?.ementa;
+  return findDispositivoByUuid(articulacao, uuid, true) ?? (ementa?.uuid === uuid ? ementa : null);
+};
 
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -289,7 +296,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         lexml-eta-proposicao-editor .btn-remissao-interna:disabled,
         lexml-eta-proposicao-editor .btn-remover-remissao:disabled {
           opacity: 0.35;
-          cursor: not-allowed;
         }
 
         lexml-eta-proposicao-editor .btn-remissao-interna:disabled:hover,
@@ -1775,7 +1781,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     if (!matches || matches.length === 0) return;
 
     const articulacaoAtual = rootStore.getState().elementoReducer.articulacao;
-    const dispositivoAtual = findDispositivoByUuid(articulacaoAtual, sourceUuid, true);
+    const dispositivoAtual = findDispositivoOuEmentaByUuid(articulacaoAtual, sourceUuid);
     if (!dispositivoAtual || stripHtml(dispositivoAtual.texto ?? '') !== texto) return;
 
     for (const match of matches) {

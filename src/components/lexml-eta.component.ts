@@ -26,6 +26,8 @@ import {
   verificarUrnParaNovaProposicao,
 } from '../model/lexml/documento/urnUtil';
 import { inicializarVocabulario } from '../model/lexml/documento/vocabulario';
+import { MENSAGEM_NUMERACAO_REPETIDA } from '../model/lexml/numeracao/numeracaoRepetida';
+import { normalizaValidacaoNumeracao, registraValidacaoNumeracao, ValidacaoNumeracao } from '../model/lexml/numeracao/validacaoNumeracao';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
 import { LexmlEtaProposicaoComponent } from './lexml-eta-proposicao.component';
@@ -86,6 +88,7 @@ export interface DadosNovaProposicao {
 class ParametrosEdicao {
   projetoNorma?: ProjetoNorma;
   anexoParecer = false;
+  validacaoNumeracao: ValidacaoNumeracao = 'rigida';
 }
 
 // Mesmo texto no alerta, na pendência de preenchimento e na pendência gravada ao salvar.
@@ -247,6 +250,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   getDocumentoArticulado(): DocumentoArticulado {
     if (!this.urn) throw new Error('Inicialize um documento antes de salvar.');
     const pendencias = this.isJustificacaoNaoInformada(this._lexmlJustificativa.texto) ? [MENSAGEM_JUSTIFICACAO_NAO_INFORMADA] : [];
+    this.temNumeracaoRepetida() && pendencias.push(MENSAGEM_NUMERACAO_REPETIDA);
     // A justificação não é gravada no anexo de parecer (spec salvar-documento-articulado).
     return this._lexmlEta!.getDocumentoArticulado({
       anexoParecer: this.anexoParecer,
@@ -269,13 +273,15 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   /** Cria uma nova proposição; entrada inválida emite o erro fatal e deixa o documento em edição como estava. */
   async novaProposicao(dados: DadosNovaProposicao): Promise<void> {
+    // O modo vale por documento: lido da configuração ao começar e registrado só depois de a leitura dar certo.
+    const validacaoNumeracao = normalizaValidacaoNumeracao(this.lexmlEtaConfig.validacaoNumeracao);
     let documento: any;
     try {
       this.validarDadosNovaProposicao(dados);
       verificarUrnDaCasaDoEditor(dados.urn);
       verificarUrnParaNovaProposicao(dados.urn);
       // A URN do modelo é trocada pela informada, então a casa dela não importa.
-      const modelo = dados.documentoModelo === undefined ? undefined : lerDocumentoArticulado(dados.documentoModelo, { verificarCasa: false });
+      const modelo = dados.documentoModelo === undefined ? undefined : lerDocumentoArticulado(dados.documentoModelo, { verificarCasa: false, validacaoNumeracao });
       documento = montaDocumentoNovaProposicao(dados.urn, dados.epigrafe, dados.preambulo, modelo);
     } catch (err) {
       this.emitirEventoFatalError(err);
@@ -285,6 +291,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     const params = new ParametrosEdicao();
     params.projetoNorma = documento;
     params.anexoParecer = dados.anexoParecer ?? false;
+    params.validacaoNumeracao = validacaoNumeracao;
     // Com modelo, o texto da articulação é preservado como em um documento aberto, mas os padrões da sessão valem.
     await this.inicializarEdicao(params, dados.documentoModelo !== undefined, true);
 
@@ -312,22 +319,24 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   /** Aceita o objeto Jsonix ou seu texto JSON e valida antes de alterar o editor. */
   async abrirDocumentoArticulado(entrada: unknown): Promise<void> {
+    const validacaoNumeracao = normalizaValidacaoNumeracao(this.lexmlEtaConfig.validacaoNumeracao);
     let documento: DocumentoArticulado;
     try {
-      documento = lerDocumentoArticulado(entrada);
+      documento = lerDocumentoArticulado(entrada, { validacaoNumeracao });
     } catch (err) {
       this.emitirEventoFatalError(err);
       throw err;
     }
-    await this.abrirDocumentoLido(documento);
+    await this.abrirDocumentoLido(documento, validacaoNumeracao);
   }
 
   // Corpo comum de abrir e de alterar dados básicos: o documento já foi lido e validado.
-  private async abrirDocumentoLido(documento: DocumentoArticulado): Promise<void> {
+  private async abrirDocumentoLido(documento: DocumentoArticulado, validacaoNumeracao: ValidacaoNumeracao): Promise<void> {
     const dados = lerMetadadoLexEdit(documento);
     const params = new ParametrosEdicao();
     params.projetoNorma = documento as any;
     params.anexoParecer = dados.anexoParecer ?? false;
+    params.validacaoNumeracao = validacaoNumeracao;
     await this.inicializarEdicao(params, true);
     // Sem o atraso de setRevisoes (1 s): o documento aberto já sai com as marcas e em modo de revisão.
     const revisaoPorIdNoArquivo = dados.revisoesLidas?.length
@@ -378,6 +387,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
 
   /** Altera os dados básicos do documento em edição recarregando-o; recusa deixa o documento intacto e emite o erro fatal. */
   async alterarDadosBasicos(dados: DadosBasicos): Promise<void> {
+    const validacaoNumeracao = normalizaValidacaoNumeracao(this.lexmlEtaConfig.validacaoNumeracao);
     let documento: DocumentoArticulado;
     try {
       this.validarAlteracaoDadosBasicos(dados);
@@ -386,13 +396,14 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
         aplicarDadosBasicos(serializado, dados, {
           urnAtual: this.urn,
           anexoParecerAtual: this.anexoParecer,
-        })
+        }),
+        { validacaoNumeracao }
       );
     } catch (err) {
       this.emitirEventoFatalError(err);
       throw err;
     }
-    await this.abrirDocumentoLido(documento);
+    await this.abrirDocumentoLido(documento, validacaoNumeracao);
   }
 
   private validarAlteracaoDadosBasicos(dados: DadosBasicos): void {
@@ -464,12 +475,21 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
     return epigrafe;
   }
 
+  // Mesma condição do alerta global: o conjunto é recalculado pelo reducer a cada ação.
+  private temNumeracaoRepetida(): boolean {
+    return !!rootStore.getState().elementoReducer.numeracaoRepetida?.length;
+  }
+
   private getPendenciasPreenchimento(proposicao: Proposicao): string[] {
     const pendenciasPreenchimento: Array<string> = [];
 
     // Verifica preenchimento da justificação
     if (this.isJustificacaoNaoInformada(proposicao.justificativa)) {
       pendenciasPreenchimento.push(MENSAGEM_JUSTIFICACAO_NAO_INFORMADA);
+    }
+
+    if (this.temNumeracaoRepetida()) {
+      pendenciasPreenchimento.push(MENSAGEM_NUMERACAO_REPETIDA);
     }
 
     if (this.sequenciasComentario.length) {
@@ -504,6 +524,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       const urnRecebida = getUrn(params.projetoNorma);
       if (!urnRecebida) throw new Error('A URN do documento não foi informada.');
       verificarUrnDaCasaDoEditor(urnRecebida);
+      registraValidacaoNumeracao(params.validacaoNumeracao);
 
       this.descartarDocumentoAtual();
       this.anexoParecer = params.anexoParecer ?? false;

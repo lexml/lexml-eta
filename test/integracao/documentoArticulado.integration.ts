@@ -80,6 +80,26 @@ describe('Documento articulado — conversor Jsonix real e XSD LexML', () => {
     expect(criarDocumentoArticulado(reaberto, urn)).to.deep.equal(salvo);
   });
 
+  it('modo flexível: artigos repetidos vão e voltam pelo CLI sem perda, embora o XSD os rejeite', async () => {
+    const entrada = novoDocumentoArticulado();
+    const lXhier = entrada.value.projetoNorma.norma.articulacao.lXhier;
+    lXhier.push(JSON.parse(JSON.stringify(lXhier[0])));
+    const flexivel = { validacaoNumeracao: 'flexivel' as const };
+    const modelo = buildProjetoNormaFromJsonix(lerDocumentoArticulado(entrada, flexivel), true);
+    const salvo = criarDocumentoArticulado(modelo, modelo.urn!, undefined, undefined, undefined, flexivel);
+
+    const retorno = await executeServerCommand<{ xml: string; jsonix: unknown }, unknown>('converter-documento-lexml', salvo);
+
+    expect(retorno.xml.match(/<Artigo id="art1"/g)).to.have.length(2);
+    const reaberto = buildProjetoNormaFromJsonix(lerDocumentoArticulado(retorno.jsonix, flexivel), true);
+    expect(criarDocumentoArticulado(reaberto, reaberto.urn!, undefined, undefined, undefined, flexivel)).to.deep.equal(salvo);
+    expect(() => lerDocumentoArticulado(retorno.jsonix)).to.throw('repetidos');
+
+    const xsd = await executeServerCommand<{ valido: boolean; erro: string }, unknown>('validar-documento-lexml', salvo);
+    expect(xsd.valido).to.equal(false);
+    expect(xsd.erro).to.include('art1');
+  });
+
   it('comprova que o XSD rejeita um documento estruturalmente inválido', async () => {
     const entrada = novoDocumentoArticulado();
     delete entrada.value.metadado.identificacao;

@@ -8,6 +8,7 @@ import { Anexo, Autoria, ColegiadoApreciador, OpcoesImpressao, Parlamentar } fro
 import { Usuario } from '../../revisao/usuario';
 import type { SituacaoNaNormaVigente } from './conversor/situacaoNaNormaVigente';
 import type { SequenciaComentario } from '../../comentario/comentario';
+import { normalizaValidacaoNumeracao, ValidacaoNumeracao } from '../numeracao/validacaoNumeracao';
 
 const NAMESPACE_LEXML = 'http://www.lexml.gov.br/1.0';
 
@@ -203,7 +204,12 @@ const tiposDispositivo = new Set([
   'Agrupamento',
 ]);
 
-export const validarDocumentoArticulado = (entrada: unknown): DocumentoArticulado => {
+export interface OpcoesValidacaoDocumento {
+  validacaoNumeracao?: ValidacaoNumeracao;
+}
+
+export const validarDocumentoArticulado = (entrada: unknown, { validacaoNumeracao }: OpcoesValidacaoDocumento = {}): DocumentoArticulado => {
+  const flexivel = normalizaValidacaoNumeracao(validacaoNumeracao) === 'flexivel';
   const doc = entrada as DocumentoArticulado;
   if (doc?.name?.namespaceURI !== NAMESPACE_LEXML || doc?.name?.localPart !== 'LexML' || !doc?.value?.projetoNorma?.norma) {
     throw new Error('O arquivo deve conter um documento LexML em JSON (documento-articulado.json).');
@@ -214,18 +220,36 @@ export const validarDocumentoArticulado = (entrada: unknown): DocumentoArticulad
     throw new Error('O documento não contém uma articulação LexML válida.');
   }
 
-  const ids = new Set<string>();
+  const erroIds = 'O documento contém identificadores de elementos inválidos ou repetidos.';
+  // No modo flexível, só os ids montados pela hierarquia (dispositivo, caput, pena e alteração) podem se repetir.
+  const idsHierarquia = new Set<string>();
+  const idsOutros = new Set<string>();
+  const nosHierarquia = new WeakSet<object>();
   const visitar = (valor: any): void => {
     if (!valor || typeof valor !== 'object') return;
     if (Array.isArray(valor)) {
       valor.forEach(visitar);
       return;
     }
+    if (tiposDispositivo.has(valor.name?.localPart) && valor.value && typeof valor.value === 'object') {
+      nosHierarquia.add(valor.value);
+      if (valor.value.pena && typeof valor.value.pena === 'object') nosHierarquia.add(valor.value.pena);
+      if (valor.value.alteracao && typeof valor.value.alteracao === 'object') nosHierarquia.add(valor.value.alteracao);
+    }
+    if (valor.name?.localPart === 'alteracao' && valor.value && typeof valor.value === 'object') nosHierarquia.add(valor.value);
     if (valor.id !== undefined) {
-      if (typeof valor.id !== 'string' || !valor.id || /\s/.test(valor.id) || ids.has(valor.id)) {
-        throw new Error('O documento contém identificadores de elementos inválidos ou repetidos.');
+      if (typeof valor.id !== 'string' || !valor.id || /\s/.test(valor.id)) {
+        throw new Error(erroIds);
       }
-      ids.add(valor.id);
+      const daHierarquia = flexivel && nosHierarquia.has(valor);
+      if (!daHierarquia && idsOutros.has(valor.id)) {
+        throw new Error(erroIds);
+      }
+      if (daHierarquia) {
+        idsHierarquia.add(valor.id);
+      } else {
+        idsOutros.add(valor.id);
+      }
     }
     for (const [campo, conteudo] of Object.entries(valor)) {
       if (['content', 'p', 'lXhier', 'lXcontainersOmissis'].includes(campo) && !Array.isArray(conteudo)) {
@@ -242,12 +266,18 @@ export const validarDocumentoArticulado = (entrada: unknown): DocumentoArticulad
     }
   };
   visitar(norma);
+  if ([...idsHierarquia].some(id => idsOutros.has(id))) {
+    throw new Error(erroIds);
+  }
   return doc;
 };
 
 /** Valida e prepara uma cópia independente antes de qualquer alteração no editor. */
 // Sem verificarCasa, a URN do arquivo não é checada: na importação, a URN que vale é a da nova proposição.
-export const lerDocumentoArticulado = (entrada: unknown, { verificarCasa = true } = {}): DocumentoArticulado => {
+export const lerDocumentoArticulado = (
+  entrada: unknown,
+  { verificarCasa = true, validacaoNumeracao }: { verificarCasa?: boolean } & OpcoesValidacaoDocumento = {}
+): DocumentoArticulado => {
   let doc: unknown = entrada;
   if (typeof entrada === 'string') {
     try {
@@ -256,7 +286,7 @@ export const lerDocumentoArticulado = (entrada: unknown, { verificarCasa = true 
       throw new Error('Não foi possível abrir o arquivo: o conteúdo não é um JSON válido.');
     }
   }
-  const validado = validarDocumentoArticulado(doc);
+  const validado = validarDocumentoArticulado(doc, { validacaoNumeracao });
   if (verificarCasa) verificarUrnDaCasaDoEditor(validado.value.metadado.identificacao.urn);
   const copia = JSON.parse(JSON.stringify(validado)) as DocumentoArticulado;
   // Exercita o leitor antes de permitir que a interface substitua seu estado.
@@ -273,7 +303,8 @@ export const criarDocumentoArticulado = (
   urn: string,
   remissoes?: Record<number, RemissaoInternaValue[]>,
   remissoesExternas?: Record<string, RemissaoExternaValue>,
-  dados?: DadosLexEdit
+  dados?: DadosLexEdit,
+  opcoes?: OpcoesValidacaoDocumento
 ): DocumentoArticulado => {
   validarIdentificacaoDocumento(urn);
   // No XSD LexML, ProjetoNorma contém Norma, inclusive para proposições em elaboração.
@@ -281,7 +312,7 @@ export const criarDocumentoArticulado = (
   const documento = buildJsonixFromProjetoNorma(modelo, urn, remissoes, remissoesExternas, dados);
   decodificarTextoJsonix(documento);
   preservarEspacosJsonix(documento);
-  validarDocumentoArticulado(documento);
+  validarDocumentoArticulado(documento, opcoes);
   return documento;
 };
 
@@ -329,7 +360,8 @@ const preservarEspacosJsonix = (valor: any): void => {
   valor.content = conteudo;
 };
 
-export const serializarDocumentoArticulado = (documento: DocumentoArticulado): string => JSON.stringify(validarDocumentoArticulado(documento), null, 2) + '\n';
+export const serializarDocumentoArticulado = (documento: DocumentoArticulado, opcoes?: OpcoesValidacaoDocumento): string =>
+  JSON.stringify(validarDocumentoArticulado(documento, opcoes), null, 2) + '\n';
 
 export const nomeArquivoDocumentoArticulado = (documento: DocumentoArticulado): string => {
   const urn = documento.value.metadado.identificacao.urn;

@@ -144,13 +144,13 @@ A proposição traz duas datas (#1034, **BREAKING**):
 
 ### 4.3 `getDocumentoArticulado(): DocumentoArticulado`
 
-Exporta o documento no formato de intercâmbio LexML (JSON Jsonix), incluindo os grupos de metadados do LexEdit já implementados: data e hora da exportação (`dataUltimaModificacao`, `xsd:dateTime` com fuso e precisão de segundos, gerada a cada chamada), opções de impressão, local e data do fecho, autoria de parlamentares, anexos (só os metadados, veja a seção 5.1) e remissões internas inválidas. O atributo de data é ignorado ao abrir e não é mantido no estado de edição. Lança `Error('Inicialize um documento antes de salvar.')` se nada foi aberto.
+Exporta o documento no formato de intercâmbio LexML (JSON Jsonix), incluindo os grupos de metadados do LexEdit já implementados: data e hora da exportação (`dataUltimaModificacao`, `xsd:dateTime` com fuso e precisão de segundos, gerada a cada chamada), opções de impressão, local e data do fecho, autoria de parlamentares, anexos (só os metadados, veja a seção 5.1) e remissões internas inválidas. O atributo de data é ignorado ao abrir e não é mantido no estado de edição. Lança `Error('Inicialize um documento antes de salvar.')` se nada foi aberto. No modo rígido de validação de numeração (seção 5.2), lança erro se houver ids de dispositivo repetidos; no modo flexível grava os ids como estão e acrescenta a pendência "Existem dispositivos com numeração repetida.".
 
 Diferença em relação a `getProposicao()`: aqui o resultado é **um arquivo LexML autocontido**, que o próprio editor sabe reabrir; `getProposicao()` é o modelo interno do editor (inclui revisões, notas de rodapé, justificação etc.), que não passa pelo formato LexML.
 
 ### 4.4 `abrirDocumentoArticulado(entrada): Promise<void>`
 
-Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, emite `fatalError`, lança `Error` (por exemplo, URN sem ano e número, documento de outra casa legislativa, articulação ausente, ids repetidos) e o editor segue intacto. Documento de outra casa legislativa é recusado com `Error("Documento de outra casa legislativa não é suportado neste editor (autoridade '...').")`; as autoridades aceitas por casa são as do vocabulário (`SF` aceita `senado.federal`, `congresso.nacional` e `federal`; `CD`, `camara.deputados`, `congresso.nacional` e `federal`). Depois da abertura, aplica ao formulário os metadados do arquivo (modo de anexo de parecer, URN do documento referenciado, opções de impressão, data, local, destino e autoria), preenche `outrosMetadados` e exibe na aba "Anexos" os anexos do arquivo. `dataUltimaModificacao` é ignorada ao abrir. Os padrões da sessão (`autoriaPadrao`, `opcoesImpressaoPadrao`) **não** se aplicam: valem os valores do arquivo.
+Abre um documento exportado por `getDocumentoArticulado()`. Aceita o objeto Jsonix ou o seu texto JSON. O documento é **validado antes de alterar o editor**: se for inválido, emite `fatalError`, lança `Error` (por exemplo, URN sem ano e número, documento de outra casa legislativa, articulação ausente, ids repetidos, a menos que o modo flexível de numeração esteja configurado — seção 5.2) e o editor segue intacto. Documento de outra casa legislativa é recusado com `Error("Documento de outra casa legislativa não é suportado neste editor (autoridade '...').")`; as autoridades aceitas por casa são as do vocabulário (`SF` aceita `senado.federal`, `congresso.nacional` e `federal`; `CD`, `camara.deputados`, `congresso.nacional` e `federal`). Depois da abertura, aplica ao formulário os metadados do arquivo (modo de anexo de parecer, URN do documento referenciado, opções de impressão, data, local, destino e autoria), preenche `outrosMetadados` e exibe na aba "Anexos" os anexos do arquivo. `dataUltimaModificacao` é ignorada ao abrir. Os padrões da sessão (`autoriaPadrao`, `opcoesImpressaoPadrao`) **não** se aplicam: valem os valores do arquivo.
 
 **Tipo "não suportado".** Se a URN não for de proposição suportada (por exemplo, uma medida provisória ou uma norma), o documento abre normalmente, mas sem os formulários de destino e de autoria (os valores do arquivo são ignorados e gravados vazios ao salvar), com um erro na aba de avisos ("Este tipo de documento não é completamente suportado pelo editor.") e a pendência correspondente em `lexedit:Pendencias`. O erro não impede a edição nem o salvamento.
 
@@ -231,10 +231,32 @@ await elLexmlEta.alterarDadosBasicos({
 | `onUploadAnexo`, `onDeleteAnexo`, `onObterAnexoBlob`, `onVisualizarAnexo` | funções? | — | Callbacks com os quais o host armazena e entrega os arquivos anexados. Veja a seção 5.1. |
 | `tamanhoMaximoImagem` | `number` | `2048` | Tamanho máximo de uma imagem inserida, em KB (2 MB). |
 | `identificarRemissaoExterna` | `boolean` | `true` | Detecção automática de remissões externas. Com `false`, o editor não roda a detecção nem inicia o worker do lexml-linker (seção 9). |
+| `validacaoNumeracao` | `'rigida' \| 'flexivel'` | `'rigida'` | Modo de validação de numeração dos dispositivos. Ausente ou desconhecido vale `'rigida'`. Veja a seção 5.2. |
 
 O vocabulário da casa é (re)montado quando `lexmlEtaConfig` é atribuída com outra casa, portanto atribua a configuração **antes** de `novaProposicao`/`abrirDocumentoArticulado`. O vocabulário é estático (uma instância do componente por página). A casa restringe as siglas de proposição nova e as listas de tipos; URNs de normas citadas ou alteradas resolvem em qualquer autoridade (inclusive da outra casa), mas o documento em edição precisa ser da casa do editor (seção 4.1).
 
 O usuário, a paginação e os padrões ficam na configuração da sessão e **sobrevivem** à troca de documento. O modo de anexo de parecer, ao contrário, é do **documento** (seção 9).
+
+### 5.2 Validação de numeração: `validacaoNumeracao`
+
+- **Rígida (padrão).** Comportamento de sempre: um documento com ids de dispositivo repetidos (por exemplo, dois "Art. 5º") é recusado ao abrir (`novaProposicao` com `documentoModelo`, `abrirDocumentoArticulado` e `alterarDadosBasicos`) e ao salvar.
+- **Flexível.** Abre, edita e salva documentos com numeração repetida, que passam a ser uma pendência:
+  - alerta crítico "Existem dispositivos com numeração repetida." na aba Avisos, sem botão de fechar;
+  - a pendência de mesmo texto vai em `Proposicao.pendenciasPreenchimento` e em `lexedit:Pendencias` do arquivo (logo depois da de justificação), para constar no PDF;
+  - o erro "Dispositivo com numeração repetida" aparece da 2ª ocorrência em diante, **só no dispositivo que causa a repetição** (o descendente que repete por herança não recebe o erro);
+  - onde a renumeração automática existe (texto principal e filhos de pai "Novo" na norma alterada), o erro oferece "Corrigir agora", que renumera o grupo, recalcula os ids dos descendentes e pode ser desfeita. Artigo de bloco de alteração e filhos de pai "Existente" não têm a correção: use "Renumerar". No texto principal os artigos são numerados pela posição (1, 2, 3...);
+  - o alerta, a pendência e os erros são reavaliados depois de toda ação, inclusive desfazer e refazer.
+
+O modo é lido da configuração **no início de cada documento** (`novaProposicao`, `abrirDocumentoArticulado` e `alterarDadosBasicos`) e vale até o próximo: mudar a configuração no meio da edição não afeta o documento aberto. Uma chamada recusada não muda o modo do documento em edição.
+
+Limitações do modo flexível:
+
+- os ids de dispositivo repetidos são gravados **como estão**, e o XML convertido a partir desse arquivo **não valida** pelo esquema (`xsd:ID`). O host não pode exigir essa validação para documentos com a pendência;
+- só os ids de dispositivo, caput, pena e alteração podem se repetir. Repetição nos demais ids (remissão, revisão, comentário, tabela) continua recusada;
+- remissão interna, comentário da articulação e situação na norma vigente que apontam para um id repetido resolvem para a **1ª ocorrência**;
+- o arquivo salvo com numeração repetida só abre no modo flexível.
+
+Os utilitários de arquivo (seção 7) também validam em modo rígido por padrão: quem usa o modo flexível deve passar `{ validacaoNumeracao: 'flexivel' }`.
 
 ### Serviços esperados
 
@@ -292,12 +314,14 @@ Exportados por `@lexml/lexml-eta` para o fluxo "salvar/abrir arquivo" (usados pe
 
 | Função | Descrição |
 |---|---|
-| `salvarArquivoDocumentoArticulado(documento)` | Baixa o documento como `.json` pelo navegador. |
-| `abrirArquivoDocumentoArticulado()` | Abre o seletor de arquivos e devolve o `DocumentoArticulado` lido (ou `undefined` se cancelado). |
-| `lerArquivoDocumentoArticulado(blob)` | Lê e valida um `Blob`/`File`. |
-| `lerDocumentoArticulado(entrada)` | Valida um objeto ou texto JSON. |
-| `serializarDocumentoArticulado(documento)` | Serializa para texto JSON. |
+| `salvarArquivoDocumentoArticulado(documento, opcoes?)` | Baixa o documento como `.json` pelo navegador. |
+| `abrirArquivoDocumentoArticulado(opcoes?)` | Abre o seletor de arquivos e devolve o `DocumentoArticulado` lido (ou `undefined` se cancelado). |
+| `lerArquivoDocumentoArticulado(blob, opcoes?)` | Lê e valida um `Blob`/`File`. |
+| `lerDocumentoArticulado(entrada, opcoes?)` | Valida um objeto ou texto JSON. |
+| `serializarDocumentoArticulado(documento, opcoes?)` | Serializa para texto JSON. |
 | `nomeArquivoDocumentoArticulado(documento)` | Nome sugerido para o arquivo. |
+
+`opcoes` é `{ validacaoNumeracao?: 'rigida' | 'flexivel' }` (padrão `'rigida'`; seção 5.2). Passe o mesmo valor da configuração do componente.
 
 Fluxo típico:
 

@@ -330,11 +330,16 @@ export const editorTextoRicoCss = html`
       content: none;
     }
 
+    /* Desabilitado não sugere clique (#1098); mais específico que a regra da mão do Quill. */
+    .ql-snow.ql-toolbar button:disabled,
+    .ql-snow .ql-toolbar button:disabled {
+      cursor: default;
+    }
+
     .ql-toolbar button.ql-lexml-eta-comentario:disabled,
     .ql-toolbar button.ql-lexml-eta-comentario:disabled:hover,
     .ql-toolbar button.ql-lexml-eta-comentario:disabled:focus {
       color: #9ca3af;
-      cursor: default;
       opacity: 0.45;
     }
 

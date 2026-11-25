@@ -2,6 +2,7 @@ import type { Anexo } from './proposicao/proposicao';
 import type { TipoAnexo } from './proposicao/tipoAnexo';
 import type { ConfiguracaoPaginacao } from './paginacao/paginacao';
 import type { Usuario } from './revisao/usuario';
+import type { ValidacaoNumeracao } from './lexml/numeracao/validacaoNumeracao';
 
 export interface ObterAnexoBlobResult {
   blob: Blob;
@@ -37,4 +38,6 @@ export class LexmlEtaConfig {
   tamanhoMaximoImagem = 2048; //2MB
   // Com false, desliga a detecção automática de remissão externa e o worker do lexml-linker; um uso novo do linker deve respeitar este campo.
   identificarRemissaoExterna = true;
+  // Com 'flexivel', abre e salva documentos com dispositivos de numeração repetida, tratados como pendência; ausente ou desconhecido vale 'rigida'.
+  validacaoNumeracao?: ValidacaoNumeracao;
 }

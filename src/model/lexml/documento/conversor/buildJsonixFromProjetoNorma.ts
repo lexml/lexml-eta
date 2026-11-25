@@ -353,7 +353,7 @@ const montaProjetoNorma = (projetoNorma: any, remissoes?: Remissoes, remissoesEx
   const parteFinal = montaParteFinal(dados);
   p[isNorma(projetoNorma) ? 'norma' : 'projeto'] = {
     TYPE_NAME: 'br_gov_lexml__1.HierarchicalStructure',
-    parteInicial: montaParteInicial(projetoNorma),
+    parteInicial: montaParteInicial(projetoNorma, remissoesExternas),
     articulacao: montaArticulacao(projetoNorma, remissoes, remissoesExternas),
     ...(parteFinal && { parteFinal }),
   };
@@ -396,7 +396,8 @@ const montaParteFinal = (dados?: DadosLexEdit): any => {
 // A epígrafe chega como string (documento aberto) ou como `Conteudo` (montada à mão).
 const textoDoConteudo = (conteudo: any): string => (typeof conteudo === 'string' ? conteudo : conteudo?.texto ?? '');
 
-export const montaParteInicial = (projetoNorma: any): any => {
+// As remissões externas da ementa, criadas na sessão, só estão no Quill: precisam ser injetadas aqui (#1085).
+export const montaParteInicial = (projetoNorma: any, remissoesExternas?: RemissoesExternas): any => {
   return {
     TYPE_NAME: 'br_gov_lexml__1.ParteInicial',
     epigrafe: {
@@ -407,7 +408,7 @@ export const montaParteInicial = (projetoNorma: any): any => {
     ementa: {
       TYPE_NAME: 'br_gov_lexml__1.GenInline',
       id: 'ementa',
-      content: projetoNorma.ementa ? buildStructuredContent(projetoNorma.ementa, 'texto') : [],
+      content: projetoNorma.ementa ? buildStructuredContent(projetoNorma.ementa, 'texto', undefined, remissoesExternas) : [],
     },
     preambulo: {
       TYPE_NAME: 'br_gov_lexml__1.TextoType',

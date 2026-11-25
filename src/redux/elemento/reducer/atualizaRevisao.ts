@@ -43,6 +43,8 @@ import {
   OPERACAO_MOVIDO,
   buildDescricaoRevisaoElemento,
   OperacaoRevisao,
+  principalDoExcluido,
+  excluidoImediatamenteAntes,
 } from '../util/revisaoUtil';
 import { aceitarRevisaoAction } from '../../../model/lexml/acao/aceitarRevisaoAction';
 import { rejeitarRevisaoAction } from '../../../model/lexml/acao/rejeitarRevisaoAction';
@@ -522,19 +524,4 @@ const vemDepoisDosElementos = (revisao: RevisaoElemento, uuids: Set<number | und
     atual = anterior.uuid2 === '_encadeado' ? excluidoImediatamenteAntes(atual, principais) : principalDoExcluido(anterior.uuid, exclusoes, atual);
   }
   return false;
-};
-
-// O anterior pode ser um descendente do excluído (o último filho): a revisão que importa é a da principal do grupo.
-const principalDoExcluido = (uuid: number | undefined, exclusoes: RevisaoElemento[], atual: RevisaoElemento): RevisaoElemento | undefined => {
-  const encontrada = uuid === undefined ? undefined : exclusoes.find(r => r !== atual && r.elementoAposRevisao.uuid === uuid);
-  return encontrada?.idRevisaoElementoPrincipal ? exclusoes.find(r => r.id === encontrada.idRevisaoElementoPrincipal) : encontrada;
-};
-
-// Em documento reaberto o encadeamento não tem uuid: o anterior é o excluído que o precede no mesmo lugar.
-const excluidoImediatamenteAntes = (revisao: RevisaoElemento, principais: RevisaoElemento[]): RevisaoElemento | undefined => {
-  const h = revisao.elementoAposRevisao.hierarquia;
-  return principais
-    .slice(0, principais.indexOf(revisao))
-    .reverse()
-    .find(p => p.elementoAposRevisao.hierarquia?.posicao === h?.posicao && p.elementoAposRevisao.hierarquia?.pai?.lexmlId === h?.pai?.lexmlId);
 };

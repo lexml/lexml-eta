@@ -42,6 +42,8 @@ export interface StateEvent {
   moverParaFimLinha?: boolean;
   // Exclusão feita pelo usuário: o cursor vai para a linha que toma o lugar do excluído (#1075).
   cursorNaLinhaSeguinte?: boolean;
+  // Correção automática de numeração: desfazer e refazer restauram os números, mas não geram revisão.
+  renumeracaoAutomatica?: boolean;
   elementos?: Elemento[];
   remissaoRenumeracao?: { lexmlIdAntigo: string; lexmlIdNovo: string; novoUuid: number };
   remissaoInvalidacao?: { lexmlId: string; uuid: number };
@@ -72,6 +74,8 @@ export interface State {
   mensagensCritical?: Array<string>;
   remissoes?: Record<number, RemissaoInternaValue[]>;
   remissoesExternas?: Record<string, RemissaoExternaValue>;
+  // Uuids dos dispositivos com numeração repetida (só no modo flexível); recalculado a cada ação.
+  numeracaoRepetida?: number[];
 }
 
 export const createState = (state: any, events: StateEvent[], past: StateEvent[], present: StateEvent[], future: StateEvent[]): State => {
