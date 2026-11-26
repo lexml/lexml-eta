@@ -51,7 +51,20 @@ describe('Agrupador antes ou depois de artigo (#1078)', () => {
           textos.some(t => t.startsWith(OPCAO_AGRUPADOR + ' antes')),
           'opção com "antes"'
         ).to.be.false;
+        expect(
+          textos.some(t => t.includes('Ctrl+Alt+G')),
+          'atalho Ctrl+Alt+G no menu'
+        ).to.be.false;
       });
+  });
+
+  // O atalho conflitava com atalhos do navegador e foi removido.
+  it('Ctrl+Alt+G no artigo não abre o modal de agrupador', () => {
+    cy.getContainerArtigoByNumero(2).getOpcoesDeMenuDoDispositivo().should('exist');
+    cy.get('#lx-eta-editor .ql-editor').trigger('keydown', { key: 'g', code: 'KeyG', ctrlKey: true, altKey: true });
+    cy.wait(500);
+    cy.get(DIALOGO).should('not.exist');
+    linhasDaArticulacao().should('deep.equal', ['Art. 1º', 'Art. 2º']);
   });
 
   it('o modal mostra o posicionamento com Antes marcado, e confirmar direto cria o capítulo antes do artigo', () => {

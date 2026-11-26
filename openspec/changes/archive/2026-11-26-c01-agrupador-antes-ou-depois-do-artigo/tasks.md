@@ -18,3 +18,8 @@
 ## 3. Registro
 
 - [x] 3.1 Registrar a #1078 em `docs/sessao/TODO.md`. Verificar com `openspec validate 2026-11-26-c01-agrupador-antes-ou-depois-do-artigo` sem erros.
+
+## 4. Remoção do atalho Ctrl+Alt+G (pedido depois da aplicação)
+
+- [x] 4.1 Remover o atalho de `eta-keyboard.ts`, do `editor.component.ts` e o `hotkey` de `AdicionarAgrupadorArtigo` (design, decisão 5). Verificar com `acoes-agrupamento.test.ts` (a ação não tem atalho) e com o E2E da 1.6 (o menu não indica atalho e Ctrl+Alt+G no artigo não abre o modal), que falham com o atalho de volta (`git stash` do `src`).
+- [x] 4.2 Rodar os specs de `cypress/e2e/agrupador/` e o `npm test` completo, sem falhas novas.

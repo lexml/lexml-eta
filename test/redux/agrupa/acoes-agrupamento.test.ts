@@ -1,5 +1,5 @@
 import { expect } from '@open-wc/testing';
-import { ADICIONAR_AGRUPADOR_ARTIGO } from '../../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
+import { ADICIONAR_AGRUPADOR_ARTIGO, adicionarAgrupadorArtigoAction } from '../../../src/model/lexml/acao/adicionarAgrupadorArtigoAction';
 import { acoesMenu, ElementoAction } from '../../../src/model/lexml/acao';
 import { Dispositivo } from '../../../src/model/dispositivo/dispositivo';
 import { ArticulacaoParser } from '../../../src/model/lexml/parser/articulacaoParser';
@@ -101,5 +101,10 @@ describe('Testando as ações de agrupamento oferecidas para agrupadores', () =>
       expect(descricoes).to.include(OPCAO_UNICA_DE_AGRUPAMENTO);
       expect(descricoes).to.not.include(OPCAO_UNICA_DE_AGRUPAMENTO + ' antes');
     });
+  });
+
+  // Ctrl+Alt+G conflitava com atalhos do navegador.
+  it('Não deveria associar atalho de teclado à opção de agrupamento', () => {
+    expect((adicionarAgrupadorArtigoAction as ElementoAction).hotkey).to.be.undefined;
   });
 });

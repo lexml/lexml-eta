@@ -9,6 +9,7 @@ A partir de um artigo, o editor só cria agrupador (Título, Capítulo, Seção 
 - "Depois" cria o agrupador depois do artigo (e de seus dispositivos), e leva para ele os artigos seguintes que hoje iriam com "Antes" do artigo seguinte; depois do último artigo, o agrupador nasce vazio.
 - Desfazer e refazer passam a restaurar, no mesmo lugar e sem mover dispositivos, um agrupador sem dispositivo depois dele: refazer a inclusão de um agrupador no fim do documento lançava `TypeError`, e desfazer a remoção de um agrupador vazio que era o último filho do seu pai o recriava antes do dispositivo anterior, levando-o para dentro.
 - No bloco de alteração, a regra do "Manter no mesmo grupo de aspas" do artigo não muda e vale para as duas posições.
+- O atalho Ctrl+Alt+G de adicionar agrupador é removido, porque conflita com atalhos do navegador: a opção fica só no menu de contexto.
 
 ## Capabilities
 
@@ -24,6 +25,7 @@ A partir de um artigo, o editor só cria agrupador (Título, Capítulo, Seção 
 
 - `src/model/lexml/regras/regrasArtigo.ts`, `src/model/lexml/acao/adicionarAgrupadorArtigoAction.ts` e `src/model/lexml/acao/index.ts` (a ação "antes" deixa de existir).
 - `src/components/editor/adicionarAgrupadorArtigoDialog.ts`.
+- `src/util/eta-quill/eta-keyboard.ts` e `src/components/editor/editor.component.ts` (atalho removido).
 - `src/redux/elemento/reducer/undo.ts`, `redo.ts`, `removeElemento.ts` e `src/redux/elemento/util/undoRedoReducerUtil.ts`.
 - Testes: reducer e regras em `test/redux/agrupa/`, E2E em `cypress/e2e/agrupador/`.
 - Sem mudança de API pública nem de formato de arquivo.

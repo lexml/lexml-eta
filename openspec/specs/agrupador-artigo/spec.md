@@ -84,3 +84,15 @@ O desfazer e o refazer SHALL restaurar o agrupador incluído ou removido na mesm
 #### Scenario: Desfazer a remoção de seção vazia no fim de um capítulo
 - **WHEN** uma seção vazia é o último filho do Capítulo I, seguido do Capítulo II, e o usuário a remove e desfaz
 - **THEN** a seção volta vazia ao fim do Capítulo I, e os artigos do Capítulo I continuam fora dela
+
+### Requirement: Sem atalho de teclado para adicionar agrupador
+
+O editor SHALL NOT associar atalho de teclado à inclusão de agrupador: a opção SHALL ser oferecida só pelo menu de contexto, sem atalho indicado no item. O atalho Ctrl+Alt+G, usado até então, conflita com atalhos do navegador.
+
+#### Scenario: Ctrl+Alt+G no artigo
+- **WHEN** o cursor está num artigo e o usuário pressiona Ctrl+Alt+G
+- **THEN** o modal de adicionar agrupador não abre e o documento não muda
+
+#### Scenario: Item de menu sem atalho
+- **WHEN** o usuário abre o menu de contexto de um artigo ou de um agrupador
+- **THEN** a opção "Adicionar Título, Capítulo, Seção e outros" não indica atalho de teclado

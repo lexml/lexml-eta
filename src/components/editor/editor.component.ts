@@ -735,10 +735,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.toggleExistenciaElemento(elemento);
   }
 
-  private adicionaAgrupador(): void {
-    this.adicionarAgrupadorArtigo(this.quill.linhaAtual.elemento);
-  }
-
   private adicionarAgrupadorArtigo(elemento: Elemento): void {
     adicionarAgrupadorArtigoDialog(elemento, this.quill, rootStore);
   }
@@ -1560,7 +1556,6 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.inscricoes.push(this.quill.keyboard.renumeraElemento.subscribe(this.renumerarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.transformaElemento.subscribe(this.transformarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.toggleExistencia.subscribe(this.toggleExistencia.bind(this)));
-    this.inscricoes.push(this.quill.keyboard.adicionaAgrupador.subscribe(this.adicionaAgrupador.bind(this)));
     this.inscricoes.push(this.quill.undoRedoEstrutura.subscribe(this.undoRedoEstrutura.bind(this)));
     this.inscricoes.push(this.quill.elementoSelecionado.subscribe(this.elementoSelecionado.bind(this)));
 
