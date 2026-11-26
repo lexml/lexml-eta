@@ -1,6 +1,6 @@
 import { Articulacao, Artigo, Dispositivo } from '../../../model/dispositivo/dispositivo';
-import { isArticulacao, isArtigo, isParagrafo, isPena } from '../../../model/dispositivo/tipo';
-import { Elemento } from '../../../model/elemento';
+import { isAgrupadorNaoArticulacao, isArticulacao, isArtigo, isEmenta, isParagrafo, isPena } from '../../../model/dispositivo/tipo';
+import { Elemento, Referencia } from '../../../model/elemento';
 import { createElemento, getDispositivoFromElemento, isElementoDispositivoAlteracao } from '../../../model/elemento/elementoUtil';
 import { createAlteracao, createArticulacao, criaDispositivo } from '../../../model/lexml/dispositivo/dispositivoLexmlFactory';
 import { validaDispositivo } from '../../../model/lexml/dispositivo/dispositivoValidator';
@@ -293,6 +293,30 @@ export const isUndoRedoInclusaoExclusaoAgrupador = (eventos: StateEvent[]): bool
     eventosFiltrados[0].elementos!.length > 0 &&
     tiposAgrupadorArtigo.includes(eventosFiltrados[0].elementos![0].tipo!)
   );
+};
+
+// De onde reincluir o agrupador no desfazer da remoção ou no refazer da inclusão (o 1º evento do lote é o do agrupador).
+export const getReferenciaParaReincluirAgrupador = (articulacao: Articulacao, eventos: StateEvent[]): { atual: Referencia; posicao: 'antes' | 'depois' } => {
+  const referenciado = eventos.find(ev => ev.stateType === StateType.ElementoReferenciado)?.elementos?.[0];
+  if (referenciado) {
+    return { atual: referenciado, posicao: 'antes' };
+  }
+
+  // Sem dispositivo depois dele no pai, o agrupador é o último filho: entra "depois" da unidade que contém a linha anterior.
+  const agrupador = eventos[0].elementos![0];
+  const linhaAnterior = eventos[0].stateType === StateType.ElementoIncluido ? eventos[0].referencia : agrupador.elementoAnteriorNaSequenciaDeLeitura;
+  let unidade = linhaAnterior ? getDispositivoFromElemento(articulacao, linhaAnterior, true) : undefined;
+
+  if (unidade && isDispositivoAlteracao(unidade) && !agrupador.manterNoMesmoGrupoDeAspas) {
+    // Cabeça nova de alteração só nasce a partir de outra cabeça.
+    unidade = getDispositivoCabecaAlteracao(unidade);
+  } else {
+    while (unidade && !isArtigo(unidade) && !isAgrupadorNaoArticulacao(unidade) && !isEmenta(unidade)) {
+      unidade = unidade.pai;
+    }
+  }
+
+  return { atual: unidade ? createElemento(unidade) : linhaAnterior!, posicao: 'depois' };
 };
 
 export const ajustarAtributosAgrupadorIncluidoPorUndoRedo = (articulacao: Articulacao, eventosFonte: StateEvent[], eventosResultantes: StateEvent[]): void => {

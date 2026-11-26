@@ -1,11 +1,13 @@
 import { Elemento } from '../../model/elemento';
-import { adicionarAgrupadorArtigoAction, adicionarAgrupadorArtigoAntesAction } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
+import { adicionarAgrupadorArtigoAction } from './../../model/lexml/acao/adicionarAgrupadorArtigoAction';
 
 export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, store: any): void => {
   Array.from(document.querySelectorAll('#slDialogAdicionarAgrupadorArtigo')).forEach(el => document.body.removeChild(el));
 
   const tipoPai = elemento.hierarquia?.pai?.tipo;
   const defaultValue = elemento.agrupador ? elemento.tipo : tipoPai === 'Articulacao' ? 'Capitulo' : tipoPai;
+  // No artigo, "antes" mantém o resultado de quem confirmava direto antes da #1078.
+  const posicaoPadrao = elemento.tipo === 'Artigo' ? 'antes' : 'depois';
 
   const dialogElem = document.createElement('sl-dialog');
   dialogElem.id = 'slDialogAdicionarAgrupadorArtigo';
@@ -43,10 +45,10 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
       <sl-radio class="tipo-agrupador" id="Subsecao" value="Subsecao">Subseção</sl-radio>
     </sl-radio-group>
   </div>
-  <div style="display: ${elemento.tipo === 'Artigo' ? 'none' : 'block'};">
+  <div>
     <sl-radio-group fieldset label="Posicionamento" id="rdgPosicao">
-      <sl-radio class="posicao-agrupador" id="posicao-antes" value="antes">Antes</sl-radio>
-      <sl-radio class="posicao-agrupador" id="posicao-depois" value="depois" checked>Depois</sl-radio>
+      <sl-radio class="posicao-agrupador" id="posicao-antes" value="antes" ${posicaoPadrao === 'antes' ? 'checked' : ''}>Antes</sl-radio>
+      <sl-radio class="posicao-agrupador" id="posicao-depois" value="depois" ${posicaoPadrao === 'depois' ? 'checked' : ''}>Depois</sl-radio>
     </sl-radio-group>
   </div>
   <div>
@@ -58,10 +60,7 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
 
   const opcoes = Array.from(content.querySelectorAll('.tipo-agrupador'));
 
-  const tiposPermitidos = [...elemento.tiposAgrupadoresQuePodemSerInseridosAntes!];
-  if (elemento.tipo !== 'Artigo') {
-    tiposPermitidos.push(...elemento.tiposAgrupadoresQuePodemSerInseridosDepois!);
-  }
+  const tiposPermitidos = [...elemento.tiposAgrupadoresQuePodemSerInseridosAntes!, ...elemento.tiposAgrupadoresQuePodemSerInseridosDepois!];
 
   const defaultAux = tiposPermitidos.length === 1 ? tiposPermitidos[0] : defaultValue;
   const elTipoAgrupadorDefault = opcoes.find(el => (el as any).value === defaultAux) as any;
@@ -88,8 +87,6 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
 
   let ultimoValorDeChkManterNoMesmoGrupoDeAspasSelecionadoPorUsuario = false;
   chkManterNoMesmoGrupoDeAspas.checked = ultimoValorDeChkManterNoMesmoGrupoDeAspasSelecionadoPorUsuario;
-
-  const action = elemento.tipo === 'Artigo' ? adicionarAgrupadorArtigoAction : adicionarAgrupadorArtigoAntesAction;
 
   const validarStatusChkManterNoMesmoGrupoDeAspas = (): void => {
     const posicao = (document.querySelector('sl-radio.posicao-agrupador[aria-checked="true"]') as any)?.value;
@@ -123,7 +120,7 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
   };
 
   (content.querySelector('#rdgTipoAgrupador')! as any).onclick = (evt: any): void => {
-    if (elemento.tipo === 'Artigo' || !tiposPermitidos.includes(evt.target.value)) {
+    if (!tiposPermitidos.includes(evt.target.value)) {
       return;
     }
 
@@ -131,8 +128,8 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
     optPosicaoDepois.disabled = !elemento.tiposAgrupadoresQuePodemSerInseridosDepois!.includes(evt.target.value);
 
     if (!optPosicaoAntes.disabled && !optPosicaoDepois.disabled) {
-      optPosicaoAntes.checked = false;
-      optPosicaoDepois.checked = true;
+      optPosicaoAntes.checked = posicaoPadrao === 'antes';
+      optPosicaoDepois.checked = posicaoPadrao === 'depois';
     } else {
       optPosicaoAntes.checked = !optPosicaoAntes.disabled;
       optPosicaoDepois.checked = !optPosicaoDepois.disabled;
@@ -146,11 +143,11 @@ export const adicionarAgrupadorArtigoDialog = (elemento: Elemento, quill: any, s
 
   ok.onclick = (): void => {
     const tipo = (document.querySelector('sl-radio.tipo-agrupador[aria-checked="true"]') as any).value;
-    const posicao = elemento.tipo === 'Artigo' ? 'antes' : (document.querySelector('sl-radio.posicao-agrupador[aria-checked="true"]') as any).value;
+    const posicao = (document.querySelector('sl-radio.posicao-agrupador[aria-checked="true"]') as any).value;
     const manterNoMesmoGrupoDeAspas = chkManterNoMesmoGrupoDeAspas.checked;
     if (tipo) {
       // const manterNoMesmoGrupoDeAspas = elemento.tipo !== 'Artigo' || elemento.hierarquia?.pai?.tipo !== 'Articulacao';
-      store.dispatch(action.execute(elemento, tipo, undefined, posicao, manterNoMesmoGrupoDeAspas));
+      store.dispatch(adicionarAgrupadorArtigoAction.execute(elemento, tipo, undefined, posicao, manterNoMesmoGrupoDeAspas));
     }
     dialogElem?.hide();
     document.body.removeChild(dialogElem);

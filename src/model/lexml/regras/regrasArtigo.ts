@@ -41,7 +41,7 @@ import {
   podeEditarNotaAlteracao,
 } from '../hierarquia/hierarquiaUtil';
 import { isAgrupadorNaoArticulacao } from './../../dispositivo/tipo';
-import { adicionarAgrupadorArtigoAntesAction } from './../acao/adicionarAgrupadorArtigoAction';
+import { adicionarAgrupadorArtigoAction } from './../acao/adicionarAgrupadorArtigoAction';
 import { getProximoAgrupadorAposArtigo } from './../hierarquia/hierarquiaUtil';
 import { Regras } from './regras';
 import {
@@ -124,7 +124,7 @@ export function RegrasArtigo<TBase extends Constructor>(Base: TBase): any {
         acoes.push(atualizarNotaAlteracaoAction);
       }
 
-      acoes.push(adicionarAgrupadorArtigoAntesAction);
+      acoes.push(adicionarAgrupadorArtigoAction);
 
       if (dispositivo.isDispositivoAlteracao && !isTextoOmitido(dispositivo) && (!isBloqueado(dispositivo) || existeFilhoDesbloqueado(dispositivo))) {
         acoes.push(adicionarTextoOmissisAction);

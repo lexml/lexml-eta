@@ -7,6 +7,7 @@ import {
   processaSituacoesAlteradas,
   processarRevisoesAceitasOuRejeitadas,
   ajustarHierarquivoAgrupadorIncluidoPorUndoRedo,
+  getReferenciaParaReincluirAgrupador,
   isUndoRedoColarSubstituindo,
 } from './../util/undoRedoReducerUtil';
 import { State, StateEvent, StateType } from '../../state';
@@ -78,11 +79,11 @@ export const undo = (state: any): State => {
     if (eventosFiltrados[0].stateType === StateType.ElementoIncluido) {
       tempState = removeElemento(tempState, { atual: eventosFiltrados[0].elementos[0] });
     } else {
-      const ref = eventosFiltrados.find((ev: StateEvent) => ev.stateType === StateType.ElementoReferenciado)!.elementos[0];
+      const { atual, posicao } = getReferenciaParaReincluirAgrupador(state.articulacao, eventosFiltrados);
       const elementoASerIncluido = eventosFiltrados[0].elementos[0];
       tempState = agrupaElemento(tempState, {
-        atual: ref,
-        novo: { tipo: elementoASerIncluido.tipo, uuid: elementoASerIncluido.uuid, posicao: 'antes', manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas },
+        atual,
+        novo: { tipo: elementoASerIncluido.tipo, uuid: elementoASerIncluido.uuid, posicao, manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas },
       });
       ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, eventosFiltrados, tempState.ui!.events);
       ajustarHierarquivoAgrupadorIncluidoPorUndoRedo(state.articulacao, eventosFiltrados, tempState.ui!.events);

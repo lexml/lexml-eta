@@ -34,6 +34,8 @@ export const removeElemento = (state: any, action: any): State => {
 
   const primeiroFilhoDoAgrupador = isAgrupador(dispositivo) ? dispositivo.filhos[0] || getDispositivoPosterior(dispositivo) || getDispositivoAnterior(dispositivo) : undefined;
   const elPrimeiroFilhoDoAgrupador = primeiroFilhoDoAgrupador ? createElemento(primeiroFilhoDoAgrupador) : undefined;
+  // O irmão anterior só serve ao cursor: o desfazer reincluiria "antes" dele e o levaria para dentro do agrupador.
+  const elReferenciaParaDesfazer = isAgrupador(dispositivo) && (dispositivo.filhos[0] || getDispositivoPosterior(dispositivo)) ? elPrimeiroFilhoDoAgrupador : undefined;
   const isAtualizarElementoEmenta = hasEmenta(dispositivo) && dispositivo === getPrimeiroAgrupadorNaArticulacao(dispositivo);
 
   // Captura o dispositivo removido e todos os seus descendentes ANTES da remoção,
@@ -50,7 +52,9 @@ export const removeElemento = (state: any, action: any): State => {
 
   if (elPrimeiroFilhoDoAgrupador) {
     events.push({ stateType: StateType.ElementoMarcado, elementos: [elPrimeiroFilhoDoAgrupador] });
-    events.push({ stateType: StateType.ElementoReferenciado, elementos: [elPrimeiroFilhoDoAgrupador] });
+  }
+  if (elReferenciaParaDesfazer) {
+    events.push({ stateType: StateType.ElementoReferenciado, elementos: [elReferenciaParaDesfazer] });
   }
 
   if (isAtualizarElementoEmenta) {

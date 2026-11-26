@@ -4,14 +4,8 @@ import { ElementoAction } from './index';
 export const ADICIONAR_AGRUPADOR_ARTIGO = 'ADICIONAR_AGRUPADOR_ARTIGO';
 
 export class AdicionarAgrupadorArtigo implements ElementoAction {
-  descricao: string;
-  posicao?: string;
+  descricao = 'Adicionar Título, Capítulo, Seção e outros';
   hotkey = '(Ctrl+Alt+G)';
-
-  constructor(posicao?: string) {
-    this.descricao = 'Adicionar Título, Capítulo, Seção e outros' + (posicao ? ' ' + posicao : '');
-    this.posicao = posicao;
-  }
 
   execute(atual: Referencia, tipo: string, refAux: any, posicao: string, manterNoMesmoGrupoDeAspas: boolean): any {
     return {
@@ -27,4 +21,3 @@ export class AdicionarAgrupadorArtigo implements ElementoAction {
 }
 
 export const adicionarAgrupadorArtigoAction = new AdicionarAgrupadorArtigo();
-export const adicionarAgrupadorArtigoAntesAction = new AdicionarAgrupadorArtigo('antes');

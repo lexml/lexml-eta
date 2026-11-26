@@ -1,4 +1,9 @@
-import { ajustarAtributosAgrupadorIncluidoPorUndoRedo, ajustarHierarquivoAgrupadorIncluidoPorUndoRedo, isUndoRedoInclusaoExclusaoAgrupador } from './../util/undoRedoReducerUtil';
+import {
+  ajustarAtributosAgrupadorIncluidoPorUndoRedo,
+  ajustarHierarquivoAgrupadorIncluidoPorUndoRedo,
+  getReferenciaParaReincluirAgrupador,
+  isUndoRedoInclusaoExclusaoAgrupador,
+} from './../util/undoRedoReducerUtil';
 import { inicializaRemissoesExternasAoAbrir } from './inicializaRemissoesExternasAoAbrir';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
@@ -49,11 +54,11 @@ export const redo = (state: any): State => {
     );
 
     if (listaSemEventosDeRevisao[0].stateType === StateType.ElementoIncluido) {
-      const ref = listaSemEventosDeRevisao.find((ev: StateEvent) => ev.stateType === StateType.ElementoReferenciado)!.elementos[0];
+      const { atual, posicao } = getReferenciaParaReincluirAgrupador(state.articulacao, listaSemEventosDeRevisao);
       const elementoASerIncluido = listaSemEventosDeRevisao[0].elementos[0];
       tempState = agrupaElemento(tempState, {
-        atual: ref,
-        novo: { tipo: elementoASerIncluido.tipo, uuid: elementoASerIncluido.uuid, posicao: 'antes', manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas },
+        atual,
+        novo: { tipo: elementoASerIncluido.tipo, uuid: elementoASerIncluido.uuid, posicao, manterNoMesmoGrupoDeAspas: elementoASerIncluido.manterNoMesmoGrupoDeAspas },
       });
       ajustarAtributosAgrupadorIncluidoPorUndoRedo(state.articulacao, listaSemEventosDeRevisao, tempState.ui!.events);
       ajustarHierarquivoAgrupadorIncluidoPorUndoRedo(state.articulacao, listaSemEventosDeRevisao, tempState.ui!.events);

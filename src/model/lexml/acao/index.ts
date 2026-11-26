@@ -1,4 +1,4 @@
-import { adicionarAgrupadorArtigoAction, adicionarAgrupadorArtigoAntesAction } from './adicionarAgrupadorArtigoAction';
+import { adicionarAgrupadorArtigoAction } from './adicionarAgrupadorArtigoAction';
 import { atualizarNotaAlteracaoAction } from './atualizarNotaAlteracaoAction';
 import { adicionarPenaAction, alterarRotuloPenaAction } from './penaAction';
 import { adicionarTituloDispositivoAction, editarTituloDispositivoAction, removerTituloDispositivoAction } from './atualizarTituloDispositivoAction';
@@ -143,7 +143,6 @@ acoesMenu.push(adicionarParagrafoDepois);
 acoesMenu.push(adicionarParagrafoFilho);
 
 acoesMenu.push(adicionarAgrupadorArtigoAction);
-acoesMenu.push(adicionarAgrupadorArtigoAntesAction);
 acoesMenu.push(adicionarTextoOmissisAction);
 acoesMenu.push(removerTextoOmissisAction);
 

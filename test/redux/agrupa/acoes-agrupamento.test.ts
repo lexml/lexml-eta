@@ -84,4 +84,22 @@ describe('Testando as ações de agrupamento oferecidas para agrupadores', () =>
       expect(descricoes).to.not.have.any.members(OPCOES_POR_TIPO);
     });
   });
+
+  // #1078: a posição é escolhida no modal, como no agrupador.
+  describe('Artigo', () => {
+    let artigo: Dispositivo;
+
+    beforeEach(function () {
+      const articulacao = ArticulacaoParser.load(DOCUMENTO_COM_CAPITULO);
+      articulacao.renumeraArtigos();
+      artigo = articulacao.filhos[0].filhos[1];
+    });
+
+    it('Deveria oferecer a opção única de agrupamento, sem indicar a posição', () => {
+      const descricoes = descricoesDasAcoes(artigo);
+      expect(artigo.tipo).to.equal('Artigo');
+      expect(descricoes).to.include(OPCAO_UNICA_DE_AGRUPAMENTO);
+      expect(descricoes).to.not.include(OPCAO_UNICA_DE_AGRUPAMENTO + ' antes');
+    });
+  });
 });
