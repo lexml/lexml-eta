@@ -3,6 +3,7 @@ import { Articulacao } from '../model/dispositivo/dispositivo';
 import { PaginaArticulacao } from '../model/paginacao/paginacao';
 import { Elemento } from '../model/elemento';
 import { Mensagem } from '../model/lexml/util/mensagem';
+import { NumeracaoIrregular } from '../model/lexml/numeracao/numeracaoRepetida';
 import { Revisao } from '../model/revisao/revisao';
 import { Usuario } from '../model/revisao/usuario';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../model/remissao';
@@ -76,8 +77,8 @@ export interface State {
   mensagensCritical?: Array<string>;
   remissoes?: Record<number, RemissaoInternaValue[]>;
   remissoesExternas?: Record<string, RemissaoExternaValue>;
-  // Uuids dos dispositivos com numeração repetida (só no modo flexível); recalculado a cada ação.
-  numeracaoRepetida?: number[];
+  // Irregularidade de numeração por uuid (repetida só no modo flexível); recalculado a cada ação.
+  numeracaoIrregular?: Record<number, NumeracaoIrregular>;
 }
 
 export const createState = (state: any, events: StateEvent[], past: StateEvent[], present: StateEvent[], future: StateEvent[]): State => {
