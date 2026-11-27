@@ -30,9 +30,9 @@ describe('Pendências do LexEdit (especificação 13)', () => {
     expect(lexeditSalvo(documento).pendencias.pendencia).to.deep.equal([JUSTIFICACAO, REMISSAO]);
   });
 
-  it('grava a pendência de numeração repetida entre a de justificação e a de remissões internas inválidas', () => {
+  it('grava a pendência de numeração irregular entre a de justificação e a de remissões internas inválidas', () => {
     const modelo = novoModelo();
-    const numeracao = 'Existem dispositivos com numeração repetida.';
+    const numeracao = 'Existem dispositivos com numeração irregular.';
     const documento = criarDocumentoArticulado(modelo, modelo.urn, remissaoInvalidaNoCaput(modelo), undefined, { pendencias: [JUSTIFICACAO, numeracao] });
 
     expect(lexeditSalvo(documento).pendencias.pendencia).to.deep.equal([JUSTIFICACAO, numeracao, REMISSAO]);
