@@ -48,12 +48,12 @@
 
 ## 3. Pendência no componente
 
-- [ ] 3.1 Em `lexml-eta.component.ts`, usar `MENSAGEM_NUMERACAO_IRREGULAR` e o novo estado em `getDocumentoArticulado` e `getPendenciasPreenchimento`, na mesma posição da lista (D5). Ajustar `test/model/documento/pendencias.test.ts` e `test/componente/lexml-eta/documentoArticulado.component.test.ts` para o novo texto e acrescentar:
+- [x] 3.1 Em `lexml-eta.component.ts`, usar `MENSAGEM_NUMERACAO_IRREGULAR` e o novo estado em `getDocumentoArticulado` e `getPendenciasPreenchimento`, na mesma posição da lista (D5). Ajustar `test/model/documento/pendencias.test.ts` e `test/componente/lexml-eta/documentoArticulado.component.test.ts` para o novo texto e acrescentar:
   - salvar `1, 3, 2, 4` grava a pendência uma única vez, nos dois modos;
   - a pendência some depois da correção;
   - um arquivo com a pendência antiga ("numeração repetida") e sem irregularidade abre sem alerta.
-- [ ] 3.2 Atualizar `docs/api-componente-lexml-eta.md`: o comportamento dos dois modos com os quatro casos (a repetição só no flexível) e o novo texto do alerta e da pendência. Atualizar o item 28 do `CLAUDE.md`: a classificação única por grupo, o filtro da repetição pelo modo, o mapa por tipo no estado, o grupo com omissis e o risco das mensagens duplicadas no bloco com pai "Novo". Verificar por revisão dos textos.
-- [ ] 3.3 Rodar a suíte unitária completa (`npm test`) e tratar as falhas causadas pelos erros novos no modo rígido (design, risco dos testes existentes): ajustar o teste quando a irregularidade é incidental à fixture e manter o erro quando for o comportamento esperado. Verificar que a suíte passa e listar, na pausa, os testes ajustados e o motivo de cada um.
+- [x] 3.2 Atualizar `docs/api-componente-lexml-eta.md`: o comportamento dos dois modos com os quatro casos (a repetição só no flexível) e o novo texto do alerta e da pendência. Atualizar o item 28 do `CLAUDE.md`: a classificação única por grupo, o filtro da repetição pelo modo, o mapa por tipo no estado, o grupo com omissis e o risco das mensagens duplicadas no bloco com pai "Novo". Verificar por revisão dos textos.
+- [x] 3.3 Rodar a suíte unitária completa (`npm test`) e tratar as falhas causadas pelos erros novos no modo rígido (design, risco dos testes existentes): ajustar o teste quando a irregularidade é incidental à fixture e manter o erro quando for o comportamento esperado. Verificar que a suíte passa e listar, na pausa, os testes ajustados e o motivo de cada um.
 
 ## 4. E2E (Cypress)
 
