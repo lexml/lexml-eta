@@ -18,9 +18,9 @@ import { validarArticulacaAction } from '../../../../src/model/lexml/acao/valida
 import { registraValidacaoNumeracao } from '../../../../src/model/lexml/numeracao/validacaoNumeracao';
 import { AutoFix, TipoMensagem } from '../../../../src/model/lexml/util/mensagem';
 import { elementoReducer } from '../../../../src/redux/elemento/reducer/elementoReducer';
-import { ALERTA_NUMERACAO_REPETIDA } from '../../../../src/redux/elemento/reducer/sincronizarNumeracaoRepetida';
+import { ALERTA_NUMERACAO_IRREGULAR } from '../../../../src/redux/elemento/reducer/sincronizarNumeracaoRepetida';
 import { State, StateEvent, StateType } from '../../../../src/redux/state';
-import { novoDocumentoArticulado } from '../../../doc/documentoArticulado';
+import { novoDocumentoArticulado, novoDocumentoComArtigos } from '../../../doc/documentoArticulado';
 
 const NS = 'http://www.lexml.gov.br/1.0';
 const TIPO = 'br_gov_lexml__1.DispositivoType';
@@ -76,7 +76,8 @@ const abre = (): void => {
 };
 const artigo = (i: number): Artigo => state.articulacao!.artigos[i] as Artigo;
 const rotulos = (): string[] => state.articulacao!.artigos.map(a => a.rotulo!);
-const alerta = (): boolean => !!state.ui!.alertas?.some(a => a.id === ALERTA_NUMERACAO_REPETIDA);
+const alerta = (): boolean => !!state.ui!.alertas?.some(a => a.id === ALERTA_NUMERACAO_IRREGULAR);
+const irregulares = (): string[] => Object.keys(state.numeracaoIrregular ?? {});
 const MENSAGEM: any = { tipo: TipoMensagem.ERROR, descricao: AutoFix.NUMERACAO_REPETIDA, fix: true };
 const corrige = (indice: number): void => despacha(autofixAction.execute(createElemento(artigo(indice)), MENSAGEM));
 
@@ -102,7 +103,7 @@ describe('Corrigir numeração repetida (autofix)', () => {
     expect(artigo(1).id).to.equal('art2');
     expect(artigo(1).caput!.filhos[0].id).to.equal('art2_cpt_inc1');
     expect(artigo(2).id).to.equal('art3');
-    expect(state.numeracaoRepetida).to.deep.equal([]);
+    expect(irregulares()).to.deep.equal([]);
     expect(alerta()).to.equal(false);
   });
 
@@ -141,14 +142,14 @@ describe('Corrigir numeração repetida (autofix)', () => {
     expect(artigo(1).caput!.filhos[0].id).to.equal('art1_cpt_inc1');
     expect(artigo(2).id).to.equal('art2');
     expect(artigo(0).caput!.texto).to.include('art. 2º');
-    expect(state.numeracaoRepetida).to.have.length(1);
+    expect(irregulares()).to.have.length(1);
     expect(alerta()).to.equal(true);
 
     despacha(redoAction());
 
     expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º']);
     expect(artigo(1).caput!.filhos[0].id).to.equal('art2_cpt_inc1');
-    expect(state.numeracaoRepetida).to.deep.equal([]);
+    expect(irregulares()).to.deep.equal([]);
     expect(alerta()).to.equal(false);
   });
 
@@ -232,20 +233,21 @@ describe('Corrigir numeração repetida (autofix) em dispositivo que não é art
   it('incisos repetidos: renumera I, II e III, recalcula a alínea descendente e desfazer devolve os três "II"', () => {
     abreComIncisos();
     expect(incisos().map(i => i.rotulo)).to.deep.equal(['II –', 'II –', 'II –']);
-    expect(state.numeracaoRepetida).to.have.length(2);
+    // O primeiro "II" também tem lacuna: o grupo começa em 2, e o esperado é 1.
+    expect(irregulares()).to.have.length(3);
 
     corrigeDispositivo(incisos()[1]);
 
     expect(incisos().map(i => i.rotulo)).to.deep.equal(['I –', 'II –', 'III –']);
     expect(incisos()[2].filhos[0].id).to.equal('art1_cpt_inc3_ali1');
-    expect(state.numeracaoRepetida).to.deep.equal([]);
+    expect(irregulares()).to.deep.equal([]);
     expect(alerta()).to.equal(false);
 
     despacha(UndoAction());
 
     expect(incisos().map(i => i.rotulo)).to.deep.equal(['II –', 'II –', 'II –']);
     expect(incisos()[2].filhos[0].id).to.equal('art1_cpt_inc2_ali1');
-    expect(state.numeracaoRepetida).to.have.length(2);
+    expect(irregulares()).to.have.length(3);
     expect(alerta()).to.equal(true);
   });
 
@@ -258,13 +260,13 @@ describe('Corrigir numeração repetida (autofix) em dispositivo que não é art
 
     expect(paragrafos.map(p => p.rotulo)).to.deep.equal(['§ 1º', '§ 2º']);
     expect(paragrafos.map(p => p.id?.slice(-4))).to.deep.equal(['par1', 'par2']);
-    expect(state.numeracaoRepetida).to.deep.equal([]);
+    expect(irregulares()).to.deep.equal([]);
     expect(alerta()).to.equal(false);
 
     despacha(UndoAction());
 
     expect(paragrafos.map(p => p.rotulo)).to.deep.equal(['§ 1º', '§ 1º']);
-    expect(state.numeracaoRepetida).to.have.length(1);
+    expect(irregulares()).to.have.length(1);
     expect(alerta()).to.equal(true);
   });
 
@@ -290,5 +292,156 @@ describe('Corrigir numeração repetida (autofix) em dispositivo que não é art
       expect(incisos().map(i => i.rotulo)).to.deep.equal(['I –', 'II –', 'III –']);
       expect(marcas()).to.deep.equal([]);
     });
+  });
+});
+
+describe('Corrigir numeração irregular: lacuna, fora de ordem e complemento (autofix)', () => {
+  const MENSAGENS = {
+    lacuna: AutoFix.NUMERACAO_LACUNA,
+    foraDeOrdem: AutoFix.NUMERACAO_FORA_DE_ORDEM,
+    complemento: AutoFix.NUMERACAO_COMPLEMENTO,
+  };
+  const TROCADOS: [string, string][] = [
+    ['Art. 1º', 'art1'],
+    ['Art. 3º', 'art3'],
+    ['Art. 2º', 'art2'],
+    ['Art. 4º', 'art4'],
+  ];
+
+  const abreArtigos = (artigos: [rotulo: string, id: string][]): void => {
+    const entrada = novoDocumentoComArtigos(artigos.map(([rotulo, id]) => ({ rotulo, id })));
+    const modelo = buildProjetoNormaFromJsonix(lerDocumentoArticulado(entrada, { validacaoNumeracao: 'flexivel' }), true);
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: modelo.articulacao!, classificacao: ClassificacaoDocumento.NORMA });
+  };
+  const corrigeArtigo = (indice: number, tipo: keyof typeof MENSAGENS): void =>
+    despacha(autofixAction.execute(createElemento(artigo(indice)), { tipo: TipoMensagem.ERROR, descricao: MENSAGENS[tipo], fix: true } as any));
+  const textos = (): (string | undefined)[] => state.articulacao!.artigos.map(a => (a as Artigo).caput!.texto);
+
+  const incisoJson = (rotulo: string, id: string): any => ({
+    name: { namespaceURI: NS, localPart: 'Inciso' },
+    value: { TYPE_NAME: TIPO, id, rotulo, p: [inline(['inciso;'])] },
+  });
+  const abreIncisos = (incisos: [rotulo: string, id: string][]): void => {
+    const entrada = novoDocumentoArticulado();
+    const art = artigoJson(1, ['Caput:']);
+    art.value.lXcontainersOmissis[0].value.lXcontainersOmissis = incisos.map(([rotulo, id]) => incisoJson(rotulo, id));
+    entrada.value.projetoNorma.norma.articulacao.lXhier = [art];
+    const modelo = buildProjetoNormaFromJsonix(lerDocumentoArticulado(entrada, { validacaoNumeracao: 'flexivel' }), true);
+    state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: modelo.articulacao!, classificacao: ClassificacaoDocumento.NORMA });
+  };
+
+  beforeEach(() => registraValidacaoNumeracao('flexivel'));
+  afterEach(() => registraValidacaoNumeracao(undefined));
+
+  it('artigos trocados 1, 3, 2, 4: corrigir a partir do "Art. 2º" renumera de 1 a 4, mantendo a ordem e os textos', () => {
+    abreArtigos(TROCADOS);
+    const textosAntes = textos();
+    expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 3º', 'Art. 2º', 'Art. 4º']);
+    expect(createElementoValidado(artigo(1)).mensagens?.some(m => m.descricao === AutoFix.NUMERACAO_LACUNA && m.fix)).to.equal(true);
+    expect(createElementoValidado(artigo(2)).mensagens?.some(m => m.descricao === AutoFix.NUMERACAO_FORA_DE_ORDEM && m.fix)).to.equal(true);
+
+    corrigeArtigo(2, 'foraDeOrdem');
+
+    expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º', 'Art. 4º']);
+    expect(textos()).to.deep.equal(textosAntes);
+    expect(state.articulacao!.artigos.map(a => a.id)).to.deep.equal(['art1', 'art2', 'art3', 'art4']);
+    expect(irregulares()).to.deep.equal([]);
+    expect(alerta()).to.equal(false);
+  });
+
+  it('lacuna 1, 3, 4: corrigir a partir do "Art. 3º" renumera de 1 a 3', () => {
+    abreArtigos([
+      ['Art. 1º', 'art1'],
+      ['Art. 3º', 'art3'],
+      ['Art. 4º', 'art4'],
+    ]);
+
+    corrigeArtigo(1, 'lacuna');
+
+    expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º']);
+    expect(irregulares()).to.deep.equal([]);
+    expect(alerta()).to.equal(false);
+  });
+
+  it('complemento 1, 2, 2-A, 3: corrigir a partir do "Art. 2º-A" renumera de 1 a 4', () => {
+    abreArtigos([
+      ['Art. 1º', 'art1'],
+      ['Art. 2º', 'art2'],
+      ['Art. 2º-A', 'art2-1'],
+      ['Art. 3º', 'art3'],
+    ]);
+    expect(irregulares()).to.have.length(1);
+
+    corrigeArtigo(2, 'complemento');
+
+    expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º', 'Art. 4º']);
+    expect(irregulares()).to.deep.equal([]);
+  });
+
+  it('incisos I e III: corrigir a partir do III renumera para I e II', () => {
+    abreIncisos([
+      ['I –', 'art1_cpt_inc1'],
+      ['III –', 'art1_cpt_inc3'],
+    ]);
+    expect(irregulares()).to.have.length(1);
+    const iii = artigo(0).caput!.filhos[1];
+
+    despacha(autofixAction.execute(createElemento(iii), { tipo: TipoMensagem.ERROR, descricao: AutoFix.NUMERACAO_LACUNA, fix: true } as any));
+
+    expect(artigo(0).caput!.filhos.map(i => i.rotulo)).to.deep.equal(['I –', 'II –']);
+    expect(artigo(0).caput!.filhos.map(i => i.id)).to.deep.equal(['art1_cpt_inc1', 'art1_cpt_inc2']);
+    expect(irregulares()).to.deep.equal([]);
+  });
+
+  it('desfazer devolve a irregularidade, com o erro e o alerta; refazer corrige de novo', () => {
+    abreArtigos(TROCADOS);
+    corrigeArtigo(2, 'foraDeOrdem');
+
+    despacha(UndoAction());
+
+    expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 3º', 'Art. 2º', 'Art. 4º']);
+    expect(irregulares()).to.have.length(2);
+    expect(alerta()).to.equal(true);
+    expect(createElementoValidado(artigo(1)).mensagens?.some(m => m.descricao === AutoFix.NUMERACAO_LACUNA)).to.equal(true);
+
+    despacha(redoAction());
+
+    expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º', 'Art. 4º']);
+    expect(irregulares()).to.deep.equal([]);
+    expect(alerta()).to.equal(false);
+  });
+
+  it('no modo rígido, "Corrigir agora" corrige 1, 3, 2, 4, e desfazer devolve o alerta', () => {
+    registraValidacaoNumeracao('rigida');
+    abreArtigos(TROCADOS);
+    expect(alerta()).to.equal(true);
+    expect(createElementoValidado(artigo(2)).mensagens?.some(m => m.descricao === AutoFix.NUMERACAO_FORA_DE_ORDEM && m.fix)).to.equal(true);
+
+    corrigeArtigo(2, 'foraDeOrdem');
+
+    expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º', 'Art. 4º']);
+    expect(alerta()).to.equal(false);
+
+    despacha(UndoAction());
+
+    expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 3º', 'Art. 2º', 'Art. 4º']);
+    expect(alerta()).to.equal(true);
+  });
+
+  it('em modo de revisão, a correção, o desfazer e o refazer não geram revisão', () => {
+    abreArtigos(TROCADOS);
+    despacha(atualizarTextoElementoAction.execute({ ...createElemento(artigo(3)), conteudo: { texto: 'Quarto, editado.' } } as any));
+    despacha({ type: ATUALIZAR_USUARIO, usuario: { nome: 'Fulano de Tal', id: 'sf:fulano', sigla: 'FT' } });
+    despacha({ type: ATIVAR_DESATIVAR_REVISAO });
+    expect(state.emRevisao).to.equal(true);
+
+    corrigeArtigo(2, 'foraDeOrdem');
+    expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º', 'Art. 4º']);
+    expect(((state.revisoes ?? []) as any[]).map(r => r.revisao)).to.deep.equal([]);
+
+    despacha(UndoAction());
+    despacha(redoAction());
+    expect(rotulos()).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º', 'Art. 4º']);
+    expect(((state.revisoes ?? []) as any[]).map(r => r.revisao)).to.deep.equal([]);
   });
 });

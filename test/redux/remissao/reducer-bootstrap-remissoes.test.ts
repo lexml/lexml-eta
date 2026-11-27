@@ -389,8 +389,10 @@ describe('Alerta de remissão inválida: rótulo completo e sem duplicação Art
       articulacao,
       classificacao: ClassificacaoDocumento.PROJETO,
     });
+    // O inciso "II" sozinho também gera o alerta de numeração irregular, que não é o assunto deste teste.
+    const alertasDeRemissao = estado.ui!.alertas!.filter(a => a.id?.startsWith('alerta-remissao-invalida-'));
 
-    expect(estado.ui?.alertas).to.have.length(1);
-    expect(estado.ui!.alertas![0].mensagem).to.equal('Inciso II, Parágrafo único, Art. 2º contém remissão inválida para dispositivo excluído.');
+    expect(alertasDeRemissao).to.have.length(1);
+    expect(alertasDeRemissao[0].mensagem).to.equal('Inciso II, Parágrafo único, Art. 2º contém remissão inválida para dispositivo excluído.');
   });
 });

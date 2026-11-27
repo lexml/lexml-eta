@@ -18,8 +18,15 @@ import {
 } from '../hierarquia/hierarquiaUtil';
 import { AutoFix, Mensagem, TipoMensagem } from '../util/mensagem';
 import { comparaNumeracao, hasRotuloPendente, podeRenumerarDispositivo } from './numeracaoUtil';
-import { isNumeracaoRepetida } from './numeracaoRepetida';
+import { getIrregularidadeNumeracao, NumeracaoIrregular } from './numeracaoRepetida';
 import { isValidacaoNumeracaoFlexivel } from './validacaoNumeracao';
+
+const AUTOFIX_DA_IRREGULARIDADE: Record<NumeracaoIrregular, AutoFix> = {
+  repetida: AutoFix.NUMERACAO_REPETIDA,
+  complemento: AutoFix.NUMERACAO_COMPLEMENTO,
+  lacuna: AutoFix.NUMERACAO_LACUNA,
+  foraDeOrdem: AutoFix.NUMERACAO_FORA_DE_ORDEM,
+};
 
 export const getDispositivoAnteriorIgnorandoOmissis = (dispositivo: Dispositivo): Dispositivo | undefined => {
   const d = getDispositivoAnteriorMesmoTipo(dispositivo);
@@ -174,10 +181,13 @@ export const validaNumeracaoDispositivoAlteracao = (dispositivo: Dispositivo): M
 
 export const validaNumeracao = (dispositivo: Dispositivo): Mensagem[] => {
   const mensagens = isDispositivoAlteracao(dispositivo) ? validaNumeracaoDispositivoAlteracao(dispositivo) : validaNumeracaoDispositivo(dispositivo);
-  if (isValidacaoNumeracaoFlexivel() && isNumeracaoRepetida(dispositivo)) {
-    // Só onde a renumeração automática existe: artigo de alteração e filhos de pai "Existente" são numerados à mão.
-    const fix = isArtigo(dispositivo) ? !isDispositivoAlteracao(dispositivo) : podeRenumerarFilhosAutomaticamente(dispositivo.pai!);
-    mensagens.push({ tipo: TipoMensagem.ERROR, descricao: AutoFix.NUMERACAO_REPETIDA, fix });
+  const encontrada = getIrregularidadeNumeracao(dispositivo);
+  // A repetição só é avisada no modo flexível; no rígido, o arquivo com ids repetidos nem é aberto.
+  const irregularidade = encontrada === 'repetida' && !isValidacaoNumeracaoFlexivel() ? undefined : encontrada;
+  if (irregularidade) {
+    // A repetição só tem correção onde a renumeração automática existe; os demais casos só são avaliados nesses grupos.
+    const fix = irregularidade !== 'repetida' || (isArtigo(dispositivo) ? !isDispositivoAlteracao(dispositivo) : podeRenumerarFilhosAutomaticamente(dispositivo.pai!));
+    mensagens.push({ tipo: TipoMensagem.ERROR, descricao: AUTOFIX_DA_IRREGULARIDADE[irregularidade], fix });
   }
   return mensagens;
 };
