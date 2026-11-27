@@ -57,8 +57,8 @@
 
 ## 4. E2E (Cypress)
 
-- [ ] 4.1 Gerar a fixture `demo/doc/teste_numeracao_irregular.json` com `criarDocumentoArticulado(..., { validacaoNumeracao: 'flexivel' })`, do mesmo jeito que `teste_numeracao_repetida.json`, sem escrever o JSON à mão. A fixture tem os artigos 1, 3, 2, 4, 4-A e 5, nessa ordem e cada um com texto próprio. Verificar que `lerDocumentoArticulado` a aceita.
-- [ ] 4.2 Criar `cypress/e2e/documento-articulado/abertura-numeracao-irregular.cy.ts` seguindo `docs/guia-cypress.md`: `#validacaoNumeracao` em `flexivel` antes do `selectFile`, alertas no shadow root de `lexml-eta-alertas` e linha marcada com `getOpcoesDeMenuDoDispositivo` antes do "Corrigir agora". O spec deve cobrir quatro casos:
+- [x] 4.1 Gerar a fixture `demo/doc/teste_numeracao_irregular.json` com `criarDocumentoArticulado(..., { validacaoNumeracao: 'flexivel' })`, do mesmo jeito que `teste_numeracao_repetida.json`, sem escrever o JSON à mão. A fixture tem os artigos 1, 3, 2, 4, 4-A e 5, nessa ordem e cada um com texto próprio. Verificar que `lerDocumentoArticulado` a aceita.
+- [x] 4.2 Criar `cypress/e2e/documento-articulado/abertura-numeracao-irregular.cy.ts` seguindo `docs/guia-cypress.md`: `#validacaoNumeracao` em `flexivel` antes do `selectFile`, alertas no shadow root de `lexml-eta-alertas` e linha marcada com `getOpcoesDeMenuDoDispositivo` antes do "Corrigir agora". O spec deve cobrir quatro casos:
   - "Dispositivo com lacuna na numeração" no 3, "Dispositivo com numeração fora de ordem" no 2 e "Dispositivo com complemento na numeração" no 4-A, sem erro no 1, no 4 e no 5, e o alerta "Existem dispositivos com numeração irregular.";
   - "Corrigir agora" no 2 renumera para 1 a 6, mantém a ordem dos textos e retira os erros e o alerta;
   - desfazer devolve os erros;
@@ -68,7 +68,7 @@
 
 ## 5. Verificação final
 
-- [ ] 5.1 Rodar `npm test` e `openspec validate 2026-11-27-c01-numeracao-fora-de-sequencia --strict`, e verificar que ambos passam.
+- [x] 5.1 Rodar `npm test` e `openspec validate 2026-11-27-c01-numeracao-fora-de-sequencia --strict`, e verificar que ambos passam.
 
 ## Workflow follow-up
 
