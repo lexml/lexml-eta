@@ -4,7 +4,7 @@
 
 ### Requirement: Alerta de numeração repetida
 
-No modo flexível de validação de numeração (ver `numeracao-repetida`), enquanto houver dispositivo com numeração repetida, com complemento na numeração, com lacuna na numeração ou com numeração fora de ordem, a aba Avisos SHALL exibir o alerta crítico "Existem dispositivos com numeração irregular.", que o usuário não pode fechar. O alerta SHALL aparecer uma única vez, por mais que a condição seja reavaliada e qualquer que seja a combinação de irregularidades, e SHALL ser retirado quando não houver mais nenhuma delas. No modo rígido, o alerta SHALL NOT ser exibido.
+Enquanto houver dispositivo com complemento na numeração, com lacuna na numeração ou com numeração fora de ordem, ou, no modo flexível de validação de numeração (ver `numeracao-repetida`), com numeração repetida, a aba Avisos SHALL exibir o alerta crítico "Existem dispositivos com numeração irregular.", que o usuário não pode fechar. O alerta SHALL aparecer uma única vez, por mais que a condição seja reavaliada e qualquer que seja a combinação de irregularidades, e SHALL ser retirado quando não houver mais nenhuma delas.
 
 #### Scenario: Abrir documento com numeração repetida
 
@@ -13,7 +13,7 @@ No modo flexível de validação de numeração (ver `numeracao-repetida`), enqu
 
 #### Scenario: Abrir documento com lacuna
 
-- **WHEN** o usuário abre, no modo flexível, um documento com os artigos 1, 3 e 4
+- **WHEN** o usuário abre, em qualquer dos modos, um documento com os artigos 1, 3 e 4
 - **THEN** a aba Avisos exibe o alerta "Existem dispositivos com numeração irregular."
 
 #### Scenario: Correção da última repetição

@@ -22,14 +22,14 @@ Quando houver mais de uma pendência a gravar, o sistema SHALL gravar, nesta ord
 - **THEN** a lista de pendências do arquivo salvo contém exatamente "Não foi informado um texto de justificação.", "Existem dispositivos com numeração irregular." e "Corrigir remissões internas inválidas.", nessa ordem
 
 ### Requirement: Pendência de numeração repetida
-Enquanto houver dispositivo com numeração repetida, com complemento na numeração, com lacuna na numeração ou com numeração fora de ordem, no modo flexível, o sistema SHALL incluir, na lista de pendências dos metadados do LexEdit do arquivo salvo, um único item "Existem dispositivos com numeração irregular.". A condição SHALL ser a mesma do alerta de numeração irregular da aba Avisos. Ao abrir um documento, a pendência gravada SHALL NOT ser usada para reconstruir o estado do editor.
+Enquanto houver dispositivo com complemento na numeração, com lacuna na numeração ou com numeração fora de ordem, ou, no modo flexível, com numeração repetida, o sistema SHALL incluir, na lista de pendências dos metadados do LexEdit do arquivo salvo, um único item "Existem dispositivos com numeração irregular.". A condição SHALL ser a mesma do alerta de numeração irregular da aba Avisos. Ao abrir um documento, a pendência gravada SHALL NOT ser usada para reconstruir o estado do editor.
 
 #### Scenario: Pendência presente com numeração repetida
 - **WHEN** o usuário salva, no modo flexível, um documento com dois "Art. 5º"
 - **THEN** o arquivo salvo contém, na lista de pendências, o item "Existem dispositivos com numeração irregular."
 
 #### Scenario: Pendência presente com lacuna e fora de ordem
-- **WHEN** o usuário salva, no modo flexível, um documento com os artigos 1, 3, 2 e 4, nessa ordem
+- **WHEN** o usuário salva, em qualquer dos modos, um documento com os artigos 1, 3, 2 e 4, nessa ordem
 - **THEN** o arquivo salvo contém, uma única vez, o item "Existem dispositivos com numeração irregular."
 
 #### Scenario: Pendência ausente depois da correção

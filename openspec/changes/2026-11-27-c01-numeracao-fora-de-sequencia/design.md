@@ -76,10 +76,36 @@ O resto de `sincronizarNumeracaoRepetida` não muda: o alerta é único e os eve
 
 Os arquivos `numeracaoRepetida.ts` e `sincronizarNumeracaoRepetida.ts` mantêm o nome, como a capability; só mudam os símbolos exportados que já não descrevem a regra. Renomear os arquivos tocaria muitos imports e testes sem mudar comportamento.
 
+### D7. O modo de validação filtra só a repetição
+
+A classificação (D1) não conhece o modo: devolve sempre a irregularidade do grupo. Quem consome o resultado (`validaNumeracao` e a passagem central) descarta `repetida` no modo rígido e mantém os três casos novos nos dois modos.
+
+- No rígido, a repetição só aparece por renumeração manual no bloco de alteração (o arquivo com ids repetidos é recusado ao abrir), e a spec da #1066 não a avisa nesse modo. Esses grupos não são automáticos, então descartar `repetida` não esconde nenhum caso novo.
+- A passagem central passa a rodar nos dois modos. O alerta e a pendência existem no rígido sempre que houver um dos três casos novos.
+
+**Alternativa considerada:** levar o modo para dentro da classificação, que no rígido pularia a detecção de id repetido. Foi descartada porque mudaria `maiorAnterior` e, com isso, a classificação dos seguintes conforme o modo; com o filtro na saída, a regra fica uma só.
+
+### D8. Classificação reaproveitada por grupo
+
+Com o rígido como padrão, a forma local passou a rodar em todo documento. Validar cada artigo reclassificaria os anteriores, um custo quadrático que, com 2.000 artigos, levava a inclusão de um artigo no início de 1,9 s para 3,2 s. A forma local guarda, por dono do grupo (a articulação ou o pai) e por tipo, o resultado da classificação e uma cópia dos membros e de seus números. O resultado só é reaproveitado quando os membros são os mesmos objetos, na mesma ordem e com o mesmo número. Nos demais grupos, o grupo automático também precisa coincidir, porque depende do pai e dos irmãos de outro tipo. Qualquer diferença leva à reclassificação. O guardado fica num `WeakMap` pelo dono e some com a articulação.
+
+Medição no reducer, no modo rígido, sem irregularidades:
+
+| 2.000 artigos | antes da mudança | com D8 |
+|---|---|---|
+| abrir | 1.297 ms | 1.155 ms |
+| validar a articulação | 810 ms | 808 ms |
+| incluir artigo no início | 1.923 ms | 2.009 ms |
+
+**Alternativa considerada:** delimitar as validações em massa e consultar o resultado em lote dentro delas. Foi descartada porque há cerca de 35 pontos que validam dispositivos, vários deles depois de alterar a articulação na mesma ação, e um resultado em lote usado depois de uma mutação ficaria desatualizado.
+
 ## Risks / Trade-offs
 
+- **[Resultado guardado desatualizado]:** a conferência de D8 cobre membros, ordem, número (com o "parágrafo único" explícito) e grupo automático. Uma mudança que altere a classificação sem mudar nada disso daria um resultado antigo. → Testes de reaproveitamento: número alterado no próprio dispositivo, membro incluído, pai que passa de "Novo" a "Existente" e omissis incluído entre os irmãos.
+- **[Testes e fixtures existentes no modo padrão]:** o rígido é o modo padrão de toda a suíte, e `validaDispositivo` passa a acrescentar erros nele. Testes que comparam a lista completa de mensagens de um dispositivo, ou fixtures com numeração irregular no texto principal (incisos que começam em II, artigos com complemento), podem quebrar. → Rodar a suíte completa e tratar cada falha: ajustar o teste quando a irregularidade é incidental à fixture, e manter o novo erro quando ele for o comportamento esperado.
+- **[Impacto no host sem configuração]:** o `lexeditweb-editor` passa a exibir erro, alerta e pendência em documentos legados sem ativar nada. → Registrado como **BREAKING** na proposta e na coordenação.
 - **[Mensagens duplicadas no bloco de alteração com pai "Novo"]:** uma lacuna importada ali já recebe "É necessário uma linha pontilhada antes deste dispositivo" e "número menor/maior" da validação do bloco, e agora também o erro de lacuna ou de ordem. → Fica assim nesta mudança (a spec mantém as mensagens do bloco). A situação só nasce de documento importado, e "Corrigir agora" resolve as duas.
-- **[Custo da forma local]:** `validaNumeracao` classifica o grupo inteiro a cada dispositivo, um custo quadrático na validação completa ao abrir. → É o mesmo custo de `isNumeracaoRepetida` hoje, e a classificação é aritmética simples. Se aparecer em documentos grandes, a validação ao abrir pode consultar o resultado em lote.
+- **[Custo da forma local]:** sem D8, `validaNumeracao` reclassificaria o grupo a cada dispositivo, num custo quadrático. → Resolvido por D8; a classificação em lote da passagem central custa cerca de 5 ms com 7.000 dispositivos.
 - **[A renumeração automática apaga as irregularidades sem o usuário pedir]:** incluir um artigo renumera todos os artigos e remove os erros do grupo. → É o comportamento de hoje (a spec da repetição já o descreve); o aviso existe para que o usuário veja o problema antes.
 - **[Citação em texto puro]:** "art. 3º" no texto importado não acompanha a correção. → Fora do escopo; o erro específico ajuda o usuário a decidir entre mover o dispositivo e corrigir o número.
 - **[Texto da pendência no host]:** o `lexeditweb-editor` pode exibir ou comparar o texto antigo. → Avisar na coordenação; o editor não lê nenhum dos dois ao abrir.
@@ -87,5 +113,5 @@ Os arquivos `numeracaoRepetida.ts` e `sincronizarNumeracaoRepetida.ts` mantêm o
 ## Migration Plan
 
 - Não há migração de dados. Arquivos com a pendência antiga abrem normalmente, porque a pendência é recalculada.
-- Coordenação com o `lexeditweb-editor`, junto com a publicação: o texto da pendência mudou, e documentos com complemento, lacuna ou fora de ordem passam a ter alerta e pendência no modo flexível.
+- Coordenação com o `lexeditweb-editor`, junto com a publicação: o texto da pendência mudou, e documentos com complemento, lacuna ou fora de ordem passam a ter erro, alerta e pendência em qualquer modo, inclusive no padrão (rígido).
 - Rollback: reverter a mudança. Nada fica gravado fora do texto da pendência.

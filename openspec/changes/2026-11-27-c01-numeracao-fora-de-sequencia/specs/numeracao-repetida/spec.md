@@ -4,7 +4,7 @@
 
 ### Requirement: Grupo de numeração automática
 
-Complemento, lacuna e numeração fora de ordem SHALL ser avaliados só nos grupos de numeração automática: os artigos do texto principal, comparados com todos os artigos da articulação, e os irmãos de mesmo tipo de um pai que pode ser renumerado automaticamente. Artigo de bloco de alteração e filhos de pai "Existente" na norma alterada SHALL NOT ser avaliados. Um grupo que contém omissis SHALL ter avaliada só a numeração repetida.
+Complemento, lacuna e numeração fora de ordem SHALL ser avaliados nos dois modos de validação de numeração, só nos grupos de numeração automática: os artigos do texto principal, comparados com todos os artigos da articulação, e os irmãos de mesmo tipo de um pai que pode ser renumerado automaticamente. Artigo de bloco de alteração e filhos de pai "Existente" na norma alterada SHALL NOT ser avaliados. Um grupo que contém omissis SHALL NOT ter esses casos avaliados.
 
 #### Scenario: Incisos do texto principal
 
@@ -28,7 +28,7 @@ Complemento, lacuna e numeração fora de ordem SHALL ser avaliados só nos grup
 
 ### Requirement: Complemento na numeração
 
-No modo flexível, um dispositivo de um grupo de numeração automática SHALL ter complemento na numeração quando o seu número tiver complemento, como "Art. 3º-A", que a numeração automática nunca gera, e ele não tiver numeração repetida. O complemento SHALL prevalecer sobre lacuna e numeração fora de ordem, e o dispositivo com complemento SHALL NOT ser considerado no maior número anterior usado por elas.
+Um dispositivo de um grupo de numeração automática SHALL ter complemento na numeração quando o seu número tiver complemento, como "Art. 3º-A", que a numeração automática nunca gera, e ele não tiver numeração repetida. O complemento SHALL prevalecer sobre lacuna e numeração fora de ordem, e o dispositivo com complemento SHALL NOT ser considerado no maior número anterior usado por elas.
 
 #### Scenario: Complemento entre artigos
 
@@ -47,7 +47,7 @@ No modo flexível, um dispositivo de um grupo de numeração automática SHALL t
 
 ### Requirement: Lacuna na numeração
 
-No modo flexível, um dispositivo de um grupo de numeração automática SHALL ter lacuna na numeração quando o seu número for maior que o maior número dos dispositivos anteriores do grupo mais um e ele não tiver numeração repetida nem complemento. O primeiro do grupo SHALL ser comparado com 1. Só o dispositivo em que a lacuna aparece SHALL ter lacuna; os seguintes, que continuam a sequência a partir dele, SHALL NOT.
+Um dispositivo de um grupo de numeração automática SHALL ter lacuna na numeração quando o seu número for maior que o maior número dos dispositivos anteriores do grupo mais um e ele não tiver numeração repetida nem complemento. O primeiro do grupo SHALL ser comparado com 1. Só o dispositivo em que a lacuna aparece SHALL ter lacuna; os seguintes, que continuam a sequência a partir dele, SHALL NOT.
 
 #### Scenario: Lacuna no meio da sequência
 
@@ -61,7 +61,7 @@ No modo flexível, um dispositivo de um grupo de numeração automática SHALL t
 
 ### Requirement: Numeração fora de ordem
 
-No modo flexível, um dispositivo de um grupo de numeração automática SHALL ter numeração fora de ordem quando o seu número for menor que o maior número dos anteriores do grupo mais um e ele não tiver numeração repetida nem complemento. Quando valer também a numeração repetida, SHALL prevalecer a repetida. Um dispositivo seguinte que continua a sequência a partir do maior número anterior SHALL NOT ter irregularidade.
+Um dispositivo de um grupo de numeração automática SHALL ter numeração fora de ordem quando o seu número for menor que o maior número dos anteriores do grupo mais um e ele não tiver numeração repetida nem complemento. Quando valer também a numeração repetida, SHALL prevalecer a repetida no modo flexível. No modo rígido, em que a repetição não é avaliada, o dispositivo repetido SHALL NOT ter irregularidade. Um dispositivo seguinte que continua a sequência a partir do maior número anterior SHALL NOT ter irregularidade.
 
 #### Scenario: Artigos trocados
 
@@ -75,7 +75,7 @@ No modo flexível, um dispositivo de um grupo de numeração automática SHALL t
 
 ### Requirement: Erro contextualizado de complemento, lacuna e numeração fora de ordem
 
-No modo flexível, todo dispositivo com complemento na numeração SHALL exibir, abaixo dele, o erro "Dispositivo com complemento na numeração"; com lacuna, "Dispositivo com lacuna na numeração"; e com numeração fora de ordem, "Dispositivo com numeração fora de ordem". O erro SHALL deixar de ser exibido assim que a irregularidade deixar de existir.
+Nos dois modos de validação de numeração, todo dispositivo com complemento na numeração SHALL exibir, abaixo dele, o erro "Dispositivo com complemento na numeração"; com lacuna, "Dispositivo com lacuna na numeração"; e com numeração fora de ordem, "Dispositivo com numeração fora de ordem". O erro SHALL deixar de ser exibido assim que a irregularidade deixar de existir.
 
 #### Scenario: Erros nos artigos trocados
 
@@ -89,14 +89,14 @@ No modo flexível, todo dispositivo com complemento na numeração SHALL exibir,
 
 #### Scenario: Modo rígido
 
-- **WHEN** o mesmo documento é aberto no modo rígido
-- **THEN** nenhum dispositivo exibe erro de complemento, de lacuna ou de numeração fora de ordem
+- **WHEN** o mesmo documento com os artigos 1, 3, 2 e 4 é aberto no modo rígido
+- **THEN** o "Art. 3º" exibe "Dispositivo com lacuna na numeração" e o "Art. 2º" exibe "Dispositivo com numeração fora de ordem", como no modo flexível
 
 ## MODIFIED Requirements
 
 ### Requirement: Modo de validação de numeração
 
-O componente SHALL oferecer dois modos de validação de numeração dos dispositivos: rígido e flexível. Sem modo informado, ou com valor desconhecido, SHALL valer o rígido. No modo rígido, o editor SHALL se comportar como antes do modo flexível: documento com ids repetidos é recusado ao abrir e ao salvar, e nenhum alerta, pendência ou erro de numeração repetida, de complemento, de lacuna ou de numeração fora de ordem é produzido.
+O componente SHALL oferecer dois modos de validação de numeração dos dispositivos: rígido e flexível. Sem modo informado, ou com valor desconhecido, SHALL valer o rígido. No modo rígido, documento com ids repetidos SHALL ser recusado ao abrir e ao salvar, e nenhum alerta, pendência ou erro de numeração repetida SHALL ser produzido. Complemento, lacuna e numeração fora de ordem SHALL ser avaliados nos dois modos.
 
 #### Scenario: Sem modo informado
 
@@ -111,7 +111,7 @@ O componente SHALL oferecer dois modos de validação de numeração dos disposi
 #### Scenario: Lacuna no modo rígido
 
 - **WHEN** o host não informa o modo de validação de numeração e abre um documento com os artigos 1, 3 e 4
-- **THEN** o documento é aberto para edição, sem erro, alerta ou pendência de numeração
+- **THEN** o documento é aberto para edição, o "Art. 3º" exibe o erro de lacuna, e a aba Avisos exibe o alerta de numeração irregular
 
 ### Requirement: Oferta da correção de numeração repetida
 
@@ -173,7 +173,7 @@ O erro de numeração repetida SHALL oferecer "Corrigir agora" quando o editor p
 
 ### Requirement: Reavaliação da numeração repetida a cada ação
 
-No modo flexível, o sistema SHALL reavaliar a numeração repetida, o complemento, a lacuna e a numeração fora de ordem de todo o documento depois de cada ação na articulação, inclusive desfazer e refazer, e SHALL atualizar o erro de todo dispositivo cuja situação mudou, mesmo que a ação não o tenha alterado diretamente.
+O sistema SHALL reavaliar depois de cada ação na articulação, inclusive desfazer e refazer, o complemento, a lacuna e a numeração fora de ordem de todo o documento nos dois modos, e a numeração repetida no modo flexível. SHALL atualizar o erro de todo dispositivo cuja situação mudou, mesmo que a ação não o tenha alterado diretamente.
 
 #### Scenario: Renumeração automática corrige a repetição
 
@@ -189,3 +189,8 @@ No modo flexível, o sistema SHALL reavaliar a numeração repetida, o complemen
 
 - **WHEN** o texto principal tem os artigos 1, 3, 2 e 4, nessa ordem, e o usuário move o "Art. 2º" para antes do "Art. 3º"
 - **THEN** nenhum dispositivo exibe erro de numeração, e o alerta deixa de ser exibido
+
+#### Scenario: Inclusão de artigo no modo rígido
+
+- **WHEN** o documento aberto no modo rígido tem os artigos 1, 3 e 4 e o usuário inclui um artigo, o que renumera todos os artigos
+- **THEN** nenhum dispositivo exibe o erro de lacuna, e o alerta deixa de ser exibido
