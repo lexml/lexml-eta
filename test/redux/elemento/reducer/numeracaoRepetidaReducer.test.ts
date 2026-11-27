@@ -15,10 +15,11 @@ import { validarArticulacaAction } from '../../../../src/model/lexml/acao/valida
 import { buildProjetoNormaFromJsonix } from '../../../../src/model/lexml/documento/conversor/buildProjetoNormaFromJsonix';
 import { registraValidacaoNumeracao } from '../../../../src/model/lexml/numeracao/validacaoNumeracao';
 import { AutoFix } from '../../../../src/model/lexml/util/mensagem';
-import { ALERTA_NUMERACAO_REPETIDA } from '../../../../src/redux/elemento/reducer/sincronizarNumeracaoRepetida';
+import { ALERTA_NUMERACAO_IRREGULAR, sincronizarNumeracaoIrregular } from '../../../../src/redux/elemento/reducer/sincronizarNumeracaoRepetida';
 import { elementoReducer } from '../../../../src/redux/elemento/reducer/elementoReducer';
 import { State, StateType } from '../../../../src/redux/state';
-import { novoDocumentoArticulado } from '../../../doc/documentoArticulado';
+import { novoDocumentoArticulado, novoDocumentoComArtigos } from '../../../doc/documentoArticulado';
+import { moverElementoAcimaAction } from '../../../../src/model/lexml/acao/moverElementoAcimaAction';
 
 const NS = 'http://www.lexml.gov.br/1.0';
 const inciso = (id: string): any => ({
@@ -43,27 +44,88 @@ const abre = (comIncisos = false): void => {
   state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: modelo.articulacao!, classificacao: ClassificacaoDocumento.NORMA });
 };
 
+const abreComArtigos = (artigos: [rotulo: string, id: string][]): void => {
+  const modelo = buildProjetoNormaFromJsonix(
+    lerDocumentoArticulado(novoDocumentoComArtigos(artigos.map(([rotulo, id]) => ({ rotulo, id }))), { validacaoNumeracao: 'flexivel' }),
+    true
+  );
+  state = elementoReducer(undefined, { type: ABRIR_ARTICULACAO, articulacao: modelo.articulacao!, classificacao: ClassificacaoDocumento.NORMA });
+};
+
+const TROCADOS: [string, string][] = [
+  ['Art. 1º', 'art1'],
+  ['Art. 3º', 'art3'],
+  ['Art. 2º', 'art2'],
+  ['Art. 4º', 'art4'],
+];
+
 const despacha = (acao: any): void => {
   state = elementoReducer(state, acao);
 };
 
-const alertas = (): number => state.ui!.alertas!.filter(a => a.id === ALERTA_NUMERACAO_REPETIDA).length;
+const alertas = (): number => state.ui!.alertas!.filter(a => a.id === ALERTA_NUMERACAO_IRREGULAR).length;
 const artigo = (i: number): Artigo => state.articulacao!.artigos[i] as Artigo;
+const irregulares = (): Record<number, string> => state.numeracaoIrregular ?? {};
+const qtdIrregulares = (): number => Object.keys(irregulares()).length;
 
 describe('Numeração repetida: reavaliação a cada ação (modo flexível)', () => {
   beforeEach(() => registraValidacaoNumeracao('flexivel'));
   afterEach(() => registraValidacaoNumeracao(undefined));
 
-  it('abrir com numeração repetida produz o alerta e o conjunto', () => {
+  it('abrir com numeração repetida produz o alerta e o mapa', () => {
     abre();
 
     expect(alertas()).to.equal(1);
-    expect(state.numeracaoRepetida).to.deep.equal([artigo(1).uuid]);
-    expect(state.ui!.alertas!.find(a => a.id === ALERTA_NUMERACAO_REPETIDA)).to.deep.include({
+    expect(state.numeracaoIrregular).to.deep.equal({ [artigo(1).uuid!]: 'repetida' });
+    expect(state.ui!.alertas!.find(a => a.id === ALERTA_NUMERACAO_IRREGULAR)).to.deep.include({
       tipo: 'CRITICAL',
-      mensagem: 'Existem dispositivos com numeração repetida.',
+      mensagem: 'Existem dispositivos com numeração irregular.',
       podeFechar: false,
     });
+  });
+
+  it('abrir artigos trocados 1, 3, 2, 4 produz o alerta e o mapa com lacuna e fora de ordem', () => {
+    abreComArtigos(TROCADOS);
+
+    expect(alertas()).to.equal(1);
+    expect(state.numeracaoIrregular).to.deep.equal({ [artigo(1).uuid!]: 'lacuna', [artigo(2).uuid!]: 'foraDeOrdem' });
+  });
+
+  it('os quatro tipos juntos mantêm um único alerta, mesmo com várias ações sem corrigir', () => {
+    abreComArtigos([
+      ['Art. 1º', 'art1'],
+      ['Art. 1º', 'art1'],
+      ['Art. 3º', 'art3'],
+      ['Art. 2º', 'art2'],
+      ['Art. 2º-A', 'art2-1'],
+    ]);
+    expect(Object.values(irregulares()).sort()).to.deep.equal(['complemento', 'foraDeOrdem', 'lacuna', 'repetida']);
+
+    despacha(validarArticulacaAction.execute());
+    despacha(validarArticulacaAction.execute());
+
+    expect(alertas()).to.equal(1);
+    expect(qtdIrregulares()).to.equal(4);
+  });
+
+  it('mover o "Art. 2º" para antes do "Art. 3º" retira o alerta', () => {
+    abreComArtigos(TROCADOS);
+
+    despacha(moverElementoAcimaAction.execute(createElemento(artigo(2))));
+
+    expect(state.articulacao!.artigos.map(a => a.rotulo)).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º', 'Art. 4º']);
+    expect(alertas()).to.equal(0);
+    expect(qtdIrregulares()).to.equal(0);
+  });
+
+  it('mudança de tipo do mesmo dispositivo emite ElementoValidado', () => {
+    abreComArtigos(TROCADOS.slice(0, 3));
+    const uuid = artigo(2).uuid!;
+
+    const novo = sincronizarNumeracaoIrregular({ ...state, ui: { ...state.ui!, events: [] } }, { ...irregulares(), [uuid]: 'repetida' } as any, 'OUTRA_ACAO');
+
+    const revalidados = novo.ui!.events.filter(e => e.stateType === StateType.ElementoValidado).flatMap(e => e.elementos!.map(el => el.uuid));
+    expect(revalidados).to.deep.equal([uuid]);
   });
 
   it('incluir artigo renumera, retira o alerta e revalida o antigo segundo "Art. 1º"', () => {
@@ -74,7 +136,7 @@ describe('Numeração repetida: reavaliação a cada ação (modo flexível)', (
 
     expect(state.articulacao!.artigos).to.have.length(3);
     expect(alertas()).to.equal(0);
-    expect(state.numeracaoRepetida).to.deep.equal([]);
+    expect(qtdIrregulares()).to.equal(0);
     const revalidado = state.ui!.events.find(e => e.stateType === StateType.ElementoValidado && e.elementos?.some(el => el.uuid === segundo));
     expect(revalidado, 'ElementoValidado do antigo segundo artigo').to.not.equal(undefined);
     expect(revalidado!.elementos![0].mensagens?.some(m => m.descricao === AutoFix.NUMERACAO_REPETIDA)).to.equal(false);
@@ -87,9 +149,9 @@ describe('Numeração repetida: reavaliação a cada ação (modo flexível)', (
 
     for (const acao of [UndoAction(), redoAction(), UndoAction()]) {
       despacha(acao);
-      // A renumeração automática não recria a repetição ao desfazer: o alerta só existe com repetição de fato.
-      expect(alertas()).to.equal(state.numeracaoRepetida!.length > 0 ? 1 : 0);
-      expect(state.numeracaoRepetida!.length).to.equal(0);
+      // A renumeração automática não recria a repetição ao desfazer: o alerta só existe com irregularidade de fato.
+      expect(alertas()).to.equal(qtdIrregulares() > 0 ? 1 : 0);
+      expect(qtdIrregulares()).to.equal(0);
     }
   });
 
@@ -102,25 +164,43 @@ describe('Numeração repetida: reavaliação a cada ação (modo flexível)', (
     expect(alertas()).to.equal(1);
   });
 
-  it('correção parcial mantém o alerta e reduz o conjunto', () => {
+  it('correção parcial mantém o alerta e reduz o mapa', () => {
     abre(true);
-    expect(state.numeracaoRepetida).to.have.length(3);
+    expect(qtdIrregulares()).to.equal(3);
     const incisoRepetido = artigo(0).caput!.filhos[1];
 
     despacha(removerElementoAction.execute(createElemento(incisoRepetido), undefined));
 
-    expect(state.numeracaoRepetida).to.have.length(2);
+    expect(qtdIrregulares()).to.equal(2);
     expect(alertas()).to.equal(1);
   });
 
-  it('no modo rígido não há alerta nem conjunto', () => {
+  it('no modo rígido, a repetição não produz alerta nem mapa', () => {
     abre();
     registraValidacaoNumeracao('rigida');
 
     despacha(validarArticulacaAction.execute());
 
     expect(alertas()).to.equal(0);
-    expect(state.numeracaoRepetida).to.deep.equal([]);
+    expect(irregulares()).to.deep.equal({});
+  });
+
+  it('no modo rígido, abrir 1, 3, 4 produz o alerta e o mapa só com a lacuna; incluir um artigo retira o alerta', () => {
+    registraValidacaoNumeracao('rigida');
+    abreComArtigos([
+      ['Art. 1º', 'art1'],
+      ['Art. 3º', 'art3'],
+      ['Art. 4º', 'art4'],
+    ]);
+
+    expect(alertas()).to.equal(1);
+    expect(state.numeracaoIrregular).to.deep.equal({ [artigo(1).uuid!]: 'lacuna' });
+
+    despacha(adicionarElementoAction.execute(createElemento(artigo(0)), ''));
+
+    expect(state.articulacao!.artigos.map(a => a.rotulo)).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º', 'Art. 4º']);
+    expect(alertas()).to.equal(0);
+    expect(irregulares()).to.deep.equal({});
   });
 
   describe('robustez: remissão para artigo repetido e operações de edição', () => {

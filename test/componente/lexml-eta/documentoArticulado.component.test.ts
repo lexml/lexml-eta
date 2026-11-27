@@ -15,6 +15,8 @@ import { MPV_1234_2024 } from '../../doc/mpv_1234_2024';
 import { createElemento } from '../../../src/model/elemento/elementoUtil';
 import { removerAlerta } from '../../../src/model/alerta/acao/removerAlerta';
 import { validarArticulacaAction } from '../../../src/model/lexml/acao/validarArticulacaoAction';
+import { autofixAction } from '../../../src/model/lexml/acao/autoFixAction';
+import { AutoFix } from '../../../src/model/lexml/util/mensagem';
 import { registraValidacaoNumeracao } from '../../../src/model/lexml/numeracao/validacaoNumeracao';
 import {
   congelarRelogio,
@@ -22,6 +24,7 @@ import {
   lexeditSalvo,
   metadadoProprietarioLexEdit,
   novoDocumentoArticulado,
+  novoDocumentoComArtigos,
   novoDocumentoComTextoLiteral,
   restaurarRelogio,
   TEXTO_LITERAL,
@@ -670,10 +673,10 @@ describe('ETA — salvar e abrir documento articulado', () => {
     });
   });
 
-  describe('pendência de numeração repetida', () => {
-    const MSG = 'Existem dispositivos com numeração repetida.';
+  describe('pendência de numeração irregular', () => {
+    const MSG = 'Existem dispositivos com numeração irregular.';
     const NS = 'http://www.lexml.gov.br/1.0';
-    const alertaGlobal = (): boolean => !!rootStore.getState().elementoReducer.ui?.alertas?.some((a: any) => a.id === 'alerta-global-numeracao-repetida');
+    const alertaGlobal = (): boolean => !!rootStore.getState().elementoReducer.ui?.alertas?.some((a: any) => a.id === 'alerta-global-numeracao-irregular');
     const pendenciasDaProposicao = (): string[] => component.getProposicao().pendenciasPreenchimento;
     const artigos = (): any[] => rootStore.getState().elementoReducer.articulacao.artigos;
     const revalida = (): void => void rootStore.dispatch(validarArticulacaAction.execute());
@@ -726,11 +729,41 @@ describe('ETA — salvar e abrir documento articulado', () => {
       expect(alertaGlobal()).to.equal(false);
       expect(pendenciasDaProposicao()).to.not.include(MSG);
     });
+
+    it('a pendência antiga ("numeração repetida") gravada no arquivo não gera alerta ao abrir um documento sem irregularidade', async () => {
+      const salvo = component.getDocumentoArticulado();
+      lexeditSalvo(salvo).pendencias.pendencia.push('Existem dispositivos com numeração repetida.');
+
+      await component.abrirDocumentoArticulado(salvo);
+
+      expect(alertaGlobal()).to.equal(false);
+      expect(pendenciasDaProposicao()).to.not.include(MSG);
+    });
+
+    for (const modo of ['rigida', 'flexivel'] as const) {
+      it(`no modo ${modo}, salvar os artigos 1, 3, 2 e 4 grava a pendência uma única vez, e ela some depois da correção`, async () => {
+        component.lexmlEtaConfig = Object.assign(new LexmlEtaConfig(), { validacaoNumeracao: modo });
+        const rotulos = ['Art. 1º', 'Art. 3º', 'Art. 2º', 'Art. 4º'];
+        await component.abrirDocumentoArticulado(novoDocumentoComArtigos(rotulos.map(rotulo => ({ rotulo, id: `art${rotulo.replace(/\D/g, '')}`, texto: `Texto do ${rotulo}.` }))));
+
+        expect(alertaGlobal()).to.equal(true);
+        const pendencias = lexeditSalvo(component.getDocumentoArticulado()).pendencias.pendencia;
+        expect(pendencias.filter((p: string) => p === MSG)).to.have.length(1);
+        expect(pendenciasDaProposicao()).to.include(MSG);
+
+        rootStore.dispatch(autofixAction.execute(createElemento(artigos()[2]), { tipo: 'ERROR', descricao: AutoFix.NUMERACAO_FORA_DE_ORDEM, fix: true } as any));
+
+        expect(artigos().map((a: any) => a.rotulo)).to.deep.equal(['Art. 1º', 'Art. 2º', 'Art. 3º', 'Art. 4º']);
+        expect(alertaGlobal()).to.equal(false);
+        expect(lexeditSalvo(component.getDocumentoArticulado()).pendencias.pendencia).to.not.include(MSG);
+        expect(pendenciasDaProposicao()).to.not.include(MSG);
+      });
+    }
   });
 
   describe('modo de validação de numeração (configuração)', () => {
     const flexivel = (): LexmlEtaConfig => Object.assign(new LexmlEtaConfig(), { validacaoNumeracao: 'flexivel' });
-    const alertaGlobal = (): boolean => !!rootStore.getState().elementoReducer.ui?.alertas?.some((a: any) => a.id === 'alerta-global-numeracao-repetida');
+    const alertaGlobal = (): boolean => !!rootStore.getState().elementoReducer.ui?.alertas?.some((a: any) => a.id === 'alerta-global-numeracao-irregular');
     const comArtigosRepetidos = (): any => {
       const entrada = novoDocumentoArticulado();
       const lXhier = entrada.value.projetoNorma.norma.articulacao.lXhier;
@@ -759,7 +792,7 @@ describe('ETA — salvar e abrir documento articulado', () => {
 
       expect(idsDosArtigos(salvo)).to.deep.equal(['art1', 'art1']);
       expect(alertaGlobal()).to.equal(true);
-      expect(lexeditSalvo(salvo).pendencias.pendencia).to.deep.equal([JUSTIFICACAO, 'Existem dispositivos com numeração repetida.']);
+      expect(lexeditSalvo(salvo).pendencias.pendencia).to.deep.equal([JUSTIFICACAO, 'Existem dispositivos com numeração irregular.']);
     });
 
     it('o arquivo salvo no modo flexível reabre no modo flexível e é recusado no rígido', async () => {

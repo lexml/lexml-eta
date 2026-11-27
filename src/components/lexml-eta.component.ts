@@ -26,7 +26,7 @@ import {
   verificarUrnParaNovaProposicao,
 } from '../model/lexml/documento/urnUtil';
 import { inicializarVocabulario } from '../model/lexml/documento/vocabulario';
-import { MENSAGEM_NUMERACAO_REPETIDA } from '../model/lexml/numeracao/numeracaoRepetida';
+import { MENSAGEM_NUMERACAO_IRREGULAR } from '../model/lexml/numeracao/numeracaoRepetida';
 import { normalizaValidacaoNumeracao, registraValidacaoNumeracao, ValidacaoNumeracao } from '../model/lexml/numeracao/validacaoNumeracao';
 import { rootStore } from '../redux/store';
 import { ProjetoNorma } from '../model/lexml/documento/projetoNorma';
@@ -250,7 +250,7 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   getDocumentoArticulado(): DocumentoArticulado {
     if (!this.urn) throw new Error('Inicialize um documento antes de salvar.');
     const pendencias = this.isJustificacaoNaoInformada(this._lexmlJustificativa.texto) ? [MENSAGEM_JUSTIFICACAO_NAO_INFORMADA] : [];
-    this.temNumeracaoRepetida() && pendencias.push(MENSAGEM_NUMERACAO_REPETIDA);
+    this.temNumeracaoIrregular() && pendencias.push(MENSAGEM_NUMERACAO_IRREGULAR);
     // A justificação não é gravada no anexo de parecer (spec salvar-documento-articulado).
     return this._lexmlEta!.getDocumentoArticulado({
       anexoParecer: this.anexoParecer,
@@ -476,8 +476,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
   }
 
   // Mesma condição do alerta global: o conjunto é recalculado pelo reducer a cada ação.
-  private temNumeracaoRepetida(): boolean {
-    return !!rootStore.getState().elementoReducer.numeracaoRepetida?.length;
+  private temNumeracaoIrregular(): boolean {
+    return !!Object.keys(rootStore.getState().elementoReducer.numeracaoIrregular ?? {}).length;
   }
 
   private getPendenciasPreenchimento(proposicao: Proposicao): string[] {
@@ -488,8 +488,8 @@ export class LexmlEtaComponent extends connect(rootStore)(LitElement) {
       pendenciasPreenchimento.push(MENSAGEM_JUSTIFICACAO_NAO_INFORMADA);
     }
 
-    if (this.temNumeracaoRepetida()) {
-      pendenciasPreenchimento.push(MENSAGEM_NUMERACAO_REPETIDA);
+    if (this.temNumeracaoIrregular()) {
+      pendenciasPreenchimento.push(MENSAGEM_NUMERACAO_IRREGULAR);
     }
 
     if (this.sequenciasComentario.length) {
