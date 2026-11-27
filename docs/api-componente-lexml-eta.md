@@ -144,7 +144,7 @@ A proposição traz duas datas (#1034, **BREAKING**):
 
 ### 4.3 `getDocumentoArticulado(): DocumentoArticulado`
 
-Exporta o documento no formato de intercâmbio LexML (JSON Jsonix), incluindo os grupos de metadados do LexEdit já implementados: data e hora da exportação (`dataUltimaModificacao`, `xsd:dateTime` com fuso e precisão de segundos, gerada a cada chamada), opções de impressão, local e data do fecho, autoria de parlamentares, anexos (só os metadados, veja a seção 5.1) e remissões internas inválidas. O atributo de data é ignorado ao abrir e não é mantido no estado de edição. Lança `Error('Inicialize um documento antes de salvar.')` se nada foi aberto. No modo rígido de validação de numeração (seção 5.2), lança erro se houver ids de dispositivo repetidos; no modo flexível grava os ids como estão e acrescenta a pendência "Existem dispositivos com numeração repetida.".
+Exporta o documento no formato de intercâmbio LexML (JSON Jsonix), incluindo os grupos de metadados do LexEdit já implementados: data e hora da exportação (`dataUltimaModificacao`, `xsd:dateTime` com fuso e precisão de segundos, gerada a cada chamada), opções de impressão, local e data do fecho, autoria de parlamentares, anexos (só os metadados, veja a seção 5.1) e remissões internas inválidas. O atributo de data é ignorado ao abrir e não é mantido no estado de edição. Lança `Error('Inicialize um documento antes de salvar.')` se nada foi aberto. No modo rígido de validação de numeração (seção 5.2), lança erro se houver ids de dispositivo repetidos; no modo flexível grava os ids como estão. Nos dois modos, com numeração irregular (seção 5.3), acrescenta a pendência "Existem dispositivos com numeração irregular.".
 
 Diferença em relação a `getProposicao()`: aqui o resultado é **um arquivo LexML autocontido**, que o próprio editor sabe reabrir; `getProposicao()` é o modelo interno do editor (inclui revisões, notas de rodapé, justificação etc.), que não passa pelo formato LexML.
 
@@ -239,13 +239,12 @@ O usuário, a paginação e os padrões ficam na configuração da sessão e **s
 
 ### 5.2 Validação de numeração: `validacaoNumeracao`
 
-- **Rígida (padrão).** Comportamento de sempre: um documento com ids de dispositivo repetidos (por exemplo, dois "Art. 5º") é recusado ao abrir (`novaProposicao` com `documentoModelo`, `abrirDocumentoArticulado` e `alterarDadosBasicos`) e ao salvar.
-- **Flexível.** Abre, edita e salva documentos com numeração repetida, que passam a ser uma pendência:
-  - alerta crítico "Existem dispositivos com numeração repetida." na aba Avisos, sem botão de fechar;
-  - a pendência de mesmo texto vai em `Proposicao.pendenciasPreenchimento` e em `lexedit:Pendencias` do arquivo (logo depois da de justificação), para constar no PDF;
+O modo trata da **numeração repetida**. As demais irregularidades de numeração valem nos dois modos (seção 5.3).
+
+- **Rígida (padrão).** Um documento com ids de dispositivo repetidos (por exemplo, dois "Art. 5º") é recusado ao abrir (`novaProposicao` com `documentoModelo`, `abrirDocumentoArticulado` e `alterarDadosBasicos`) e ao salvar.
+- **Flexível.** Abre, edita e salva documentos com numeração repetida, que passam a ser uma das irregularidades de numeração da seção 5.3:
   - o erro "Dispositivo com numeração repetida" aparece da 2ª ocorrência em diante, **só no dispositivo que causa a repetição** (o descendente que repete por herança não recebe o erro);
-  - onde a renumeração automática existe (texto principal e filhos de pai "Novo" na norma alterada), o erro oferece "Corrigir agora", que renumera o grupo, recalcula os ids dos descendentes e pode ser desfeita. Artigo de bloco de alteração e filhos de pai "Existente" não têm a correção: use "Renumerar". No texto principal os artigos são numerados pela posição (1, 2, 3...);
-  - o alerta, a pendência e os erros são reavaliados depois de toda ação, inclusive desfazer e refazer.
+  - onde a renumeração automática existe (texto principal e filhos de pai "Novo" na norma alterada), o erro oferece "Corrigir agora". Artigo de bloco de alteração e filhos de pai "Existente" não têm a correção: use "Renumerar".
 
 O modo é lido da configuração **no início de cada documento** (`novaProposicao`, `abrirDocumentoArticulado` e `alterarDadosBasicos`) e vale até o próximo: mudar a configuração no meio da edição não afeta o documento aberto. Uma chamada recusada não muda o modo do documento em edição.
 
@@ -257,6 +256,23 @@ Limitações do modo flexível:
 - o arquivo salvo com numeração repetida só abre no modo flexível.
 
 Os utilitários de arquivo (seção 7) também validam em modo rígido por padrão: quem usa o modo flexível deve passar `{ validacaoNumeracao: 'flexivel' }`.
+
+### 5.3 Numeração irregular
+
+Documentos importados ou legados podem trazer a numeração fora da sequência que o editor gera. **Nos dois modos**, o editor avisa três casos, além da repetição (só no modo flexível, seção 5.2):
+
+| Caso | Quando | Erro no dispositivo |
+|---|---|---|
+| Complemento | O número tem complemento, como "Art. 3º-A" | Dispositivo com complemento na numeração |
+| Lacuna | O número é maior que o maior número anterior do grupo mais um (o primeiro deve ser 1) | Dispositivo com lacuna na numeração |
+| Fora de ordem | O número é menor que esse esperado | Dispositivo com numeração fora de ordem |
+
+- O erro aparece **só no dispositivo que causa a irregularidade**: em 1, 3, 2, 4, o art. 3 tem lacuna, o art. 2 está fora de ordem e o art. 4 não tem erro. Em 3, 3-A, 4, só o 3-A tem erro.
+- Quando mais de um caso vale para o mesmo dispositivo, prevalece a repetição (no modo flexível), depois o complemento, depois a lacuna ou fora de ordem.
+- Os três casos só são avaliados nos grupos de numeração automática: os artigos do texto principal e os filhos de pai "Novo" na norma alterada. Grupo com omissis não é avaliado.
+- Os três casos oferecem "Corrigir agora", que renumera o grupo **pela posição**, sem mudar a ordem nem o texto, recalcula os ids dos descendentes e pode ser desfeita. Se o erro estiver na ordem, mova o dispositivo antes de corrigir.
+- Enquanto houver qualquer irregularidade (inclusive a repetição, no modo flexível), a aba Avisos exibe o alerta crítico "Existem dispositivos com numeração irregular.", sem botão de fechar. A pendência de mesmo texto vai em `Proposicao.pendenciasPreenchimento` e em `lexedit:Pendencias` do arquivo (logo depois da de justificação), para constar no PDF. Ao abrir, a pendência gravada não é lida: é recalculada.
+- O alerta, a pendência e os erros são reavaliados depois de toda ação, inclusive desfazer e refazer.
 
 ### Serviços esperados
 

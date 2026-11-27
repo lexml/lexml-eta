@@ -91,12 +91,13 @@ import { exibirDiferencaAction } from '../../model/lexml/acao/exibirDiferencaAct
 import { alertarInfo } from '../../redux/elemento/util/alertaUtil';
 import { SufixosModalComponent } from '../sufixos/sufixos.modal.componet';
 import { createElementoValidadoComExtras, createElemento, getDispositivoFromElemento } from '../../model/elemento/elementoUtil';
+import { getCadeiaAgrupadores } from '../../model/lexml/hierarquia/cadeiaAgrupadores';
 import { stripHtml } from '../../util/html-util';
 import { selecionarPaginaArticulacaoAction } from '../../model/lexml/acao/selecionarPaginaArticulacaoAction';
 import { navegarEntreElementosAlteradosAction, TDirecao } from '../../model/lexml/acao/navegarEntreElementosAlteradosAction';
 import { ProposicaoDivididaDialog } from './proposicaoDivididaDialog';
 import { adicionarRemissaoInternaAction } from '../../model/lexml/acao/adicionarRemissaoInternaAction';
-import { iconeComentario, iconeRemissaoInterna } from '../../../assets/icons/icons';
+import { iconeComentario, iconeIndicadorAgrupador, iconeRemissaoInterna } from '../../../assets/icons/icons';
 import { EtaBlotOpcoesComentario } from '../../util/eta-quill/eta-blot-opcoes-comentario';
 import { remissaoDialog, ModoEdicaoRemissao } from './remissaoDialog';
 import { RemissaoExternaValue, RemissaoInternaValue } from '../../model/remissao';
@@ -122,6 +123,17 @@ const findDispositivoOuEmentaByUuid = (articulacao: Articulacao, uuid: number): 
   const ementa = articulacao?.projetoNorma?.ementa;
   return findDispositivoByUuid(articulacao, uuid, true) ?? (ementa?.uuid === uuid ? ementa : null);
 };
+
+interface ItemCadeiaAgrupador {
+  uuid2: string;
+  rotulo: string;
+}
+
+// Tempo do indicador do agrupador visível depois da última rolagem (#1080).
+export const TEMPO_INDICADOR_AGRUPADOR_MS = 3000;
+// Rolagem até esse tempo depois de roda, toque ou tecla conta como do usuário.
+const MARGEM_INTERACAO_ROLAGEM_MS = 500;
+const TECLAS_DE_ROLAGEM = new Set(['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End']);
 
 @customElement('lexml-eta-proposicao-editor')
 export class EditorComponent extends connect(rootStore)(LitElement) {
@@ -156,6 +168,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   private inscricoes: Subscription[] = [];
   private timerOnChange?: any;
+  // Em revisão, a exclusão pelo usuário deixa o cursor na linha excluída (vale só durante o lote de eventos).
+  private cursorPosicionadoPelaExclusao = false;
 
   // Uuids já varridos pelo linker externo nesta sessão — libera a 1ª visita mesmo sem edição (ver detectarRemissoesAoSairDaLinha).
   // Opcional (não inicializado no campo) pois testes constroem EditorComponent via Object.create, sem passar pelo construtor.
@@ -221,6 +235,15 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
 
   @state() private elementoSelecionadoAtual?: Elemento;
   private timerIndicadoresComentario?: ReturnType<typeof setTimeout>;
+
+  // Cadeia de agrupadores do dispositivo no topo da área de texto (#1080).
+  @state() private _cadeiaAgrupadores: ItemCadeiaAgrupador[] = [];
+  @state() private _indicadorAgrupadorVisivel = false;
+  private quadroIndicadorAgrupador?: number;
+  private timerOcultarIndicadorAgrupador?: ReturnType<typeof setTimeout>;
+  private observadorTamanhoEditor?: ResizeObserver;
+  private fimInteracaoRolagem = 0;
+  private ponteiroNaBarraDeRolagem = false;
 
   render(): TemplateResult {
     return html`
@@ -398,12 +421,27 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
             </button>
           </div>
         </div>
-        <div id="lx-eta-editor"></div>
+        <div class="lx-eta-area-texto">
+          <div id="lx-eta-editor"></div>
+          ${this.renderIndicadorAgrupador()}
+        </div>
       </div>
       <div id="lx-eta-buffer"><p></p></div>
       <lexml-eta-atalhos-modal></lexml-eta-atalhos-modal>
       <lexml-eta-sufixos-modal></lexml-eta-sufixos-modal>
       <proposicao-dividida-modal></proposicao-dividida-modal>
+    `;
+  }
+
+  // Fora do container do Quill (#lx-eta-editor), que é recriado a cada carga.
+  private renderIndicadorAgrupador(): TemplateResult {
+    const cadeia = this._cadeiaAgrupadores;
+    const visivel = this._indicadorAgrupadorVisivel && cadeia.length > 0;
+    return html`
+      <div class="indicador-agrupador ${visivel ? 'indicador-agrupador--visivel' : ''}" aria-hidden=${visivel ? 'false' : 'true'}>
+        ${unsafeHTML(iconeIndicadorAgrupador)}
+        ${cadeia.map((item, i) => html`${i ? html`<span class="indicador-agrupador__separador">›</span>` : ''}<span class="indicador-agrupador__nivel">${item.rotulo}</span>`)}
+      </div>
     `;
   }
 
@@ -985,8 +1023,94 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     return true;
   }
 
+  private agendarAtualizacaoIndicadorAgrupador = (): void => {
+    if (this.quadroIndicadorAgrupador !== undefined) return;
+    this.quadroIndicadorAgrupador = requestAnimationFrame(() => {
+      this.quadroIndicadorAgrupador = undefined;
+      this.atualizarIndicadorAgrupador();
+    });
+  };
+
+  private atualizarIndicadorAgrupador(): void {
+    const cadeia = this.getCadeiaAgrupadoresDoTopo().map(a => ({ uuid2: a.uuid2!, rotulo: (a.rotulo ?? '').trim() }));
+    const chave = (c: ItemCadeiaAgrupador[]): string => c.map(item => `${item.uuid2}|${item.rotulo}`).join('\n');
+    if (chave(cadeia) !== chave(this._cadeiaAgrupadores)) {
+      this._cadeiaAgrupadores = cadeia;
+    }
+  }
+
+  // Primeira linha cuja base passa do topo do .ql-editor; excluída em revisão (sem dispositivo) cede à anterior.
+  private getCadeiaAgrupadoresDoTopo(): Dispositivo[] {
+    const articulacao = rootStore.getState().elementoReducer.articulacao;
+    if (!this._quill || !articulacao) return [];
+    const topo = this.quill.root.getBoundingClientRect().top + 1;
+    let linha: EtaContainerTable | undefined = this.quill.getPrimeiraLinha();
+    while (linha && (linha.domNode as HTMLElement).getBoundingClientRect().bottom <= topo) {
+      linha = linha.next as EtaContainerTable | undefined;
+    }
+    for (; linha; linha = linha.prev as EtaContainerTable | undefined) {
+      try {
+        const dispositivo = getDispositivoFromElemento(articulacao, linha.elemento);
+        if (dispositivo) return getCadeiaAgrupadores(dispositivo);
+      } catch (error) {
+        // Linha sem dispositivo correspondente: tenta a anterior.
+      }
+    }
+    return [];
+  }
+
+  // Só a rolagem do usuário exibe o indicador; a feita por código (carga, cursor levado a um dispositivo) não.
+  private onRolagemTexto = (): void => {
+    this.agendarAtualizacaoIndicadorAgrupador();
+    if (this.ponteiroNaBarraDeRolagem || performance.now() <= this.fimInteracaoRolagem) {
+      this._indicadorAgrupadorVisivel = true;
+      clearTimeout(this.timerOcultarIndicadorAgrupador);
+      this.timerOcultarIndicadorAgrupador = setTimeout(() => (this._indicadorAgrupadorVisivel = false), TEMPO_INDICADOR_AGRUPADOR_MS);
+    }
+  };
+
+  private registrarInteracaoDeRolagem = (ev: Event): void => {
+    if (ev instanceof KeyboardEvent && !TECLAS_DE_ROLAGEM.has(ev.key)) return;
+    this.fimInteracaoRolagem = performance.now() + MARGEM_INTERACAO_ROLAGEM_MS;
+  };
+
+  // Na barra de rolagem o alvo é o próprio .ql-editor; o clique no texto cai num filho.
+  private onPointerdownTexto = (ev: Event): void => {
+    if (ev.target !== this.quill.root) return;
+    this.ponteiroNaBarraDeRolagem = true;
+    window.addEventListener('pointerup', this.onPointerupJanela, { once: true });
+  };
+
+  private onPointerupJanela = (): void => {
+    this.ponteiroNaBarraDeRolagem = false;
+  };
+
+  private ocultarIndicadorAgrupador(): void {
+    clearTimeout(this.timerOcultarIndicadorAgrupador);
+    this._indicadorAgrupadorVisivel = false;
+  }
+
+  private configurarListenersIndicadorAgrupador(adicionar: boolean): void {
+    const root = this.quill.root;
+    const passivo = { passive: true };
+    if (adicionar) {
+      root.addEventListener('scroll', this.onRolagemTexto, passivo);
+      root.addEventListener('wheel', this.registrarInteracaoDeRolagem, passivo);
+      root.addEventListener('touchmove', this.registrarInteracaoDeRolagem, passivo);
+      root.addEventListener('keydown', this.registrarInteracaoDeRolagem);
+      root.addEventListener('pointerdown', this.onPointerdownTexto);
+    } else {
+      root.removeEventListener('scroll', this.onRolagemTexto);
+      root.removeEventListener('wheel', this.registrarInteracaoDeRolagem);
+      root.removeEventListener('touchmove', this.registrarInteracaoDeRolagem);
+      root.removeEventListener('keydown', this.registrarInteracaoDeRolagem);
+      root.removeEventListener('pointerdown', this.onPointerdownTexto);
+    }
+  }
+
   private processarStateEvents(ui: any): void {
     const events: StateEvent[] = ui.events;
+    this.cursorPosicionadoPelaExclusao = false;
     const ultimoEventoElementoSelecionado = events.filter((ev: StateEvent) => ev.stateType === StateType.ElementoSelecionado).slice(-1)[0];
     // Transformações (TAB) preservam o UUID, gerando inclusão e remoção no mesmo lote.
     // Ignora a remoção no DOM para não apagar a linha recém-atualizada, mas o UUID segue no evento para o undo/redo.
@@ -1051,9 +1175,12 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
           this.atualizarMensagemQuill(event);
           break;
 
-        case StateType.ElementoMarcado:
-          setTimeout(() => this.marcarLinha(event), 0);
+        case StateType.ElementoMarcado: {
+          // O ElementoMarcado de uma exclusão em revisão (primeiro filho do agrupador) desfaria o cursor já posicionado.
+          const cursorPosicionadoPelaExclusao = this.cursorPosicionadoPelaExclusao;
+          setTimeout(() => !cursorPosicionadoPelaExclusao && this.marcarLinha(event), 0);
           break;
+        }
 
         case StateType.SituacaoElementoModificada: {
           const eventoSemLinhasARecriar = this.semLinhasARecriar(event, uuidsIncluidosNoLote);
@@ -1124,6 +1251,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
       this.timerIndicadoresComentario = setTimeout(() => this.atualizarIndicadoresComentario(), 0);
     }
     this.atualizarStatusBotoesRevisao();
+    this.agendarAtualizacaoIndicadorAgrupador();
 
     // Os eventos que estão no array abaixo devem emitir um custom event "ontextchange"
     const eventosQueDevemEmitirTextChange = [StateType.ElementoModificado, StateType.ElementoIncluido, StateType.ElementoRemovido, StateType.ElementoRenumerado];
@@ -1388,6 +1516,7 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
   private removerLinhaQuill(event: StateEvent, uuidsParaIgnorar?: Set<number | undefined>): void {
     const elementos: Elemento[] = event.elementos ?? [];
     let linha: EtaContainerTable | undefined;
+    let linhaExcluidaMantida: EtaContainerTable | undefined;
     const linhaSeguinte = event.cursorNaLinhaSeguinte ? this.getLinhaDepoisDosElementos(elementos) : undefined;
 
     elementos.forEach((elemento: Elemento, index) => {
@@ -1403,6 +1532,9 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         if (elemento.revisao && (!linha.elemento.revisao || !isRevisaoDeExclusaoOuTransformacao)) {
           linha.atualizarElemento(elemento);
           index === 0 && this.montarMenuContexto(event);
+          if (index === 0 && isRevisaoDeExclusao(elemento.revisao as RevisaoElemento)) {
+            linhaExcluidaMantida = linha;
+          }
         } else {
           linha.remove();
         }
@@ -1412,7 +1544,13 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     const range = this.quill.getSelection();
     let editavelSeguinte = linhaSeguinte;
     while (editavelSeguinte && !editavelSeguinte.editavel) editavelSeguinte = editavelSeguinte.next as EtaContainerTable | undefined;
-    if (range && editavelSeguinte?.domNode.isConnected) {
+    if (event.cursorNaLinhaSeguinte && linhaExcluidaMantida?.domNode.isConnected && range) {
+      // Em revisão a linha excluída continua na tela, marcada: o foco permanece nela (#1105).
+      this.cursorPosicionadoPelaExclusao = true;
+      this.quill.setSelection(this.quill.getIndex(linhaExcluidaMantida.blotConteudo), 0, PrivateQuill.sources.SILENT);
+      this.quill.desmarcarLinhaAtual(this.quill.linhaAtual);
+      this.quill.marcarLinhaAtual(linhaExcluidaMantida);
+    } else if (range && editavelSeguinte?.domNode.isConnected) {
       this.quill.setSelection(this.quill.getIndex(editavelSeguinte.blotConteudo), 0, PrivateQuill.sources.SILENT);
       this.quill.marcarLinhaAtual(editavelSeguinte);
     } else if (range) {
@@ -1548,6 +1686,10 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this._remissaoPopup = criarPopup();
     document.body.appendChild(this._remissaoPopup);
     this.quill.on('selection-change', this.onSelectionChange);
+    this.configurarListenersIndicadorAgrupador(true);
+    // Cobre redimensionamento e o editor passar de oculto a visível (troca de aba).
+    this.observadorTamanhoEditor = new ResizeObserver(this.agendarAtualizacaoIndicadorAgrupador);
+    this.observadorTamanhoEditor.observe(this.quill.root);
     this.inscricoes.push(this.quill.keyboard.operacaoTecladoInvalida.subscribe(this.onOperacaoInvalida.bind(this)));
     this.inscricoes.push(this.quill.keyboard.adicionaElementoTeclaEnter.subscribe(this.adicionarElemento.bind(this)));
     this.inscricoes.push(this.quill.keyboard.moveElemento.subscribe(this.moverElemento.bind(this)));
@@ -1920,6 +2062,8 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
         concluirCarregamento();
       }
       this.atualizarIndicadoresComentario();
+      this.ocultarIndicadorAgrupador();
+      this.agendarAtualizacaoIndicadorAgrupador();
       !isMudancaDePagina && this.quill.limparHistory();
       if (elementos.length > 1) {
         setTimeout(() => {
@@ -2055,8 +2199,19 @@ export class EditorComponent extends connect(rootStore)(LitElement) {
     this.getHtmlElement('lx-eta-buffer')!.innerHTML = '';
     if (this.quill) {
       this.quill.off('selection-change', this.onSelectionChange);
+      this.configurarListenersIndicadorAgrupador(false);
       this.quill.destroi();
     }
+    this.observadorTamanhoEditor?.disconnect();
+    this.observadorTamanhoEditor = undefined;
+    if (this.quadroIndicadorAgrupador !== undefined) {
+      cancelAnimationFrame(this.quadroIndicadorAgrupador);
+      this.quadroIndicadorAgrupador = undefined;
+    }
+    this.ocultarIndicadorAgrupador();
+    window.removeEventListener('pointerup', this.onPointerupJanela);
+    this.ponteiroNaBarraDeRolagem = false;
+    this._cadeiaAgrupadores = [];
     this._quill = undefined;
   }
 

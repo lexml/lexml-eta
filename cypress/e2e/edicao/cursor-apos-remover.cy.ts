@@ -67,26 +67,27 @@ const cursorNoInicioDe = (texto: string): void => {
   });
 };
 
-describe('Cursor depois de excluir um dispositivo (#1074, #1075)', () => {
-  beforeEach(() => {
-    cy.visit('/');
-    // Preâmbulo da fixture e os Arts. 1º a 4º, só com caput.
-    cy.readFile('demo/doc/teste_opcoes_impressao.json').then(documento => {
-      const articulacao = documento.value.projetoNorma.norma.articulacao;
-      const modelo = JSON.stringify(articulacao.lXhier[0]);
-      articulacao.lXhier = TEXTOS.map((texto, i) => {
-        const artigo = JSON.parse(modelo.split('art1').join(`art${i + 1}`));
-        artigo.value.rotulo = `Art. ${i + 1}º`;
-        artigo.value.lXcontainersOmissis = artigo.value.lXcontainersOmissis.slice(0, 1);
-        artigo.value.lXcontainersOmissis[0].value.p[0].content = [texto];
-        return artigo;
-      });
-      cy.get('#fileUpload').selectFile({ contents: Cypress.Buffer.from(JSON.stringify(documento)), fileName: 'cursor.json' }, { force: true });
+const abrirDocumentoComArtigos = (): void => {
+  cy.visit('/');
+  // Preâmbulo da fixture e os Arts. 1º a 4º, só com caput.
+  cy.readFile('demo/doc/teste_opcoes_impressao.json').then(documento => {
+    const articulacao = documento.value.projetoNorma.norma.articulacao;
+    const modelo = JSON.stringify(articulacao.lXhier[0]);
+    articulacao.lXhier = TEXTOS.map((texto, i) => {
+      const artigo = JSON.parse(modelo.split('art1').join(`art${i + 1}`));
+      artigo.value.rotulo = `Art. ${i + 1}º`;
+      artigo.value.lXcontainersOmissis = artigo.value.lXcontainersOmissis.slice(0, 1);
+      artigo.value.lXcontainersOmissis[0].value.p[0].content = [texto];
+      return artigo;
     });
-    cy.getContainerArtigoByNumero(4).should('exist');
-    cy.wait(1000);
+    cy.get('#fileUpload').selectFile({ contents: Cypress.Buffer.from(JSON.stringify(documento)), fileName: 'cursor.json' }, { force: true });
   });
+  cy.getContainerArtigoByNumero(4).should('exist');
+  cy.wait(1000);
+};
 
+describe('Cursor depois de excluir um dispositivo (#1074, #1075)', () => {
+  beforeEach(abrirDocumentoComArtigos);
   (['Ctrl+D', 'menu'] as Modo[]).forEach(modo => {
     it(`${modo}: excluir o Art. 1º leva o cursor ao início do texto do novo Art. 1º`, () => {
       remover(1, modo);
@@ -102,5 +103,117 @@ describe('Cursor depois de excluir um dispositivo (#1074, #1075)', () => {
       remover(4, modo);
       cursorNoInicioDe(TEXTOS[2]);
     });
+  });
+});
+
+const linhasAtivas = (win: any): Element[] => Array.from(win.document.querySelectorAll('.container__elemento--ativo'));
+
+const todasAsLinhas = (quill: any): any[] => {
+  const lista: any[] = [];
+  for (let linha = quill.getPrimeiraLinha(); linha; linha = linha.next) lista.push(linha);
+  return lista;
+};
+
+const excluirPelaTecla = (modo: Modo, artigo: number): void => {
+  clicarNoTexto(artigo);
+  if (modo === 'menu') removerPeloMenu(artigo);
+  else cy.then(() => teclaNativa(TECLA_D, CTRL));
+};
+
+// #1105: em revisão a linha excluída continua na tela, marcada como excluída, e o foco permanece nela.
+describe('Cursor depois de excluir em modo de revisão (#1105)', () => {
+  beforeEach(() => {
+    abrirDocumentoComArtigos();
+    cy.ativarRevisaoDispositivo();
+  });
+
+  (['Ctrl+D', 'menu'] as Modo[]).forEach(modo => {
+    it(`${modo}: excluir o Art. 2º deixa o cursor na linha excluída, a única marcada`, () => {
+      excluirPelaTecla(modo, 2);
+
+      cy.window().should(win => {
+        const quill = getQuill(win);
+        const linha = artigos(quill)[1];
+        expect(artigos(quill), 'a linha excluída continua na tela').to.have.length(TEXTOS.length);
+        expect(quill.linhaAtual === linha, 'linha atual é o Art. 2º excluído').to.be.true;
+        expect(quill.getSelection()?.index).to.equal(quill.getIndex(linha.blotConteudo));
+        expect(linhasAtivas(win)).to.deep.equal([linha.domNode]);
+      });
+    });
+
+    it(`${modo}: excluir o Art. 4º, o último, deixa o cursor na linha excluída`, () => {
+      excluirPelaTecla(modo, 4);
+
+      cy.window().should(win => {
+        const quill = getQuill(win);
+        const linha = artigos(quill)[3];
+        expect(artigos(quill), 'a linha excluída continua na tela').to.have.length(TEXTOS.length);
+        expect(quill.linhaAtual === linha, 'linha atual é o Art. 4º excluído').to.be.true;
+        expect(linhasAtivas(win)).to.deep.equal([linha.domNode]);
+      });
+    });
+  });
+
+  it('excluir um artigo adicionado na própria revisão leva o cursor ao artigo seguinte', () => {
+    cy.getContainerArtigoByNumero(2).selecionarOpcaoDeMenuDoDispositivo('Adicionar artigo depois');
+    cy.window().should(win => expect(artigos(getQuill(win))).to.have.length(TEXTOS.length + 1));
+
+    cy.then(() => teclaNativa(TECLA_D, CTRL));
+
+    cy.window().should(win => {
+      const quill = getQuill(win);
+      expect(artigos(quill), 'a linha do artigo adicionado saiu da tela').to.have.length(TEXTOS.length);
+      const terceiro = artigos(quill)[2];
+      expect(textoDe(terceiro)).to.equal(TEXTOS[2]);
+      expect(quill.linhaAtual === terceiro, 'cursor no Art. 3º original').to.be.true;
+    });
+  });
+});
+
+describe('Cursor depois de excluir em modo de revisão, na MPV 905 (#1105)', () => {
+  beforeEach(() => {
+    cy.visit('/');
+    cy.novaProposicao('mpv_905_2019', { naoMostrarExplicacaoSufixo: true });
+    cy.getContainerArtigoByNumero(1).should('exist');
+    cy.wait(1000);
+    cy.ativarRevisaoDispositivo();
+  });
+
+  const clicarNaLinha = (tipo: string): void => {
+    cy.window().then(win => {
+      const linha = todasAsLinhas(getQuill(win)).find(l => l.tipo === tipo);
+      expect(!!linha, `linha do tipo ${tipo}`).to.be.true;
+      const r = (linha.blotConteudo.domNode as HTMLElement).getBoundingClientRect();
+      return cliqueNativo(win, r.left + 20, r.top + r.height / 2);
+    });
+  };
+
+  // A linha excluída fica na tela e é a única marcada como atual.
+  const linhaExcluidaEAtual = (tipo: string): void => {
+    cy.window().should(win => {
+      const quill = getQuill(win);
+      const linha = todasAsLinhas(quill).find(l => l.tipo === tipo);
+      expect(linha.domNode.isConnected, 'a linha excluída continua na tela').to.be.true;
+      expect(quill.linhaAtual === linha, `linha atual é a do tipo ${tipo}`).to.be.true;
+      expect(linhasAtivas(win)).to.deep.equal([linha.domNode]);
+    });
+  };
+
+  it('excluir o parágrafo único do Art. 1º deixa a linha excluída como linha atual, e não o dispositivo seguinte', () => {
+    clicarNaLinha('Paragrafo');
+    cy.window().should(win => expect(getQuill(win).linhaAtual.tipo).to.equal('Paragrafo'));
+
+    cy.then(() => teclaNativa(TECLA_D, CTRL));
+
+    linhaExcluidaEAtual('Paragrafo');
+  });
+
+  it('excluir um capítulo deixa a linha do capítulo como linha atual, e não o primeiro dispositivo dele', () => {
+    clicarNaLinha('Capitulo');
+    cy.window().should(win => expect(getQuill(win).linhaAtual.tipo).to.equal('Capitulo'));
+
+    cy.then(() => teclaNativa(TECLA_D, CTRL));
+
+    linhaExcluidaEAtual('Capitulo');
   });
 });

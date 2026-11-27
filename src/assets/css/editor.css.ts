@@ -670,6 +670,66 @@ export const editorStyles = html`
       padding: 0;
     }
 
+    .lx-eta-area-texto {
+      position: relative;
+    }
+
+    /* Agrupador do topo da área de texto (#1080): flutuante, some 3 s depois da última rolagem. */
+    .indicador-agrupador {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 2px 4px;
+      width: max-content;
+      max-width: calc(100% - 24px);
+      box-sizing: border-box;
+      padding: 3px 12px 3px 10px;
+      border: 1px solid #ccc;
+      border-radius: 20px;
+      background-color: #fff;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      font-size: 13px;
+      pointer-events: none;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.4s ease, visibility 0s linear 0.4s;
+    }
+
+    .indicador-agrupador--visivel {
+      opacity: 1;
+      visibility: visible;
+      transition: opacity 0.2s ease;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .indicador-agrupador,
+      .indicador-agrupador--visivel {
+        transition: none;
+      }
+    }
+
+    .indicador-agrupador__icone {
+      flex: none;
+      width: 14px;
+      height: 14px;
+      color: #666;
+    }
+
+    .indicador-agrupador__nivel {
+      color: #1f4f8f;
+      font-weight: bold;
+    }
+
+    .indicador-agrupador__separador {
+      color: #999;
+    }
+
     @media (max-width: 768px) {
       .mobile-buttons {
         display: inline-block !important;

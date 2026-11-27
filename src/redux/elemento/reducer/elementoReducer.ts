@@ -102,7 +102,8 @@ import { MARCAR_REMISSAO_PENDENTE_REVISAO, MARCAR_REMISSAO_REVISADA } from '../.
 import { marcarRemissaoPendenteRevisao, marcarRemissaoRevisada } from './marcarRemissaoRevisao';
 import { EXCLUIR_REMISSAO_MANUAL } from '../../../model/lexml/acao/excluirRemissaoManualAction';
 import { excluirRemissaoManual } from './excluirRemissaoManual';
-import { sincronizarNumeracaoRepetida } from './sincronizarNumeracaoRepetida';
+import { sincronizarNumeracaoIrregular } from './sincronizarNumeracaoRepetida';
+import { retiraRemoverDoMenuQuandoImpedido } from './retiraRemoverDoMenuQuandoImpedido';
 
 export const elementoReducer = (state = {}, action: any): any => {
   let tempState: State;
@@ -114,7 +115,7 @@ export const elementoReducer = (state = {}, action: any): any => {
   let numEventosPassadosAntesDaRevisao = (state as State).numEventosPassadosAntesDaRevisao || 0;
   const paginacao = (state as State).ui?.paginacao;
   const remissoes = (state as State).remissoes;
-  const numeracaoRepetidaAnterior = (state as State).numeracaoRepetida;
+  const numeracaoIrregularAnterior = (state as State).numeracaoIrregular;
 
   preencherUuid2DasRemissoes(state as State, action.type);
 
@@ -316,10 +317,11 @@ export const elementoReducer = (state = {}, action: any): any => {
   }
 
   tempState = atualizaMensagemCritical(tempState);
-  tempState = sincronizarNumeracaoRepetida(tempState, numeracaoRepetidaAnterior, action.type);
+  tempState = sincronizarNumeracaoIrregular(tempState, numeracaoIrregularAnterior, action.type);
   tempState = atualizaRevisao(tempState, actionType);
   tempState = sincronizarRemissoesPosAcao(tempState, actionType);
   tempState = adicionaDiffMenuOpcoes(tempState);
+  tempState = retiraRemoverDoMenuQuandoImpedido(tempState);
   return marcaCursorNaLinhaSeguinte(atualizaPaginacao(tempState, action), action);
 };
 

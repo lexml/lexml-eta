@@ -32,6 +32,29 @@ export const novoDocumentoArticulado = (): any => {
 
 export const TEXTO_LITERAL = 'Texto "entre aspas": A & B, 1 < 2 > 0, <b>literal</b> e &amp; escrito.';
 
+const NS_LEXML = 'http://www.lexml.gov.br/1.0';
+const TYPE_NAME_DISPOSITIVO = 'br_gov_lexml__1.DispositivoType';
+
+/** Documento só com artigos de rótulo, id e texto livres (para numeração irregular); o texto vira o do caput. */
+export const novoDocumentoComArtigos = (artigos: { rotulo: string; id: string; texto?: string }[]): any => {
+  const documento = novoDocumentoArticulado();
+  documento.value.projetoNorma.norma.articulacao.lXhier = artigos.map(({ rotulo, id, texto }) => ({
+    name: { namespaceURI: NS_LEXML, localPart: 'Artigo' },
+    value: {
+      TYPE_NAME: TYPE_NAME_DISPOSITIVO,
+      id,
+      rotulo,
+      lXcontainersOmissis: [
+        {
+          name: { namespaceURI: NS_LEXML, localPart: 'Caput' },
+          value: { TYPE_NAME: TYPE_NAME_DISPOSITIVO, id: `${id}_cpt`, p: [{ TYPE_NAME: 'br_gov_lexml__1.GenInline', content: [texto ?? `Texto do ${rotulo}`] }] },
+        },
+      ],
+    },
+  }));
+  return documento;
+};
+
 export const novoDocumentoComTextoLiteral = (): any => {
   const documento = novoDocumentoArticulado();
   const norma = documento.value.projetoNorma.norma;

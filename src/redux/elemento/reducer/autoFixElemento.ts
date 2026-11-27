@@ -15,7 +15,7 @@ import {
 } from '../../../model/lexml/hierarquia/hierarquiaUtil';
 import { TipoDispositivo } from '../../../model/lexml/tipo/tipoDispositivo';
 import { RemissaoExternaValue } from '../../../model/remissao';
-import { AutoFix } from '../../../model/lexml/util/mensagem';
+import { AUTOFIX_NUMERACAO_IRREGULAR, AutoFix } from '../../../model/lexml/util/mensagem';
 import { State, StateEvent, StateType } from '../../state';
 import { Eventos } from '../evento/eventos';
 import { buildEventoAtualizacaoElemento, buildUpdateEvent } from '../evento/eventosUtil';
@@ -44,9 +44,9 @@ const snapshot = (dispositivo: Dispositivo): { dispositivo: Dispositivo; origina
     .map(d => createElemento(d)),
 });
 
-// Renumera o grupo e guarda no histórico o estado anterior (par antes/depois), como a renumeração manual: desfazer restaura a repetição.
-const corrigeNumeracaoRepetida = (state: any, atual: Dispositivo | undefined): State => {
-  const oferecida = atual && validaDispositivo(atual).some(m => m.descricao === AutoFix.NUMERACAO_REPETIDA && m.fix);
+// Renumera o grupo e guarda no histórico o estado anterior (par antes/depois), como a renumeração manual: desfazer restaura a irregularidade.
+const corrigeNumeracaoIrregular = (state: any, atual: Dispositivo | undefined): State => {
+  const oferecida = atual && validaDispositivo(atual).some(m => AUTOFIX_NUMERACAO_IRREGULAR.includes(m.descricao ?? '') && m.fix);
   if (!atual || !oferecida) {
     state.ui.events = [];
     return state;
@@ -133,9 +133,9 @@ export const autoFixElemento = (state: any, action: any): State => {
     return corrigeNormaAlteradaDivergente(state, uuid === undefined ? atual : getDispositivoFromElemento(state.articulacao, { uuid }, true), urn);
   }
 
-  if (action.mensagem?.descricao === AutoFix.NUMERACAO_REPETIDA) {
+  if (AUTOFIX_NUMERACAO_IRREGULAR.includes(action.mensagem?.descricao)) {
     // Mensagem só calculada na validação: não está em dispositivo.mensagens, então não passa pela guarda hasFix.
-    return corrigeNumeracaoRepetida(state, atual);
+    return corrigeNumeracaoIrregular(state, atual);
   }
 
   if (atual === undefined || !hasFix(atual)) {
