@@ -13,7 +13,8 @@ import { TECLA_ENTER, cliqueNativo, teclaNativa } from '../../support/eventos-na
 const FIXTURE = 'demo/doc/teste_numeracao_repetida.json';
 const FIXTURE_ULTIMO = 'demo/doc/teste_numeracao_repetida_ultimo.json';
 const ERRO = 'Dispositivo com numeração repetida';
-const ALERTA = 'Existem dispositivos com numeração repetida.';
+const ERRO_LACUNA = 'Dispositivo com lacuna na numeração';
+const ALERTA = 'Existem dispositivos com numeração irregular.';
 
 const SEL_ARTIGO = 'div.container__elemento.elemento-tipo-artigo';
 const artigo = (indice: number): Cypress.Chainable<JQuery<HTMLElement>> => cy.get(SEL_ARTIGO).eq(indice);
@@ -76,12 +77,14 @@ describe('Abertura de documento com numeração repetida', () => {
       cy.get(SEL_ARTIGO).should('have.length', 3);
     });
 
-    it('exibe o alerta global e o erro só no segundo "Art. 5º"', () => {
+    it('exibe o alerta global, a lacuna no primeiro "Art. 5º" e o erro de repetição só no segundo', () => {
       cy.get('lexml-eta-alertas').should($el => expect($el[0].shadowRoot?.textContent ?? '').to.include(ALERTA));
       cy.get('lexml-eta-alertas').shadow().find('sl-alert').contains(ALERTA).find('.alert__close-button').should('not.exist');
 
-      artigo(0).find('div.mensagem').should('not.exist');
-      artigo(1).find('div.mensagem').should('contain.text', ERRO);
+      // O grupo de artigos começa em 5 (o esperado é 1): o primeiro tem lacuna; no segundo, a repetição prevalece sobre ela.
+      artigo(0).find('div.mensagem').should('contain.text', ERRO_LACUNA).and('not.contain.text', ERRO);
+      artigo(1).find('div.mensagem').should('contain.text', ERRO).and('not.contain.text', ERRO_LACUNA);
+      // O "Art. 6º" continua a sequência a partir do maior número anterior: sem erro.
       artigo(2).find('div.mensagem').should('not.exist');
       // Os incisos do segundo artigo repetem o id só por herança: não recebem o erro.
       cy.get('div.container__elemento.elemento-tipo-inciso').should('have.length', 2).find('div.mensagem').should('not.exist');
